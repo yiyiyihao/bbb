@@ -27,9 +27,11 @@ body{ background:#f5f5f5;}
 .nav-right li a{ padding:0 20px;}
 .nav-inline li a{font-size:16px; display:inline-block;line-height:50px;}
 .nav-inline .nav-a-list{ position:absolute; right:0; top:50px; z-index:10000; background:#fff; border:1px solid #ccc; border-top:none; border-radius:0 0 5px 5px; width:0; overflow:hidden; display:none;}
-.nav-inline .nav-a-list a{ color:#666;}
+.nav-inline .nav-a-list a{ color:#666; font-size:13px;}
+.nav-inline .nav-a-list [class*='icon-']:before{ margin-right:5px;}
 .nav-inline li.nav-item:hover .nav-a-list{ width:100%; display:block;}
 .nav-inline li.nav-item .nav-a-list li:hover{ background:#f6f6f6;}
+.nav-nickname{ min-width:70px; display:inline-block;}
 /* 后台左侧导航 */
 .admin-sidebar {width: 220px;position: fixed;top: 0px;bottom: 0;border-left: none;border-right: none;overflow-y: auto;	background:#333;}
 .admin-sidebar .admin-menu{margin:15px 0px; overflow:hidden;}
