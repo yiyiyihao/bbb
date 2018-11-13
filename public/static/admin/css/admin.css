@@ -63,7 +63,7 @@ body{ background:#f5f5f5;}
 .side-none .nav-inline.nav-left{ left:65px;}
 .side-none .admin-logo img{ display:none;}
 .admin-iframe {width: 100%;height: 100%;margin: 0;padding: 0;overflow: auto;}
-.admin-main{ /*padding:10px 10px 15px;*/}
+.admin-main{ padding:15px;}
 .main-tools {background-color:#fff;border-top: 1px solid #fff;border-bottom: 1px solid #eee;padding: 10px 20px;}
 .main-tools .button{font-size:14px;}
 .bread-head {font-size:16px; display:none;}
@@ -112,7 +112,7 @@ body{ background:#f5f5f5;}
 }
 
 .x1,.x2,.x3,.x4,.x5,.x6,.x7,.x8,.x9,.x10,.x11,.x12,.xl1,.xl2,.xl3,.xl4,.xl5,.xl6,.xl7,.xl8,.xl9,.xl10,.xl11,.xl12,.xs1,.xs2,.xs3,.xs4,.xs5,.xs6,.xs7,.xs8,.xs9,.xs10,.xs11,.xs12,.xm1,.xm2,.xm3,.xm4,.xm5,.xm6,.xm7,.xm8,.xm9,.xm10,.xm11,.xm12,.xb1,.xb2,.xb3,.xb4,.xb5,.xb6,.xb7,.xb8,.xb9,.xb10,.xb11,.xb12{position:relative;min-height:1px;}
-.line-big{ margin:0 10px 15px;}
+.line-big{ margin:0;}
 .line-big .x1,.line-big .x2,.line-big .x3,.line-big .x4,.line-big .x5,.line-big .x6,.line-big .x7,.line-big .x8,.line-big .x9,.line-big .x10,.line-big .x11,.line-big .x12,
 .line-big .xl1,.line-big .xl2,.line-big .xl3,.line-big .xl4,.line-big .xl5,.line-big .xl6,.line-big .xl7,.line-big .xl8,.line-big .xl9,.line-big .xl10,.line-big .xl11,.line-big .xl12,
 .line-big .xs1,.line-big .xs2,.line-big .xs3,.line-big .xs4,.line-big .xs5,.line-big .xs6,.line-big .xs7,.line-big .xs8,.line-big .xs9,.line-big .xs10,.line-big .xs11,.line-big .xs12,
@@ -167,10 +167,10 @@ body{ background:#f5f5f5;}
 @media (min-width:1000px){
 .lineBox{ margin-right:10px;}
 .lastXm .lineBox{ margin-right:0px;}
-.admin-dashboard { margin-right:15px;}
-.line-big>div:last-child .admin-dashboard{ margin-right:0;}
 }
-.admin-dashboard {}
+.col-space15{ margin:-7.5px;}
+.col-space15 > *{ padding:7.5px;}
+.admin-dashboard { border-radius:5px;}
 .admin-dashboard .media-x{ color:#666; line-height:36px;}
 .admin-dashboard .media-body {
     padding: 15px;
