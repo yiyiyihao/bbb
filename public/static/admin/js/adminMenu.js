@@ -90,7 +90,9 @@ function initMenu(data){
 			})
 		}
 	},function(){
-		layer.closeAll();
+		Do.ready('dialog', function () {		
+			layer.closeAll();
+		})
 	})
 	
 }
