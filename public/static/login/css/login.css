@@ -1,0 +1,7 @@
+body {
+    background-color: #ebebeb;
+    font-family: "Helvetica Neue", "Hiragino Sans GB", Helvetica, "Microsoft YaHei", "微软雅黑", "宋体", Arial, sans-serif;
+}
+.login { position: absolute; top: 50%; width:400px; margin-top: -170px; left: 50%; margin-left: -200px; background:rgba(255,255,255,.15); padding:50px 50px; border-radius:10px; box-shadow:rgba(0,0,0,.2) 0px 0px 50px;}
+.login .input-line label{ color:#666; font-size:16px;}
+.login .button-big{ margin-top:10px; text-align:center; cursor:pointer;}
