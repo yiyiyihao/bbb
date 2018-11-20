@@ -10,15 +10,15 @@ class Menu{
 	public function getAdminMenu(){
 		$menuArr = [
             'index' => [
-                'name' => lang('主页'),
+                'name' => lang('home'),
                 'order' => 0,
                 'icon'  => 'home',
                 'menu' => [
                     'analysis' => [
-                        'name'  => lang('数据汇总'),
+                        'name'  => lang('dashboard'),
                         'list'  => [
                             'index' => [
-                                'name' => lang('首页'),
+                                'name' => lang('dashboard'),
                                 'url' => url('home'),
                                 'order' => 10
                             ],
