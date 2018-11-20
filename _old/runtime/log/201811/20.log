@@ -1,0 +1,142 @@
+---------------------------------------------------------------
+[ 2018-11-20T10:02:08+08:00 ] 127.0.0.1 GET dev.qudao.com/
+[运行时间：0.042000s] [吞吐率：23.81req/s] [内存消耗：1,910.91kb] [文件加载：39]
+[ info ] [ LANG ] D:\wamp64\www\tp5\syscore\lang\zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'dev.qudao.com',
+  'connection' => 'keep-alive',
+  'cache-control' => 'max-age=0',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+  'accept-encoding' => 'gzip, deflate',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'Hm_lvt_7a63a31be82cefdee9308882939ae170=1542678810; _TRACKER_GUID_=8e6f546916627902679ae6faeefbeae3; Hm_lpvt_7a63a31be82cefdee9308882939ae170=1542678851; thinkphp_show_page_trace=0|0; PHPSESSID=70aldt0g7j3885c4307rvv91c3',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\Index->index[ D:\wamp64\www\tp5\appmain\index\controller\Index.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2018-11-20T10:12:34+08:00 ] 127.0.0.1 GET dev.qudao.com/
+[运行时间：0.029000s] [吞吐率：34.48req/s] [内存消耗：1,910.97kb] [文件加载：39]
+[ info ] [ LANG ] D:\wamp64\www\tp5\syscore\lang\zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'dev.qudao.com',
+  'connection' => 'keep-alive',
+  'pragma' => 'no-cache',
+  'cache-control' => 'no-cache',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+  'accept-encoding' => 'gzip, deflate',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'Hm_lvt_7a63a31be82cefdee9308882939ae170=1542678810; _TRACKER_GUID_=8e6f546916627902679ae6faeefbeae3; Hm_lpvt_7a63a31be82cefdee9308882939ae170=1542678851; thinkphp_show_page_trace=0|0; PHPSESSID=70aldt0g7j3885c4307rvv91c3',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\Index->index[ D:\wamp64\www\tp5\appmain\index\controller\Index.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2018-11-20T10:12:34+08:00 ] 127.0.0.1 GET dev.qudao.com/
+[运行时间：0.039000s] [吞吐率：25.64req/s] [内存消耗：1,910.97kb] [文件加载：39]
+[ info ] [ LANG ] D:\wamp64\www\tp5\syscore\lang\zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'dev.qudao.com',
+  'connection' => 'keep-alive',
+  'pragma' => 'no-cache',
+  'cache-control' => 'no-cache',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+  'accept-encoding' => 'gzip, deflate',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'Hm_lvt_7a63a31be82cefdee9308882939ae170=1542678810; _TRACKER_GUID_=8e6f546916627902679ae6faeefbeae3; Hm_lpvt_7a63a31be82cefdee9308882939ae170=1542678851; thinkphp_show_page_trace=0|0; PHPSESSID=70aldt0g7j3885c4307rvv91c3',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\Index->index[ D:\wamp64\www\tp5\appmain\index\controller\Index.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2018-11-20T10:13:15+08:00 ] 127.0.0.1 GET dev.qudao.com/
+[运行时间：0.034000s] [吞吐率：29.41req/s] [内存消耗：1,910.90kb] [文件加载：39]
+[ info ] [ LANG ] D:\wamp64\www\tp5\syscore\lang\zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'dev.qudao.com',
+  'connection' => 'keep-alive',
+  'cache-control' => 'max-age=0',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+  'accept-encoding' => 'gzip, deflate',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'Hm_lvt_7a63a31be82cefdee9308882939ae170=1542678810; _TRACKER_GUID_=8e6f546916627902679ae6faeefbeae3; Hm_lpvt_7a63a31be82cefdee9308882939ae170=1542678851; thinkphp_show_page_trace=0|0; PHPSESSID=70aldt0g7j3885c4307rvv91c3',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\Index->index[ D:\wamp64\www\tp5\appmain\index\controller\Index.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2018-11-20T10:13:16+08:00 ] 127.0.0.1 GET dev.qudao.com/
+[运行时间：0.036000s] [吞吐率：27.78req/s] [内存消耗：1,910.90kb] [文件加载：39]
+[ info ] [ LANG ] D:\wamp64\www\tp5\syscore\lang\zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'dev.qudao.com',
+  'connection' => 'keep-alive',
+  'cache-control' => 'max-age=0',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+  'accept-encoding' => 'gzip, deflate',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'Hm_lvt_7a63a31be82cefdee9308882939ae170=1542678810; _TRACKER_GUID_=8e6f546916627902679ae6faeefbeae3; Hm_lpvt_7a63a31be82cefdee9308882939ae170=1542678851; thinkphp_show_page_trace=0|0; PHPSESSID=70aldt0g7j3885c4307rvv91c3',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\Index->index[ D:\wamp64\www\tp5\appmain\index\controller\Index.php ]
+[ info ] [ LOG ] INIT File

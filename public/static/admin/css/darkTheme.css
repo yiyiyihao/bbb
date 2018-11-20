@@ -1,0 +1,40 @@
+.darkContent{ background:#000 url(../img/darkbg.jpg) no-repeat; background-size: cover; position:absolute; left:0; top:0; width:100%; min-height:100%; color:#bababa;}
+.darkbox{background:rgba(10, 10, 24, 0.5);height:31vh; position:relative; border:3px solid rgba(26,57,90,.5)}
+.darkbox i{ position:absolute;display:inline-block;background-size:contain; background-repeat:no-repeat;}
+.darkbox i.boxLeftTop{ left:-3px; top:-3px; background-image:url(../img/lefttopbg.png);width:15vw; height:3vh; }
+.darkbox i.boxLeftBottom{ left:-4px; bottom:-4px;background-image:url(../img/leftbottombg.png);width:3vw; height:4vh;}
+.darkbox i.boxRightTop{ right:-3px; top:-4px;background-image:url(../img/righttopbg.png);width:3vw; height:5vh; background-position:right top;}
+.darkbox i.boxRightBottom{right:-4px; bottom:-4px;background-image:url(../img/rightbottombg.png);width:3vw; height:4vh;background-position:right bottom;}
+.darkbox .boxHead{ color:#21c9f8; font-size:1.3vw;padding:0 1.5vw; line-height:6vh; font-weight:bold; }
+.contentHead{ height:10vh;background:url(../img/headerbg.jpg) no-repeat; background-size: cover; background-position:center top; overflow:hidden;}
+.logoBox{ float:left; margin-left:3vw; height:6vh; margin:1vh 0 2vh 3vw;}
+.logoBox img{ float:left; height:100%;}
+.logoBox span{ line-height:6vh; margin-left:1vw; font-size:1.7vw; font-weight:bold;}
+.contentHead .headText{ width:30vw; margin:1vh auto; text-align:center; line-height:6vh; font-size:2.2vw; font-weight:bold;}
+.headRight{ float:right; margin:1vh 4vw 0 0; font-size:1vw; width:20vw;}
+.headRight .dateBox{ float:right; text-align:right; width:8vw;}
+.headRight .timeBox{ font-size:1.8vw; text-align:center; font-weight:bold; line-height:6vh;}
+.contentMain{position:fixed; top:10vh; bottom:5vh; left:0; right:0; width:100%;}
+.contentMain .contentMainWrap{}
+.personBox{ float:left; width:20vw; height:100%; margin-left:3vw;}
+.personnum{margin:1.5vh 1.5vw; text-align:center;border:3px solid rgba(208,232,240,0.1);}
+.personnum .borderIn{border:3px solid rgba(208,232,240,0.1); padding:1vh 1vw;}
+.personnum .borderIn p{color:#fff;}
+.personnum .borderIn p span{ font-size:3vw;}
+.personnum .borderIn p.text{ color:#6d767f;}
+.personnum .numborder{ border:1px solid #21c9f8;}
+.chartBox{ float:left; width:71vw; margin-left:2vw; margin-top:4vh; height:50vh;}
+.dataBox{ float:left; width:18vw; margin-left:2vw;}
+.ageBox{ float:left; width:31vw; margin-left:2vw;}
+
+.dataContent{ padding:15px;}
+.dataContent p{ line-height:40px;}
+
+.personList{ padding:1vh 1.5vw; height:100%; overflow:hidden;}
+.personList .personMain{ border-bottom:1px solid #1d3b6d; padding-bottom:2vh; margin-top:15px; font-size:12px;}
+.personList .personMain:first-child{ margin-top:0;}
+.personList .personMain .faceImg{ width:50px; height:50px; display:inline-block; float:left;}
+.personList .personMain .faceImg img{ width:100%; border-radius:3px;}
+.personList .personMain .personInfo{ margin-left:60px;}
+
+.contentFoot{}
