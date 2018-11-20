@@ -70,12 +70,12 @@ function initMenu(data){
 	$('.admin-head').on('click','.sideflag',function(){
 		if($("body").hasClass("side-none")){
 			$("body").removeClass("side-none");
-			$(this).find("span").removeClass('icon-toright');
-			$(this).find("span").addClass('icon-toleft');
+			//$(this).find("span").removeClass('icon-toright');
+			//$(this).find("span").addClass('icon-toleft');
 		}else{			
 			$("body").addClass("side-none");
-			$(this).find("span").removeClass('icon-toleft');
-			$(this).find("span").addClass('icon-toright');
+			//$(this).find("span").removeClass('icon-toleft');
+			//$(this).find("span").addClass('icon-toright');
 		}
 	})
 	$('.admin-sidebar').on('click','#siderbar-nav',function(){

@@ -14,6 +14,8 @@
 .icon-sale:before { content: "\e78b"; }
 .icon-toleft:before { content: "\e62c"; }
 .icon-toright:before { content: "\e62d"; }
+.icon-list:before { content: "\e637"; }
+.icon-list-square:before { content: "\e600"; }
 .icon-message-squre:before { content: "\e669"; }
 .icon-edit-normal:before { content: "\e66a"; }
 .icon-pay-setting:before { content: "\e66b"; }
@@ -30,7 +32,7 @@
 .icon-bag:before { content: "\e676"; }
 .icon-ticket-list:before { content: "\e677"; }
 .icon-info-list:before { content: "\e678"; }
-.icon-list:before { content: "\e679"; }
+.icon-list-book:before { content: "\e679"; }
 .icon-ticket:before { content: "\e67a"; }
 .icon-money:before { content: "\e67b"; }
 .icon-wholesale:before { content: "\e67c"; }
@@ -49,6 +51,7 @@
 .icon-close:before { content: "\e626"; }
 .icon-top:before { content: "\e627"; }
 .icon-chart-line:before { content: "\e682"; }
+.icon-chear:before { content: "\e607"; }
 .icon-chart:before { content: "\e60a"; }
 .icon-user-group:before { content: "\e60b"; }
 .icon-user-cirle:before { content: "\e60c"; }
