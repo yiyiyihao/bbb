@@ -30,7 +30,7 @@ class FormBase extends AdminBase
         ];
         $this->infotempfile = 'info';
         $this->indextempfile = '';
-        $this->perPage = 1;
+        $this->perPage = 10;
     }
     /**
      * 内容列表
