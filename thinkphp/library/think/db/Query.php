@@ -1599,7 +1599,13 @@ class Query
                 } elseif (is_null($val)) {
                     $where[] = [$key, 'NULL', ''];
                 } else {
-                    $where[] = [$key, is_array($val) ? 'IN' : '=', $val];
+                    #TODO  UPDATE xiaojun
+//                     $where[] = [$key, is_array($val) ? 'IN' : '=', $val];
+                    if (!is_array($val)) {
+                        $where[] = [$key, '=', $val];
+                    }else{
+                        $where[] = [$val[0], $val[1], $val[2]];
+                    }
                 }
             }
         } else {

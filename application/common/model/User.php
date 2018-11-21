@@ -5,121 +5,193 @@ use think\Model;
 
 class User extends Model
 {
-	protected $fields;
 	public $error;
+	
+	protected $fields;
 
 	//自定义初始化
     protected function initialize()
     {
-        //需要调用`Model`的`initialize`方法
         parent::initialize();
-        //TODO:自定义的初始化
+    }
+    /**
+     * 检查用户ID对应信息是否存在
+     * @param number $userId    用户ID
+     * @param string $groupFlag 是否返回用户管理员分组信息
+     * @return array
+     */
+    public function _checkUser($userId = 0, $groupFlag = FALSE)
+    {
+        $user = db('User')->where(['user_id' => ADMIN_ID, 'is_del' => 0])->find();
+        if (!$user){
+            $this->error = lang('USERNOTEXIST');
+            return FALSE;
+        }
+        if(!$user['status']){
+            $this->error = lang('LOGIN_FORBIDDEN');
+            return FALSE;
+        }
+        if ($groupFlag) {
+            if ($user['group_id'] <= 0) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
+            if (!$group) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            $user['group'] = $group;
+        }
+        return $user;
+    }
+    /**
+     * 用户信息格式检查
+     * @param array $extra
+     * @return boolean
+     */
+    public function _checkFormat($extra = [])
+    {
+        $username = isset($extra['username']) ? trim($extra['username']) : '';
+        $password = isset($extra['password']) ? trim($extra['password']) : '';
+        $phone = isset($extra['phone']) ? trim($extra['phone']) : '';
+        if ($phone == $username) {
+            $exist = $this->where(['username' => $phone, 'is_del' => 0])->find();
+            if ($exist) {
+                $this->error = '手机号已存在';
+                return FALSE;
+            }
+            $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/';
+            if ($phone && !preg_match($pattern, $phone)) {
+                $this->error = '手机号格式错误';
+                return FALSE;
+            }
+        }
+        //检查用户名格式
+        $pattern = '/^[\w]{5,16}$/';
+        if ($username) {
+            $uncheckName = $extra && isset($extra['uncheck_name']) ? $extra['uncheck_name'] : 0;
+            if (!$uncheckName && !preg_match($pattern, $username)) {
+                $this->error = '登录用户名格式:5-16位字符长度,只能由英文数字下划线组成';
+                return FALSE;
+            }
+            //检查登录用户名是否存在
+            $exist = $this->_checkUsername($username);
+            if ($exist) {
+                $this->error = '登录用户名已经存在';
+                return FALSE;
+            }
+        }
+        //检查密码格式
+        $pattern = '/^\w{5,20}$/';
+        if ($password && !preg_match($pattern, $password)) {
+            $this->error = '登录密码格式:长度在5~20之间，只能包含字母、数字和下划线';
+            return FALSE;
+        }
+        $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/';
+        if ($phone && !preg_match($pattern, $phone)) {
+            $this->error = '手机号格式错误';
+            return FALSE;
+        }
+        return TRUE;
+    }
+    /**
+     * 检查登录用户名是否存在
+     * @param string $username
+     * @return number
+     */
+    public function _checkUsername($username = '')
+    {
+        $exist = $this->where(['username' => $username, 'is_del' => 0])->find();
+        return $exist ? 1: 0;
     }
     
     /**
      * 登录用户
-     * @param array $userInfo
-     * @return bool 登录状态
+     * @param string $user
+     * @param number $userId
+     * @return boolean 登录状态
      */
-    public function setLogin($userInfo = FALSE,$user_id = null)
+    public function setLogin($user = FALSE, $userId = 0)
     {
-        if(!$userInfo && !$user_id){
-            $this->error = '参数错误';
-            return false;
-        }
-        if($userInfo){
-            $user_id = $userInfo['user_id'];
-            // 更新登录信息
-            $data = array(
-                'user_id' => $user_id,
-                'last_login_time' => NOW_TIME,
-            );
-            $result = $this->save($data,['user_id' => $user_id]);
-            if ($result === FALSE) {
-                $this->error = '系统异常';
-                return FALSE;
-            }
-        }else {
-            //重新取得用户信息
-            $map = ['user_id' => $user_id];
-            $userInfo = User::where($map)->find()->toArray();
-    		if (!$userInfo) {
-    		    $this->error = '用户不存在或已删除';
-    		    return FALSE;
-    		}
-        }
-        if ($userInfo['group_id'] == USER) {
-            $this->error = '没有登录权限';
+        if(!$user && !$userId){
+            $this->error = lang('PARAM_ERROR');
             return FALSE;
         }
-		$groupInfo = db("user_group")->where(['ugroup_id' => $userInfo['group_id']])->find();
-		if (!$groupInfo) {
-		    $this->error = '没有登录权限';
-		    return FALSE;
-		}
-		$userInfo['groupPurview'] = $groupInfo['menu_json'];
-		$stores = $this->getUserStores($userInfo);
-		if ($stores === FALSE) {
-		    return FALSE;
-		}
-		$storeId = isset($stores['store_id']) ? $stores['store_id']: 0;
-		$storeIds = isset($stores['store_ids']) ? $stores['store_ids'] : [];
-        //写入日志记录#TODO
-//      api('Admin','AdminLog','addLog','登录系统');
-        //设置session
-		$adminUser = [
-		    'user_id'     => $userInfo['user_id'],
-		    'username'    => $userInfo['username'],
-		    'phone'       => $userInfo['phone'],
-		    'email'       => $userInfo['email'],
-		    'add_time'    => $userInfo['add_time'],
-		    'group_id'    => $userInfo['group_id'],
-		    'store_id'    => $storeId,
-		    'store_ids'   => $storeIds,
-		    'last_login_time' => $userInfo['last_login_time'],
-		    'groupPurview'    => $userInfo['groupPurview'],
-		];
-    	session('admin_user',$adminUser);
-        return true;        
-    }
-    
-    public function getUserStores($userInfo = [])
-    {
-        $storeIds = [];
-        if ($userInfo['group_id'] != SYSTEM_SUPER_ADMIN) {
-            if ($userInfo['group_id'] == STORE_MANAGER) {
-                //获取当前用户管理的门店/门店列表
-                $storeIds = db('store_member')->where(['user_id' => $userInfo['user_id'], 'group_id' => $userInfo['group_id'], 'is_del' => 0, 'status' => 1])->order('add_time DESC')->column('store_id');
-                if (!$storeIds) {
-                    $this->error = '账号未授权/已禁用';
-                    return FALSE;
-                }
-                $storeId = $storeIds[0];
-            }else{
-                //获取当前用户管理的门店
-                $manage = db('store_member')->where(['user_id' => $userInfo['user_id'], 'group_id' => $userInfo['group_id'], 'is_del' => 0, 'status' => 1])->order('add_time DESC')->find();
-                if (!$manage) {
-                    $this->error = '账号未授权/已禁用';
-                    return FALSE;
-                }
-                $storeId = $manage['store_id'];
+        if($user){
+            $userId = $user['user_id'];
+            // 更新登录信息
+            $data = [
+                'user_id' => $userId,
+                'last_login_time' => NOW_TIME,
+            ];
+            $result = $this->save($data, ['user_id' => $userId]);
+            if ($result === FALSE) {
+                $this->error = lang('SYSTEM_ERROR');
+                return FALSE;
+            }
+            if ($user['group_id'] <= 0) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
+            if (!$group) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
             }
         }else{
-            $storeId = 1;
+            //重新取得用户信息
+            $user = $this->_checkUser($userId, TRUE);
+            $group = $user['group'];
         }
-        return [
-            'store_id' => $storeId,
-            'store_ids' => $storeIds,
-        ];
+        if ($group['group_id'] != 1) {
+            if ($user['store_id'] <= 0) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0, 'status' => 1])->find();
+            if (!$store) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            $storeType = $store['store_type'];
+        }else{
+            $storeType = 0;
+        }
+        
+		$user['groupPurview'] = $group['menu_json'];
+        //设置session
+		$adminUser = [
+		    'user_id'         => $user['user_id'],
+		    'store_id'        => $user['store_id'],
+		    'store_type'      => $storeType,
+		    'group_id'        => $user['group_id'],
+		    'username'        => $user['username'],
+		    'phone'           => $user['phone'],
+		    'last_login_time' => $user['last_login_time'],
+		    'groupPurview'    => $user['groupPurview'],
+		];
+    	session('admin_user', $adminUser);
+        return TRUE;        
     }
-    
+    /**
+     * 密码加密
+     * @param string $password
+     * @return string
+     */
+    public function pwdEncryption($password = '')
+    {
+        if (!$password) {
+            return FALSE;
+        }
+        return md5($password.'_admin_2018');
+    }
     
     /**
      * 注销当前用户
      * @return void
      */
     public function logout(){
-        #TODO 记录相应登出操作
         session('admin_user', null);
     }    
 }
