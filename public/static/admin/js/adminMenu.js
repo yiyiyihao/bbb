@@ -13,7 +13,7 @@ function initMenu(data){
 		var mk = $('#siderbar-nav a:first').attr('data-k');
 					
 		//绑定菜单连接
-		$('#siderbar-nav').on('click','a',function(){
+		$('#siderbar-nav, .nav-inline .nav-item').on('click','a',function(){
 			var m = $(this).attr('data');
 			var mi = $(this).attr('data-i');
 			var mk = $(this).attr('data-k');			
