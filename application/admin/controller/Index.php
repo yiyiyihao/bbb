@@ -30,6 +30,7 @@ class Index extends AdminBase
      */
     public function home()
     {
+//         $this->assign('weekData',$weekData);
         return $this->fetch();
     }
     

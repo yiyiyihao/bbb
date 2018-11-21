@@ -512,14 +512,14 @@ $(function(){
 		});
 	});	
 	
-	$(".panel-head-tab li").click(function(){
-		var par = $(this).parent(".panel-head-tab");
+	$(".panel-tab-head li").click(function(){
+		var par = $(this).parent(".panel-tab-head");
 		var index = $(this).index();
-		if(!$(this).hasClass("active")){
-			par.find("li.active").removeClass("active");
-			$(this).addClass("active");
-			par.parent().parent(".panel").find(".tabBox.active").removeClass("active");
-			par.parent().parent(".panel").find(".tabBox").eq(index).addClass("active");
+		if(!$(this).hasClass("tab-active")){
+			par.find("li.tab-active").removeClass("tab-active");
+			$(this).addClass("tab-active");
+			par.parent(".panel").find(".panel-tab-item.tab-active").removeClass("tab-active");
+			par.parent(".panel").find(".panel-tab-item").eq(index).addClass("tab-active");
 		}
 	})
 	
