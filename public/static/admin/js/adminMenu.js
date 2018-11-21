@@ -58,7 +58,6 @@ function initMenu(data){
 			}
 		})
 		var hisM = sessionStorage.getItem("activeMenu");
-		console.log(hisM);
 		if(hisM){
 			//打开菜单
 			$('#siderbar-nav #menu_'+hisM).click();

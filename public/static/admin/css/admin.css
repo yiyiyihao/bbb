@@ -72,7 +72,7 @@ body{ background:#f5f5f5;}
 .bread-head .small{font-size:12px;padding-left:10px;}
 .button-group.checkbox{ width:100%; margin-bottom:5px;}
 
-.admin-tab .tab-nav .active a{background-color:#f9dddd; border:1px solid #f9dddd; color:#e15555; border-bottom:none;}
+.admin-tab .tab-nav .active a{background-color:rgba(0, 150, 136, 0.1); border:1px solid rgba(0, 150, 136, 0.1); color:#009688; border-bottom:none;}
 .js-editor{ width:100%;}
 .tab .tab-body{ border:none; padding:20px;}
 .uploadTab.tab .tab-body{ min-height:259px;}

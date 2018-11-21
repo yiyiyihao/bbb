@@ -10,6 +10,7 @@ class FormBase extends AdminBase
     var $where;
     var $infotempfile;
     var $indextempfile;
+    var $perPage;
     public function __construct()
     {
         parent::__construct();
@@ -29,6 +30,7 @@ class FormBase extends AdminBase
         ];
         $this->infotempfile = 'info';
         $this->indextempfile = '';
+        $this->perPage = 1;
     }
     /**
      * 内容列表
@@ -42,7 +44,7 @@ class FormBase extends AdminBase
         if (method_exists($this->model, 'save')) {
             //取得内容列表
             $count  = $this->model->alias($alias)->join($join)->field($field)->where($where)->count();
-            $list   = $this->model->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
+            $list   = $this->model->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate($this->perPage,$count, ['query' => input('param.')]);
         }else{
             if($alias) $this->model->alias($alias);
             if($join) $this->model->join($join);
@@ -51,7 +53,7 @@ class FormBase extends AdminBase
             $count  = $this->model->where($where)->count();
             
             if($field) $this->model->field($field);
-            $list   = $this->model->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
+            $list   = $this->model->where($where)->order($order)->paginate($this->perPage,$count, ['query' => input('param.')]);
         }
         // 获取分页显示
         $page   = $list->render();
@@ -76,7 +78,7 @@ class FormBase extends AdminBase
             $pk = $this->model->getPk();
             $field = $pk.' as id, name';
         }
-        $list = $this->model->field($field)->where($where)->order('add_time DESC')->paginate(10, $count, ['page' => $currectPage, 'ajax' => TRUE]);
+        $list = $this->model->field($field)->where($where)->order('add_time DESC')->paginate($this->perPage, $count, ['page' => $currectPage, 'ajax' => TRUE]);
         $page = '';
         if ($list) {
             $page = $list->render();

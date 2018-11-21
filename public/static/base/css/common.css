@@ -65,7 +65,7 @@ td,th{padding:0;}
 .mr5,.margin-right{ margin-right:5px;}
 .mb15{margin-bottom: 15px;}
 
-.button{border:solid 1px #ddd;background:transparent;border-radius:4px;font-size:14px;padding:8px 15px;margin:0;display:inline-block;line-height:20px;/*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
+.button{border:solid 1px #ddd;background:transparent;border-radius:4px;font-size:14px;padding:10px 15px;margin:0;display:inline-block;line-height:20px;/*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
 .button[disabled]{pointer-events:none;cursor:not-allowed;webkit-box-shadow:none;box-shadow:none;filter:alpha(opacity=50);opacity:.5;}
 .button:active{background-image:none;outline:0;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
 .button:hover{transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
@@ -114,7 +114,7 @@ td,th{padding:0;}
 .input-inline input{position:relative;float:left;border-radius:0;margin-left:-1px;width:auto;}
 
 .button-line{ border-bottom:2px solid #fff; line-height:30px; display:inline-block; font-size:16px; margin-right:20px;}
-.button-line.active{ border-bottom:2px solid #e15555; color:#e15555;}
+.button-line.active{ border-bottom:2px solid #009688; color:#009688;}
 
 
 .input-block{padding-top:8px;}
@@ -195,13 +195,17 @@ textarea.input{height:auto;}
 
 .alert{ margin-bottom:20px;}
 .panel{ background:#fff;}
-.panel-head{background-color:#fff; height:40px; line-height:40px; padding:0 15px;border-bottom:solid 1px #f1f1f1; position:relative; font-size:15px;}
+.panel-head{background-color:#fff;line-height:40px; padding:0 15px;border-bottom:solid 1px #f1f1f1; position:relative; font-size:15px;}
 .panel-head strong{padding:0 20px 0 0;line-height:40px; display:inline-block; font-weight:normal;}
 .panel-head span{display:inline-block;}
 .panel-head .panel-head-tab{ position:absolute; right:0px; bottom:-3px; overflow:hidden;}
 .panel-head .panel-head-tab li{ float:left; padding:0 15px; height:34px; line-height:34px;}
 .panel-head .panel-head-tab li.active{ border-left:1px solid #dadada; border-right:1px solid #ccc; border-top:2px solid #006090;background:#fff;}
-.panel-foot{background-color:#f5f5f5;padding:10px 20px;border-radius:0 0 4px 4px;border-top:solid 1px #ddd;}
+.panel-head .tab-head{ padding-top:10px; margin-bottom:-1px;}
+.panel-foot{padding:10px 20px;border-radius:0 0 4px 4px;border-top:solid 1px #ddd; }
+.fixed-pannel .panel-foot{position:fixed; width:100%; bottom:0; left:0; background:#fff;}
+.fixed-pannel{}
+.fixed-pannel:after{ content:''; height:63px; width:100%; display:block;}
 .panel-body{padding:15px; background:#fff;}
 .panel-body .panel-block{ min-height:100px;}
 .panel .bg-main,.panel .bg-sub,.panel .bg-dot,.panel .bg-red,.panel .bg-yellow,.panel .bg-green{color:#fff;}
@@ -221,11 +225,11 @@ textarea.input{height:auto;}
 .num-item-box{ cursor:pointer;}
 .num-item-box .item-num{ font-size:24px; color:#009688;}
 
-.tab .tab-head strong{float:left;padding:6px 20px 0 0;line-height:20px;}
+.tab .tab-head strong{float:left;padding:10px 20px 0 0;line-height:20px;}
 .tab .tab-more{float:right;margin:10px 0 0 10px;font-size:12px;}
 .tab .tab-nav{list-style:none;}
 .tab .tab-nav li{display:inline-block; /*margin-bottom:-1px;*/}
-.tab .tab-nav li a{color:#888;padding:8px 20px;display:block;border:solid 1px #fff;line-height:20px;border-bottom:none;border-radius:4px 4px 0 0;}
+.tab .tab-nav li a{color:#888;padding:8px 20px 9px;display:block;border:solid 1px #fff;line-height:20px;border-bottom:none;border-radius:4px 4px 0 0;}
 .tab .tab-nav .active{background-color:#fff;}
 .tab .tab-nav .active a{cursor:default;}
 .tab .tab-body{border-top:solid 1px #ddd;padding-top:15px;}
@@ -238,11 +242,11 @@ textarea.input{height:auto;}
 
 .pagination{list-style:none;margin:0;padding:0;display:inline-block;vertical-align:bottom; float:right; overflow:hidden;}
 .pagination li{display:inline-block;border:solid 1px #ddd;border-radius:4px; margin-right:5px; float:left; background:#fff;}
-.pagination a{color:#333;padding:8px 12px;line-height:18px;display:block;transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
-.pagination span{color:#333;padding:8px 12px;line-height:18px;display:block;transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
+.pagination a{color:#333;padding:5px 12px;line-height:18px;display:block;transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;font-size:13px;}
+.pagination span{color:#333;padding:5px 12px;line-height:18px;display:block;transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s; font-size:13px;}
 .pagination .disabled a:link, .pagination .disabled a:visited, .pagination .disabled a:hover{cursor:not-allowed;pointer-events:none;color:#ddd;}
-.pagination .active{pointer-events:none;}
-.pagination .active,.pagination a:hover{background:#eaeaea;border-radius:4px;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
+.pagination .active{pointer-events:none;background:#009688; border-radius:4px;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
+.pagination .active span{color:#fff;}
 .pagination-group{border-right:solid 1px #ddd;border-radius:4px;}
 .pagination-group li{float:left;border-right:none;border-radius:0;}
 .pagination-group li:not(:first-child):not(:last-child){border-radius:0;}
@@ -255,11 +259,12 @@ textarea.input{height:auto;}
 .pagination.border-black .active a, .pagination.border-gray .active a, .pagination.border-red .active a,
 .pagination.border-yellow .active a, .pagination.border-blue .active a, .pagination.border-green .active a{color:#fff;}
 
-.table-tools{padding:10px 20px;border-bottom:1px solid #ddd;}
+.table-tools{padding:10px;border-bottom:1px solid #ddd;}
+.table-responsive{ padding:15px 10px;}
 .table{width:100%;max-width:100%; font-size:14px;}
-.table th{border-bottom:2px solid #ddd;vertical-align:bottom;padding:10px;text-align:left; line-height:36px;}
-.table td{border-top:1px solid #ddd;padding:10px;vertical-align:middle; line-height:26px;}
-.table th:first-child,.table th:last-child,.table td:first-child,.table td:last-child{ padding:10px 10px 10px 20px;}
+.table th{ border:1px solid #ddd;border-bottom:2px solid #ddd;vertical-align:bottom;padding:5px 10px;text-align:left; line-height:30px; background:#f6f6f6;}
+.table td{border:1px solid #ddd;padding:5px 10px;vertical-align:middle; line-height:26px;}
+.table th:first-child,.table th:last-child,.table td:first-child,.table td:last-child{ padding:5px 10px 5px 20px;}
 .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th{background-color:#f9f9f9;}/*条纹-IE9以下无效果*/
 .table-bordered th,.table-bordered td{border:solid 1px #ddd;}
 .table-bordered th{border-bottom:2px solid #ddd;}
@@ -359,15 +364,15 @@ a.text-white:hover, .bg-inverse a:hover{color:#ddd;}
 .button.border-blue-light:hover,.button.border-blue-light:focus,.button.bg-blue-light:hover,.button.bg-blue-light:focus,.alert-blue:hover{color:#006090;border-color:#c5d8e0;background-color:#c5d8e0;}
 .button.border-green-light:hover,.button.border-green-light:focus,.button.bg-green-light:hover,.button.bg-green-light:focus,.alert-green:hover{color:#2c7;border-color:#cfa;background-color:#cfa;}
 
-.button.active{ background:rgba(225, 85, 85, 0.7); color:#fff; border:1px solid rgba(225, 85, 85, 0.2);}
+.button.active{ background:#009688; color:#fff; border:1px solid rgba(0, 150, 136, 0.2);}
 
 
 /*--------自定义链接颜色(可选)--------*/
 a{color:#333;text-decoration:none;} /*链接-颜色*/
-a:focus,a:hover{color:#e15555;} /*链接-悬浮颜色*/
+a:focus,a:hover{color:#009688;} /*链接-悬浮颜色*/
 /*--------自定义文本颜色--------*/
 .text-main, a.text-main:link, a.text-main:visited,.button.border-main,blockquote.border-main strong,.pager.border-main a,.pager-prev.border-main,.pager-next.border-main,.nav a:hover,.nav-menu.nav-pills .active ul a:hover,.bg-inverse .nav-menu ul a:hover,.bg-inverse .nav.nav-menu.nav-tabs ul a:hover,.bg-inverse .nav.nav-menu.nav-tabs .active ul a:hover,.bg-inverse .nav.nav-menu.nav-pills ul a:hover,.bg-inverse .nav.nav-menu.nav-pills .active ul a:hover
-{color:#e15555;} /*文本-主色*/
+{color:#009688;} /*文本-主色*/
 .text-sub, a.text-sub:link, a.text-sub:visited,.button.border-sub,blockquote.border-sub strong,.pager.border-sub a,.pager-prev.border-sub,.pager-next.border-sub
 {color:#2c7;} /*文本-辅色*/
 .text-back, a.text-back:link, a.text-back:visited,.button.border-back,blockquote.border-back,.pager.border-back a,.pager-prev.border-back,.pager-next.border-back
