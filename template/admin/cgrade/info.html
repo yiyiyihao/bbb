@@ -1,0 +1,131 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>等级信息</strong>
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">基本信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	{if condition="$adminUser['group_id'] == 1"}
+	                    {if condition="$info"}
+	                    	<div class="form-group">
+		                        <div class="label">
+		                            <label>厂商名称</label>
+		                        </div>
+		                        <div class="field">
+		                            <input type="text" class="input" size="40" disabled="disabled" value="{$stores[$info['store_id']]}">
+		                        </div>
+		                    </div>
+		               	{else/}
+			               	<div class="form-group">
+		                        <div class="label">
+		                            <label>选择厂商</label>
+		                        </div>
+		                        <div class="field">
+		                            <select class="input" name="store_id" id="store_id" datatype="n" nullmsg="请选择关联 厂商！">
+		                              <option value="">==请选择关联厂商==</option>
+		                               {foreach name="stores" item="vo" key="key"}
+		                               <option value="{$key}" 
+		                               {if condition="(!$info) || ($key && isset($info['store_id']) && $info['store_id'] == $key)"}selected="selected"{/if} >{$vo}</option>
+		                               {/foreach}
+		                            </select>
+		                            <div class="input-note">请选择渠道关联厂商(厂商选择后不允许修改)</div>
+		                        </div>
+		                    </div>
+	                    {/if}
+                    {/if}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>选择上级</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="parent_id" id="parent_id" nullmsg="请选择上级！">
+                              <option value="">==请选择上级==</option>
+                               {foreach name="grades" item="vo" key="key"}
+                               <option value="{$vo['cgrade_id']}" 
+                               {if condition="(!$info) || ($vo['cgrade_id'] && isset($info['parent_id']) && $info['parent_id'] == $vo['cgrade_id'])"}selected="selected"{/if} >{$vo.cname}</option>
+                               {/foreach}
+                            </select>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>等级名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="60" datatype="*" value="{$info['name'] ?? ''}">
+                            <div class="input-note">等级名称请不要填写特殊字符</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+			            <div class="label">
+			              <label>等级描述</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="description" name="description" rows="5" cols="60">{$info['description'] ?? ''}</textarea>
+			              <div class="input-note"></div>
+			            </div>
+			          </div>
+                    
+                    <div id="expand"></div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>等级状态</label>
+                        </div>
+                        <div class="field">
+                           {notpresent name="info.status"}
+                                {assign name="info.status" value="1" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.status eq 1"}
+                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="1" type="radio">
+                                {/if}
+                                可用</label>
+                                {if condition="$info.status eq 0"}
+                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="0" type="radio">
+                                {/if}
+                                禁用</label>
+                            </div>
+                            <div class="input-note">禁用后不会在前台显示</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
+                            <div class="input-note">开启自定义排序有效</div>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		
+    }); 
+</script>

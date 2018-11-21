@@ -39,15 +39,19 @@ class FormBase extends AdminBase
         $alias  = $this->_getAlias();
         $join   = $this->_getJoin();
         $order  = $this->_getOrder();
-        if($alias) $this->model->alias($alias);
-        if($join) $this->model->join($join);
-        if($field) $this->model->field($field);
-        //取得内容列表
-        $count  = $this->model->where($where)->count();
-//         if($alias) $this->model->alias($alias);
-//         if($join) $this->model->join($join);
-//         if($field) $this->model->field($field);
-        $list   = $this->model->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
+        if (method_exists($this->model, 'save')) {
+            //取得内容列表
+            $count  = $this->model->alias($alias)->join($join)->field($field)->where($where)->count();
+            $list   = $this->model->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
+        }else{
+            if($alias) $this->model->alias($alias);
+            if($join) $this->model->join($join);
+            if($field) $this->model->field($field);
+            //取得内容列表
+            $count  = $this->model->where($where)->count();
+            $list   = $this->model->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
+        }
+        
 //         $list   = $this->model->fetchSql()->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
 //         pre($list);
         // 获取分页显示

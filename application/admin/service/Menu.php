@@ -29,7 +29,7 @@ class Menu{
             'store' => [
                 'name' => lang('厂商管理'),
                 'order' => 10,
-                'icon'  => 'sitemap',
+                'icon'  => 'user-setting',
                 'menu' => [
                     'store'   => [
                         'name'    => lang('厂商管理'),
@@ -46,14 +46,14 @@ class Menu{
             'channel' => [
                 'name' => lang('渠道管理'),
                 'order' => 10,
-                'icon'  => 'sitemap',
+                'icon'  => 'user-group',
                 'menu' => [
                     'channel'   => [
                         'name'    => lang('渠道商管理'),
                         'list'    => [
                             'index' => [
                                 'name' => lang('渠道商列表'),
-                                'url' => url("channel/index"),
+                                'url' => url("schannel/index"),
                                 'order' => 10
                             ],
                             
@@ -82,7 +82,7 @@ class Menu{
                         'list'    => [
                             'dealer' => [
                                 'name' => lang('经销商列表'),
-                                'url' => url("store/index"),
+                                'url' => url("sdealer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -92,14 +92,14 @@ class Menu{
             'servicer' => [
                 'name' => lang('服务商管理'),
                 'order' => 10,
-                'icon'  => 'sitemap',
+                'icon'  => 'user-list',
                 'menu' => [
                     'servicer'   => [
                         'name'    => lang('服务商管理'),
                         'list'    => [
                             'index' => [
                                 'name' => lang('服务商列表'),
-                                'url' => url("servicer/index"),
+                                'url' => url("sservicer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -112,40 +112,40 @@ class Menu{
                 'icon'  => 'store',
                 'menu' => [
                     'goods' => [
-                        'name'    =>  lang('商品管理'),
+                        'name'    =>  lang('产品管理'),
                         'list'    =>  [
                             'goods' => [
-                                'name' => lang('商品管理'),
-                                'url' => url('product/index'),
+                                'name' => lang('产品管理'),
+                                'url' => url('goods/index'),
                                 'order' => 10
                             ],
-                            'gcategory' => [
-                                'name' => lang('商品分类'),
-                                'url' => url('category/index'),
+                            'gcate' => [
+                                'name' => lang('产品分类'),
+                                'url' => url('gcate/index'),
                                 'order' => 20
                             ],
                             'spec' => [
-                                'name' => lang('商品规格'),
+                                'name' => lang('产品规格'),
                                 'url' => url('gspec/index'),
                                 'order' => 20
                             ],
                         ]
                     ],
-                    'order' => [
-                        'name'    =>  lang('订单管理'),
-                        'list'    =>  [
-                            'index' => [
-                                'name' => lang('订单管理'),
-                                'url' => url('order/index'),
-                                'order' => 10
-                            ],
-                            'payment' => [
-                                'name' => lang('支付方式'),
-                                'url' => url('payment/index'),
-                                'order' => 10
-                            ],
-                        ]
-                    ],
+//                     'order' => [
+//                         'name'    =>  lang('订单管理'),
+//                         'list'    =>  [
+//                             'index' => [
+//                                 'name' => lang('订单管理'),
+//                                 'url' => url('order/index'),
+//                                 'order' => 10
+//                             ],
+//                             'payment' => [
+//                                 'name' => lang('支付方式'),
+//                                 'url' => url('payment/index'),
+//                                 'order' => 10
+//                             ],
+//                         ]
+//                     ],
                 ]
             ],
             'user' => [
@@ -293,7 +293,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('渠道商列表'),
-                                'url' => url("channel/index"),
+                                'url' => url("schannel/index"),
                                 'order' => 10
                             ],
                             
@@ -322,7 +322,7 @@ class Menu{
                         'list'    => [
                             'dealer' => [
                                 'name' => lang('经销商列表'),
-                                'url' => url("store/index"),
+                                'url' => url("sdealer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -339,7 +339,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('服务商列表'),
-                                'url' => url("servicer/index"),
+                                'url' => url("sservicer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -352,20 +352,20 @@ class Menu{
                 'icon'  => 'store',
                 'menu' => [
                     'goods' => [
-                        'name'    =>  lang('商品管理'),
+                        'name'    =>  lang('产品管理'),
                         'list'    =>  [
                             'goods' => [
-                                'name' => lang('商品管理'),
-                                'url' => url('product/index'),
+                                'name' => lang('产品管理'),
+                                'url' => url('goods/index'),
                                 'order' => 10
                             ],
-                            'gcategory' => [
-                                'name' => lang('商品分类'),
-                                'url' => url('category/index'),
+                            'gcate' => [
+                                'name' => lang('产品分类'),
+                                'url' => url('gcate/index'),
                                 'order' => 20
                             ],
                             'spec' => [
-                                'name' => lang('商品规格'),
+                                'name' => lang('产品规格'),
                                 'url' => url('gspec/index'),
                                 'order' => 20
                             ],

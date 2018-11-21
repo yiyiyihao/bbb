@@ -1,0 +1,57 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="等级名称">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="100">编号</th>
+          <th width="*">渠道等级</th>
+          <th width="*">厂商</th>
+          <th width="*">等级描述</th>
+          <th width="80">状态</th>
+          <th width="100">排序</th>
+          <th width="220">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo"}
+            <tr>
+              <td>{$i}</td>
+              <td>{$vo.cname}</td>
+              <td>{$vo.sname}</td>
+              <td>{$vo.description}</td>
+              <td>{$vo['status']?'<span class="tag bg-green">可用</span>':'<span class="tag bg-red">禁用</span>'}</td>
+              <td>{$vo.sort_order}</td>
+              <td>
+              	{if condition="$vo['cgrade_id'] != 1"}
+              	<a href="{:url('edit', array('id' => $vo['cgrade_id']))}" class="button button-small bg-main icon-edit">编辑</a>
+              	<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-trash js-del" title="删除" data-id="{$vo.cgrade_id}">删除</a>
+              	{/if}
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

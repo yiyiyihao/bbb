@@ -10,6 +10,22 @@
 // +----------------------------------------------------------------------
 
 // 应用公共文件
+function get_store_type($type = FALSE){
+    $storeTypes = [
+        1 => '厂商',
+        2 => '渠道商',
+        3 => '经销商',
+        4 => '服务商',
+    ];
+    if ($type === FALSE) {
+        return $storeTypes;
+    }
+    if ($type && isset($storeTypes[$type])) {
+        return $storeTypes[$type];
+    }else{
+        return '-';
+    }
+}
 
 function array_implode($array = [])
 {
