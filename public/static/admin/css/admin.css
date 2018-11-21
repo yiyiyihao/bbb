@@ -42,9 +42,9 @@ body{ background:#f5f5f5;}
 .admin-sidebar .nav-head{padding-left:20px;font-size: 14px;line-height: 50px;height:50px;font-weight: normal;position:relative; color:#fff; cursor:pointer;}
 .admin-sidebar .nav-head i{ position:absolute; top:5px; right:10px; width:30px; line-height:30px; display:inline-block; text-align:center;}
 .admin-sidebar .nav li{position:relative;}
-.admin-sidebar .nav li a{padding:15px 10px 15px 50px;color:rgba(255,255,255,.7); font-size:14px;}
+.admin-sidebar .nav li a{padding:8px 10px 8px 50px;color:rgba(255,255,255,.7); font-size:14px;}
 .admin-sidebar .nav li a::before{margin-right:5px;width:15px;text-align: center;}
-.admin-sidebar .nav li a:hover{}
+.admin-sidebar .nav li a:hover{ background:rgba(0, 150, 136,.2)}
 .admin-sidebar .nav .active a{background:#009688;color: #fff;font-weight: normal;}
 .admin-sidebar .nav li a.his-close{ position:absolute; top:10px; right:0px; color:#ccc;transform:rotate(45deg); padding:3px;}
 .admin-sidebar .nav li a.his-close:hover{ background:none; color:#e33;}

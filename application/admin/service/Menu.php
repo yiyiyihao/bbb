@@ -26,75 +26,50 @@ class Menu{
                     ],
                 ]
             ],
-		    'store' => [
-		        'name' => lang('供应链管理'),
+		    'channel' => [
+		        'name' => lang('渠道管理'),
 		        'order' => 10,
 		        'icon'  => 'sitemap',
 		        'menu' => [
-		            'store'   => [
-		                'name'    => lang('产品库管理'),
+		            'channel'   => [
+		                'name'    => lang('渠道管理'),
 		                'list'    => [
-		                    'store' => [
-		                        'name' => lang('产品列表'),
-		                        'url' => url("store/index"),
+		                    'index' => [
+		                        'name' => lang('渠道列表'),
+		                        'url' => url("channel/index"),
 		                        'order' => 10
-		                    ],
-		                ]
-		            ],
-		            'device'  => [
-		                'name'    =>  lang('流通数据'),
-		                'list'    => [
-		                    'list' => [
-		                        'name' => lang('数据报表'),
-		                        'url' => url('device/index'),
-		                        'order' => 20
-		                    ],
-		                    'group' => [
-		                        'name' => lang('流通溯源'),
-		                        'url' => url('dgroup/index'),
-		                        'order' => 30
 		                    ],
 		                ]
 		            ],
 		        ]
 		    ],
-		    'content' => [
-		        'name' => lang('电商管理'),
+		    'product' => [
+		        'name' => lang('商品管理'),
 		        'order' => 20,
 		        'icon'  => 'store',
 		        'menu' => [
-		            'goods' => [
+		            'product' => [
 		                'name'    =>  lang('商品管理'),
 		                'list'    =>  [
-		                    'goods' => [
+		                    'product' => [
 		                        'name' => lang('商品管理'),
 		                        'url' => url('product/index'),
 		                        'order' => 10
 		                    ],
-		                    'gcategory' => [
+		                    'category' => [
 		                        'name' => lang('商品分类'),
 		                        'url' => url('category/index'),
 		                        'order' => 20
 		                    ],
+		                    'type' => [
+		                        'name' => lang('商品类型'),
+		                        'url' => url('product/type'),
+		                        'order' => 30
+		                    ],
 		                    'spec' => [
 		                        'name' => lang('商品规格'),
 		                        'url' => url('gspec/index'),
-		                        'order' => 20
-		                    ],
-		                ]
-		            ],
-		            'order' => [
-		                'name'    =>  lang('订单管理'),
-		                'list'    =>  [
-		                    'index' => [
-		                        'name' => lang('订单管理'),
-		                        'url' => url('order/index'),
-		                        'order' => 10
-		                    ],
-		                    'payment' => [
-		                        'name' => lang('支付方式'),
-		                        'url' => url('payment/index'),
-		                        'order' => 10
+		                        'order' => 40
 		                    ],
 		                ]
 		            ],
@@ -108,16 +83,70 @@ class Menu{
 		            'user' => [
 		                'name'    =>  lang('用户角色'),
 		                'list'    =>  [
-		                    'member' => [
-		                        'name' => lang('角色列表'),
+		                    'index' => [
+		                        'name' => lang('用户列表'),
 		                        'url' => url('member/index'),
+		                        'order' => 10
+		                    ],
+		                    'group' => [
+		                        'name' => lang('角色管理'),
+		                        'url' => url('member/group'),
+		                        'order' => 20
+		                    ],
+		                ]
+		            ]
+		        ]
+		    ],
+		    'order' => [
+		        'name' => lang('订单管理'),
+		        'order' => 40,
+		        'icon'  => 'list-book',
+		        'menu' => [
+		            'order' => [
+		                'name'    =>  lang('订单管理'),
+		                'list'    =>  [
+		                    'index' => [
+		                        'name' => lang('订单列表'),
+		                        'url' => url('order/index'),
 		                        'order' => 10
 		                    ],
 		                ]
 		            ]
 		        ]
 		    ],
-		    'dataset' => [
+		    'finance' => [
+		        'name' => lang('财务管理'),
+		        'order' => 50,
+		        'icon'  => 'pay-list',
+		        'menu' => [
+		            'finance' => [
+		                'name'    =>  lang('财务管理'),
+		                'list'    =>  [
+		                    'index' => [
+		                        'name' => lang('财务主页'),
+		                        'url' => url('finance/index'),
+		                        'order' => 10
+		                    ],
+		                    'order' => [
+		                        'name' => lang('进货账单'),
+		                        'url' => url('finance/order'),
+		                        'order' => 20
+		                    ],
+		                    'channel' => [
+		                        'name' => lang('渠道账单'),
+		                        'url' => url('finance/channel'),
+		                        'order' => 30
+		                    ],
+		                    'works' => [
+		                        'name' => lang('施工账单'),
+		                        'url' => url('finance/works'),
+		                        'order' => 40
+		                    ],
+		                ]
+		            ]
+		        ]
+		    ],
+		    /*'dataset' => [
 		        'name' => lang('数据管理'),
 		        'icon'  => 'chart',
 		        'order' => 60,
@@ -143,9 +172,9 @@ class Menu{
 		                ]
 		            ]
 		        ]
-		    ],
+		    ],*/
 		    'service' => [
-		        'name' => lang('售后服务'),
+		        'name' => lang('售后管理'),
 		        'order' => 60,
 		        'icon'  => 'kefu',
 		        'menu' => [
