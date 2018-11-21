@@ -53,7 +53,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('渠道商列表'),
-                                'url' => url("schannel/index"),
+                                'url' => url("channel/index"),
                                 'order' => 10
                             ],
                             
@@ -82,7 +82,7 @@ class Menu{
                         'list'    => [
                             'dealer' => [
                                 'name' => lang('经销商列表'),
-                                'url' => url("sdealer/index"),
+                                'url' => url("dealer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -99,7 +99,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('服务商列表'),
-                                'url' => url("sservicer/index"),
+                                'url' => url("servicer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -293,7 +293,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('渠道商列表'),
-                                'url' => url("schannel/index"),
+                                'url' => url("channel/index"),
                                 'order' => 10
                             ],
                             
@@ -322,7 +322,7 @@ class Menu{
                         'list'    => [
                             'dealer' => [
                                 'name' => lang('经销商列表'),
-                                'url' => url("sdealer/index"),
+                                'url' => url("dealer/index"),
                                 'order' => 10
                             ],
                         ]
@@ -339,7 +339,7 @@ class Menu{
                         'list'    => [
                             'index' => [
                                 'name' => lang('服务商列表'),
-                                'url' => url("sservicer/index"),
+                                'url' => url("servicer/index"),
                                 'order' => 10
                             ],
                         ]
