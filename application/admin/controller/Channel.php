@@ -1,17 +1,17 @@
 <?php
 namespace app\admin\controller;
 
-//经销商管理
-class Sdealer extends Store
+//渠道商理
+class Channel extends Store
 {
     var $storeType;
     var $parent;
     var $groupId;
     public function __construct()
     {
-        $this->modelName = 'dealer';
+        $this->modelName = 'channel';
         $this->model = model('store');
-        $this->storeType = 3;//经销商
+        $this->storeType = 2;//渠道商
         $this->groupId = 2;
         parent::__construct();
     }

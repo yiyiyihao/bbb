@@ -2,7 +2,7 @@
 namespace app\admin\controller;
 
 //服务商管理
-class Sservicer extends Store
+class Servicer extends Store
 {
     var $storeType;
     var $parent;
