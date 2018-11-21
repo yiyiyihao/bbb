@@ -1,0 +1,73 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">修改资料</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>登录用户名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" size="40" value="{$info['username']}" disabled="disabled">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商户角色</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" size="40" value="{:get_store_type($adminUser['store_type'])}" disabled="disabled">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>管理员角色</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" size="40" value="{$info['group']['name']}" disabled="disabled">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>真实姓名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="realname" name="realname" size="40" value="{$info['realname'] ?? ''}">
+                            <div class="input-note">请填写负责人登录用户名</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系电话</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="40" value="{$info['phone'] ?? ''}">
+                            <div class="input-note">请填写负责人联系电话</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		
+    }); 
+</script>

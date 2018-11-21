@@ -11,36 +11,7 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	<div class="form-group">
-                        <div class="label">
-                            <label>选择厂商</label>
-                        </div>
-                        <div class="field">
-                            <select class="input" name="parent_id" id="parent_id" datatype="n" nullmsg="请选择关联 厂商！">
-                              <option value="">==请选择关联厂商==</option>
-                               {foreach name="stores" item="vo" key="key"}
-                               <option value="{$key}" 
-                               {if condition="(!$info) || ($key && isset($info['parent_id']) && $info['parent_id'] == $key)"}selected="selected"{/if} >{$vo}</option>
-                               {/foreach}
-                            </select>
-                            <div class="input-note">请选择服务关联厂商</div>
-                        </div>
-                    </div>
-                    <!-- <div class="form-group">
-                        <div class="label">
-                            <label>选择服务等级</label>
-                        </div>
-                        <div class="field">
-                            <select class="input" name="parent_id" id="parent_id" datatype="n" nullmsg="请选择关联 厂商！">
-                              <option value="">==请选择关联厂商==</option>
-                               {foreach name="stores" item="vo" key="key"}
-                               <option value="{$key}" 
-                               {if condition="(!$info) || ($key && isset($info['parent_id']) && $info['parent_id'] == $key)"}selected="selected"{/if} >{$vo}</option>
-                               {/foreach}
-                            </select>
-                            <div class="input-note">请选择服务关联厂商</div>
-                        </div>
-                    </div> -->
+                	{include file="common/factory" /}
                 	<div class="form-group">
                         <div class="label">
                             <label>服务商名称</label>

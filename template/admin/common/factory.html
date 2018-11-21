@@ -1,0 +1,25 @@
+{if condition="$adminUser['group_id'] == 1"}
+<div class="form-group">
+	<div class="label">
+		<label>选择厂商</label>
+	</div>
+	<div class="field">
+		<select class="input" name="factory_id" id="factory_id" datatype="n"nullmsg="请选择关联 厂商！">
+			<option value="">==请选择关联厂商==</option> 
+			{foreach name="factorys" item="vo" key="key"}
+				<option value="{$key}" {if condition="(!$info) || ($key && isset($info['factory_id']) && $info['factory_id'] == $key)" }selected="selected"{/if} >{$vo}</option> 
+			{/foreach}
+		</select>
+		<div class="input-note">请选择服务关联厂商</div>
+	</div>
+</div>
+{else}
+<div class="form-group">
+    <div class="label">
+        <label>厂商名称</label>
+    </div>
+    <div class="field">
+        <input type="text" disabled="disabled" class="input" size="40" value="{$adminUser['factory']['name']}">
+    </div>
+</div>
+{/if}

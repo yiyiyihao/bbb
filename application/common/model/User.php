@@ -144,17 +144,23 @@ class User extends Model
             $user = $this->_checkUser($userId, TRUE);
             $group = $user['group'];
         }
+        $factory = [];
         if ($group['group_id'] != 1) {
             if ($user['store_id'] <= 0) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
-            $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0, 'status' => 1])->find();
+            $store = db('store')->field('store_id, factory_id, store_type, name')->where(['store_id' => $user['store_id'], 'is_del' => 0, 'status' => 1])->find();
             if (!$store) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
             $storeType = $store['store_type'];
+            if ($storeType != 1) {
+                $factory = db('store')->where(['store_id' => $store['factory_id'], 'is_del' => 0, 'status' => 1])->field('store_id, name')->find();
+            }else{
+                $factory = $store;
+            }
         }else{
             $storeType = 0;
         }
@@ -164,6 +170,7 @@ class User extends Model
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
 		    'store_id'        => $user['store_id'],
+		    'factory'         => $factory,
 		    'store_type'      => $storeType,
 		    'group_id'        => $user['group_id'],
 		    'username'        => $user['username'],

@@ -6,7 +6,7 @@ class AdminBase extends Backend
 {
     var $subMenu;
     var $storeId;
-    var $storeIds;
+    var $factory;
     var $adminUser;
 	//管理内容预处理方法
 	public function __construct()
@@ -27,7 +27,7 @@ class AdminBase extends Backend
     	$this->adminUser = session('admin_user');
     	//检查用户是否拥有操作权限
     	$this->storeId = isset($this->adminUser['store_id']) && $this->adminUser['store_id'] ? $this->adminUser['store_id'] : 0;
-    	$this->storeIds = isset($this->adminUser['store_ids']) && $this->adminUser['store_ids'] ? $this->adminUser['store_ids'] : [];
+    	$this->factory = isset($this->adminUser['factory']) && $this->adminUser['factory'] ? $this->adminUser['factory'] : 0;
 //     	if(!self::checkPurview($this->adminUser,$this->storeId)){
 //     	    $this->error("没有操作权限");
 //     	}

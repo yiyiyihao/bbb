@@ -441,7 +441,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         $this->origin = $this->data;
         $this->set    = [];
 
-        return true;
+        return $result;
     }
 
     /**
@@ -633,7 +633,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         try {
             $result = $db->strict(false)
                 ->field($allowFields)
-                ->insert($this->data, $this->replace, false, $sequence);
+                ->insertGetId($this->data, $this->replace, false, $sequence);
 
             // 获取自动增长主键
             if ($result && $insertId = $db->getLastInsID($sequence)) {
@@ -659,7 +659,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             // 新增回调
             $this->trigger('after_insert');
 
-            return true;
+            return $result;
         } catch (\Exception $e) {
             $db->rollback();
             throw $e;

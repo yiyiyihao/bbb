@@ -1,0 +1,150 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>规格信息</strong>
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">基本信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>规格名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <div class="input-note">规格名称请不要填写特殊字符</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+		            	<div class="label">
+		                    <label>属性</label>
+		                </div>
+		                <div class="field">
+		                    <div class="table-responsive">
+		                      <table id="table" class="table table-hover ">
+		                        <tbody>
+		                          <tr>
+		                            <th width="100"></th>
+		                            <th width="*">属性名称</th>
+		                            <th width="180">操作</th>
+		                          </tr>
+		                          {if condition="$info && $info['value']"}
+		                          {volist name="info['value']" id="vo" key="k"}
+		                            <tr class="item" data-id="{$key}">                  
+		                              <td></td>
+		                              <td><input class="input" type="text" value="{$vo}" name="specname[]" /></td>
+		                              <td><a class="button bg-red button-small icon-trash" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>
+		                            </tr>
+		                            {/volist}
+		                         	{/if}
+		                        </tbody>
+		                      </table>
+		                      <div class="clone_item" style="margin:20px 0 0 10px; display:inline-block"><div class="button button-small bg-main">新增规格</div></div>
+		                  </div>
+		              </div>
+		              </div>
+                    <div id="expand"></div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>规格状态</label>
+                        </div>
+                        <div class="field">
+                           {notpresent name="info.status"}
+                                {assign name="info.status" value="1" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.status eq 1"}
+                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="1" type="radio">
+                                {/if}
+                                可用</label>
+                                {if condition="$info.status eq 0"}
+                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="0" type="radio">
+                                {/if}
+                                禁用</label>
+                            </div>
+                            <div class="input-note">禁用后不会在前台显示</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=255}">
+                            <div class="input-note">开启自定义排序有效</div>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    });
+    $(".clone_item").on("click",function(){
+  	  var eq = $("table tr.item").length;
+  	  if(eq > 0){
+  		  if(checkItem()){
+  				bulidItem(eq);
+  		  }
+  	  }else{
+  		  bulidItem(eq);
+  	  }
+  	});
+  	function item_del(obj){
+  	  $(obj).parents("tr").remove();
+  	}
+  	function bulidItem(eq){
+  		var html = '';
+  		  html += '<tr class="item">';
+  		  html += '  <td></td><td><input class="input" type="text" value="" name="specname[]" /></td>';
+  		  html += '  <td><a class="button bg-red button-small icon-trash" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>';
+  		  html += '</tr>';
+  		  $("table tbody").append(html);
+  	}
+  	function checkItem(){
+  		//取得现有对象
+  		var items = $("table tbody tr.item");
+  		var flag = 1;
+  		var ret = $.each(items,function(index,item){
+  			var inputs = $(item).find("input");
+  			var rs = $.each(inputs,function(i,input){
+  				if($(input).val() == ''){
+  					$(input).parent().addClass("check-error");
+  					flag = 0;
+  					return false;
+  				}else{
+  					$(input).parent().removeClass("check-error");
+  				}
+  			})
+  			if(!rs){
+  				return false;
+  			}
+  		})
+  		if(flag){
+  			return true;
+  		}else{
+  			return false;
+  		}
+  	}
+</script>

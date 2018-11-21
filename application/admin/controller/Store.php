@@ -12,17 +12,18 @@ class Store extends FormBase
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
         $this->model = $this->model ? $this->model : model($this->modelName);
-//         $this->model = db('store');
         parent::__construct();
-        if ($this->storeType == 1 && $this->adminUser['group_id'] != 1) {
-            $this->error(lang('NO ACCESS'));
-        }elseif ($this->storeType != 1 && !in_array($this->adminUser['group_id'], [1, 2])) {
-            $this->error(lang('NO ACCESS'));
+        if ($this->adminUser['group_id'] != 1) {
+            if ($this->storeType == 1) {
+                $this->error(lang('NO ACCESS'));
+            }elseif ($this->storeType != 1 && $this->adminUser['store_type'] != 1) {
+                $this->error(lang('NO ACCESS'));
+            }
         }
         $this->storeType = $this->storeType ? $this->storeType : 1;//厂商
         $this->groupId = 2;
-        if ($this->storeType != 1) {
-            $this->_getStores();
+        if ($this->storeType != 1){
+            $this->_getFactorys();
         }
     }
     /**
@@ -40,7 +41,7 @@ class Store extends FormBase
             $this->error(lang('NO ACCESS'));
         }
         //判断当前厂商下是否存在子
-        $child = $this->model->where(['parent_id' => $pkId, 'is_del' => 0])->find();
+        $child = $this->model->where(['factory_id' => $pkId, 'is_del' => 0])->find();
         if ($child) {
             $this->error('厂商下存在子厂商，不允许删除');
         }
@@ -68,7 +69,7 @@ class Store extends FormBase
         $data = parent::_getData();
         $params = $this->request->param();
         $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
-        $parentId = $params && isset($params['parent_id']) ? intval($params['parent_id']) : 0;
+        $parentId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         $address = $data && isset($data['address']) ? trim($data['address']) : '';
         $name = $data && isset($data['name']) ? trim($data['name']) : '';
         $username = $data && isset($data['username']) ? trim($data['username']) : '';
@@ -113,34 +114,34 @@ class Store extends FormBase
     }
     function _afterAdd($pkId = 0, $data = []){
         $this->_userUpdate($pkId, $data, TRUE);
-        $this->_storeRelated($pkId, $data, TRUE);
+//         $this->_storeRelated($pkId, $data, TRUE);
         return TRUE;
     }
-    function _storeRelated($pkId, $data, $addFlag = FALSE){
-        $parentId = $data && isset($data['parent_id']) ? intval($data['parent_id']) : 0;
-        if ($this->storeType != 1 && $parentId) {
-            switch ($this->storeType) {
-                case 2://渠道商
-                    $model = db('store_channel');
-                    break;
-                case 3://经销商
-                    $model = db('store_dealer');
-                    break;
-                case 4://服务商
-                    $model = db('store_servicer');
-                    break;
-                default:
-                    return FALSE;
-                break;
-            }
-            if ($addFlag) {
-                $model->insert(['store_id' => $pkId, 'parent_id' => $parentId]);
-            }else{
-                $model->where(['store_id' => $pkId, 'parent_id' => ['<>', $parentId]])->update(['parent_id' => $parentId]);
-            }
-        }
-        return TRUE;
-    }
+//     function _storeRelated($pkId, $data, $addFlag = FALSE){
+//         $parentId = $data && isset($data['factory_id']) ? intval($data['factory_id']) : 0;
+//         if ($this->storeType != 1 && $parentId) {
+//             switch ($this->storeType) {
+//                 case 2://渠道商
+//                     $model = db('store_channel');
+//                     break;
+//                 case 3://经销商
+//                     $model = db('store_dealer');
+//                     break;
+//                 case 4://服务商
+//                     $model = db('store_servicer');
+//                     break;
+//                 default:
+//                     return FALSE;
+//                 break;
+//             }
+//             if ($addFlag) {
+//                 $model->insert(['store_id' => $pkId, 'factory_id' => $parentId]);
+//             }else{
+//                 $model->where(['store_id' => $pkId, 'factory_id' => ['<>', $parentId]])->update(['factory_id' => $parentId]);
+//             }
+//         }
+//         return TRUE;
+//     }
     function _userUpdate($pkId, $data, $addFlag = FALSE)
     {
         $password = isset($data['password']) ?trim($data['password']) : '';
@@ -164,12 +165,19 @@ class Store extends FormBase
     }
     function _afterEdit($pkId = 0, $data = []){
         $this->_userUpdate($pkId, $data, FALSE);
-        $this->_storeRelated($pkId, $data, FALSE);
+//         $this->_storeRelated($pkId, $data, FALSE);
         return TRUE;
     }
     function _getAlias()
     {
         return 'S';
+    }
+    function _getField(){
+        $field = 'S.*, U.*';
+        if ($this->storeType != 1) {
+            $field .= ', S1.name as sname';
+        }
+        return $field;
     }
     function _getJoin()
     {
@@ -190,6 +198,7 @@ class Store extends FormBase
                     break;
             }
             $join[] = [$tabel, 'S.store_id = AS.store_id', 'LEFT'];
+            $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
         }
         return $join;
     }
@@ -203,7 +212,7 @@ class Store extends FormBase
             'S.store_type'  => $this->storeType,
         ];
         if ($this->storeId && $this->storeType != 1) {
-            $where['AS.parent_id'] = $this->storeId;
+            $where['S1.factory_id'] = $this->storeId;
         }
         $params = $this->request->param();
         if ($params) {
@@ -214,10 +223,10 @@ class Store extends FormBase
         }
         return $where;
     }
-    function _getStores()
+    function _getFactorys()
     {
         //获取关联厂商列表
         $stores = $this->model->where(['store_type' => 1, 'is_del' => 0, 'status' => 1])->column('store_id, name');
-        $this->assign('stores', $stores);
+        $this->assign('factorys', $stores);
     }
 }
