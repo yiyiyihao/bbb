@@ -49,11 +49,10 @@ class FormBase extends AdminBase
             if($field) $this->model->field($field);
             //取得内容列表
             $count  = $this->model->where($where)->count();
+            
+            if($field) $this->model->field($field);
             $list   = $this->model->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
         }
-        
-//         $list   = $this->model->fetchSql()->where($where)->order($order)->paginate(10,$count, ['query' => input('param.')]);
-//         pre($list);
         // 获取分页显示
         $page   = $list->render();
         $list   = $list->toArray()['data'];

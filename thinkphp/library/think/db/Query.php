@@ -841,6 +841,9 @@ class Query
      */
     public function join($join, $condition = null, $type = 'INNER')
     {
+        if (!$join) {
+            return $this;
+        }
         if (empty($condition)) {
             // 如果为组数，则循环调用join
             foreach ($join as $key => $value) {
@@ -1604,7 +1607,11 @@ class Query
                     if (!is_array($val)) {
                         $where[] = [$key, '=', $val];
                     }else{
-                        $where[] = [$val[0], $val[1], $val[2]];
+                        if (!is_int($key)) {
+                            $where[] = [$key, $val[0], $val[1]];
+                        }else{
+                            $where[] = [$val[0], $val[1], $val[2]];
+                        }
                     }
                 }
             }

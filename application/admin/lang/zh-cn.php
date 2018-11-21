@@ -18,6 +18,12 @@ return [
     'STORE'                 =>  '厂商',
     'CHANNEL'               =>  '渠道商',
     'CHANNEL_GRADE'         =>  '渠道等级',
+    'DEALER'                =>  '经销商',
+    'SERVICER'              =>  '服务商',
+    
+    'GOODS'                 =>  '产品',
+    'GOODS_CATE'            =>  '产品分类',
+    'GOODS_SPEC'            =>  '产品规格',
     
     
     

@@ -11,8 +11,8 @@ class Store extends FormBase
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
-//         $this->model = $this->model ? $this->model : model($this->modelName);
-        $this->model = db('store');
+        $this->model = $this->model ? $this->model : model($this->modelName);
+//         $this->model = db('store');
         parent::__construct();
         if ($this->storeType == 1 && $this->adminUser['group_id'] != 1) {
             $this->error(lang('NO ACCESS'));
@@ -127,7 +127,7 @@ class Store extends FormBase
                     $model = db('store_dealer');
                     break;
                 case 4://服务商
-                    $model = db('store_service');
+                    $model = db('store_servicer');
                     break;
                 default:
                     return FALSE;
@@ -177,16 +177,13 @@ class Store extends FormBase
         if ($this->storeType != 1) {
             switch ($this->storeType) {
                 case 2://渠道商
-//                     $model = db('store_channel');
                     $tabel = 'store_channel AS';
                     break;
                 case 3://经销商
-//                     $model = db('store_dealer');
                     $tabel = 'store_dealer AS';
                     break;
                 case 4://服务商
-//                     $model = db('store_service');
-                    $tabel = 'store_service AS';
+                    $tabel = 'store_servicer AS';
                     break;
                 default:
                     return FALSE;
@@ -212,10 +209,7 @@ class Store extends FormBase
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-//                 $where['S.name'] = ['like','%'.$name.'%'];
-//                 $where[] = ['S.name', 'like','%'.$name.'%'];
-//                 $where['S.name'] = ['like', '%'.$name.'%'];
-                $where[] = ['S.name','like', '%'.$name.'%'];
+                $where['S.name'] = ['like','%'.$name.'%'];
             }
         }
         return $where;

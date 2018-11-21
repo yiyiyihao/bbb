@@ -1,0 +1,59 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="经销商名称">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="100">编号</th>
+          <th width="*">经销商名称</th>
+          <th width="*">厂商</th>
+          <th width="*">登录用户名</th>
+          <th width="*">联系电话</th>
+          <th width="*">经销商等级</th>
+          <th width="80">状态</th>
+          <th width="100">排序</th>
+          <th width="*">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo"}
+            <tr>
+              <td>{$i}</td>
+              <td>{$vo.name}</td>
+              <td>{$stores[$vo.parent_id]}</td>
+              <td>{$vo.username}</td>
+              <td>{$vo.mobile}</td>
+              <td>-</td>
+              <td>{$vo['status']?'<span class="tag bg-green">可用</span>':'<span class="tag bg-red">禁用</span>'}</td>
+              <td>{$vo.sort_order}</td>
+              <td>
+               	<a href="{:url('edit', array('id' => $vo['store_id'], 'pid' => $vo['parent_id']))}" class="button button-small bg-main icon-edit">编辑</a>
+               	<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-trash js-del" title="删除" data-id="{$vo.store_id}">删除</a>
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>
