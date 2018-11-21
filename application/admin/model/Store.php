@@ -7,7 +7,7 @@ class Store extends Model
 {
 	public $error;
 	public $storeTypes;
-	protected $pk='store_id';
+	protected $pk = 'store_id';
 	
 	protected $field = true;
 	//自定义初始化
