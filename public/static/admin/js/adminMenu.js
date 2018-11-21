@@ -17,7 +17,7 @@ function initMenu(data){
 			var m = $(this).attr('data');
 			var mi = $(this).attr('data-i');
 			var mk = $(this).attr('data-k');			
-			var menu = m+'_'+mi+'_'+mk;
+			var menu = mk+'_'+mi+'_'+m;
 			sessionStorage.setItem("activeMenu",menu);
 			var url = $(this).attr('url');
 			$('.admin-iframe').attr('src',url);
@@ -58,6 +58,7 @@ function initMenu(data){
 			}
 		})
 		var hisM = sessionStorage.getItem("activeMenu");
+		console.log(hisM);
 		if(hisM){
 			//打开菜单
 			$('#siderbar-nav #menu_'+hisM).click();
