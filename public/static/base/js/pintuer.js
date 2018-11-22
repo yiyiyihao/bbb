@@ -518,8 +518,8 @@ $(function(){
 		if(!$(this).hasClass("tab-active")){
 			par.find("li.tab-active").removeClass("tab-active");
 			$(this).addClass("tab-active");
-			par.parent(".panel").find(".panel-tab-item.tab-active").removeClass("tab-active");
-			par.parent(".panel").find(".panel-tab-item").eq(index).addClass("tab-active");
+			par.parents(".panel").find(".panel-tab-item.tab-active").removeClass("tab-active");
+			par.parents(".panel").find(".panel-tab-item").eq(index).addClass("tab-active");
 		}
 	})
 	
