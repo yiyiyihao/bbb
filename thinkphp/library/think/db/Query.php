@@ -1621,7 +1621,8 @@ class Query
         }
 
         if (!empty($where)) {
-            $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
+            $this->options['where'][$logic] = $where;
+//             $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
         }
 
         return $this;
@@ -2900,7 +2901,8 @@ class Query
     {
         $this->parseOptions();
 
-        $this->options['data'] = array_merge($this->options['data'], $data);
+//         $this->options['data'] = array_merge($this->options['data'], $data);
+        $this->options['data'] = $data;
 
         return $this->connection->update($this);
     }

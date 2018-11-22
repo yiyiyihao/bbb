@@ -1,7 +1,6 @@
 <?php
 namespace app\admin\controller;
 use app\common\controller\FormBase;
-use think\Request;
 
 //渠道等级管理
 class Cgrade extends FormBase
@@ -13,6 +12,10 @@ class Cgrade extends FormBase
         parent::__construct();
         if (ADMIN_ID != 1 && $this->adminUser['store_type'] != 1) {
             $this->error(lang('NO ACCESS'));
+        }
+        if ($this->adminUser['store_type'] != 1) {
+            $store = new \app\common\controller\Store();
+            $store->_getFactorys();
         }
     }
     function _afterList($list)
@@ -33,7 +36,7 @@ class Cgrade extends FormBase
     function _getJoin()
     {
         return [
-            ['store S', 'S.store_id = CG.store_id', 'LEFT'],
+            ['store S', 'S.store_id = CG.factory_id', 'LEFT'],
         ];
     }
     function  _getOrder()
@@ -61,10 +64,10 @@ class Cgrade extends FormBase
         }
         return $where;
     }
-    function _getGrades($sid = 0, $cgradeId = 0)
+    function _getGrades($factoryId = 0, $cgradeId = 0)
     {
-        $sid = $sid ? $sid : $this->storeId;
-        $where = ['is_del' => 0, 'status' => 1, 'store_id' => $sid];
+        $factoryId = $factoryId ? $factoryId : $this->storeId;
+        $where = ['is_del' => 0, 'status' => 1, 'factory_id' => $factoryId];
         if ($cgradeId) {
             $where['cgrade_id'] = ['neq', $cgradeId];
         }
@@ -80,18 +83,22 @@ class Cgrade extends FormBase
     {
         $data = parent::_getData();
         $params = $this->request->param();
-        $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
-        if ($pkId == 1) {
-            $this->error('系统等级，不允许编辑');
-        }
         $name = trim($data['name']);
+        $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
+        $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         if (!$name) {
             $this->error('等级名称不能为空');
+        }
+        if ($this->adminUser['store_type'] == 1) {
+            $data['factory_id'] = $factoryId = $this->adminUser['factory']['store_id'];
+        }
+        if (!$factoryId) {
+            $this->error('请选择关联厂商');
         }
         $where = [
             'name' => $name, 
             'is_del' => 0,
-            'store_id' => ['IN', [0, $this->storeId]],
+            'factory_id' => $factoryId,
         ];
         if($pkId){
             $where['cgrade_id'] = ['neq', $pkId];
@@ -105,22 +112,27 @@ class Cgrade extends FormBase
     }
     function _assignInfo($pkId = 0){
         $info = parent::_assignInfo($pkId);
-        $storeId = $info ? $info['store_id'] : 0;
+        $factoryId = $info ? $info['factory_id'] : 0;
         $cgradeId = $info ? $info['cgrade_id'] : 0;
-        $parents = $this->_getGrades($storeId, $cgradeId);
+        $parents = $this->_getGrades($factoryId, $cgradeId);
         return $info;
     }
     function del(){
         $params = $this->request->param();
         $pkId = intval($params['id']);
-        if ($pkId == 1) {
-            $this->error('系统等级，不允许删除');
-        }
         $info = parent::_assignInfo($pkId);
-        //判断当前等级下是否存在用户
-        $exist = db('store_member')->where(['grade_id' => $pkId, 'is_del' => 0])->find();
+        if ($this->adminUser['group_id'] != 1 && $info['factory_id'] != $this->adminUser['store_id']) {
+            $this->error('NO ACCESS');
+        }
+        //判断当前等级下是否存在下级
+        $exist = $this->model->where(['parent_id' => $pkId, 'is_del' => 0])->find();
         if ($exist) {
-            $this->error('等级下存在渠道商，不允许删除');
+            $this->error('等级下存在下级，不允许删除');
+        }
+        //判断等级下是否存在渠道商
+        $exist = db('store')->alias('S')->join([['store_channel SC', 'S.store_id = SC.store_id', 'INNER']])->where(['S.is_del' => 0, 'store_type' => 2, 'SC.cgrade_id' => $pkId])->find();
+        if ($exist) {
+            $this->error('等级下存在渠道，不允许删除');
         }
         parent::del();
     }

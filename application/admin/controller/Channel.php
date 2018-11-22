@@ -1,5 +1,6 @@
 <?php
 namespace app\admin\controller;
+use app\common\controller\Store;
 
 //渠道商理
 class Channel extends Store

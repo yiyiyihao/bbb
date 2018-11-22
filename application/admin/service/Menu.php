@@ -36,7 +36,7 @@ class Menu{
                         'list'    => [
                             'store' => [
                                 'name' => lang('厂商列表'),
-                                'url' => url("store/index"),
+                                'url' => url("factory/index"),
                                 'order' => 10
                             ],
                         ]

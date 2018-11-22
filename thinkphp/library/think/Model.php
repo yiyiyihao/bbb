@@ -69,6 +69,12 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      * @var string
      */
     protected $name;
+    
+    /**
+     * 数据库连配置
+     * @var array
+     */
+    protected $config;
 
     /**
      * 数据表名称
@@ -155,7 +161,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         // 记录原始数据
         $this->origin = $this->data;
 
-        $config = Db::getConfig();
+        $config = $this->config = Db::getConfig();
 
         if (empty($this->name)) {
             // 当前模型名
@@ -456,6 +462,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         if (!empty($data)) {
             // 数据对象赋值
             foreach ($data as $key => $value) {
+                if (!$where && $key == $this->pk) {
+                    $this->exists      = true;
+                    $this->updateWhere = [$this->pk => $value];
+                }
                 $this->setAttr($key, $value, $data);
             }
 
@@ -588,7 +598,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 ->strict(false)
                 ->field($allowFields)
                 ->update($data);
-
+                $this->data = $data ? array_merge($data, $where) : $data;
             // 关联更新
             if (!empty($this->relationWrite)) {
                 $this->autoRelationUpdate();

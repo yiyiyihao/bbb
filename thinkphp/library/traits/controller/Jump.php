@@ -124,6 +124,19 @@ trait Jump
 
         throw new HttpResponseException($response);
     }
+    /**
+     * Ajax方式返回Json数据到客户端
+     * @access protected
+     * @param mixed $data 要返回的数据
+     * @param int $json_option 传递给json_encode的option参数
+     * @return void
+     */
+    protected function ajaxJsonReturn($data, $json_option=0) {
+        // 返回JSON数据格式到客户端 包含状态信息
+        header('Content-Type:application/json; charset=utf-8');
+        exit(json_encode($data, $json_option));
+    }
+    
 
     /**
      * URL重定向

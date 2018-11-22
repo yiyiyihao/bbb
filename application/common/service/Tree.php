@@ -85,7 +85,7 @@ class Tree
             $this->formatList[]=$childs[$i];
             //递归下一级分类
             $filed = isset($this->field[$pkId]) ? $this->field[$pkId]: $pkId;
-            $this->_searchList($childs[$i][$filed], $space.$pad."&nbsp;&nbsp;", $pkId);
+            $this->_searchList($childs[$i][$filed], $space.$pad." ", $pkId);
             $cnt++;
         }
     }

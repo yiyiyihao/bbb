@@ -68,10 +68,14 @@ class FormBase extends AdminBase
         $params = $this->request->param();
         $keyword = isset($params['word']) ? trim($params['word']) : '';
         $isPage = isset($params['isPage']) ? intval($params['isPage']) : 0;
-        $currectPage   = $this->request->get('page') ? intval($this->request->get('page')) : 1;
+        $currectPage   = isset($params['page']) ? intval($params['page']) : 0;
+        unset($params['word'], $params['isPage'], $params['page']);
         $where = $where ? $where : ['is_del' => 0, 'status' => 1];
         if (!$where && $keyword) {
             $where['name'] = ['like', '%'.$keyword.'%'];
+        }
+        if ($params) {
+            $where = array_merge($where, $params);
         }
         $count =  $this->model->where($where)->count();
         if (!$field) {
@@ -146,11 +150,11 @@ class FormBase extends AdminBase
                 $pk   =   $this->model->getPk();
                 $where[$pk] = $pkId;
                 if (method_exists($this->model, 'save')) {
-                    $rs = $this->model->save($data, $where);
+                    $result = $this->model->save($data, $where);
                 }else{
-                    $rs = $this->model->where($where)->update($data);
+                    $result = $this->model->where($where)->update($data);
                 }
-                if($rs){
+                if($result !== FALSE){
                     $this->_afterEdit($pkId, $data);
                     $msg .= lang('SUCCESS');
                     unset($routes['id']);
@@ -179,6 +183,7 @@ class FormBase extends AdminBase
             $pk = $this->model->getPk();
             $result = $this->model->where(array($pk => $pkId))->update(array('is_del' => 1, 'update_time' => time()));
             if($result){
+                $this->_afterDel($info);
                 $msg .= lang('success');
                 $this->success($msg);
             }else{
@@ -275,6 +280,10 @@ class FormBase extends AdminBase
         return FALSE;
     }
     function _afterEdit($pkId = 0, $data = [])
+    {
+        return FALSE;
+    }
+    function _afterDel($info = [])
     {
         return FALSE;
     }

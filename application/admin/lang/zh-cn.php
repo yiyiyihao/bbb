@@ -15,7 +15,7 @@ return [
     'LOGIN_SUCCESS'         =>  '登录成功',
     'LOGOUT_SUCCESS'        =>  '退出成功',
     
-    'STORE'                 =>  '厂商',
+    'FACTORY'               =>  '厂商',
     'CHANNEL'               =>  '渠道商',
     'CHANNEL_GRADE'         =>  '渠道等级',
     'DEALER'                =>  '经销商',
