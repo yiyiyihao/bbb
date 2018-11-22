@@ -5,9 +5,8 @@
 	</div>
 	<div class="field">
 		<select class="input" name="factory_id" id="factory_id" datatype="n"nullmsg="请选择关联 厂商！">
-			<option value="">==请选择关联厂商==</option> 
-			{foreach name="factorys" item="vo" key="key"}
-				<option value="{$key}" {if condition="(!$info) || ($key && isset($info['factory_id']) && $info['factory_id'] == $key)" }selected="selected"{/if} >{$vo}</option> 
+			{foreach name="factorys" item="factory" key="factory_id"}
+				<option value="{$factory_id}" {if condition="!$info || ($factory_id && isset($info['factory_id']) && $info['factory_id'] == $factory_id)" }selected="selected"{/if} >{$factory}</option> 
 			{/foreach}
 		</select>
 		<div class="input-note">请选择服务关联厂商</div>

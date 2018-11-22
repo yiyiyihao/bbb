@@ -1,23 +1,43 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
-    <div class="tab admin-tab">
-        <div class="panel admin-box active">
+    <div class="tab admin-tab boxShadow">
+        <div class="panel admin-box fixed-pannel active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>经销商信息</strong>
+                    <strong>厂商信息</strong>
                 </div>
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	{include file="common/factory" /}
                 	<div class="form-group">
                         <div class="label">
-                            <label>经销商名称</label>
+                            <label>厂商名称</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
-                            <div class="input-note">经销商名称请不要填写特殊字符</div>
+                            <div class="input-note">厂商名称请不要填写特殊字符</div>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>厂商二级域名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="domain" name="domain" size="40" datatype="*" value="{$info['domain'] ?? ''}">
+                            <div class="input-note">厂商二级域名</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+			            <div class="label">
+			                <label>LOGO</label>
+			            </div>
+			            <div class="field">
+			                <input type="hidden" class="input" id="logo" name="logo" size="38" value="{$info.logo ?? ''}">
+			                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info.logo|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="avatar" id="image_chose" preview="image_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传</span>
+			                </a>
+			            </div>
+			        </div>
                 	<div class="form-group">
                         <div class="label">
                             <label>登录用户名</label>
@@ -51,11 +71,11 @@
                     </div>
                     <div class="form-group address">
                         <div class="label">
-                            <label>经销商地址</label>
+                            <label>厂商地址</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="address" name="address" size="60" value="{$info['address'] ?? ''}">
-                            <div class="input-note">请填写经销商地址</div>
+                            <div class="input-note">请填写厂商地址</div>
                         </div>
                     </div>
                     <div class="form-group">

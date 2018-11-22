@@ -4,9 +4,6 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <strong>渠道商信息</strong>
-                    <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">基本信息</a></li>
-                    </ul>
                 </div>
             </div>
             <div class="tab-body">
@@ -21,6 +18,22 @@
                             <div class="input-note">渠道商名称请不要填写特殊字符</div>
                         </div>
                     </div>
+                    <!-- <div class="form-group grade" {if condition="$adminUser['store_type'] != 1"}style="display:none"{/if}>
+                        <div class="label">
+                            <label>选择渠道等级</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="cgrade_id" id="cgrade_id" nullmsg="请选择渠道等级！">
+                              <option value="">==请选择渠道等级==</option>
+                               {foreach name="grades" item="vo" key="key"}
+                               <option value="{$vo['cgrade_id']}" 
+                               {if condition="$vo['cgrade_id'] && isset($info['cgrade_id']) && $info['cgrade_id'] == $vo['cgrade_id']"}selected="selected"{/if} >{$vo.cname}</option>
+                               {/foreach}
+                            </select>
+                            <div class="input-note"></div>
+                        </div>
+                    </div> -->
+                    <div class="form-group js-select" posturl="{:url('Cgrade/getAjaxList', ['factory_id' =>  $info && $info['factory_id'] ? $info['factory_id']: $factory_id])}" str="选择渠道等级" searchName="请输入等级名称" formname="cgrade_id" formvalue='{$info.cgrade_id ?? 0}' validtype="*"></div>
                 	<div class="form-group">
                         <div class="label">
                             <label>登录用户名</label>
@@ -86,7 +99,6 @@
                             <div class="input-note">禁用后不会在前台显示</div>
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <div class="label">
                             <label>排序</label>
@@ -112,12 +124,19 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
-		$('input[name="store_type"]').change(function(){
-			var type = $(this).val();
-			if(type == 2){
-				$('.address').hide();
+		$('#factory_id').change(function(){
+			var id = $(this).val();
+			if(id > 0){
+				$(".js-select").selectsin({
+					'datatype' 	: 'n',
+					'str' 		: '选择渠道等级',
+					'searchName': '请输入等级名称',
+					'name' 		: 'cgrade_id',
+					'id' 		: '{$factory_id}',
+					'postUrl' 	: "/Cgrade/getAjaxList/factory_id/"+id,
+				});
 			}else{
-				$('.address').show();
+				$('.js-select').hide();
 			}
 		});
     }); 

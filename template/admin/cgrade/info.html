@@ -12,34 +12,7 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	{if condition="$adminUser['group_id'] == 1"}
-	                    {if condition="$info"}
-	                    	<div class="form-group">
-		                        <div class="label">
-		                            <label>厂商名称</label>
-		                        </div>
-		                        <div class="field">
-		                            <input type="text" class="input" size="40" disabled="disabled" value="{$stores[$info['store_id']]}">
-		                        </div>
-		                    </div>
-		               	{else/}
-			               	<div class="form-group">
-		                        <div class="label">
-		                            <label>选择厂商</label>
-		                        </div>
-		                        <div class="field">
-		                            <select class="input" name="store_id" id="store_id" datatype="n" nullmsg="请选择关联 厂商！">
-		                              <option value="">==请选择关联厂商==</option>
-		                               {foreach name="stores" item="vo" key="key"}
-		                               <option value="{$key}" 
-		                               {if condition="(!$info) || ($key && isset($info['store_id']) && $info['store_id'] == $key)"}selected="selected"{/if} >{$vo}</option>
-		                               {/foreach}
-		                            </select>
-		                            <div class="input-note">请选择渠道关联厂商(厂商选择后不允许修改)</div>
-		                        </div>
-		                    </div>
-	                    {/if}
-                    {/if}
+                	{include file="common/factory" /}
                     <div class="form-group">
                         <div class="label">
                             <label>选择上级</label>
@@ -49,7 +22,7 @@
                               <option value="">==请选择上级==</option>
                                {foreach name="grades" item="vo" key="key"}
                                <option value="{$vo['cgrade_id']}" 
-                               {if condition="(!$info) || ($vo['cgrade_id'] && isset($info['parent_id']) && $info['parent_id'] == $vo['cgrade_id'])"}selected="selected"{/if} >{$vo.cname}</option>
+                               {if condition="$vo['cgrade_id'] && isset($info['parent_id']) && $info['parent_id'] == $vo['cgrade_id']"}selected="selected"{/if} >{$vo.cname}</option>
                                {/foreach}
                             </select>
                             <div class="input-note"></div>
