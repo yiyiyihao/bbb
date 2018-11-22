@@ -24,6 +24,7 @@ body{ background:#f5f5f5;}
 .nav-left li a{ padding:0px 10px;}
 .nav-inline li.nav-item{display:inline-block;vertical-align:middle; position:relative;}
 .nav-inline li:hover{ background-color:rgba(255,255,255,.1);}
+.badge-dot{ position:absolute; width:8px; height:8px; border-radius:50%; top:50%; left:50%; margin:-10px auto auto 5px; display:inline-block; background:#FF5722;}
 .nav-right li a{ padding:0 20px;}
 .nav-inline li a{font-size:16px; display:inline-block;line-height:50px;}
 .nav-inline .nav-a-list{ position:absolute; right:0; top:50px; z-index:10000; background:#fff; border:1px solid #ccc; border-top:none; border-radius:0 0 5px 5px; width:0; overflow:hidden; display:none;}
