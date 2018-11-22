@@ -30,3 +30,5 @@ Do.add('editor', {
     path: Config.libDir + 'keditor4.1/lang/zh-CN.js',
     requires: ['editorSrc']
 });
+
+Do.ready('base', function () {});

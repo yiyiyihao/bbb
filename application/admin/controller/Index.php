@@ -14,6 +14,7 @@ class Index extends AdminBase
     {
         $menuList = $this->getMenu($this->adminUser);
         $this->assign('menuList', $menuList);
+        config('app_trace',false);
         return $this->fetch();
     }
     /**

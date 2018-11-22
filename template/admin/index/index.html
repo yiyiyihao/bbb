@@ -1,63 +1,58 @@
 {__NOLAYOUT__}
 {include file="common/header" /}
-    <div class="admin-head">
-        <div class="admin-nav-box">
-            <ul class="nav-inline nav-left" id="nav">
-            	<li class="nav-item"><a href="javascript:;" title="侧边伸缩" class="sideflag"><span class="icon-list-square"></span></a></li>
-                <li class="nav-item"><a href="javascript:;" title="打开前台主页"><span class="icon-home"></span></a></li>
-            </ul>
-            <ul class="nav-inline nav-right">
-            	<li class="nav-item"><a href="javascript:;" title="系统消息"><span class="icon-bell"></span></a></li>
-                <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li>
-                <li class="nav-item"><a href="javascript:;" title="清理缓存"><span class="icon-chear"></span></a></li>
-                <li class="nav-item">
-                <a href="javascript:;"><span class="icon-user-cirle nav-nickname"> {$adminUser.username} </span><i class="icon-bottom"></i></a>
-                <!--<a href="{:url('/login/index/logout')}" class="admin-logout bg-main icon-exit" title="退出登录"></a>-->
-                <ul class="nav-a-list animate">
-                	<li><a href="{:url('profile')}" target="admin-iframe"><span class="icon-user-list"> 基本资料</span></a></li>
-                    <li><a href="{:url('password')}"  target="admin-iframe"><span class="icon-edit"> 修改密码</span></a></li>
-                    <li><a href="{:url('/login/logout')}"><span class="icon-exit"> 退出登录</span></a></li>
-                </ul>
-                </li>
-                <li class="nav-item"><a href="javascript:;" title="侧边栏展开"><span class="icon-dots"></span></a></li>
-            </ul>
-            <span id="top-bar" class="animate"></span>
-        </div>
-    </div>
-    <div class="admin-sidebar animate">    	
-    	<div class="admin-logo">
-            <img src="__PUBLIC__/base/images/logo.png" height="30" />
-        </div>
-        <ul class="nav nav-navicon admin-menu">
-        	<div id="siderbar-nav">
-            {notempty name="menuList"}
-            {foreach $menuList as $k=>$vo}
-            <div class="nav-box fold">
-            	<div class="nav-head"><span class="icon-{$vo.icon}"> <span class="head-name">{$vo.name}</span></span><i class="icon-bottom animate"></i></div>
-                {notempty name="vo.menu"}
-                <ul class="animate">
-                {foreach $vo.menu as $i=>$menu}
-                {notempty name="menu.list"}
-                    {foreach $menu.list as $j=>$item}
-                    <li><a href="javascript:;" id="menu_{$k}_{$i}_{$j}" data="{$j}" data-i="{$i}" data-k="{$k}" url="{$item.url}"> {$item.name}</a></li>
-                    {/foreach}
-                {/notempty}
-                {/foreach}
-                </ul>
-                {/notempty}
-            </div>
-            {/foreach}
-            {/notempty}
-            <span id="nav-bar" class="animate"></span>
-            </div>
+<div class="admin-head">
+    <div class="admin-nav-box">
+        <ul class="nav-inline nav-left" id="nav">
+            <li class="nav-item"><a href="javascript:;" title="侧边伸缩" class="sideflag"><span class="icon-list-square"></span></a></li>
+            <li class="nav-item"><a href="javascript:;" title="打开前台主页"><span class="icon-home"></span></a></li>
         </ul>
-    </div>    
-    <div class="admin-content">
-            <iframe id="admin-iframe" name="admin-iframe" class="admin-iframe" src="" frameborder="0"></iframe>
+        <ul class="nav-inline nav-right">
+            <li class="nav-item"><a href="javascript:;" title="系统消息"><span class="icon-bell"></span></a></li>
+            <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li>
+            <li class="nav-item"><a href="javascript:;" title="清理缓存"><span class="icon-chear"></span></a></li>
+            <li class="nav-item">
+            <a href="javascript:;"><span class="icon-user-cirle nav-nickname"> {$adminUser.username} </span><i class="icon-bottom"></i></a>
+            <!--<a href="{:url('/login/index/logout')}" class="admin-logout bg-main icon-exit" title="退出登录"></a>-->
+            <ul class="nav-a-list animate">
+                <li><a href="{:url('profile')}" target="admin-iframe"><span class="icon-user-list"> 基本资料</span></a></li>
+                <li><a href="{:url('password')}"  target="admin-iframe"><span class="icon-edit"> 修改密码</span></a></li>
+                <li><a href="{:url('/login/logout')}"><span class="icon-exit"> 退出登录</span></a></li>
+            </ul>
+            </li>
+            <li class="nav-item"><a href="javascript:;" title="侧边栏展开"><span class="icon-dots"></span></a></li>
+        </ul>
+        <span id="top-bar" class="animate"></span>
     </div>
-<script>
-Do.ready('base', function () {
-	$("body").AdminMenu();
-});
-</script>
+</div>
+<div class="admin-sidebar animate">    	
+    <div class="admin-logo">
+        <img src="__PUBLIC__/base/images/logo.png" height="30" />
+    </div>
+    <ul class="nav nav-navicon admin-menu">
+        <div id="siderbar-nav">
+        {notempty name="menuList"}
+        {foreach $menuList as $k=>$vo}
+        <div class="nav-box fold">
+            <div class="nav-head"><span class="icon-{$vo.icon}"> <span class="head-name">{$vo.name}</span></span><i class="icon-bottom animate"></i></div>
+            {notempty name="vo.menu"}
+            <ul class="animate">
+            {foreach $vo.menu as $i=>$menu}
+            {notempty name="menu.list"}
+                {foreach $menu.list as $j=>$item}
+                <li><a href="javascript:;" id="menu_{$k}_{$i}_{$j}" data="{$j}" data-i="{$i}" data-k="{$k}" url="{$item.url}"> {$item.name}</a></li>
+                {/foreach}
+            {/notempty}
+            {/foreach}
+            </ul>
+            {/notempty}
+        </div>
+        {/foreach}
+        {/notempty}
+        <span id="nav-bar" class="animate"></span>
+        </div>
+    </ul>
+</div>    
+<div class="admin-content">
+        <iframe id="admin-iframe" name="admin-iframe" class="admin-iframe" src="" frameborder="0"></iframe>
+</div>
 {include file="common/footer" /}

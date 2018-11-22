@@ -371,7 +371,9 @@ $.fn.AdminMenu = function (options) {
 		initMenu(data);
     });
 };
-
+if($("#siderbar-nav .nav-box").length > 0){
+	$("body").AdminMenu();
+}
 //表单页面处理
 $.fn.FormPage = function (options) {
     var defaults = {
