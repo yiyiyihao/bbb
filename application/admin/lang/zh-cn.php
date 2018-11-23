@@ -25,8 +25,8 @@ return [
     'GOODS_CATE'            =>  '产品分类',
     'GOODS_SPEC'            =>  '产品规格',
     
+    'AUTH_RULE'             =>  '权限节点',
     'USER_GROUP'            =>  '用户角色',
-    
     
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',

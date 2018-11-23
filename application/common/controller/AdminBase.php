@@ -8,6 +8,7 @@ class AdminBase extends Backend
     var $storeId;
     var $factory;
     var $adminUser;
+    var $breadCrumb;
 	//管理内容预处理方法
 	public function __construct()
     {
@@ -58,11 +59,34 @@ class AdminBase extends Backend
         $this->assign('adminUser', $this->adminUser);
     }
     
+    //获取页面的面包屑
+    protected function bread(){
+        //获取当前controller
+//         $module             = $this->request->module();
+//         $controller         = $this->request->controller();
+        $action             = $this->request->action();
+        
+        $this->breadCrumb[] = [
+            'name'  => lang('index'),
+            'url'   => url('index'),
+        ];
+        if($action != 'index'){
+            $this->breadCrumb[] = [
+                'name'  => lang($action),
+                'url'   => '',//url($action),
+            ];
+        }
+        return $this->breadCrumb;
+    }
+    
     //渲染输出
     protected function fetch($template = '', $vars = [], $replace = [], $config = []) {
         //获取当前页二级菜单
         $subMenu = $this->subMenu;
-        $this->assign('subMenu',$subMenu);        
+        $this->assign('subMenu',$subMenu);
+        //获取当前页面的面包屑        
+        $breadCrumb = $this->bread();
+        $this->assign('breadCrumb',$breadCrumb);
         return parent::fetch($template, $vars, $replace, $config);
     }
 }

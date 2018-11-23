@@ -812,7 +812,7 @@ abstract class Connection
             }
         }
 
-        if (is_string($pk) && !is_array($data)) {
+        if (is_string($pk) && !is_array($data) && !empty($data)) {
             if (isset($key) && strpos($key, '|')) {
                 list($a, $val) = explode('|', $key);
                 $item[$pk]     = $val;
@@ -821,7 +821,6 @@ abstract class Connection
             }
             $data = $item;
         }
-
         $query->setOption('data', $data);
 
         // 生成查询SQL

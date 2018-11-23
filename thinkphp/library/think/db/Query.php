@@ -2901,8 +2901,7 @@ class Query
     {
         $this->parseOptions();
 
-//         $this->options['data'] = array_merge($this->options['data'], $data);
-        $this->options['data'] = $data;
+        $this->options['data'] = array_merge($this->options['data'], $data);
 
         return $this->connection->update($this);
     }
@@ -3130,7 +3129,6 @@ class Query
             // AR模式分析主键条件
             $this->parsePkWhere($data);
         }
-
         $this->options['data'] = $data;
 
         $result = $this->connection->find($this);

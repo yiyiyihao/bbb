@@ -26,19 +26,17 @@
     <script src="__PUBLIC__/base/js/config.js"></script>    
     <script src="__PUBLIC__/admin/js/definition.js"></script>
     {present name="_head_tags"}{$_head_tags|raw}{/present}
-    <style>
-	body, html {
-		overflow-x: hidden;
-	}
-	</style>
 </head>
 <body>
 {notempty name="subMenu"}
 <div class="main-tools">
       <div class="bread-head">{$subMenu.info.name} <span class="small">{$subMenu.info.description}</span> </div>
-        {notempty name="subMenu.menu"}
     	<div class="tools-function clearfix">
-            <div class="float-left">
+        	<div class="bread-crumb">
+            	<a href="{:url('/index/home')}">主页</a> {notempty name="breadCrumb"}{foreach name="breadCrumb" item="crumb"}<i>/</i> {if condition="($crumb.url)"}<a href="{$crumb.url}">{$crumb.name}</a>{else /}<span>{$crumb.name}</span>{/if}{/foreach}{/notempty}
+            </div>
+        	{notempty name="subMenu.menu"}
+            <div class="float-left hide">
             {foreach name="subMenu.menu" item="data"}
                   {if condition="($data.url eq $self)"}<a class="button-line active" href="{$data.url}">{else /}<a class="button-line" href="{$data.url}">{/if} {$data.name}</a>
             {/foreach}
@@ -55,9 +53,9 @@
                 </ul>
               {/notempty}
             </div>
-      	   {/notempty}
+      	    {/notempty}
+  			{/notempty}
         </div>
-  		{/notempty}
 </div>
 {/notempty}
-<div class="admin-main">
+<div class="admin-main duration-animate animation-upbit">

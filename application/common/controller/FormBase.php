@@ -165,7 +165,7 @@ class FormBase extends AdminBase
                 }else{
                     $result = $this->model->where($where)->update($data);
                 }
-                if($result !== FALSE){
+                if($result){
                     $this->_afterEdit($pkId, $data);
                     $msg .= lang('SUCCESS');
                     unset($routes['id']);
@@ -288,8 +288,7 @@ class FormBase extends AdminBase
         unset($this->subMenu['add']);
         $this->assign("name",lang($this->modelName."_edit"));
         if($pkId > 0){
-            $pk = $this->model->getPk();
-            $info = $this->model->where([$pk => $pkId])->find();
+            $info = $this->model->get($pkId);
             if (!$info) {
                 $this->error(lang('PARAM_ERROR'));
             }

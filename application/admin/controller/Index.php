@@ -13,6 +13,18 @@ class Index extends AdminBase
     public function index()
     {
         $menuList = $this->getMenu($this->adminUser);
+        $menuSigle = [];
+        foreach ($menuList as $k=>$v){
+            foreach ($v['menu'] as $i=>$m){
+                foreach ($m['list'] as $j=>$l){
+                    $menuSigle[$k.'_'.$i.'_'.$j] = [
+                        'name'  => $l['name'],
+                        'url'   => $l['url'],
+                    ];
+                }
+            }
+        }
+//         pre($menuSigle);
         $this->assign('menuList', $menuList);
         config('app_trace',false);
         return $this->fetch();
