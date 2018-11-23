@@ -25,7 +25,7 @@ return [
     'GOODS_CATE'            =>  '产品分类',
     'GOODS_SPEC'            =>  '产品规格',
     
-    
+    'USER_GROUP'            =>  '用户角色',
     
     
     'LIST'                  =>  '列表',

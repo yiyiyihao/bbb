@@ -103,6 +103,7 @@ class Store extends FormBase
         $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         $address = $data && isset($data['address']) ? trim($data['address']) : '';
         $name = $data && isset($data['name']) ? trim($data['name']) : '';
+        $domain = $data && isset($data['domain']) ? trim($data['domain']) : '';
         $username = $data && isset($data['username']) ? trim($data['username']) : '';
         $password = isset($data['password']) ?trim($data['password']) : '';
         if ($this->storeType != 1) {
@@ -116,8 +117,33 @@ class Store extends FormBase
         if (!$name) {
             $this->error(lang($this->modelName).'名称不能为空');
         }
-        if (!$pkId) {
-            if (!$username) {
+        $where = ['name' => $name, 'is_del' => 0, 'store_type' => $this->storeType];
+        if ($this->storeType != 1) {
+            $where['factory_id'] = $factoryId;
+        }
+        if($pkId){
+            $where['store_id'] = ['neq', $pkId];
+        }
+        $exist = $this->model->where($where)->find();
+        if($exist){
+            $this->error('当前'.lang($this->modelName).'名称已存在');
+        }
+        if ($this->storeType == 1) {
+            if (!$domain) {
+                $this->error(lang($this->modelName).'二级域名不能为空');
+            }
+            //验证二级域名是否唯一
+            $where = ['SF.domain' => $domain, 'S.is_del' => 0];
+            if($pkId){
+                $where['S.store_id'] = ['neq', $pkId];
+            }
+            $exist = db('store_factory')->alias('SF')->join([['store S', 'S.store_id = SF.store_id', 'INNER']])->where($where)->find();
+            if($exist){
+                $this->error('二级域名已存在');
+            }
+        }
+        if (!$pkId || $password) {
+            if (!$pkId && !$username) {
                 $this->error('请输入'.lang($this->modelName).'登录用户名');
             }
             if (!$password) {
@@ -130,26 +156,13 @@ class Store extends FormBase
                 $this->error($userModel->error);
             }
         }
-        $where = ['name' => $name, 'is_del' => 0];
-        if ($this->storeType != 1) {
-            $where['factory_id'] = $factoryId;
-        }
-        if($pkId){
-            $where['store_id'] = ['neq', $pkId];
-        }
-        $exist = $this->model->where($where)->find();
-        if($exist){
-            $this->error('当前'.lang($this->modelName).'名称已存在');
-        }
         $data['name'] = $name;
-        if (!$pkId) {
-            $data['store_type'] = $this->storeType;
-        }
         if (isset($data['store_id'])) {
             unset($data['store_id']);
         }
         $data['config_json'] = '';
         $data['group_id'] = $this->groupId;
+        $data['store_type'] = $this->storeType;
         return $data;
     }
     function _getAlias()
@@ -157,7 +170,7 @@ class Store extends FormBase
         return 'S';
     }
     function _getField(){
-        $field = 'S.name, S.*, U.*';
+        $field = 'S.name, S.*, U.*, AS.*';
         if ($this->storeType != 1) {
             $field .= ', S1.name as sname';
             if ($this->storeType == 2) {
@@ -187,7 +200,7 @@ class Store extends FormBase
                 return FALSE;
                 break;
         }
-        $join[] = [$tabel, 'S.store_id = AS.store_id', 'LEFT'];
+        $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
         $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
         if ($this->storeType == 2) {
             $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];

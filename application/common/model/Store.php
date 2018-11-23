@@ -17,21 +17,20 @@ class Store extends Model
     }
     public static function init()
     {
-        self::event('after_insert', function ($store) {
-            self::_after($store);
+        self::event('after_insert', function ($data) {
+            self::_after($data);
         });
-        self::event('after_update', function ($store) {
-            $storeType = db('store')->where(['store_id' => $store['store_id']])->value('store_type');
-            self::_after($store, $storeType);
+        self::event('after_update', function ($data) {
+            self::_after($data, $data['store_id']);
         });
     }
-    private static function _after($store, $storeType = 0)
+    private static function _after($store, $storeId = 0)
     {
         if (!$store) {
             return FALSE;
         }
         $store = $store->toArray();
-        $storeType = $storeType ? $storeType : (isset($store['store_type']) ? $store['store_type'] : '');
+        $storeType = isset($store['store_type']) ? $store['store_type'] : '';
         switch ($storeType) {
             case 1:
                 $model = 'factory';
@@ -49,12 +48,29 @@ class Store extends Model
                 return FALSE;
                 break;
         }
-        $result = model($model)->save($store);
-        $userModel = model('user');
-        if ($store['password']) {
-            $store['password'] = $userModel->pwdEncryption($store['password']);
+        $where = [];
+        if ($storeId) {
+            $where = ['store_id' => $storeId];
         }
-        $result = $userModel->save($store);
-        return TRUE;
+        $result = model($model)->save($store, $where);
+        if ($result !== FALSE) {
+            $userModel = new \app\common\model\User();
+            if ($store['password']) {
+                $store['password'] = $userModel->pwdEncryption($store['password']);
+            }else{
+                unset($store['password']);
+            }
+            $userTabel = db('user');
+            if (!$storeId) {
+                $result = $userModel->save($store);
+            }else{
+                if (isset($store['username'])) {
+                    unset($store['username']);
+                }
+                $result = $userModel->save($store, ['store_id' => $store['store_id'], 'group_id' => $store['group_id'], 'is_del' => 0]);
+            }
+            return TRUE;
+        }
+        return FALSE;
     }
 }

@@ -169,6 +169,7 @@ class User extends Model
         //设置session
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
+		    'factory_id'      => $user['store_id'],
 		    'store_id'        => $user['store_id'],
 		    'factory'         => $factory,
 		    'store_type'      => $storeType,

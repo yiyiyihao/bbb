@@ -65,5 +65,4 @@ class AdminBase extends Backend
         $this->assign('subMenu',$subMenu);        
         return parent::fetch($template, $vars, $replace, $config);
     }
-    
 }

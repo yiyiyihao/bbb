@@ -11,14 +11,13 @@ class Base extends Controller
     	$this->initBase();
     }
     
-    
     //底层通用参数初始化
     protected function initBase() {
-        defined('USER')              or define('USER', 0);              //前台会员
-        defined('SYSTEM_SUPER_ADMIN')or define('SYSTEM_SUPER_ADMIN', 1);//平台超级管理员
-        defined('STORE_SUPER_ADMIN') or define('STORE_SUPER_ADMIN', 2); //连锁店/门店超级管理员
-        defined('STORE_MANAGER')     or define('STORE_MANAGER', 3);     //店长
-        defined('STORE_CLERK')       or define('STORE_CLERK', 4);       //店员
+        defined('SYSTEM_ADMIN')     or define('SYSTEM_ADMIN',   1); //平台管理员 
+        defined('STORE_ADMIN')      or define('STORE_ADMIN',    2); //商户管理员
+        defined('STORE_FINANCE')    or define('STORE_FINANCE',  3); //商户财务
+        defined('STORE_SERVICE')    or define('STORE_SERVICE',  4); //商户客服
+        defined('STORE_OPERATOR')   or define('STORE_OPERATOR', 5); //商户运营
         
         
         defined('NOW_TIME')or define('NOW_TIME', $_SERVER['REQUEST_TIME']);

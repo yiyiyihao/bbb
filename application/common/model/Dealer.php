@@ -6,12 +6,13 @@ class Dealer extends Model
 {
 	public $error;
 	protected $pk = 'store_id';
-	protected $table = 'store_dealer';
+	protected $table;
 	
 	protected $field = true;
 	//自定义初始化
-    protected function initialize()
-    {
-        parent::initialize();
-    }
+	protected function initialize()
+	{
+	    $this->table = $this->config['prefix'].'store_dealer';
+	    parent::initialize();
+	}
 }

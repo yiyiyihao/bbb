@@ -158,7 +158,7 @@ class Menu{
                         'list'    =>  [
                             'member' => [
                                 'name' => lang('角色列表'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]
@@ -175,17 +175,17 @@ class Menu{
                         'list'    =>  [
                             'sale' => [
                                 'name' => lang('业务数据'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'device' => [
                                 'name' => lang('设备数据'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'finance' => [
                                 'name' => lang('财务数据'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]
@@ -202,22 +202,22 @@ class Menu{
                         'list'    =>  [
                             'install' => [
                                 'name' => lang('安装服务'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'shipping' => [
                                 'name' => lang('配送服务'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'repair' => [
                                 'name' => lang('维修服务'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'comment' => [
                                 'name' => lang('服务评价'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]
@@ -234,27 +234,27 @@ class Menu{
                         'list'    =>  [
                             'sale' => [
                                 'name' => lang('核心配置'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'device' => [
                                 'name' => lang('工作区管理'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'paymethod' => [
                                 'name' => lang('支付方式'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'rule' => [
                                 'name' => lang('规则配置'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                             'channel' => [
                                 'name' => lang('渠道配置'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]
@@ -383,7 +383,7 @@ class Menu{
                         'list'    =>  [
                             'member' => [
                                 'name' => lang('角色列表'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]
@@ -429,7 +429,7 @@ class Menu{
                         'list'    =>  [
                             'member' => [
                                 'name' => lang('角色列表'),
-                                'url' => url('member/index'),
+                                'url' => url('ugroup/index'),
                                 'order' => 10
                             ],
                         ]

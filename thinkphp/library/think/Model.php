@@ -462,10 +462,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         if (!empty($data)) {
             // 数据对象赋值
             foreach ($data as $key => $value) {
-                if (!$where && $key == $this->pk) {
+                /* if (!$where && $key == $this->pk) {
                     $this->exists      = true;
                     $this->updateWhere = [$this->pk => $value];
-                }
+                } */
                 $this->setAttr($key, $value, $data);
             }
 

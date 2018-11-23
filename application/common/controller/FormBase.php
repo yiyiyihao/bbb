@@ -70,24 +70,35 @@ class FormBase extends AdminBase
         $isPage = isset($params['isPage']) ? intval($params['isPage']) : 0;
         $currectPage   = isset($params['page']) ? intval($params['page']) : 0;
         unset($params['word'], $params['isPage'], $params['page']);
+        
+        $pk = $this->model->getPk();
+        
         $where = $where ? $where : ['is_del' => 0, 'status' => 1];
         if (!$where && $keyword) {
             $where['name'] = ['like', '%'.$keyword.'%'];
         }
+        if (isset($params['neq'])) {
+            if ($params['neq']) {
+                $where[$pk] = ['<>', $params['neq']];
+            }
+            unset($params['neq']);
+        }
+        
         if ($params) {
             $where = array_merge($where, $params);
         }
         $count =  $this->model->where($where)->count();
         if (!$field) {
-            $pk = $this->model->getPk();
             $field = $pk.' as id, name';
         }
+        $field = $this->_getAjaxField($field);
         $list = $this->model->field($field)->where($where)->order('add_time DESC')->paginate($this->perPage, $count, ['page' => $currectPage, 'ajax' => TRUE]);
         $page = '';
         if ($list) {
             $page = $list->render();
             $list = $list->toArray()['data'];
         }
+        $list = $this->_afterAjaxList($list);
         $data = array(
             'data'  => $list,
             'page' => $page,
@@ -198,12 +209,22 @@ class FormBase extends AdminBase
     {
         return $list;
     }
+    function _afterAjaxList($list)
+    {
+        return $list;
+    }
     
     /**
      * 取得查询字段
      */
     function _getField(){
         return;
+    }
+    /**
+     * 取得Ajax查询字段
+     */
+    function _getAjaxField($field = ''){
+        return $field;
     }
     /**
      * 取得查询条件
@@ -242,6 +263,9 @@ class FormBase extends AdminBase
             $data['add_time'] = time();
         }
         $data['update_time'] = time();
+        if (isset($data['keyword'])) {
+            unset($data['keyword']);
+        }
         return $data;
     }
     
