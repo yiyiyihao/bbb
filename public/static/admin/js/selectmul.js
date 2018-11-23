@@ -47,7 +47,7 @@
    		+'<div class="margin-bottom float-left select-lists"><select class="select-list from-list input overflow-hidden" name="'+opt.name+'" '+dataType+'  size="10"></select><div class="panel-foot table-foot clearfix pages"></div></div>';
 		$(this).html(html);
 		var tis = $(this);
-		var postParam = opt.postData ? opt.postData: true;
+		var postParam = opt.postData ? opt.postData: false;
 		getSearchDataSingle(opt.postUrl, postParam,tis);
 		tis.off('click','a#search');
 		$(this).on('click','a#search', function(){					
@@ -220,7 +220,11 @@
 				if(result.data.length == 0){
 					tis.find("select.from-list").html('');
 					tis.find("div.pages").html('');
-					layer.alert('对应数据不存在，请重新查询！');
+					if(postParam){
+						layer.alert('对应数据不存在，请重新查询！');
+					}else{
+						layer.closeAll();
+					}
 					return false;
 				}
 				var fromValue = tis.attr('formvalue');
