@@ -3,116 +3,41 @@
         <div class="panel admin-box fixed-pannel active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>厂商信息</strong>
+                    <strong>{$name}</strong>
                 </div>
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	<div class="form-group">
-                        <div class="label">
-                            <label>厂商名称</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
-                            <div class="input-note">厂商名称请不要填写特殊字符</div>
-                        </div>
+                {notempty name="field"}
+                {volist name="field" key="k" id="vo"}
+                <div class="form-group">
+                    <div class="label">
+                        <label>{$vo.title}</label>
                     </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>二级域名前缀</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="domain" name="domain" size="40" datatype="*" value="{$info['domain'] ?? ''}">
-                            <div class="input-note">厂商二级域名前缀</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-			            <div class="label">
-			                <label>LOGO</label>
-			            </div>
-			            <div class="field">
-			                <input type="hidden" class="input" id="logo" name="logo" size="38" value="{$info.logo ?? ''}">
-			                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info.logo|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
-			                <a class="button bg-main button-small js-img-upload" data="avatar" id="image_chose" preview="image_preview" href="javascript:;" >
+                    <div class="field">
+                    	{switch vo.type}
+                        	{case text}<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" datatype="{$vo.datatype}" value="{$info[$vo.name]|default=$vo.default}">{/case}                        	{case radio}
+                            {notempty name="vo.radioList"}
+                            <div class="button-group radio">
+                            {volist name="vo.radioList" id="radio"}
+                            <label class='button {eq name="radio.value" value="$vo.default"} active{/eq}'><input name="{$vo.name}" value="{$radio.value}" type="radio" {eq name="radio.value" value="$vo.default"}checked="checked"{/eq}>{$radio.text}</label>
+                            {/volist}
+                            </div>
+                            {/notempty}
+                            {/case}
+                            {case uploadImg}
+                            <input type="hidden" class="input" id="{$vo.name}" name="{$vo.name}" size="38" value="{$info[$vo.name]|default=''}">
+			                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="{$vo.name}" preview="image_preview" href="javascript:;" >
 			                	<span class="icon-upload"> 上传</span>
 			                </a>
-			            </div>
-			        </div>
-                	<div class="form-group">
-                        <div class="label">
-                            <label>登录用户名</label>
-                        </div>
-                        <div class="field">
-                        	{if condition="isset($user) && $user"}
-                            <input type="text" class="input" disabled="disabled" value="{$user['username'] ?? ''}">
-                            {else}
-                            <input type="text" class="input" id="username" name="username" size="40" datatype="*" value="{$user['username'] ?? ''}">
-                            {/if}
-                            <div class="input-note">请填写登录用户名(用户名格式:5-16位字符长度,只能由英文数字下划线组成)</div>
-                        </div>
+                            {/case}
+                        {/switch}
+                        <div class="input-note">{$vo.notetext}</div>
                     </div>
-                    <div class="form-group address">
-                        <div class="label">
-                            <label>登录密码</label>
-                        </div>
-                        <div class="field">
-                            <input type="password" class="input" id="password" name="password" size="40" value="">
-                            <div class="input-note">请填写登录密码(密码格式:长度在5~20之间，只能由英文数字下划线组成)</div>
-                        </div>
-                    </div>
-                    <div class="form-group address">
-                        <div class="label">
-                            <label>联系电话</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="mobile" name="mobile" size="20" value="{$info['mobile'] ?? ''}">
-                            <div class="input-note">请填写联系电话</div>
-                        </div>
-                    </div>
-                    <div class="form-group address">
-                        <div class="label">
-                            <label>厂商地址</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="address" name="address" size="60" value="{$info['address'] ?? ''}">
-                            <div class="input-note">请填写厂商地址</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>显示状态</label>
-                        </div>
-                        <div class="field">
-                           {notpresent name="info.status"}
-                                {assign name="info.status" value="1" /}
-                           {/notpresent}
-                            <div class="button-group radio">
-                                {if condition="$info.status eq 1"}
-                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="1" type="radio">
-                                {/if}
-                                可用</label>
-                                {if condition="$info.status eq 0"}
-                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="0" type="radio">
-                                {/if}
-                                禁用</label>
-                            </div>
-                            <div class="input-note">禁用后不会在前台显示</div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="label">
-                            <label>排序</label>
-                        </div>
-                        <div class="field">
-                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
-                            <div class="input-note">开启自定义排序有效</div>
-                        </div>
-                    </div>                    
+                </div>
+                {/volist}
+                {/notempty}
                 </div>
             </div>
             <div class="panel-foot">

@@ -12,6 +12,7 @@ class FormBase extends AdminBase
     var $indextempfile;
     var $perPage;
     var $table;
+    var $field;
     public function __construct()
     {
         parent::__construct();
@@ -295,6 +296,8 @@ class FormBase extends AdminBase
         }
         unset($this->subMenu['add']);
         $this->assign("name",lang($this->modelName."_edit"));
+//         pre($this->field);
+        $this->assign("field",$this->field);
         if($pkId > 0){
             $info = $this->model->get($pkId);
             if (!$info) {
