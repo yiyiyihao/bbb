@@ -51,80 +51,33 @@ class Authrule extends FormBase
     
     private function _tableData(){
         $table = [
-            [
-                'title'     => '编号',
-                'width'     => '60',
-                'value'     => 'id',
-                'type'      => 'index',
-            ],
-            [
-                'title'     => '图标',
-                'width'     => '50',
-                'value'     => 'icon',
-                'type'      => 'icon',
-            ],
-            [
-                'title'     => '节点名称',
-                'width'     => '100',
-                'value'     => 'cname',
-                'type'      => 'text',
-            ],
-            [
-                'title'     => '操作地址',
-                'width'     => '*',
-                'value'     => 'href',
-                'type'      => 'text',
-            ],
-            [
-                'title'     => '是否验证权限',
-                'width'     => '120',
-                'value'     => 'authopen',
-                'type'      => 'yesOrNo',
-                'yes'       => '开启',
-                'no'        => '关闭',
-            ],
-            [
-                'title'     => '是否显示菜单',
-                'width'     => '120',
-                'value'     => 'menustatus',
-                'type'      => 'yesOrNo',
-                'yes'       => '开启',
-                'no'        => '关闭',
-            ],
-            [
-                'title'     => '状态',
-                'width'     => '60',
-                'value'     => 'status',
-                'type'      => 'yesOrNo',
-                'yes'       => '可用',
-                'no'        => '禁用',
-            ],
-            [
-                'title'     => '排序',
-                'width'     => '60',
-                'value'     => 'sort_order',
-                'type'      => 'text',
-            ],
-            [
-                'title'     => '操作',
-                'width'     => '160',
-                'type'      => 'button',
-                'button'    =>  [
-                    [
-                        'text'  => '编辑',
-                        'action'=> 'edit',
-                        'icon'  => 'edit',
-                        'bgClass'=> 'bg-main',
-                    ],
-                    [
-                        'text'  => '删除',
-                        'action'=> 'del',
-                        'icon'  => 'delete',
-                        'bgClass'=> 'bg-red',
-                    ],
-                ]
-            ],
+            ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
+            ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
+            ['title'     => '节点名称','width'     => '100','value'     => 'cname','type'      => 'text'],
+            ['title'     => '操作地址','width'     => '*','value'     => 'href','type'      => 'text'],
+            ['title'     => '是否验证权限','width'     => '120','value'     => 'authopen','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
+            ['title'     => '是否显示菜单','width'     => '120','value'     => 'menustatus','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
+            ['title'     => '状态','width'     => '60','value'     => 'status','type'      => 'yesOrNo','yes'       => '可用','no'        => '禁用'],
+            ['title'     => '排序','width'     => '60','value'     => 'sort_order','type'      => 'text'],
+            ['title'     => '操作','width'     => '160','type'      => 'button','value'   => 'id','button'    =>  [['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']]]
         ];
         return $table;
+    }
+    /**
+     * 详情字段配置
+     */
+    private function _fieldData(){
+        $field = [
+            ['title'=>'厂商名称','type'=>'text','name'=>'name','size'=>'40','datatype'=>'*','default'=>'','notetext'=>'厂商名称请不要填写特殊字符'],
+            ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>'厂商二级域名不能重复'],
+            ['title'=>'厂商Logo','type'=>'uploadImg','name'=>'logo','size'=>'20','datatype'=>'','default'=>'','notetext'=>''],
+            ['title'=>'厂商地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写厂商地址'],
+            ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
+                ['text'=>'可用','value'=>'1'],
+                ['text'=>'禁用','value'=>'0'],
+            ]],
+            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'255','notetext'=>''],
+        ];
+        return $field;
     }
 }
