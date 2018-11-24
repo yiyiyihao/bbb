@@ -1,6 +1,7 @@
 <?php
 namespace app\common\controller;
 use app\admin\service\Auth;
+use app\common\model\AuthRule;
 //登陆后管理内容公共处理
 class AdminBase extends Backend
 {
@@ -62,20 +63,22 @@ class AdminBase extends Backend
     //获取页面的面包屑
     protected function bread(){
         //获取当前controller
-//         $module             = $this->request->module();
-//         $controller         = $this->request->controller();
-        $action             = $this->request->action();
-        
-        $this->breadCrumb[] = [
-            'name'  => lang('index'),
-            'url'   => url('index'),
-        ];
-        if($action != 'index'){
-            $this->breadCrumb[] = [
-                'name'  => lang($action),
-                'url'   => '',//url($action),
-            ];
+        $module             = strtolower($this->request->module());
+        $controller         = strtolower($this->request->controller());
+        $action             = strtolower($this->request->action());
+        $authRule       = AuthRule::getRuleList();        
+        $listCrumb      = ['name'  => lang('index'),'url'   => url('index')];
+        $activeCrumb    = ['name'  => lang($action),'url'   => ''];
+        foreach ($authRule as $k=>$v){
+            if($v['module'] == $module && $v['controller'] == $controller && is_null($v['action'])){
+                $listCrumb['name'] = $v['title'];
+            }
+            if($v['module'] == $module && $v['controller'] == $controller && $v['action'] == $action){
+                $activeCrumb['name'] = $v['title'];
+            }
         }
+        $this->breadCrumb[] = $listCrumb;
+        $this->breadCrumb[] = $activeCrumb;
         return $this->breadCrumb;
     }
     

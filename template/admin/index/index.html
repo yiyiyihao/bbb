@@ -33,15 +33,11 @@
         {notempty name="menuList"}
         {foreach $menuList as $k=>$vo}
         <div class="nav-box fold">
-            <div class="nav-head"><span class="icon-{$vo.icon}"> <span class="head-name">{$vo.name}</span></span><i class="icon-bottom animate"></i></div>
-            {notempty name="vo.menu"}
+            <div class="nav-head"><span class="icon-{$vo.icon}"> <span class="head-name">{$vo.title}</span></span><i class="icon-bottom animate"></i></div>
+            {notempty name="vo.list"}
             <ul class="animate">
-            {foreach $vo.menu as $i=>$menu}
-            {notempty name="menu.list"}
-                {foreach $menu.list as $j=>$item}
-                <li><a href="javascript:;" id="menu_{$k}_{$i}_{$j}" data="{$j}" data-i="{$i}" data-k="{$k}" url="{$item.url}"> {$item.name}</a></li>
-                {/foreach}
-            {/notempty}
+            {foreach $vo.list as $i=>$item}
+                <li><a href="javascript:;" id='menu{notempty name="item.module"}{if $item.module != "admin"}_{$item.module}{/if}{/notempty}{notempty name="item.controller"}_{$item.controller}{/notempty}{notempty name="item.action"}_{$item.action}{/notempty}' data-m="{if $item.module != 'admin'}{$item.module}{/if}" data-c="{$item.controller}" data-a="{$item.action}" url="{$item.href}"> {$item.title}</a></li>
             {/foreach}
             </ul>
             {/notempty}

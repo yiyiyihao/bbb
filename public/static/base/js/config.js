@@ -55,3 +55,4 @@ function debug(obj) {
         console.log(obj);
     }
 }
+Do.ready('base', function () {});

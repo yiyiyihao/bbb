@@ -8,16 +8,19 @@ function initMenu(data){
 	function initNav(data){		
 		//记录打开位置
 		var n = '';
-		var m = $('#siderbar-nav a:first').attr('data');
-		var mi = $('#siderbar-nav a:first').attr('data-i');
-		var mk = $('#siderbar-nav a:first').attr('data-k');
+		var m = $('#siderbar-nav a:first').data('m');
+		var c = $('#siderbar-nav a:first').data('c');
+		var a = $('#siderbar-nav a:first').data('a');
 					
 		//绑定菜单连接
 		$('#siderbar-nav').on('click','a',function(){
-			var m = $(this).attr('data');
-			var mi = $(this).attr('data-i');
-			var mk = $(this).attr('data-k');			
-			var menu = mk+'_'+mi+'_'+m;
+			var m = $(this).attr('data-m');
+			var c = $(this).attr('data-c');
+			var a = $(this).attr('data-a');			
+			var menu = '';
+			if(m!='' && m!=undefined) {menu += '_'+m;}
+			if(c!='' && c!=undefined) {menu += '_'+c;}
+			if(a!='' && a!=undefined) {menu += '_'+a;}
 			sessionStorage.setItem("activeMenu",menu);
 			var url = $(this).attr('url');
 			$('.admin-iframe').attr('src',url);
@@ -60,7 +63,7 @@ function initMenu(data){
 		var hisM = sessionStorage.getItem("activeMenu");
 		if(hisM){
 			//打开菜单
-			$('#siderbar-nav #menu_'+hisM).click();
+			$('#siderbar-nav #menu'+hisM).click();
 		}else{
 			//打开菜单
 			$('#siderbar-nav a:first').click();

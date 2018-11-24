@@ -13,18 +13,6 @@ class Index extends AdminBase
     public function index()
     {
         $menuList = $this->getMenu($this->adminUser);
-        $menuSigle = [];
-        foreach ($menuList as $k=>$v){
-            foreach ($v['menu'] as $i=>$m){
-                foreach ($m['list'] as $j=>$l){
-                    $menuSigle[$k.'_'.$i.'_'.$j] = [
-                        'name'  => $l['name'],
-                        'url'   => $l['url'],
-                    ];
-                }
-            }
-        }
-//         pre($menuSigle);
         $this->assign('menuList', $menuList);
         config('app_trace',false);
         return $this->fetch();
@@ -128,56 +116,11 @@ class Index extends AdminBase
                 $menuPurview = FALSE;
             }
         }
-        if (ADMIN_ID == 1) {
-            $method = 'getAdminMenu';
-        }else{
-            switch ($loginUserInfo['store_type']) {
-                case 1://厂商
-                    $method = 'getFactoryMenu';
-                    break;
-                case 2://渠道商
-                    $method = 'getChannelMenu';
-                    break;
-                case 3://经销商
-                    $method = 'getDealerMenu';
-                    break;
-                case 4://服务商
-                    $method = 'getServiceMenu';
-                    break;
-                default:
-                    $this->error(lang('NO ACCESS'));
-                    break;
-            }
-        }
         $menuList = array();
-        $menuService = new \app\admin\service\Menu();
-        $menuList = $menuService->$method();
-        /* $menuList = controller("menu", "service")->getAdminMenu(); */
-        if ($menuPurview) {
-            foreach ($menuList as $key => $value) {
-                if ($value && $value['menu']) {
-                    foreach ($value['menu'] as $menuKey => $vo) {
-                        if (!$vo ) {
-                            break;
-                        }
-                        $url = $vo['url'];
-                        $temp = explode('/', $url);
-                        $count = count($temp);
-                        $tempKey = $temp[2].'_'.$temp[3];
-                        if (in_array($tempKey, $menuPurview)) {
-                            $menu[$key]['name'] = $value['name'];
-                            $menu[$key]['icon'] = $value['icon'];
-                            $menu[$key]['order'] = $value['order'];
-                            $menu[$key]['menu'][$menuKey] = $vo;
-                        }
-                    }
-                }
-            }
-        }else{
-            $menu = $menuList;
-        }
-        $menuList = array_order($menu, 'order', 'asc', true);
-        session('admin_menu',$menuList);
+        $menuService = new \app\admin\service\Menu;
+        $menuList = $menuService->getAdminMenu();
+        $menuList = array_order($menuList, 'sort_order', 'asc', true);
+//         session('admin_menu',$menuList);
         return $menuList;
     }
 }

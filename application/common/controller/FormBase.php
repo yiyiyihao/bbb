@@ -11,6 +11,7 @@ class FormBase extends AdminBase
     var $infotempfile;
     var $indextempfile;
     var $perPage;
+    var $table;
     public function __construct()
     {
         parent::__construct();
@@ -204,9 +205,16 @@ class FormBase extends AdminBase
             $this->error(lang('param_error'));
         }
     }
+    
     //以下为私有方法
+    
+    function _initList(){
+        $this->assign('table', $this->table);
+    }
     function _afterList($list)
     {
+        //初始化列表元素
+        $this->_initList();
         return $list;
     }
     function _afterAjaxList($list)
