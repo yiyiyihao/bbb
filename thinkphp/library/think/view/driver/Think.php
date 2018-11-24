@@ -76,6 +76,7 @@ class Think
      */
     public function fetch($template, $data = [], $config = [])
     {
+        $templateStr = $template;
         if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
             // 获取模板文件名
             $template = $this->parseTemplate($template);
@@ -85,7 +86,7 @@ class Think
             //如果是index页
             if ($this->app['request']->action() == 'index'){
                 $template = $this->config['default_index_tpl'];
-            }else if($this->app['request']->action() == 'info'){
+            }else if($templateStr == 'info'){
                 $template = $this->config['default_info_tpl'];
             }else{
                 throw new TemplateNotFoundException('template not exists:' . $template, $template);
