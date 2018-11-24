@@ -80,10 +80,16 @@ class Think
             // 获取模板文件名
             $template = $this->parseTemplate($template);
         }
-
         // 模板不存在 抛出异常
-        if (!is_file($template)) {
-            throw new TemplateNotFoundException('template not exists:' . $template, $template);
+        if (!is_file($template)) {            
+            //如果是index页
+            if ($this->app['request']->action() == 'index'){
+                $template = $this->config['default_index_tpl'];
+            }else if($this->app['request']->action() == 'info'){
+                $template = $this->config['default_info_tpl'];
+            }else{
+                throw new TemplateNotFoundException('template not exists:' . $template, $template);
+            }
         }
 
         // 记录视图信息
