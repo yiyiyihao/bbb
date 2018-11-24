@@ -11,6 +11,7 @@ class Authrule extends FormBase
         $this->model = db('auth_rule');
         parent::__construct();
         $this->table = self::_tableData();
+        $this->perPage = 100;
     }
     
     function _afterList($list)
