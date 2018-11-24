@@ -6,6 +6,7 @@ use think\Model;
 class Goods extends Model
 {
 	protected $fields;
+	protected $pk = 'goods_id';
 
 	//自定义初始化
     protected function initialize()

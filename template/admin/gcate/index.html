@@ -5,7 +5,7 @@
                 <div class="form-inline">
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="sname" name="sname" size="25" value="{$_GET['sname'] ?? ''}" placeholder="门店名称">
+                            <input type="text" class="input" id="sname" name="sname" size="25" value="{$_GET['sname'] ?? ''}" placeholder="厂商名称">
                         </div>
                     </div>
                     <div class="form-group">
@@ -41,7 +41,7 @@
               <td>{$vo.sort_order}</td>
               <td>
               	<a href="{:url('edit', array('id' => $vo['cate_id']))}" class="button button-small bg-main icon-edit">编辑</a>            
-                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-trash js-del" title="删除" data-id="{$vo.cate_id}">删除</a>
+                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.cate_id}">删除</a>
               </td>
             </tr>
           {/volist}

@@ -57,7 +57,7 @@
                     <td></td>
                     <td><input class="input" type="text" name="price[]" value="{$vo.price}" /></td>
                     <td><input class="input" type="text" name="sku_stock[]" value="{$vo.sku_stock}" /></td>
-                    <td><span class="delSpec button button-small bg-main icon-trash"></span></td>
+                    <td><span class="delSpec button button-small bg-main icon-delete"></span></td>
                 </tr>
               {/volist}
             </tbody>
@@ -195,7 +195,7 @@
 		
 		function createForm(spec){
 			var html = '<tr><td><input type="hidden" name="spec_json[]" value='+spec._json+' /></td><td> <input class="input" type="text" name="sku_sn[]" value="{$goods.goods_sn}-'+spec.index+'" /></td>'+
-					   '<td>'+spec._str+'<input type="hidden" name="spec_name[]" value="'+spec._str+'" /></td><td></td><td><input class="input" type="text" name="price[]" value="{$goods.min_price}" /></td><td><input class="input" type="text" name="sku_stock[]" value="{$goods.goods_stock}" /></td><td><span class="delSpec button button-small bg-main icon-trash"></span></td></tr>';
+					   '<td>'+spec._str+'<input type="hidden" name="spec_name[]" value="'+spec._str+'" /></td><td></td><td><input class="input" type="text" name="price[]" value="{$goods.min_price}" /></td><td><input class="input" type="text" name="sku_stock[]" value="{$goods.goods_stock}" /></td><td><span class="delSpec button button-small bg-main icon-delete"></span></td></tr>';
 			$("#table tbody").append(html);
 		}
 		$("#table").on("click",".delSpec",function(){

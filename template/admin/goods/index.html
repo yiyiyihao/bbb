@@ -5,12 +5,27 @@
                 <div class="form-inline">
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="sname" name="sname" size="25" value="{$_GET['sname'] ?? ''}" placeholder="门店名称">
+                            <input type="text" class="input" id="sname" name="sname" size="20" value="{$_GET['sname'] ?? ''}" placeholder="厂商名称">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="产品名称">
+                            <input type="text" class="input" id="name" name="name" size="20" value="{$_GET['name'] ?? ''}" placeholder="产品名称">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="field">
+							<select class="input" name="goods_type" id="goods_type">
+								<option value="0">--产品类型--</option>
+								{foreach name="goodsTypes" item="goodsType" key="key"}
+									<option value="{$key}" {if condition="(isset($_GET['goods_type']) && $_GET['goods_type'] == $key)" }selected="selected"{/if} >{$goodsType}</option> 
+								{/foreach}
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="sn" name="sn" size="20" value="{$_GET['sn'] ?? ''}" placeholder="产品货号">
                         </div>
                     </div>
                     <div class="form-button">
@@ -25,15 +40,16 @@
       <tbody>
         <tr>
           <th width="100">编号</th>
-          <th width="*">门店名称</th>
-          <th width="*">产品名称</th>
-          <th width="100">产品图片</th>
+          <th width="*">厂商名称</th>
           <th width="100">产品分类</th>
+          <th width="*">产品名称</th>
+          <th width="*">产品类型</th>
+          <th width="100">产品图片</th>
           <th width="100">产品货号</th>
           <th width="150">产品价格</th>
           <th width="100">产品库存</th>
           <th width="80">是否下架</th>
-          <th width="100">排序</th>
+          <th width="100">排序  {:get_tag_a('^', ['href' => ['index']])}<a href="" field="sort_order" order="sort" class="icon-bottom"></label></th>
           <th width="280">操作</th>
         </tr>
         {notempty name="list"}
@@ -41,9 +57,10 @@
             <tr>
               <td>{$i}</td>
               <td>{$vo.sname}</td>
-              <td>{$vo.name}</td>
-              <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
               <td>{$vo.cate_name}</td>
+              <td>{$vo.name}</td>
+              <td>{$goodsTypes[$vo.goods_type]}</td>
+              <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
               <td>{$vo.goods_sn}</td>
               <td>
               	{$vo.min_price}
@@ -55,9 +72,9 @@
               <td>{$vo['status']?'<span class="tag bg-green">否</span>':'<span class="tag bg-red">是</span>'}</td>
               <td>{$vo['sort_order']}</td>
               <td>
-              	<a href="{:url('spec', array('id' => $vo['goods_id'], 'other' => $other))}" class="button button-small bg-main icon-edit">产品规格</a>
+              	<a href="{:url('spec', array('id' => $vo['goods_id']))}" class="button button-small bg-main icon-edit">产品规格</a>
               	<a href="{:url('edit', array('id' => $vo['goods_id']))}" class="button button-small bg-main icon-edit">编辑</a>            
-                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-trash js-del" title="删除" data-id="{$vo.goods_id}">删除</a>
+                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.goods_id}">删除</a>
               </td>
             </tr>
           {/volist}
@@ -65,7 +82,7 @@
       </tbody>
     </table>
   </div>
-  <div class="panel-foot table-foot clearfix">{$page}</div>
+  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
 </div>
 <script>
     Do.ready('base', function () {

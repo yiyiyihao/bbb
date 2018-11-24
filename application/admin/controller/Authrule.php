@@ -37,6 +37,10 @@ class Authrule extends FormBase
         }
         return $info;
     }
+    function _getOrder()
+    {
+        return 'sort_order ASC, parent_id ASC';
+    }
     
     private function _ruleList(){
         //取得现有的权限树形图

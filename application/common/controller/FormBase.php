@@ -62,6 +62,7 @@ class FormBase extends AdminBase
         $list   = $list->toArray()['data'];
         $list = $this->_afterList($list);
         $this->assign('list',$list);// 赋值数据集
+        
         $this->assign('page', $page);
         return $this->fetch($this->indextempfile);
     }

@@ -12,21 +12,8 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                    <div class="form-group">
-                        <div class="label">
-                            <label>产品分类</label>
-                        </div>
-                        <div class="field">
-                            <select class="input" name="cate_id" id="cate_id" datatype="n" nullmsg="请选择产品分类！">
-                              <option value="">==请选择产品分类==</option>
-                               {foreach name="cates" item="vo"}
-                               <option value="{$vo.cate_id}" 
-                               {if condition="isset($vo['cate_id']) && isset($info['cate_id']) && $info['cate_id'] == $vo['cate_id']"}selected="selected"{/if} >{$vo.cname}</option>
-                               {/foreach}
-                            </select>
-                            <div class="input-note">请选择产品分类</div>
-                        </div>
-                    </div>
+                	{include file="common/factory" /}
+                    <div class="form-group js-select" posturl="{:url('Gcate/getAjaxList', ['factory_id' => $info && $info['factory_id'] ? $info['factory_id']: $factory_id])}" str="选择产品分类" searchName="请输入分类名称" formname="cate_id" formvalue='{$info.cate_id ?? 0}'></div>
                     <div class="form-group">
                         <div class="label">
                             <label>产品名称</label>
@@ -36,6 +23,19 @@
                             <div class="input-note">产品名称请不要填写特殊字符</div>
                         </div>
                     </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>产品类型</label>
+						</div>
+						<div class="field">
+							<select class="input" name="goods_type" id="goods_type" datatype="n"nullmsg="请选择产品类型！">
+								{foreach name="goodsTypes" item="goodsType" key="key"}
+									<option value="{$key}" {if condition="!$info || ($key && isset($info['goods_type']) && $info['goods_type'] == $key)" }selected="selected"{/if} >{$goodsType}</option> 
+								{/foreach}
+							</select>
+							<div class="input-note">请选择产品类型</div>
+						</div>
+					</div>
                     <div class="form-group">
 		                <div class="label">
 		                  <label>上传图片</label>
@@ -148,7 +148,7 @@
                             <label>排序</label>
                         </div>
                         <div class="field">
-                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=255}">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
                             <div class="input-note">开启自定义排序有效</div>
                         </div>
                     </div>                    
@@ -165,16 +165,34 @@
     </div>
 </form>
 <script>
+	var Config = {
+		'editorUploadUrl' : "{:url('admin/Upload/editorupload', ['prex' => 'goods_'])}",
+	};
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{:url('admin/Upload/upload', ['thumb_type' => 'goods_thumb'])}",
+        	'uploadUrl' : "{:url('admin/Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
             {present name="info['goods_id']"}
             cookie: 'editgoods{$info.goods_id}',
             num: {$info.imgnum}
             {else /}
             cookie: 'goodsUpload',
             {/present}
-          });   
+          });  
+        $('#factory_id').change(function(){
+			var id = $(this).val();
+			if(id > 0){
+				$("#cate_id").val(0);
+				$(".js-select").selectsin({
+					'str' 		: '选择产品分类',
+					'searchName': '请输入分类名称',
+					'name' 		: 'cate_id',
+					'id' 		: '{$factory_id}',
+					'postUrl' 	: "/Gcate/getAjaxList/factory_id/"+id,
+				});
+			}else{
+				$('.js-select').hide();
+			}
+		});
     }); 
 </script>

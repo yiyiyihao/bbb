@@ -12,6 +12,7 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
+                	{include file="common/factory" /}
                     <div class="form-group">
                         <div class="label">
                             <label>规格名称</label>
@@ -39,7 +40,7 @@
 		                            <tr class="item" data-id="{$key}">                  
 		                              <td></td>
 		                              <td><input class="input" type="text" value="{$vo}" name="specname[]" /></td>
-		                              <td><a class="button bg-red button-small icon-trash" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>
+		                              <td><a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>
 		                            </tr>
 		                            {/volist}
 		                         	{/if}
@@ -80,7 +81,7 @@
                             <label>排序</label>
                         </div>
                         <div class="field">
-                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=255}">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
                             <div class="input-note">开启自定义排序有效</div>
                         </div>
                     </div>                    
@@ -118,7 +119,7 @@
   		var html = '';
   		  html += '<tr class="item">';
   		  html += '  <td></td><td><input class="input" type="text" value="" name="specname[]" /></td>';
-  		  html += '  <td><a class="button bg-red button-small icon-trash" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>';
+  		  html += '  <td><a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>';
   		  html += '</tr>';
   		  $("table tbody").append(html);
   	}
