@@ -23,7 +23,7 @@
 	                            {notempty name="vo.radioList"}
 	                            <div class="button-group radio">
 	                            {volist name="vo.radioList" id="radio"}
-	                            	<label class='button {if condition="($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)"} if'>
+	                            	<label class='button {if condition="($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)"} active {/if}'>
 	                            	<input name="{$vo.name}" value="{$radio.value}" type="radio" {if condition="($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)"}checked="checked"{/if}>{$radio.text}</label>
 	                            {/volist}
 	                            </div>
