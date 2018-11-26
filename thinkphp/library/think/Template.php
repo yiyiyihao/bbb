@@ -1212,6 +1212,7 @@ class Template
      */
     private function parseTemplateFile($template)
     {
+        $tplname = $template;
         if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
             if (strpos($template, '@')) {
                 list($module, $template) = explode('@', $template);
@@ -1238,6 +1239,9 @@ class Template
             $this->includeFile[$template] = filemtime($template);
 
             return $template;
+        }
+        if (isset($module) && strtolower($module) == 'factory') {
+            return $this->parseTemplateFile('admin@'.$tplname);
         }
 
         throw new TemplateNotFoundException('template not exists:' . $template, $template);

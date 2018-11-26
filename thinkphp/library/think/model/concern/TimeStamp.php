@@ -26,7 +26,7 @@ trait TimeStamp
      * 创建时间字段 false表示关闭
      * @var false|string
      */
-    protected $createTime = 'create_time';
+    protected $createTime = 'add_time';
 
     /**
      * 更新时间字段 false表示关闭

@@ -6,7 +6,6 @@ use think\Model;
 class User extends Model
 {
 	public $error;
-	
 	protected $fields;
 
 	//自定义初始化
@@ -70,6 +69,7 @@ class User extends Model
         //检查用户名格式
         $pattern = '/^[\w]{5,16}$/';
         if ($username) {
+            //是否验证用户名格式
             $uncheckName = $extra && isset($extra['uncheck_name']) ? $extra['uncheck_name'] : 0;
             if (!$uncheckName && !preg_match($pattern, $username)) {
                 $this->error = '登录用户名格式:5-16位字符长度,只能由英文数字下划线组成';
@@ -89,9 +89,21 @@ class User extends Model
             return FALSE;
         }
         $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/';
-        if ($phone && !preg_match($pattern, $phone)) {
-            $this->error = '手机号格式错误';
-            return FALSE;
+        if ($phone) {
+            if (!preg_match($pattern, $phone)) {
+                $this->error = '手机号格式错误';
+                return FALSE;
+            }
+            //验证手机号唯一性
+            $uncheckPhone = $extra && isset($extra['uncheck_phone']) ? $extra['uncheck_phone'] : 0;
+            $userId = $extra && isset($extra['user_id']) ? $extra['user_id'] : 0;
+            if (!$uncheckPhone && $userId) {
+                $exist = $this->where(['phone' => $phone, 'user_id' => ['<>', $userId], 'is_del' => 0])->find();
+                if ($exist) {
+                    $this->error = '手机号已存在';
+                    return FALSE;
+                }
+            }
         }
         return TRUE;
     }
@@ -145,22 +157,12 @@ class User extends Model
             $group = $user['group'];
         }
         $factory = [];
-        if ($group['group_id'] != 1) {
-            if ($user['store_id'] <= 0) {
+        if ($user['admin_type'] != 1) {
+            if ($user['link_id'] <= 0) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
-            $store = db('store')->field('store_id, factory_id, store_type, name')->where(['store_id' => $user['store_id'], 'is_del' => 0, 'status' => 1])->find();
-            if (!$store) {
-                $this->error = lang('PERMISSION_DENIED');
-                return FALSE;
-            }
-            $storeType = $store['store_type'];
-            if ($storeType != 1) {
-                $factory = db('store')->where(['store_id' => $store['factory_id'], 'is_del' => 0, 'status' => 1])->field('store_id, name')->find();
-            }else{
-                $factory = $store;
-            }
+            #TODO 厂商/(服务商/渠道商/经销商)
         }else{
             $storeType = 0;
         }
@@ -169,10 +171,9 @@ class User extends Model
         //设置session
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
-		    'factory_id'      => $user['store_id'],
-		    'store_id'        => $user['store_id'],
-		    'factory'         => $factory,
-		    'store_type'      => $storeType,
+		    'admin_type'       => $user['admin_type'],
+		    'factory_id'      => $user['admin_type'] == 2 ? $user['link_id'] : 0,
+		    'link_id'         => $user['link_id'],
 		    'group_id'        => $user['group_id'],
 		    'username'        => $user['username'],
 		    'phone'           => $user['phone'],

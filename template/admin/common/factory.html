@@ -1,4 +1,4 @@
-{if condition="$adminUser['group_id'] == 1"}
+{if condition="$adminUser['admin_type'] == 1"}
 <div class="form-group">
 	<div class="label">
 		<label>选择厂商</label>
@@ -12,7 +12,7 @@
 		<div class="input-note">请选择服务关联厂商</div>
 	</div>
 </div>
-{else}
+{elseif condition="$adminUser['admin_type'] == 2 && $adminUser['factory']"}
 <div class="form-group">
     <div class="label">
         <label>厂商名称</label>
@@ -21,5 +21,5 @@
         <input type="text" disabled="disabled" class="input" size="40" value="{$adminUser['factory']['name']}">
     </div>
 </div>
-{assign name="factory_id" value="$adminUser['factory']['store_id']"}
+{assign name="factory_id" value="$adminUser['factory']['factory_id']"}
 {/if}

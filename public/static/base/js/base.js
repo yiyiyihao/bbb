@@ -69,7 +69,7 @@ $.ajaxSetup({
             //处理删除
             $(table).find('.js-del').click(function () {
                 var obj = this;
-                var div = $(obj).parent().parent();
+                var div = $(obj).parents('tr');
                 var url = $(obj).attr('url');
                 if (url == '' || url == null || url == 'undefined') {
                     url = options.deleteUrl;

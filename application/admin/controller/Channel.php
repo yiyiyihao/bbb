@@ -12,8 +12,8 @@ class Channel extends Store
     {
         $this->modelName = 'channel';
         $this->model = model('store');
-        $this->storeType = 2;//渠道商
-        $this->groupId = 2;
+        $this->storeType = 1;//渠道商
+        $this->groupId = 1;
         parent::__construct();
     }
 }

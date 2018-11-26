@@ -14,6 +14,17 @@ class Authrule extends FormBase
         $this->field = self::_fieldData();
         $this->perPage = 100;
     }
+    public function grant()
+    {
+        $params = $this->request->param();
+        $adminType = isset($params['type']) ? $params['type'] : 2;
+        if (IS_POST){
+            
+        }else{
+//             $this->assign('', );
+            return $this->fetch();
+        }
+    }
     
     function _afterList($list)
     {
@@ -58,7 +69,7 @@ class Authrule extends FormBase
         $table = [
             ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
             ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
-            ['title'     => '节点名称','width'     => '100','value'     => 'cname','type'      => 'text'],
+            ['title'     => '节点名称','width'   => '*','value'     => 'cname','type'      => 'text'],
             ['title'     => '操作地址','width'     => '*','value'     => 'href','type'      => 'text'],
             ['title'     => '是否验证权限','width'     => '120','value'     => 'authopen','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
             ['title'     => '是否显示菜单','width'     => '120','value'     => 'menustatus','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],

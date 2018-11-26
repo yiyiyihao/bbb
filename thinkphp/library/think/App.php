@@ -467,7 +467,7 @@ class App extends Container
         // 加载系统语言包
         $this->lang->load([
             $this->thinkPath . 'lang' . DIRECTORY_SEPARATOR . $this->request->langset() . '.php',
-            $this->appPath . 'lang' . DIRECTORY_SEPARATOR . $this->request->langset() . '.php',
+            $this->appPath . 'common/lang' . DIRECTORY_SEPARATOR . $this->request->langset() . '.php',
         ]);
     }
 

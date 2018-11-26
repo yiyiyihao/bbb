@@ -9,32 +9,12 @@
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-function get_tag_a($name = '', $params = [])
-{
-    if (!$name || !$params) {
-        return FALSE;
-    }
-    $temp = '<a ';
-    foreach ($params as $key => $value) {
-        if (($key == 'href' || $key == 'url') && is_array($value)) {
-            $url = $value[0];
-            $params = isset($value[1]) ? $value[1] : [];
-            $temp .= ''.$key.'= "'.url($url, $params).'" ';
-        }else{
-            $temp .= ''.$key.'= "'.$value.'" ';
-        }
-    }
-    $temp .= ' >'.$name.'</a>';
-    return $temp;
-}
-
 // 应用公共文件
-function get_store_type($type = FALSE){
+function get_admin_type($type = FALSE){
     $storeTypes = [
-        1 => '厂商',
-        2 => '渠道商',
-        3 => '经销商',
-        4 => '服务商',
+        1 => '平台',
+        2 => '厂商',
+        3 => '-',
     ];
     if ($type === FALSE) {
         return $storeTypes;

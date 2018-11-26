@@ -10,13 +10,6 @@ class Cgrade extends FormBase
         $this->modelName = 'channel_grade';
         $this->model = db($this->modelName);
         parent::__construct();
-        if (ADMIN_ID != 1 && $this->adminUser['store_type'] != 1) {
-            $this->error(lang('NO ACCESS'));
-        }
-        if ($this->adminUser['store_type'] != 1) {
-            $store = new \app\common\controller\Store();
-            $store->_getFactorys();
-        }
     }
     function _afterList($list)
     {
@@ -31,12 +24,12 @@ class Cgrade extends FormBase
         return 'CG';
     }
     function _getField(){
-        return 'CG.*, S.name as sname';
+        return 'CG.*, F.name as sname';
     }
     function _getJoin()
     {
         return [
-            ['store S', 'S.store_id = CG.factory_id', 'LEFT'],
+            ['factory F', 'F.factory_id = CG.factory_id', 'LEFT'],
         ];
     }
     function  _getOrder()
@@ -46,15 +39,15 @@ class Cgrade extends FormBase
     function _getWhere(){
         $where = [
             'CG.is_del'     => 0,
-            'S.store_type'  => 1,
+//             'F.store_type'  => 1,
         ];
 //         $where = [
 //             'is_del'     => 0,
-// //             'S.store_type'  => 1,
+// //             'F.store_type'  => 1,
 //         ];
-        if ($this->adminUser['store_type'] == 1) {
-            $where['S.store_id'] = $this->storeId;
-        }
+//         if ($this->adminUser['store_type'] == 1) {
+//             $where['F.factory_id'] = $this->storeId;
+//         }
         $params = $this->request->param();
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
@@ -89,9 +82,9 @@ class Cgrade extends FormBase
         if (!$name) {
             $this->error('等级名称不能为空');
         }
-        if ($this->adminUser['store_type'] == 1) {
-            $data['factory_id'] = $factoryId = $this->adminUser['factory']['store_id'];
-        }
+//         if ($this->adminUser['store_type'] == 1) {
+//             $data['factory_id'] = $factoryId = $this->adminUser['factory']['factory_id'];
+//         }
         if (!$factoryId) {
             $this->error('请选择关联厂商');
         }
@@ -112,16 +105,14 @@ class Cgrade extends FormBase
     }
     function _assignInfo($pkId = 0){
         $info = parent::_assignInfo($pkId);
-        $factoryId = $info ? $info['factory_id'] : 0;
-        $cgradeId = $info ? $info['cgrade_id'] : 0;
-        $parents = $this->_getGrades($factoryId, $cgradeId);
+        $this->_getFactorys();
         return $info;
     }
     function del(){
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);
-        if ($this->adminUser['group_id'] != 1 && $info['factory_id'] != $this->adminUser['store_id']) {
+        if ($this->adminUser['group_id'] != 1 && $info['factory_id'] != $this->adminUser['factory_id']) {
             $this->error('NO ACCESS');
         }
         //判断当前等级下是否存在下级
@@ -129,11 +120,13 @@ class Cgrade extends FormBase
         if ($exist) {
             $this->error('等级下存在下级，不允许删除');
         }
-        //判断等级下是否存在渠道商
-        $exist = db('store')->alias('S')->join([['store_channel SC', 'S.store_id = SC.store_id', 'INNER']])->where(['S.is_del' => 0, 'store_type' => 2, 'SC.cgrade_id' => $pkId])->find();
-        if ($exist) {
-            $this->error('等级下存在渠道，不允许删除');
-        }
+        #TODO 判断等级下是否存在渠道商
         parent::del();
+    }
+    function _getFactorys()
+    {
+        //获取关联厂商列表
+        $stores = db('factory')->where(['is_del' => 0, 'status' => 1])->column('factory_id, name');
+        $this->assign('factorys', $stores);
     }
 }

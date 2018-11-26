@@ -13,6 +13,8 @@ class FormBase extends AdminBase
     var $perPage;
     var $table;
     var $field;
+    var $search;
+    var $uploadUrl;
     public function __construct()
     {
         parent::__construct();
@@ -33,6 +35,7 @@ class FormBase extends AdminBase
         $this->infotempfile = 'info';
         $this->indextempfile = '';
         $this->perPage = 10;
+        $this->uploadUrl = url('admin/Upload/upload');
     }
     /**
      * 内容列表
@@ -60,6 +63,9 @@ class FormBase extends AdminBase
         // 获取分页显示
         $page   = $list->render();
         $list   = $list->toArray()['data'];
+        //初始化列表元素
+        $this->_initList();
+        
         $list = $this->_afterList($list);
         $this->assign('list',$list);// 赋值数据集
         
@@ -212,11 +218,10 @@ class FormBase extends AdminBase
     
     function _initList(){
         $this->assign('table', $this->table);
+        $this->assign('search', $this->search);
     }
     function _afterList($list)
     {
-        //初始化列表元素
-        $this->_initList();
         return $list;
     }
     function _afterAjaxList($list)
@@ -283,8 +288,7 @@ class FormBase extends AdminBase
      * 赋值新增时基础参数
      */
     function _assignAdd(){
-        unset($this->subMenu['add']);
-        $this->assign("name",lang($this->modelName."_add"));
+        $this->assign("name", lang('ADD').lang($this->modelName));
         $this->assign('info', []);
     }
     /**
@@ -296,15 +300,16 @@ class FormBase extends AdminBase
             $pkId = isset($params['id']) ? intval($params['id']) : null;
         }
         unset($this->subMenu['add']);
-        $this->assign("name",lang($this->modelName."_edit"));
-//         pre($this->field);
-        $this->assign("field",$this->field);
+        $this->assign("name",       lang('EDIT').lang($this->modelName));
+        $this->assign("field",      $this->field);
+        $this->assign("uploadUrl", $this->uploadUrl);
+        
         if($pkId > 0){
             $info = $this->model->get($pkId);
-            if (!$info) {
+            if (!$info || (isset($info['is_del']) && $info['is_del'] > 0)) {
                 $this->error(lang('PARAM_ERROR'));
             }
-            $this->assign("info",$info);
+            $this->assign("info",   $info);
             return $info;
         }else{
             return [];

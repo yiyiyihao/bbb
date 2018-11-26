@@ -1,24 +1,32 @@
 <div class="panel admin-box">
 	<div class="table-tools clearfix ">
+		{notempty name="search"}
         <div class="float-left">
             <form method="get" action="">
                 <div class="form-inline">
+                	{volist name="search" key="k" id="vo"}
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="节点名称">
+                        	{if condition="$vo['type'] == 'input'"}
+                            <input type="text" class="input" id="{$vo['name']}" name="{$vo['name']}" size="{$vo['width'] ?? 40}" value="{$_GET['name'] ?? ''}" placeholder="{$vo['value'] ?? ''}">
+                            {/if}
                         </div>
                     </div>
+                    {/volist}
                     <div class="form-button">
                         <button class="button" type="submit">搜索</button>
                     </div>
                 </div>
             </form>
         </div>
+    	{/notempty}
     </div>
   <div class="table-responsive">
     {include file="common/list_table" /}
   </div>
+  {if condition="isset($page)&& $page"}
   <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+  {/if}
 </div>
 <script>
     Do.ready('base', function () {

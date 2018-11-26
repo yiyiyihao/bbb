@@ -2,12 +2,11 @@
 namespace app\common\controller;
 use app\admin\service\Auth;
 use app\common\model\AuthRule;
+use think\facade\Request;
 //登陆后管理内容公共处理
 class AdminBase extends Backend
 {
     var $subMenu;
-    var $storeId;
-    var $factory;
     var $adminUser;
     var $breadCrumb;
 	//管理内容预处理方法
@@ -23,13 +22,15 @@ class AdminBase extends Backend
     	//检查管理员是否登陆
     	defined('ADMIN_ID') or define('ADMIN_ID', $this->isLogin());
     	$controller = $this->request->controller();
-    	if(!ADMIN_ID && !in_array(strtolower($controller), ['login','apilog'])){
+    	if(!ADMIN_ID && !in_array(strtolower($controller), ['login'])){
     		$this->redirect('/login');
     	}
     	$this->adminUser = session('admin_user');
+    	if ($this->adminUser['admin_type'] == 2) {
+    	    $this->factory = db('factory')->field('factory_id, name, logo')->where(['factory_id' => $this->adminUser['link_id'], 'is_del' => 0])->find();
+    	    $this->adminUser['factory'] = $this->factory;
+    	}
     	//检查用户是否拥有操作权限
-    	$this->storeId = isset($this->adminUser['store_id']) && $this->adminUser['store_id'] ? $this->adminUser['store_id'] : 0;
-    	$this->factory = isset($this->adminUser['factory']) && $this->adminUser['factory'] ? $this->adminUser['factory'] : 0;
 //     	if(!self::checkPurview($this->adminUser,$this->storeId)){
 //     	    $this->error("没有操作权限");
 //     	}

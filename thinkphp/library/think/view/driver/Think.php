@@ -82,20 +82,32 @@ class Think
             $template = $this->parseTemplate($template);
         }
         // 模板不存在 抛出异常
-        if (!is_file($template)) {            
-            //如果是index页
-            if ($this->app['request']->action() == 'index'){
-                $template = $this->config['default_index_tpl'];
-            }else if($templateStr == 'info'){
-                $template = $this->config['default_info_tpl'];
-            }else{
-                throw new TemplateNotFoundException('template not exists:' . $template, $template);
+        if (!is_file($template)) {        
+            $request = $this->app['request'];
+            $module = $request->module();
+            $action = $request->action();
+            $flag = FALSE;
+            if ($module == 'factory') {
+                $template = 'admin@'.$this->config['view_tpl'];
+                if (!is_file($template)) {
+//                     $this->app['request'];
+//                     pre($this->app['request']);
+                    $flag = TRUE;
+                }
+            }
+            if (!$flag) {
+                if ($action == 'index'){
+                    $template = $this->config['default_index_tpl'];
+                }else if($templateStr == 'info'){
+                    $template = $this->config['default_info_tpl'];
+                }else{
+                    throw new TemplateNotFoundException('template not exists:' . $template, $template);
+                }
             }
         }
 
         // 记录视图信息
-        $this->app
-            ->log('[ VIEW ] ' . $template . ' [ ' . var_export(array_keys($data), true) . ' ]');
+        $this->app->log('[ VIEW ] ' . $template . ' [ ' . var_export(array_keys($data), true) . ' ]');
 
         $this->template->fetch($template, $data, $config);
     }
@@ -155,6 +167,7 @@ class Think
         } else {
             $template = str_replace(['/', ':'], $depr, substr($template, 1));
         }
+        $this->config['view_tpl'] = $template;
 
         return $path . ltrim($template, '/') . '.' . ltrim($this->config['view_suffix'], '.');
     }

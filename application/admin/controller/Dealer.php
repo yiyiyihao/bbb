@@ -12,8 +12,8 @@ class Dealer extends Store
     {
         $this->modelName = 'dealer';
         $this->model = model('store');
-        $this->storeType = 3;//经销商
-        $this->groupId = 2;
+        $this->storeType = 2;//经销商
+        $this->groupId = 1;
         parent::__construct();
     }
 }

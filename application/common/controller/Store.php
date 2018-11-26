@@ -7,19 +7,18 @@ class Store extends FormBase
     var $storeType;
     var $parent;
     var $groupId;
+    var $adminType = 3;
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
         $this->model = $this->model ? $this->model : model($this->modelName);
         parent::__construct();
         if ($this->adminUser['group_id'] != 1) {
-            if ($this->storeType == 1) {
-                $this->error(lang('NO ACCESS'));
-            }elseif ($this->storeType != 1 && $this->adminUser['store_type'] != 1) {
+            if (!$this->adminUser['factory']) {
                 $this->error(lang('NO ACCESS'));
             }
         }
-        if ($this->storeType != 1){
+        if (!isset($this->adminUser['factory']) || !$this->adminUser['factory']){
             $this->_getFactorys();
         }
     }
@@ -68,15 +67,12 @@ class Store extends FormBase
         if ($info) {
             switch ($info['store_type']) {
                 case 1:
-                    $model = 'factory';
-                    break;
-                case 2:
                     $model = 'channel';
                     break;
-                case 3:
+                case 2:
                     $model = 'dealer';
                     break;
-                case 4:
+                case 3:
                     $model = 'servicer';
                     break;
                 default:
@@ -156,13 +152,6 @@ class Store extends FormBase
                 $this->error($userModel->error);
             }
         }
-        $data['name'] = $name;
-        if (isset($data['store_id'])) {
-            unset($data['store_id']);
-        }
-        $data['config_json'] = '';
-        $data['group_id'] = $this->groupId;
-        $data['store_type'] = $this->storeType;
         return $data;
     }
     function _getAlias()
@@ -171,28 +160,22 @@ class Store extends FormBase
     }
     function _getField(){
         $field = 'S.name, S.*, U.*, AS.*';
-        if ($this->storeType != 1) {
-            $field .= ', S1.name as sname';
-            if ($this->storeType == 2) {
-                $field .= ', CG.name as gname';
-            }
+        if ($this->storeType == 1) {
+            $field .= ', CG.name as gname';
         }
         return $field;
     }
     function _getJoin()
     {
-        $join[] = ['user U', 'S.store_id = U.store_id', 'LEFT'];
+        $join[] = ['user U', 'U.link_id = S.store_id AND U.admin_type = '.$this->adminType, 'LEFT'];
         switch ($this->storeType) {
-            case 1://厂商
-                $tabel = 'store_factory AS';
-                break;
-            case 2://渠道商
+            case 1://渠道商
                 $tabel = 'store_channel AS';
                 break;
-            case 3://经销商
+            case 2://经销商
                 $tabel = 'store_dealer AS';
                 break;
-            case 4://服务商
+            case 3://服务商
                 $tabel = 'store_servicer AS';
                 break;
             default:
@@ -201,8 +184,8 @@ class Store extends FormBase
                 break;
         }
         $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
-        $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
-        if ($this->storeType == 2) {
+        $join[] = ['factory F', 'F.factory_id = S.store_id', 'LEFT'];
+        if ($this->storeType == 1) {
             $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];
         }
         return $join;
@@ -231,7 +214,7 @@ class Store extends FormBase
     function _getFactorys()
     {
         //获取关联厂商列表
-        $stores = $this->model->where(['store_type' => 1, 'is_del' => 0, 'status' => 1])->column('store_id, name');
+        $stores = db('factory')->where(['is_del' => 0, 'status' => 1])->column('factory_id, name');
         $this->assign('factorys', $stores);
     }
 }
