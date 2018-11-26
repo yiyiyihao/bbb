@@ -70,7 +70,7 @@ class AdminBase extends Backend
         $listCrumb      = ['name'  => lang('index'),'url'   => url('index')];
         $activeCrumb    = ['name'  => lang($action),'url'   => ''];
         foreach ($authRule as $k=>$v){
-            if($v['module'] == $module && $v['controller'] == $controller && is_null($v['action'])){
+            if($v['module'] == $module && $v['controller'] == $controller && empty($v['action'])){
                 $listCrumb['name'] = $v['title'];
             }
             if($v['module'] == $module && $v['controller'] == $controller && $v['action'] == $action){
