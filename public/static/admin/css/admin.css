@@ -77,7 +77,7 @@ body{ background:#f5f5f5;}
 
 .admin-tab .tab-nav .active a{/*background-color:rgba(0, 150, 136, 0.1);*/ background-color:#fff;/*color:#009688;*/}
 .js-editor{ width:100%;}
-.tab .tab-body{ border:none; padding:20px;}
+.tab .tab-body{ border:none; padding:20px 0;}
 .uploadTab.tab .tab-body{ min-height:259px;}
 .tab .tabMenu{ margin:10px 0; padding:0 20px; border-bottom:1px solid #09c;}
 .tab .tabMenu li.active a{ background:#09c; color:#fff;border:1px solid #09c;}
@@ -353,24 +353,28 @@ body{ background:#f5f5f5;}
 
 @-webkit-keyframes animation-upbit {
     from {
-        -webkit-transform: translate3d(0,30px,0);
+        /*-webkit-transform: translate3d(0,30px,0);*/
+		margin-top:30px;
         opacity: .3
     }
 
     to {
-        -webkit-transform: translate3d(0,0,0);
+        /*-webkit-transform: translate3d(0,0,0);*/
+		margin-top:0px;
         opacity: 1
     }
 }
 
 @keyframes animation-upbit {
     from {
-        transform: translate3d(0,30px,0);
+        /*transform: translate3d(0,30px,0);*/
+		margin-top:30px;
         opacity: .3
     }
 
     to {
-        transform: translate3d(0,0,0);
+        /*transform: translate3d(0,0,0);*/
+		margin-top:0px;
         opacity: 1
     }
 }
