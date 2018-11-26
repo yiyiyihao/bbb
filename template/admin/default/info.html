@@ -36,10 +36,11 @@
 				                	<span class="icon-upload"> 上传</span>
 				                </a>
                             {/case}
-                            {case select1}
+                            {case select}
 	                            <select class="input" name="{$vo.name}" id="{$vo.name}">
-	                              <option value="{$vo.default}">{$vo.default_option}</option>
-	                               {foreach name="$vo.options" item="option"}
+	                              <option value="{$vo.default}">{$vo.default_option}</option>                                   
+                                   {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
+	                               {foreach name="options" item="option"}
 	                               <option value="{$option.id}" 
 	                               {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
 	                               {/foreach}
