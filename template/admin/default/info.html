@@ -16,7 +16,8 @@
                     </div>
                     <div class="field">
                     	{switch vo.type}
-                        	{case text}<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" datatype="{$vo.datatype}" value="{$info[$vo.name]|default=$vo.default}">{/case}                        	{case radio}
+                        	{case text}<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} value="{$info[$vo.name]|default=$vo.default}">{/case}                        	
+                            {case radio}
                             {notempty name="vo.radioList"}
                             <div class="button-group radio">
                             {volist name="vo.radioList" id="radio"}
@@ -32,7 +33,7 @@
 			                	<span class="icon-upload"> 上传</span>
 			                </a>
                             {/case}
-                            {case select}
+                            {case select1}
                             <select class="input" name="{$vo.name}" id="{$vo.name}">
                               <option value="{$vo.default}">{$vo.default_option}</option>
                                {foreach name="$vo.options" item="option"}
@@ -63,13 +64,5 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
-		$('input[name="store_type"]').change(function(){
-			var type = $(this).val();
-			if(type == 2){
-				$('.address').hide();
-			}else{
-				$('.address').show();
-			}
-		});
     }); 
 </script>
