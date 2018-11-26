@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-11-26 17:33:25
+Date: 2018-11-26 18:29:55
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -98,7 +98,7 @@ CREATE TABLE `wja_auth_rule` (
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
 
 -- ----------------------------
 -- Records of wja_auth_rule
@@ -111,8 +111,9 @@ INSERT INTO `wja_auth_rule` VALUES ('5', '1', 'admin', 'factory', 'add', '添加
 INSERT INTO `wja_auth_rule` VALUES ('6', '1', 'admin', 'factory', 'edit', '修改厂商', '', '3', '1', '2', '0', '1', '1543024436', '1543217276', '0');
 INSERT INTO `wja_auth_rule` VALUES ('7', '1', 'admin', 'factory', 'del', '删除厂商', '', '3', '1', '2', '0', '1', '1543024535', '1543217281', '0');
 INSERT INTO `wja_auth_rule` VALUES ('8', '1', 'admin', 'authrule', '', '权限管理', 'star', '0', '1', '3', '1', '1', '1543216881', '1543217291', '0');
-INSERT INTO `wja_auth_rule` VALUES ('9', '1', 'admin', 'authrule', 'index', '权限列表', '', '9', '1', '3', '1', '1', '1543216929', '1543217295', '0');
+INSERT INTO `wja_auth_rule` VALUES ('9', '1', 'admin', 'authrule', 'index', '权限列表', '', '8', '1', '3', '1', '1', '1543216929', '1543217295', '0');
 INSERT INTO `wja_auth_rule` VALUES ('10', '1', 'admin', 'sysadmin', '', '系统配置', 'setting', '0', '1', '4', '1', '1', '1543224679', '1543224679', '0');
+INSERT INTO `wja_auth_rule` VALUES ('11', '1', 'admin', 'system', 'grant?type=2', '厂商权限配置', '', '10', '1', '4', '1', '1', '1543225155', '1543226560', '0');
 
 -- ----------------------------
 -- Table structure for wja_channel_grade
@@ -3733,7 +3734,7 @@ CREATE TABLE `wja_user` (
 -- ----------------------------
 -- Records of wja_user
 -- ----------------------------
-INSERT INTO `wja_user` VALUES ('1', '1', '0', '1', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', 'xiaojun', '13587458745', '', '0.00', '', '', '1', '255', '1542683553', '1543224785', '1543224785', '0');
+INSERT INTO `wja_user` VALUES ('1', '1', '0', '1', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', 'xiaojun', '13587458745', '', '0.00', '', '', '1', '255', '1542683553', '1543226575', '1543226575', '0');
 INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '255', '1543223533', '1543223784', '1543223784', '0');
 
 -- ----------------------------
