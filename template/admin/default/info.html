@@ -16,31 +16,34 @@
                     </div>
                     <div class="field">
                     	{switch vo.type}
-                        	{case text}<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} value="{$info[$vo.name]|default=$vo.default}">{/case}                        	
+                        	{case text}
+                        		<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
+                        	{/case}                        	
                             {case radio}
-                            {notempty name="vo.radioList"}
-                            <div class="button-group radio">
-                            {volist name="vo.radioList" id="radio"}
-                            <label class='button {eq name="radio.value" value="$vo.default"} active{/eq}'><input name="{$vo.name}" value="{$radio.value}" type="radio" {eq name="radio.value" value="$vo.default"}checked="checked"{/eq}>{$radio.text}</label>
-                            {/volist}
-                            </div>
-                            {/notempty}
+	                            {notempty name="vo.radioList"}
+	                            <div class="button-group radio">
+	                            {volist name="vo.radioList" id="radio"}
+	                            	<label class='button {if condition="($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)"} if'>
+	                            	<input name="{$vo.name}" value="{$radio.value}" type="radio" {if condition="($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)"}checked="checked"{/if}>{$radio.text}</label>
+	                            {/volist}
+	                            </div>
+	                            {/notempty}
                             {/case}
                             {case uploadImg}
-                            <input type="hidden" class="input" id="{$vo.name}" name="{$vo.name}" size="38" value="{$info[$vo.name]|default=''}">
-			                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
-			                <a class="button bg-main button-small js-img-upload" data="{$vo.name}" preview="image_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传</span>
-			                </a>
+	                            <input type="hidden" class="input" id="{$vo.name}" name="{$vo.name}" size="38" value="{$info[$vo.name]|default=''}">
+				                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="{$vo.name}" preview="image_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
                             {/case}
                             {case select1}
-                            <select class="input" name="{$vo.name}" id="{$vo.name}">
-                              <option value="{$vo.default}">{$vo.default_option}</option>
-                               {foreach name="$vo.options" item="option"}
-                               <option value="{$option.id}" 
-                               {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
-                               {/foreach}
-                            </select>
+	                            <select class="input" name="{$vo.name}" id="{$vo.name}">
+	                              <option value="{$vo.default}">{$vo.default_option}</option>
+	                               {foreach name="$vo.options" item="option"}
+	                               <option value="{$option.id}" 
+	                               {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               {/foreach}
+	                            </select>
                             {/case}
                         {/switch}
                         <div class="input-note">{$vo.notetext}</div>
@@ -63,6 +66,8 @@
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{$uploadUrl ?? ''}",
+        });
     }); 
 </script>
