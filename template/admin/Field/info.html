@@ -1,0 +1,155 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">基本信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+	                <div class="form-group">
+                        <div class="label">
+                            <label>数据表名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="field" name="field" size="40" value="{$info.field|default='title'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>标题名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="title" name="title" size="40" value="{$info.title|default='权限名称'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>提示文字</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="notemsg" name="notemsg" size="60" value="{$info.notemsg|default='请填写权限节点名称'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group js-type-select">
+                        <div class="label">
+                            <label>字段显示类型</label>
+                        </div>
+                        <div class="field">
+                        	<input type="hidden" name="type" id="type" value="{$info.type|default=''}">
+                        	<select class="input">
+                                <option value="">--请选择类型--</option>
+                                <option value="1">文本框</option>
+                                <option value="2">文本域</option>
+                                <option value="4">单选</option>
+                                <option value="5">复选</option>
+                                <option value="6">选择菜单</option>
+                                <option value="7">下拉复选</option>
+                                <option value="8">搜索单选</option>
+                                <option value="9">搜索复选</option>
+                                <option value="10">联动单选</option>
+                                <option value="11">单图上传</option>
+                                <option value="11">单图上传</option>
+                                <option value="12">多图上传</option>
+                                <option value="12">多图上传+封面图</option>
+                                <option value="12">编辑器</option>
+                            </select>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="textExtend">
+                        <div class="form-group hide textType textType-all">
+                            <div class="label">
+                                <label>文本扩展选项</label>
+                            </div>
+                            <div class="field">                            
+                                <div class="button-group radio">                            
+                                    <label class='button'><input value="text" type="radio">普通文本</label>
+                                    <label class='button'><input value="password" type="radio">密码文本</label>
+                                    <label class='button'><input value="number" type="radio">数字文本</label>
+                                    <label class='button'><input value="date" type="radio">日期选择框</label>
+                                </div>
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        <div class="form-group hide textType textType-text textType-number textArea">
+                            <div class="label">
+                                <label>显示长度/高度</label>
+                            </div>
+                            <div class="field">
+                                <input type="text" class="input" id="size" name="size" size="20" value="{$info.size|default='20'}">
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        <div class="form-group hide textType textType-text textType-number textArea">
+                            <div class="label">
+                                <label>字段默认值</label>
+                            </div>
+                            <div class="field">
+                                <textarea class="input" id="default" name="default" rows="3" cols="60">{$info.default|default=''}</textarea>
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        <div class="form-group hide">
+                            <div class="label">
+                                <label>字段可选参数</label>
+                            </div>
+                            <div class="field">
+                                <textarea class="input" id="value" name="value" rows="5" cols="60">{$info.value|default=''}</textarea>
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>验证规则</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="datatype" name="datatype" size="30" value="{$info.datatype|default='*'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>空字段提醒</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="nullmsg" name="nullmsg" size="60" value="{$info.nullmsg|default='权限节点名称不能为空'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>错误提醒</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="errormsg" name="errormsg" size="60" value="{$info.errormsg|default='权限节点名称填写错误'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', 'field' ,function () {
+        //表单综合处理
+        $('#form').FormPage(); 
+		$('#form').Field(); 
+    }); 
+</script>

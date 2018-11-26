@@ -24,9 +24,9 @@
   <div class="table-responsive">
     {include file="common/list_table" /}
   </div>
-  {if condition="isset($page)&& $page"}
+  {notempty name="page"}
   <div class="panel-foot table-foot clearfix">{$page|raw}</div>
-  {/if}
+  {/notempty}
 </div>
 <script>
     Do.ready('base', function () {
