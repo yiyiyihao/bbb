@@ -5,6 +5,7 @@ use app\common\controller\AdminBase;
 
 class BaseFactory extends AdminBase
 {
+    var $factory;
     function __construct(){
         $domain = Request::panDomain();
         if ($domain) {

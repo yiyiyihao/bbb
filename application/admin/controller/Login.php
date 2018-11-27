@@ -8,6 +8,7 @@ use app\common\controller\AdminBase;
  */
 class Login extends AdminBase
 {
+    var $loginIndexTpl = 'index';
     public function index()
     {
         if ($this->adminUser) {
@@ -43,7 +44,7 @@ class Login extends AdminBase
             $this->assign('title',config("setting.title"));
             $this->import_resource('base:js/Validform.min.js,base:js/form.js');
             $this->view->engine->layout(false);
-            return $this->fetch();
+            return $this->fetch($this->loginIndexTpl);
         }
     }
     //页面登出
