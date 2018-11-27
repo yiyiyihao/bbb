@@ -17,27 +17,27 @@
                     <div class="field">
                     	{switch vo.type}
                         	{case text}
-                        		<input type="text" class="input" id="{$vo.name}" name="{$vo.name}" size="{$vo.size}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
+                        		<input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
                         	{/case}                        	
                             {case radio}
 	                            {notempty name="vo.radioList"}
 	                            <div class="button-group radio">
 	                            {volist name="vo.radioList" id="radio"}
 	                            	<label class='button {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)}active{/if}'>
-	                            	<input name="{$vo.name}" value="{$radio.value}" type="radio" {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)} checked="checked"{/if}>{$radio.text}</label>
+	                            	<input name="{$vo['name'] ?? ''}" value="{$radio.value}" type="radio" {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)} checked="checked"{/if}>{$radio.text}</label>
 	                            {/volist}
 	                            </div>
 	                            {/notempty}
                             {/case}
                             {case uploadImg}
-	                            <input type="hidden" class="input" id="{$vo.name}" name="{$vo.name}" size="38" value="{$info[$vo.name]|default=''}">
+	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
 				                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
-				                <a class="button bg-main button-small js-img-upload" data="{$vo.name}" preview="image_preview" href="javascript:;" >
+				                <a class="button bg-main button-small js-img-upload" data="{$vo['name'] ?? ''}" preview="image_preview" href="javascript:;" >
 				                	<span class="icon-upload"> 上传</span>
 				                </a>
                             {/case}
                             {case select}
-	                            <select class="input" name="{$vo.name}" id="{$vo.name}">
+	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}">
 	                              <option value="{$vo.default}">{$vo.default_option}</option>                                   
                                    {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
 	                               {foreach name="options" item="option"}
@@ -47,7 +47,7 @@
 	                            </select>
                             {/case}
                         {/switch}
-                        <div class="input-note">{$vo.notetext}</div>
+                        <div class="input-note">{$vo['notetext'] ?? ''}</div>
                     </div>
                 </div>
                 {/volist}
