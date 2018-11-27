@@ -108,7 +108,7 @@ $.ajaxSetup({
             function operat(obj, url, success, failure, refresh) {
                 Do.ready('tips', 'dialog', function () {
                     var text = $(obj).attr('title');
-                    var dialog = layer.confirm('你确认执行' + text + '操作？', function () {
+                    var dialog = layer.confirm('你确认执行 <b>' + text + '</b> 操作？', function () {
                         var dload = layer.load('操作执行中，请稍候...');
                         $.post(url, $(obj).data(),
                             function (json) {

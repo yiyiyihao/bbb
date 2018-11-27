@@ -16,7 +16,7 @@
                             <label>数据表名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" value="{$info['name'] ?? ''}">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{if !empty($info.name)}{$info.name}{elseif !empty($Request.param.name)}{$Request.param.name}{/if}" {if !empty($Request.param.name)} readonly="readonly"{/if}>
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -25,7 +25,7 @@
 		                  <label>数据表别名</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="title" name="title" size="12" value="{$info.title|default=''}">
+		                  <input type="text" class="input" id="title" name="title" size="40" value="{$info.title|default=''}">
 		                  <div class="input-note"></div>
 		                </div>
 		              </div>
