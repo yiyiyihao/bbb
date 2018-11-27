@@ -10,6 +10,9 @@ class Authrule extends FormBase
         $this->modelName = 'auth_rule';
         $this->model = db('auth_rule');
         parent::__construct();
+        if ($this->adminUser['user_id'] != 1) {
+            $this->error(lang('NO ACCESS'));
+        }
         $this->table = self::_tableData();
         $this->field = self::_fieldData();
         $this->perPage = 100;

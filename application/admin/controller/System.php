@@ -11,10 +11,13 @@ class System extends FormBase
         $this->modelName = 'system';
         $this->model = db('config');
         parent::__construct();
+        if ($this->adminUser['user_id'] != 1) {
+            $this->error(lang('NO ACCESS'));
+        }
     }
     public function grant(){
         $params = $this->request->param();
-        $adminType = isset($params['type']) ? $params['type'] : 0;
+        $adminType = isset($params['type']) ? $params['type'] : 1;
         $configName = 'admin_type_'.$adminType;
         if($adminType){
             $name = get_admin_type($adminType).'授权配置';

@@ -5,15 +5,12 @@ use app\common\controller\Store;
 //经销商管理
 class Dealer extends Store
 {
-    var $storeType;
-    var $parent;
-    var $groupId;
     public function __construct()
     {
         $this->modelName = 'dealer';
         $this->model = model('store');
-        $this->storeType = 2;//经销商
-        $this->groupId = 1;
+        $this->storeType = 3;//经销商
+        $this->adminType = 4;
         parent::__construct();
     }
 }

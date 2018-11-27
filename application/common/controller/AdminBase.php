@@ -8,6 +8,7 @@ class AdminBase extends Backend
 {
     var $subMenu;
     var $adminUser;
+    var $adminStore;
     var $breadCrumb;
 	//管理内容预处理方法
 	public function __construct()
@@ -26,9 +27,8 @@ class AdminBase extends Backend
     		$this->redirect('/login');
     	}
     	$this->adminUser = session('admin_user');
-    	if ($this->adminUser['admin_type'] == 2) {
-    	    $this->factory = db('factory')->field('factory_id, name, logo')->where(['factory_id' => $this->adminUser['link_id'], 'is_del' => 0])->find();
-    	    $this->adminUser['factory'] = $this->factory;
+    	if ($this->adminUser['store_id']) {
+    	    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
     	}
     	//检查用户是否拥有操作权限
 //     	if(!self::checkPurview($this->adminUser,$this->storeId)){
@@ -59,6 +59,7 @@ class AdminBase extends Backend
         $this->assign('self', $self);
         $this->assign('title',config('setting.title').lang('home_manager'));
         $this->assign('adminUser', $this->adminUser);
+        $this->assign('adminStore', $this->adminStore);
     }
     
     //获取页面的面包屑

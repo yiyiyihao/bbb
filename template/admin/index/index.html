@@ -9,7 +9,9 @@
         <ul class="nav-inline nav-right">
             <li class="nav-item"><a href="javascript:;" title="系统消息"><span class="icon-bell"></span></a><i class="badge-dot"></i></li>
             <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li>
-            <li class="nav-item"><a href="javascript:;" title="清理缓存"><span class="icon-chear"></span></a></li>
+            {if condition="$adminUser['user_id'] == 1"}
+            <li class="nav-item"><a href="{:url('clearcache')}" target="admin-iframe" title="清理缓存"><span class="icon-chear"></span></a></li>
+            {/if}
             <li class="nav-item">
             <a href="javascript:;"><span class="icon-user-cirle nav-nickname"> {$adminUser.username} </span><i class="icon-bottom"></i></a>
             <!--<a href="{:url('/login/index/logout')}" class="admin-logout bg-main icon-exit" title="退出登录"></a>-->

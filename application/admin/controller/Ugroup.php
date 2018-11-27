@@ -63,9 +63,6 @@ class Ugroup extends FormBase
                 $where['name'] = ['like','%'.$name.'%'];
             }
         }
-        if ($this->adminUser['group_id'] != 1) {
-            $where['group_id'] = ['NOT IN', [1, 2]];
-        }
         return $where;
     }
     function _getData()

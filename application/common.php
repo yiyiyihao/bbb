@@ -14,7 +14,9 @@ function get_admin_type($type = FALSE){
     $storeTypes = [
         1 => '平台',
         2 => '厂商',
-        3 => '-',
+        3 => '渠道商',
+        4 => '经销商',
+        5 => '服务商',
     ];
     if ($type === FALSE) {
         return $storeTypes;
@@ -24,6 +26,29 @@ function get_admin_type($type = FALSE){
     }else{
         return '-';
     }
+}
+/**
+ * 删除目录下的所有文件和目录
+ * @param string $dir
+ */
+function del_file_by_dir($dir) {
+    //1、将目录内容全部获取出
+    $list = scandir($dir);
+    //2、遍历目录
+    foreach($list as $f){
+        //3、将 .  .. 排除在外
+        if($f != '.' && $f != '..'){
+            //4、如果内容文件 unlink
+            if(is_file($dir."/".$f)){
+                unlink($dir."/".$f);
+            }else{
+                //5、目录   递归
+                del_file_by_dir($dir."/".$f);
+            }
+        }
+    }
+    //6、循环外删除目录!!
+    rmdir($dir); 
 }
 
 function array_implode($array = [])

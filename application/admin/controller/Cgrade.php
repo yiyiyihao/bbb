@@ -112,7 +112,7 @@ class Cgrade extends FormBase
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);
-        if ($this->adminUser['group_id'] != 1 && $info['factory_id'] != $this->adminUser['factory_id']) {
+        if ($this->adminUser['admin_type'] != 1 && $info['store_id'] != $this->adminUser['store_id']) {
             $this->error('NO ACCESS');
         }
         //判断当前等级下是否存在下级

@@ -30,8 +30,8 @@ class Goods extends FormBase
         if($id){
             //取得产品详情
             $where = ['goods_id' => $id, 'is_del' => 0];
-            if ($this->adminUser['factory_id']) {
-                $where['factory_id'] = $this->adminUser['factory_id'];
+            if ($this->adminUser['store_id']) {
+                $where['store_id'] = $this->adminUser['store_id'];
             }
             $goodsInfo = $this->model->where($where)->find();
             if (!$goodsInfo) {
@@ -91,7 +91,7 @@ class Goods extends FormBase
                         if ($skuIds) {
                             $skuMod->where(['sku_id' => $skuIds[$k]])->update($data);
                         }else{
-                            $data['factory_id'] = $this->storeId;
+                            $data['store_id'] = $goodsInfo['store_id'];
                             $data['goods_id'] = $id;
                             $data['add_time'] = time();
                             $dataSet[] = $data;
@@ -135,7 +135,7 @@ class Goods extends FormBase
             }else{
                 $this->assign("goods", $goodsInfo);
                 //取得规格参数表
-                $specList = db('goods_spec')->where(array('status' => 1, 'is_del' => 0, 'factory_id' => $goodsInfo['factory_id']))->order("sort_order")->select();
+                $specList = db('goods_spec')->where(array('status' => 1, 'is_del' => 0, 'store_id' => $goodsInfo['store_id']))->order("sort_order")->select();
                 if ($specList) {
                     foreach ($specList as $k=>$v){
                         $specList[$k]['spec_value'] = explode(',', $v['value']);
@@ -143,7 +143,7 @@ class Goods extends FormBase
                 }
                 $this->assign("specList",$specList);
                 //取得属性详情
-                $skuList = $skuMod->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'factory_id' => $goodsInfo['factory_id']])->where(['spec_json' => ['neq', ""]])->order("sku_id")->select();
+                $skuList = $skuMod->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $goodsInfo['store_id']])->where(['spec_json' => ['neq', ""]])->order("sku_id")->select();
                 $this->assign("skuList",$skuList);
                 return $this->fetch();
             }
@@ -162,14 +162,14 @@ class Goods extends FormBase
     }
     function _getJoin(){
         $join[] = ['goods_cate C', 'C.cate_id = G.cate_id', 'INNER'];
-        $join[] = ['store S', 'S.store_id = G.factory_id', 'INNER'];
+        $join[] = ['store S', 'S.store_id = G.store_id', 'INNER'];
         return $join;
     }
     function _getWhere(){
         $params = $this->request->param();
         $where = ['G.is_del' => 0];
-        if ($this->adminUser['factory_id']) {
-            $where['G.factory_id'] = $this->adminUser['factory_id'];
+        if ($this->adminUser['store_id']) {
+            $where['G.store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
@@ -198,7 +198,7 @@ class Goods extends FormBase
     }
     function _assignInfo($id = 0){
         $info = parent::_assignInfo($id);
-        $sid = $info && $info['factory_id'] ? $info['factory_id'] : 0;
+        $sid = $info && $info['store_id'] ? $info['store_id'] : 0;
         $this->_getCategorys($sid);
         $skuinfo = db('goods_sku')->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1])->where(['spec_json' => ['neq', ""]])->find();
         $info['skuinfo'] = $skuinfo;
@@ -224,14 +224,14 @@ class Goods extends FormBase
         if (!$cateId) {
             $this->error('请选择产品分类');
         }
-        if ($this->adminUser['factory_id']) {
-            $data['factory_id'] = $this->adminUser['factory_id'];
+        if ($this->adminUser['store_id']) {
+            $data['store_id'] = $this->adminUser['store_id'];
         }else{
-            $factoryId = isset($params['factory_id']) && $params['factory_id'] ? intval($params['factory_id']) : 0;
-            if (!$factoryId) {
+            $storeId = isset($params['store_id']) && $params['store_id'] ? intval($params['store_id']) : 0;
+            if (!$storeId) {
                 $this->error('请选择厂商');
             }
-            $data['factory_id'] = $factoryId;
+            $data['store_id'] = $storeId;
         }
         if ($goodsSn) {
             $where = ['is_del' => 0];
@@ -239,7 +239,7 @@ class Goods extends FormBase
             if($pkId){
                 $where['goods_id'] = ['neq', $pkId];
             }
-            $where['factory_id'] = $data['factory_id'];
+            $where['store_id'] = $data['store_id'];
             $exist = $this->model->where($where)->find();
             if ($exist) {
                 $this->error('产品货号已存在，请重新填写');
@@ -280,7 +280,7 @@ class Goods extends FormBase
                 'price'         => $data['min_price'],
                 'add_time'      => time(),
                 'update_time'   => time(),
-                'factory_id'    => $data['factory_id'],
+                'store_id'      => $data['store_id'],
             );
             $skuId = db('goods_sku')->insertGetId($skuData);
         }
@@ -303,8 +303,8 @@ class Goods extends FormBase
     private function _getCategorys($sid = 0)
     {
         $treeService = new \app\common\service\Tree();
-        $sid = $sid ? $sid : $this->storeId;
-        $where = ['is_del' => 0, 'factory_id' => $sid];
+        $sid = $sid ? $sid : $this->adminUser['store_id'];
+        $where = ['is_del' => 0, 'store_id' => $sid];
         $categorys = db('goods_cate')->field("cate_id, name, parent_id, sort_order,name as cname, status")->where($where)->order("sort_order ASC, parent_id")->select();
         if ($categorys) {
             $categorys = $treeService->getTree($categorys);

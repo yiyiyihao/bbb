@@ -27,7 +27,8 @@ return [
     
     'AUTH_RULE'             =>  '权限节点',
     'SYSTEM'                =>  '系统管理',
-    'USER_GROUP'            =>  '用户角色',
+    'USER'                  =>  '账户',
+    'USER_GROUP'            =>  '账户角色',
 
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',

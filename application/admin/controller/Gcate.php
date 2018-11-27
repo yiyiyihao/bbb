@@ -10,6 +10,9 @@ class Gcate extends FormBase
         $this->modelName = 'goods_cate';
         $this->model = db($this->modelName);
         parent::__construct();
+        $this->search= self::_searchData();
+        $this->table = self::_tableData();
+        $this->field = self::_fieldData();
     }
     function _afterList($list)
     {
@@ -39,10 +42,9 @@ class Gcate extends FormBase
     
     function _getWhere(){
         $params = $this->request->param();
-        $other = isset($params['other']) ? intval($params['other']) : '';
         $where = ['C.is_del' => 0];
-        if ($this->adminUser['factory_id']) {
-            $where['C.factory_id'] = $this->adminUser['factory_id'];
+        if ($this->adminUser['store_id']) {
+            $where['C.store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {
             $sname = isset($params['sname']) ? trim($params['sname']) : '';
@@ -58,9 +60,7 @@ class Gcate extends FormBase
     }
     function _getField(){
         $field = 'C.cate_id, C.name, C.parent_id, C.sort_order, C.name as cname, C.status';
-//         if ($this->showOther) {
-            $field .= ', S.name as sname';
-//         }
+        $field .= ', S.name as sname';
         return $field;
     }
     function _getAlias(){
@@ -70,7 +70,7 @@ class Gcate extends FormBase
         return 'C.sort_order ASC, C.add_time DESC';
     }
     function _getJoin(){
-        $join[] = ['store S', 'S.store_id = C.factory_id', 'INNER'];
+        $join[] = ['store S', 'S.store_id = C.store_id', 'INNER'];
         return $join;
     }
     function del(){
@@ -78,7 +78,7 @@ class Gcate extends FormBase
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);
         //判断当前分类下是否存在商品
-        $block = db('goods')->where(['cate_id' => $pkId, 'is_del' => 0, 'factory_id' => $info['factory_id']])->find();
+        $block = db('goods')->where(['cate_id' => $pkId, 'is_del' => 0, 'store_id' => $info['store_id']])->find();
         if ($block) {
             $this->error('分类下存在商品，不允许删除');
         }
@@ -89,13 +89,13 @@ class Gcate extends FormBase
         $data = parent::_getData();
         $params = $this->request->param();
         $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
-        $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
+        $factoryId = $params && isset($params['store_id']) ? intval($params['store_id']) : 0;
         
         $name = trim($data['name']);
         if (!$name) {
             $this->error('分类名称不能为空');
         }
-        $where = ['name' => $name, 'is_del' => 0, 'factory_id' => $factoryId];
+        $where = ['name' => $name, 'is_del' => 0, 'store_id' => $factoryId];
         if($pkId){
             $where['cate_id'] = ['neq', $pkId];
         }
@@ -103,21 +103,17 @@ class Gcate extends FormBase
         if($exist){
             $this->error('当前分类名称已存在');
         }
-        if ($this->adminUser['factory_id']) {
-            $data['factory_id'] = $this->adminUser['factory_id'];
+        if ($this->adminUser['store_id']) {
+            $data['store_id'] = $this->adminUser['store_id'];
         }
         $data['name'] = $name;
         return $data;
-    }
-    function _assignAdd()
-    {
-        $this->_getParents();
     }
     function _assignInfo($id = 0)
     {
         $info = parent::_assignInfo($id);
         $cateId = $info && isset($info['cate_id']) ? $info['cate_id'] : 0;
-        $sid = $info && isset($info['factory_id']) ? $info['factory_id'] : 0;
+        $sid = $info && isset($info['store_id']) ? $info['store_id'] : 0;
         $this->_getParents($cateId, $sid);
         
         $store = new \app\common\controller\Store();
@@ -128,8 +124,8 @@ class Gcate extends FormBase
     }
     private function _getParents($cateId = 0, $sid = 0)
     {
-        $sid = $sid ? $sid : $this->storeId;
-        $where = ['is_del' => 0, 'status' => 1, 'factory_id' => $sid];
+        $sid = $sid ? $sid : $this->adminUser['store_id'];
+        $where = ['is_del' => 0, 'status' => 1, 'store_id' => $sid];
         if ($cateId) {
             $where['cate_id'] = ['neq', $cateId];
         }
@@ -140,5 +136,54 @@ class Gcate extends FormBase
         }
         $this->assign('cates', $categorys);
         return $categorys;
+    }
+    /**
+     * 列表搜索配置
+     */
+    function _searchData(){
+        $search = [
+            ['type' => 'input', 'name' =>  'name', 'value' => lang($this->modelName).'名称', 'width' => '20'],
+        ];
+        return $search;
+    }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = [
+            ['title'     => '编号','width'    => '60','value'      => 'cate_id','type'      => 'index'],
+            ['title'     => '厂商名称','width'  => '*','value'   => 'sname','type'      => 'text'],
+            ['title'     => lang($this->modelName).'名称','width'  => '*','value'   => 'name','type'      => 'text'],
+            ['title'     => '状态','width'    => '80','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
+            ['title'     => '排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
+            ['title'     => '操作','width'    => '*','value'   => 'cate_id','type'      => 'button','button'    =>
+                [
+                    ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
+                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']
+                ]
+            ]
+        ];
+        return array_filter($table);
+    }
+    /**
+     * 详情字段配置
+     */
+    function _fieldData(){
+        $array = [];
+        if ($this->adminUser['admin_type'] == 2) {
+            $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
+        }else{
+            $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'store_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
+        }
+        $field = [
+            $array,
+            ['title'=>lang($this->modelName).'名称','type'=>'text','name'=>'name','size'=>'40','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'名称请不要填写特殊字符'],
+            ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
+                ['text'=>'可用','value'=>'1'],
+                ['text'=>'禁用','value'=>'0'],
+            ]],
+            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
+        ];
+        return $field;
     }
 }

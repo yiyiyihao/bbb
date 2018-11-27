@@ -31,16 +31,14 @@ class User extends Model
             return FALSE;
         }
         if ($groupFlag) {
-            if ($user['group_id'] <= 0) {
-                $this->error = lang('PERMISSION_DENIED');
-                return FALSE;
+            if ($user['group_id']) {
+                $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
+                if (!$group) {
+                    $this->error = lang('PERMISSION_DENIED');
+                    return FALSE;
+                }
+                $user['group'] = $group;
             }
-            $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
-            if (!$group) {
-                $this->error = lang('PERMISSION_DENIED');
-                return FALSE;
-            }
-            $user['group'] = $group;
         }
         return $user;
     }
@@ -142,43 +140,45 @@ class User extends Model
                 $this->error = lang('SYSTEM_ERROR');
                 return FALSE;
             }
-            if ($user['group_id'] <= 0) {
-                $this->error = lang('PERMISSION_DENIED');
-                return FALSE;
-            }
+        }else{
+            //重新取得用户信息
+            $user = $this->_checkUser($userId, TRUE);
+        }
+        if ($user['admin_type'] <= 0) {
+            $this->error = lang('PERMISSION_DENIED');
+            return FALSE;
+        }
+        if ($user['group_id']) {
+            //获取账户角色权限
             $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
             if (!$group) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
+            $groupPurview = $group['menu_json'];
         }else{
-            //重新取得用户信息
-            $user = $this->_checkUser($userId, TRUE);
-            $group = $user['group'];
+            #TODO 获取系统设置权限
+            $groupPurview = '';
         }
-        $factory = [];
+        
         if ($user['admin_type'] != 1) {
-            if ($user['link_id'] <= 0) {
+            if ($user['store_id'] <= 0) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
             #TODO 厂商/(服务商/渠道商/经销商)
-        }else{
-            $storeType = 0;
         }
-        
-		$user['groupPurview'] = $group['menu_json'];
         //设置session
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
-		    'admin_type'       => $user['admin_type'],
-		    'factory_id'      => $user['admin_type'] == 2 ? $user['link_id'] : 0,
-		    'link_id'         => $user['link_id'],
+		    'admin_type'      => $user['admin_type'],
+		    'factory_id'      => $user['admin_type'] == 2 ? $user['store_id'] : 0,
+		    'store_id'        => $user['store_id'],
 		    'group_id'        => $user['group_id'],
 		    'username'        => $user['username'],
 		    'phone'           => $user['phone'],
 		    'last_login_time' => $user['last_login_time'],
-		    'groupPurview'    => $user['groupPurview'],
+		    'groupPurview'    => $groupPurview,
 		];
     	session('admin_user', $adminUser);
         return TRUE;        

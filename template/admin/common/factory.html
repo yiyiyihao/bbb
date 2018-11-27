@@ -4,22 +4,23 @@
 		<label>选择厂商</label>
 	</div>
 	<div class="field">
-		<select class="input" name="factory_id" id="factory_id" datatype="n"nullmsg="请选择关联 厂商！">
-			{foreach name="factorys" item="factory" key="factory_id"}
-				<option value="{$factory_id}" {if condition="!$info || ($factory_id && isset($info['factory_id']) && $info['factory_id'] == $factory_id)" }selected="selected"{/if} >{$factory}</option> 
+		<select class="input" name="store_id" id="store_id" datatype="n"nullmsg="请选择关联 厂商！">
+			{foreach name="factorys" item="factory"}
+				{assign name="store_id" value="$factory['id']"}
+				<option value="{$factory.id}" {if condition="!$info || ($store_id && $info['store_id'] == $store_id)" }selected="selected"{/if} >{$factory.cname}</option>
 			{/foreach}
 		</select>
 		<div class="input-note">请选择服务关联厂商</div>
 	</div>
 </div>
-{elseif condition="$adminUser['admin_type'] == 2 && $adminUser['factory']"}
+{elseif condition="$adminUser['store_id'] > 0 && $adminStore"}
 <div class="form-group">
     <div class="label">
         <label>厂商名称</label>
     </div>
     <div class="field">
-        <input type="text" disabled="disabled" class="input" size="40" value="{$adminUser['factory']['name']}">
+        <input type="text" disabled="disabled" class="input" size="40" value="{$adminStore['name'] ?? ''}">
     </div>
 </div>
-{assign name="factory_id" value="$adminUser['factory']['factory_id']"}
+{assign name="store_id" value="$adminUser['store_id']"}
 {/if}

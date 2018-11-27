@@ -8,7 +8,6 @@ class Store extends Model
 	protected $pk = 'store_id';
 	
 	protected $field = true;
-	protected $updateWhere;
 	//自定义初始化
     protected function initialize()
     {
@@ -52,25 +51,6 @@ class Store extends Model
         if ($storeId) {
             $where = ['store_id' => $storeId];
         }
-        $result = model($model)->save($store, $where);
-        if ($result !== FALSE) {
-            $userModel = new \app\common\model\User();
-            if ($store['password']) {
-                $store['password'] = $userModel->pwdEncryption($store['password']);
-            }else{
-                unset($store['password']);
-            }
-            $userTabel = db('user');
-            if (!$storeId) {
-                $result = $userModel->save($store);
-            }else{
-                if (isset($store['username'])) {
-                    unset($store['username']);
-                }
-                $result = $userModel->save($store, ['store_id' => $store['store_id'], 'group_id' => $store['group_id'], 'is_del' => 0]);
-            }
-            return TRUE;
-        }
-        return FALSE;
+        return $result = model($model)->save($store, $where);
     }
 }

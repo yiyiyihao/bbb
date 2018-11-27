@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller;
 use app\common\controller\AdminBase;
+use think\facade\Env;
 /**
  * @author chany
  * @date 2018-11-08
@@ -22,8 +23,22 @@ class Index extends AdminBase
      */
     public function home()
     {
-//         $this->assign('weekData',$weekData);
         return $this->fetch();
+    }
+    /**
+     * 清理缓存
+     */
+    public function clearcache()
+    {
+        if ($this->adminUser['user_id'] != 1) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $runtimePath = Env::get('RUNTIME_PATH');
+        if (file_exists($runtimePath)) {
+            //删除目录下的所有文件/目录
+            del_file_by_dir($runtimePath);
+        }
+        $this->success('缓存清理成功', url('home'));
     }
     /**
      * 修改资料
