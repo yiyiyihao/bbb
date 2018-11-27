@@ -10,5 +10,19 @@ class Field extends FormBase
         $this->modelName = 'field';
         $this->model = db('field');
         parent::__construct();
+        $params = $this->request->param();
+        $pid = $params['pid'];
+        $this->subMenu['add']['url'] = url("add",['pid'=>$pid]);
+    }
+    
+    /**
+     * 列表查询条件
+     */
+    function _getWhere(){
+        $where = parent::_getWhere();
+        $params = $this->request->param();
+        $pid = $params['pid'];
+        $where['model_id']  = $pid;
+        return $where;
     }
 }

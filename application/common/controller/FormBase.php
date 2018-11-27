@@ -217,8 +217,19 @@ class FormBase extends AdminBase
     //以下为私有方法
     
     function _initList(){
+        $this->_tableData();
         $this->assign('table', $this->table);
         $this->assign('search', $this->search);
+    }
+    //获取列表序列化数据
+    function _tableData(){
+        return;
+    }
+    //获取详情序列化数据
+    function _fieldData(){
+        $fieldModel = model("field");
+        $fieldList  = $fieldModel->getFieldList($this->modelName);
+        return $fieldList;
     }
     function _afterList($list)
     {

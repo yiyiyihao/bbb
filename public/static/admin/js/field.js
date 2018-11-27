@@ -1,21 +1,40 @@
 (function($){
 	$.fn.Field = function( opt ) {
 		var type = '';
-		function textType(){
-			$(".textType .button").click(function(){
-				var textType = $(this).find('input').val();
-				$(".textType").hide();
-				$(".textType.textType-all").show();
-				$(".textType.textType-"+textType).show();
+		//通用多级子菜单处理
+		function typeChild(type){
+			$("."+type+"-all .button").click(function(){
+				var childType = $(this).find('input').val();
+				$("#type_extend").val(childType);
+				$("."+type).hide();
+				$("."+type+"."+type+"-all").show();
+				$("."+type+"."+type+"-"+childType).show();
 			})
-			$(".textType .button:first").trigger("click");
+			$("."+type+" .button:first").trigger("click");
+		}
+		function textType(){
+			typeChild("textType");
 		}
 		function textArea(){
 			$(".textArea").show();
 		}
+		function radioType(){
+			$(".radioType").show();
+		}
+		function checkBox(){
+			typeChild("checkBox");
+		}
+		function selectType(){
+			typeChild("selectType");
+		}
+		function imgUpload(){
+			typeChild("imgUpload");
+		}
+		function editor(){}
 		$(".js-type-select select").change(function(){			
 			$(".textExtend .form-group").hide();
 			type = $(this).val();
+			$("#type").val(type);
 			switch (type){
 				case '1':
 				textType();
@@ -24,7 +43,7 @@
 				textArea();
 				break;
 				case '3':
-				redioType();
+				radioType();
 				break;
 				case '4':
 				checkBox();

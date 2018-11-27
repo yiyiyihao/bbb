@@ -65,7 +65,7 @@ class Authrule extends FormBase
         $this->assign('rulelist', $rule);
     }
     
-    private function _tableData(){
+    function _tableData(){
         $table = [
             ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
             ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
@@ -82,7 +82,8 @@ class Authrule extends FormBase
     /**
      * 详情字段配置
      */
-    private function _fieldData(){
+    /*function _fieldData(){
+        parent::_fieldData();
         $field = [
             ['title'=>'上级节点','type'=>'select','options'=>'rulelist','name'=>'parent_id','size'=>'40','datatype'=>'','default'=>'','default_option'=>'==顶级节点==','notetext'=>'顶级节点请留空,其它上级节点请慎重选择'],
             ['title'=>'权限名称','type'=>'text','name'=>'title','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写权限节点名称'],
@@ -105,5 +106,5 @@ class Authrule extends FormBase
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'255','notetext'=>''],
         ];
         return $field;
-    }
+    }*/
 }
