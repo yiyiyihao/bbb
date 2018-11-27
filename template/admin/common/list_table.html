@@ -3,7 +3,7 @@
   <tbody>
     <tr>
     	{volist name="table" id="tb"}
-        <th width="{$td['width'] ?? 20}">{$tb.title}</th>
+        <th width="{$tb['width'] ?? 20}">{$tb.title}</th>
         {/volist}
     </tr>
     {notempty name="list"}
