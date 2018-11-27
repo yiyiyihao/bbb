@@ -10,9 +10,10 @@ class Field extends FormBase
         $this->modelName = 'field';
         $this->model = db('field');
         parent::__construct();
-        $params = $this->request->param();
-        $pid = $params['pid'];
-        $this->subMenu['add']['url'] = url("add",['pid'=>$pid]);
+        $this->subMenu['add'] = [];
+//         $params = $this->request->param();
+//         $pid = $params['pid'];
+//         $this->subMenu['add']['url'] = url("add",['pid'=>$pid]);
     }
     
     /**
