@@ -3,13 +3,14 @@
   <tbody>
     <tr>
     	{volist name="table" id="tb"}
-        <th width="{$tb.width}">{$tb.title}</th>
+        <th width="{$td['width'] ?? 20}">{$tb.title}</th>
         {/volist}
     </tr>
     {notempty name="list"}
       {volist name="list" key="k" id="vo"}
         <tr>
         {volist name="table" id="td"}
+        {if condition="$td && is_array($td)"}
         <td>
         	{switch td.type}
             	{case index}{$k}{/case}
@@ -33,6 +34,7 @@
                 {/case}
             {/switch}
         </td>
+        {/if}
         {/volist}
         </tr>
       {/volist}
