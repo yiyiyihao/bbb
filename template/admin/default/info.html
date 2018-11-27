@@ -37,7 +37,7 @@
 				                </a>
                             {/case}
                             {case select}
-	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}">
+	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty}>
 	                              <option value="{$vo.default}">{$vo.default_option}</option>                                   
                                    {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
 	                               {foreach name="options" item="option"}
