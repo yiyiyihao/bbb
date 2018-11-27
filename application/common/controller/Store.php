@@ -26,7 +26,7 @@ class Store extends FormBase
         $this->search= self::_searchData();
         $this->table = self::_tableData();
         $this->field = self::_fieldData();
-        $this->uploadUrl = url('admin/Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb']);
+        $this->uploadUrl = url('admin/Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     public function manager()
     {
