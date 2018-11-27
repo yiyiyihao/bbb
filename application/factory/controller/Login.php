@@ -2,7 +2,6 @@
 namespace app\factory\controller;
 use app\factory\controller\BaseFactory;
 use app\admin\controller\Login as adminLogin;
-use app\common\controller\AdminBase;
 
 /**
  * @author chany
