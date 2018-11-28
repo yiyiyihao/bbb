@@ -11,7 +11,7 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                    <table id="table" class="form-group">
+                    <table id="table" class="table table-hover">
                         <thead> 
                             <tr>
                                 <th width="100">编号</th>
@@ -56,19 +56,5 @@
     </div>
 </form>
 <script>
-    Do.ready('base', function () {
-        //表单综合处理
-        $('#form').FormPage();
-		var groupurview = '{$grouppurview}';
-		if(groupurview != ''){
-			if(groupurview == 'all'){
-				$(".form-group .data-all").trigger("click");
-			}else{
-				groupurview = JSON.parse(groupurview);
-				$.each(groupurview,function(i,item){
-					$(".form-group").find("input[value='"+item+"']").trigger("click");
-				});				
-			}
-		}
-    }); 
+   
 </script>
