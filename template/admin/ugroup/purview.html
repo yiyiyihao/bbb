@@ -3,7 +3,6 @@
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>分组授权</strong>
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">授权详情</a></li>
                     </ul>
@@ -15,7 +14,6 @@
                         <thead> 
                             <tr>
                                 <th width="100">编号</th>
-                                <th width="20%">父权限</th>
                                 <th width="*">子权限</th>
                             </tr>
                         </thead>
@@ -27,13 +25,17 @@
                                 <td>{$vo.id}</td>
                                 
                                 <td>
-                                    <input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >{$vo.title}</td>
-                                <td>
-                                {volist name="rules" id="v"}
-                                {eq name="$v.parent_id" value="$vo.id"}
-                                    <input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />{$v.title}&nbsp;
-                                {/eq}
-                                {/volist}
+                                <div class="button-group">
+                                    <div class="checkbox">
+                                    <label class='button labelbutton data-all{in name="$vo.id" value="$grouppurview"} active{/in}'><input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >{$vo.title}</label>
+                                    
+                                    {volist name="rules" id="v"}
+                                    {eq name="$v.parent_id" value="$vo.id"}
+                                        <label class='button labelbutton data-single{in name="$v.id" value="$grouppurview"} active{/in}'><input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />{$v.title}</label>
+                                    {/eq}
+                                    {/volist}
+                                    </div>
+                                </div>
                                 </td>
                                 
                             </tr>
@@ -55,6 +57,3 @@
         </div>
     </div>
 </form>
-<script>
-   
-</script>

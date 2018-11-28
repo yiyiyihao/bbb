@@ -339,7 +339,8 @@ $(function(){
 		$(this).parent(".radio").find("label.active").removeClass("active");
 		$(this).addClass("active");
 	});
-	$(".checkbox").on("click",".labelbutton",function(){
+	$(".checkbox").on("click",".labelbutton",function(e){
+		if ($(e.target).is("input")) return;
 		$(this).toggleClass("active");
 		if($(this).hasClass("active")){
 			$(this).find("input[type='checkbox']").prop("checked",true);
