@@ -90,8 +90,6 @@ class Think
             if ($module == 'factory') {
                 $template = 'admin@'.$this->config['view_tpl'];
                 if (!is_file($template)) {
-//                     $this->app['request'];
-//                     pre($this->app['request']);
                     $flag = TRUE;
                 }
             }

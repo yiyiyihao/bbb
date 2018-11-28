@@ -17,7 +17,7 @@ class Login extends adminLogin
         $this->factory = $BaseFactory->factory;
     }
     public function index(){
-        $this->loginIndexTpl = 'factory';
+        $this->loginIndexTpl = 'factory@login/index';
         return parent::index();
     }
 }
