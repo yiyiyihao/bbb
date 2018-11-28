@@ -40,9 +40,12 @@
 	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty}>
 	                              <option value="{$vo.default|default=''}">{$vo.default_option}</option>                                   
                                    {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
-	                               {foreach name="options" item="option"}
-	                               <option value="{$option.id}" 
-	                               {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               {foreach name="options" item="option" key="key"}
+	                               {if condition="!isset($option['id'])"}
+	                               	<option value="{$key}" {if ($info && $info[$vo.name] == $key)}selected="selected"{/if} >{$option}</option>
+	                               {else/}
+	                               	<option value="{$option.id}" {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               {/if}
 	                               {/foreach}
 	                            </select>
                             {/case}
