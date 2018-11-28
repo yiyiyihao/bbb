@@ -83,7 +83,7 @@
 		})
 		init();
 		function init(){			
-			var initGoodsSpecs = '{$goods.specs_json}';
+			var initGoodsSpecs = '{$goods.specs_json|raw}';
 			if(initGoodsSpecs){
 				initGoodsSpecs = eval('(' + initGoodsSpecs + ')');
 				$(initGoodsSpecs).each(function(index, spec) {
@@ -141,7 +141,6 @@
 			var len = selectSpec.length;
 			if(index < len-1){
 				var specItem = selectSpec[index];
-				debug(specItem);
 				var specId = specItem.specid;
 				var specName = specItem.specname;
 				var items = specItem.list;

@@ -143,7 +143,8 @@ class Goods extends FormBase
                 }
                 $this->assign("specList",$specList);
                 //取得属性详情
-                $skuList = $skuMod->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $goodsInfo['store_id']])->where(['spec_json' => ['neq', ""]])->order("sku_id")->select();
+                $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $goodsInfo['store_id'] ,'spec_json' => ['neq', ""]];
+                $skuList = $skuMod->where($where)->order("sku_id")->select();
                 $this->assign("skuList",$skuList);
                 return $this->fetch();
             }
