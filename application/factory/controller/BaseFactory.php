@@ -1,9 +1,9 @@
 <?php
 namespace app\factory\controller;
 use think\facade\Request;
-use app\common\controller\AdminBase;
+use app\common\controller\FormBase;
 
-class BaseFactory extends AdminBase
+class BaseFactory extends FormBase
 {
     function __construct(){
         $domain = Request::panDomain();
