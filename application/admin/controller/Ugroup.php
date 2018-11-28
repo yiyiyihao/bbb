@@ -23,7 +23,6 @@ class Ugroup extends FormBase
         $menus=[];
         //获取所有权限及子权限
         $rules=model('AuthRule')->getALLRule();
-        //dump($rules);exit;
         if($pkId){
             if(IS_POST){
                 $msg = lang($this->modelName.'_purview');
@@ -31,7 +30,8 @@ class Ugroup extends FormBase
                 $rule=$params['rule'];
                 //遍历id取出权限信息，保存在$menus中，
                 foreach ($rule as $k => $v) {
-                    $menudata=db('AuthRule')->find($v);
+//                     $menudata=db('AuthRule')->find($v);
+                    $menudata = $rules[$v];
                     $menus[$k]['id']=$menudata['id'];
                     $menus[$k]['rule']=strtolower($menudata['module'].'/'.$menudata['controller'].'/'.$menudata['action']);
                     $menus[$k]['menustatus']=$menudata['menustatus'];
