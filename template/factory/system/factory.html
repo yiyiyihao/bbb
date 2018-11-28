@@ -1,0 +1,42 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>厂商参数配置</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>安装员申请是否厂商审核</label>
+                        </div>
+                        <div class="field">
+                        	<div class="button-group radio">
+                            	<label class="button {if isset($config['installer_check']) && $config['installer_check'] == 1}active{/if}">
+                            	<input name="installer_check" value="1" type="radio" {if (isset($config['installer_check']) && $config['installer_check'] == 1)}checked="checked"{/if}>是</label>
+                            	<label class="button {if !isset($config['installer_check']) || !$config['installer_check'] == 1}active{/if}">
+                            	<input name="installer_check" value="0" type="radio" {if (isset($config['installer_check']) && $config['installer_check'] == 1)}checked="checked"{/if}>否</label>
+                            </div>
+                            <div class="input-note">配置安装员申请:服务商审核后是否需要厂商审核才能成为安装员</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>

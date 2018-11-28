@@ -2,8 +2,8 @@
 namespace app\admin\controller;
 use app\common\controller\Store;
 
-//渠道商管理
-class Channel extends Store
+//财务管理
+class Finance extends Store
 {
     public function __construct()
     {

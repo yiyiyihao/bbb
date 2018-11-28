@@ -89,7 +89,8 @@ class Think
             $flag = FALSE;
             if ($module == 'factory') {
                 $template = 'admin@'.$this->config['view_tpl'];
-                if (!is_file($template)) {
+                $file = $this->parseTemplate($template);
+                if (is_file($file)) {
                     $flag = TRUE;
                 }
             }

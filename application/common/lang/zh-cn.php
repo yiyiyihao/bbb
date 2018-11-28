@@ -29,6 +29,7 @@ return [
     'SYSTEM'                =>  '系统管理',
     'USER'                  =>  '账户',
     'USER_GROUP'            =>  '账户角色',
+    'USER_INSTALLER'        =>  '安装员',
 
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',

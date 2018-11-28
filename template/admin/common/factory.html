@@ -13,13 +13,13 @@
 		<div class="input-note">请选择服务关联厂商</div>
 	</div>
 </div>
-{elseif condition="$adminUser['store_id'] > 0 && $adminStore"}
+{elseif condition="$adminUser['store_id'] > 0 && $adminFactory"}
 <div class="form-group">
     <div class="label">
         <label>厂商名称</label>
     </div>
     <div class="field">
-        <input type="text" disabled="disabled" class="input" size="40" value="{$adminStore['name'] ?? ''}">
+        <input type="text" disabled="disabled" class="input" size="40" value="{$adminFactory['name'] ?? ''}">
     </div>
 </div>
 {assign name="store_id" value="$adminUser['store_id']"}

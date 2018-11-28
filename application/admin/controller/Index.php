@@ -104,10 +104,10 @@ class Index extends AdminBase
                 $this->error($userModel->error);
             }
             //判断原密码是否正确
-            if ($user['password'] <> $userModel->pwdEncryption($password)) {
+            if ($user['password'] <> $userModel->_pwdEncryption($password)) {
                 $this->error('原登录密码验证错误');
             }
-            $result = $userModel->save(['password' => $userModel->pwdEncryption($newPwd), 'update_time' => time()], ['user_id' => ADMIN_ID]);
+            $result = $userModel->save(['password' => $userModel->_pwdEncryption($newPwd), 'update_time' => time()], ['user_id' => ADMIN_ID]);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{

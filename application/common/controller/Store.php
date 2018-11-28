@@ -14,13 +14,19 @@ class Store extends FormBase
         $this->model = $this->model ? $this->model : model($this->modelName);
         parent::__construct();
         $this->groupId = 0;
-        if ($this->adminUser['user_id'] != 1) {
-            if ($this->adminUser['admin_type'] != 2 || $this->storeType == 1) {//厂商
+        if ($this->adminUser['admin_type'] != 1) {
+            if ($this->storeType == 1) {
                 $this->error(lang('NO ACCESS'));
+            }else{
+                if ($this->adminUser['admin_type'] != 2) {
+                    if (!($this->storeType == 3 && $this->adminUser['admin_type'] == 3) || $this->storeType != 3) {
+                        $this->error(lang('NO ACCESS'));
+                    }
+                }
             }
         }
         
-        if ($this->adminUser['admin_type'] != 2){
+        if (!$this->adminUser['store_id']){
             $this->_getFactorys();
         }
         $this->search= self::_searchData();
@@ -30,7 +36,7 @@ class Store extends FormBase
     }
     public function manager()
     {
-        $store = parent::_assignInfo();
+        $store = $this->_assignInfo();
         //判断当前厂商是否设置过管理员
         $userModel = new \app\common\model\User();
         $info = $userModel->where(['admin_type' => $this->adminType, 'store_id' => $store['store_id'], 'is_del' => 0])->find();
@@ -62,7 +68,7 @@ class Store extends FormBase
                 $this->error($userModel->error);
             }
             if ($params['password']) {
-                $params['password'] = $userModel->pwdEncryption(trim($params['password']));
+                $params['password'] = $userModel->_pwdEncryption(trim($params['password']));
             }
             if (!$info) {
                 $params['admin_type'] = $this->adminType;
@@ -88,7 +94,7 @@ class Store extends FormBase
     function del(){
         $params = $this->request->param();
         $pkId = intval($params['id']);
-        $info = parent::_assignInfo($pkId);
+        $info = $this->_assignInfo($pkId);
         //判断商户类型
         $storeType = $info['store_type'];
         if ($storeType == 1) {
@@ -134,6 +140,14 @@ class Store extends FormBase
                     break;
             }
             $detail = model($model)->where(['store_id' => $info['store_id']])->find();
+            if ($this->adminUser['admin_type'] != 1) {
+                if ($info['factory_id'] != $this->adminFactory['store_id']) {
+                    $this->error(lang('NO ACCESS'));
+                }
+                if ($this->adminUser['admin_type'] != 2 && $this->adminStore['store_id'] != $detail['ostore_id']) {
+                    $this->error(lang('NO ACCESS'));
+                }
+            }
             if ($detail) {
                 $info = $info->toArray();
                 $detail = $detail->toArray();
@@ -153,10 +167,13 @@ class Store extends FormBase
         $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         $address = $data && isset($data['address']) ? trim($data['address']) : '';
         $name = $data && isset($data['name']) ? trim($data['name']) : '';
-        $domain = $data && isset($data['domain']) ? trim($data['domain']) : '';
+        $domain = $data && isset($data['domain']) ? strtolower(trim($data['domain'])) : '';
         if ($this->storeType != 1) {
             if ($this->adminUser['store_id']) {
-                $data['factory_id'] = $factoryId = $this->adminUser['store_id'];
+                $data['factory_id'] = $factoryId = $this->adminFactory['store_id'];
+            }
+            if ($this->adminUser['admin_type'] > 2) {
+                $data['ostore_id'] = $factoryId = $this->adminStore['store_id'];
             }
             if (!$factoryId) {
                 $this->error('请选择所属厂商');
@@ -180,7 +197,9 @@ class Store extends FormBase
             if (!$domain) {
                 $this->error(lang($this->modelName).'二级域名不能为空');
             }
-            if (strtolower(trim($domain)) == 'admin') {
+            //判断域名前缀是否可设置
+            $sysKeepDomins = config('app.system_keeps_domain');;
+            if (in_array($domain, $sysKeepDomins)) {
                 $this->error('保留域名,不允许设置');
             }
             //验证二级域名是否唯一
@@ -251,6 +270,8 @@ class Store extends FormBase
         ];
         if ($this->adminUser['admin_type'] == 2) {
             $where['S.factory_id'] = $this->adminUser['store_id'];
+        }elseif ($this->adminUser['admin_type'] == 3 && $this->storeType == 3){
+            $where['AS.ostore_id'] = $this->adminUser['store_id'];
         }
         $params = $this->request->param();
         if ($params) {
@@ -280,11 +301,14 @@ class Store extends FormBase
      * 列表项配置
      */
     function _tableData(){
-        $array = [];
+        $array = $btnArray = [];
         if ($this->storeType == 1) {
             $array = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text'];
         }else{
             $array = ['title'     => '所属厂商','width'  => '100','value'     => 'sname','type'      => 'text'];
+        }
+        if ($this->storeType == 2) {
+            $btnArray = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
         }
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
@@ -297,7 +321,8 @@ class Store extends FormBase
             ['title'     => '排序','width'    => '60','value'      => 'sort_order','type'      => 'text'],
             ['title'     => '操作','width'    => '*','value'   => 'store_id','type'      => 'button','button'    =>
                 [
-                    ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-yellow',],
+                    ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-yellow'],
+                    $btnArray,
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']
                 ]
@@ -311,8 +336,8 @@ class Store extends FormBase
     function _fieldData(){
         $array = [];
         if ($this->storeType != 1) {
-            if ($this->adminUser['admin_type'] == 2) {
-                $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
+            if ($this->adminUser['admin_type'] != 1){
+                $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
             }else{
                 $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
             }

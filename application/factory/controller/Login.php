@@ -10,11 +10,10 @@ use app\admin\controller\Login as adminLogin;
  */
 class Login extends adminLogin
 {
-    var $factory;
     function __construct(){
         parent::__construct();
         $BaseFactory = new BaseFactory();
-        $this->factory = $BaseFactory->factory;
+        $this->adminFactory = $BaseFactory->adminFactory;
     }
     public function index(){
         $this->loginIndexTpl = 'factory@login/index';

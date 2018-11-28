@@ -1243,19 +1243,19 @@ class Template
         if (isset($module) && strtolower($module) == 'factory') {
             return $this->parseTemplateFile('admin@'.$tplname);
         }
-        
-        $request = $this->app['request'];
-        $action = $request->action();
-        if ($action == 'index'){
-            $template = $this->config['default_index_tpl'];
-        }else if($action == 'info'){
-            $template = $this->config['default_info_tpl'];
-        }
-        if (is_file($template)) {
-            // 记录模板文件的更新时间
-            $this->includeFile[$template] = filemtime($template);
-            return $template;
-        }
+//         pre($tplname);
+//         $request = $this->app['request'];
+//         $action = $request->action();
+//         if ($action == 'index'){
+//             $template = $this->config['default_index_tpl'];
+//         }else if($action == 'info'){
+//             $template = $this->config['default_info_tpl'];
+//         }
+//         if (is_file($template)) {
+//             // 记录模板文件的更新时间
+//             $this->includeFile[$template] = filemtime($template);
+//             return $template;
+//         }
 
         throw new TemplateNotFoundException('template not exists:' . $template, $template);
     }

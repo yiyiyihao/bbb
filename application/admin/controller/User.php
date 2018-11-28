@@ -81,7 +81,7 @@ class User extends FormBase
             $this->error($userModel->error);
         }
         if ($password) {
-            $data['password'] = $userModel->pwdEncryption($password);
+            $data['password'] = $userModel->_pwdEncryption($password);
         }
         $data['store_id'] = $this->adminUser['store_id'];
         $data['admin_type'] = $this->adminUser['admin_type'];

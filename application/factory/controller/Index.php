@@ -9,6 +9,6 @@ class Index extends adminIndex
     function __construct(){
         parent::__construct();
         $BaseFactory = new BaseFactory();
-        $this->factory = $BaseFactory->factory;
+        $this->adminFactory = $BaseFactory->adminFactory;
     }
 }

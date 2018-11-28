@@ -8,7 +8,7 @@
                     <div class="form-group">
                         <div class="field">
                         	{if condition="$vo['type'] == 'input'"}
-                            <input type="text" class="input" id="{$vo['name']}" name="{$vo['name']}" size="{$vo['width'] ?? 40}" value="{$_GET['name'] ?? ''}" placeholder="{$vo['value'] ?? ''}">
+                            <input type="text" class="input" id="{$vo['name']}" name="{$vo['name']}" size="{$vo['width'] ?? 40}" value="{$_GET[$vo['name']] ?? ''}" placeholder="{$vo['value'] ?? ''}">
                             {/if}
                         </div>
                     </div>

@@ -13,4 +13,10 @@ class Factory extends Store
         $this->adminType = 2;
         parent::__construct();
     }
+    //厂商参数设置
+    public function config()
+    {
+        $info = $this->_assignInfo();
+        pre($info);
+    }
 }

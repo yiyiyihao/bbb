@@ -10,6 +10,27 @@
 // +----------------------------------------------------------------------
 
 // 应用公共文件
+
+function get_installer_status($status = FALSE)
+{
+    $list = [
+        -4 => '服务商拒绝申请',
+        -3 => '服务商审核中',
+        -2 => '厂商拒绝申请',
+        -1 => '厂商审核中',
+        0  => '禁用',
+        1  => '正常',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if ($status && isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
+
 function get_admin_type($type = FALSE){
     $storeTypes = [
         1 => '平台',

@@ -1,21 +1,24 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\FormBase;
-use think\Request;
+namespace app\factory\controller;
+use app\admin\controller\System as adminSystem;
 
 //系统管理
-class System extends FormBase
+class System extends adminSystem
 {
     public function __construct()
     {
         $this->modelName = 'system';
         $this->model = db('config');
         parent::__construct();
-        if (!$this->adminFactory && $this->adminUser['admin_type'] != 1) {
+    }
+    /**
+     * 厂商权限配置
+     * @return mixed|string
+     */
+    public function factory(){
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != 2) {
             $this->error(lang('NO ACCESS'));
         }
-    }
-    public function grant(){
         $params = $this->request->param();
         $adminType = isset($params['type']) ? $params['type'] : 1;
         $configName = 'admin_type_'.$adminType;
@@ -33,9 +36,5 @@ class System extends FormBase
         }else{
             $this->error(lang('param_error'));
         }
-    }
-    public function factory()
-    {
-        $this->error('厂商配置信息');
     }
 }

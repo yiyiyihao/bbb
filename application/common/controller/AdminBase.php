@@ -9,6 +9,7 @@ class AdminBase extends Backend
     var $subMenu;
     var $adminUser;
     var $adminStore;
+    var $adminFactory;//厂商二级域名登录赋值
     var $breadCrumb;
 	//管理内容预处理方法
 	public function __construct()
@@ -30,6 +31,7 @@ class AdminBase extends Backend
     	if ($this->adminUser['store_id']) {
     	    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
     	}
+    	$this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
     	//检查用户是否拥有操作权限
 //     	if(!self::checkPurview($this->adminUser,$this->storeId)){
 //     	    $this->error("没有操作权限");
@@ -60,6 +62,7 @@ class AdminBase extends Backend
         $this->assign('title',config('setting.title').lang('home_manager'));
         $this->assign('adminUser', $this->adminUser);
         $this->assign('adminStore', $this->adminStore);
+        $this->assign('adminFactory', $this->adminFactory);
     }
     
     //获取页面的面包屑
