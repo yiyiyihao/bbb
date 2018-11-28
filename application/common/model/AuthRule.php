@@ -40,7 +40,7 @@ class AuthRule extends Model
 	            'status'        => 1,
 	            'is_del'        => 0,
 	        ];
-	        $allRules = db('auth_rule')->where($where)->order('sort_order')->select();
+	        $allRules = db('auth_rule')->where($where)->order('sort_order')->column('*','id');
 	        cache('allRules', $allRules);
 	    }
 	    return $allRules;
