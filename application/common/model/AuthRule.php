@@ -32,4 +32,17 @@ class AuthRule extends Model
 	    }
 	    return $authRule;
 	}
+	//取得所有权限列表
+	static function getALLRule(){
+		$allRules = cache('allRules');
+	    if(!$allRules){
+	        $where = [
+	            'status'        => 1,
+	            'is_del'        => 0,
+	        ];
+	        $allRules = db('auth_rule')->where($where)->order('sort_order')->select();
+	        cache('allRules', $allRules);
+	    }
+	    return $allRules;
+	}
 }
