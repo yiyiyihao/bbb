@@ -16,7 +16,7 @@
                             <label>数据表名</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="field" name="field" size="40" value="{$info.field|default=''}">
+                            <input type="text" class="input" id="field" name="field" size="40" value="{if !empty($info.field)}{$info.field}{elseif !empty($Request.param.name)}{$Request.param.name}{/if}" {if !empty($Request.param.name)} readonly="readonly"{/if}>
                             <div class="input-note"></div>
                         </div>
                     </div>

@@ -8,19 +8,23 @@
           <th width="100">显示标题</th>
           <th width="80">状态</th>
           <th width="100">排序</th>
-          <th width="280">操作</th>
+          <th width="180">操作</th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo"}
             <tr>
               <td>{$i}</td>
               <td>{$vo.field}</td>
-              <td>{$vo.title}</td>
+              <td>{$vo.title|default=''}</td>
               <td>{$vo['status']?'<span class="tag bg-green">否</span>':'<span class="tag bg-red">是</span>'}</td>
-              <td>{$vo['sort_order']}</td>
+              <td>{$vo['sort_order']|default=''}</td>
               <td>
-              	<a href="{:url('edit', array('id' => $vo['field_id']))}" class="button button-small bg-main icon-edit">编辑</a>            
-                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.field_id}">删除</a>
+              {if isset($vo.field_id)}
+              	<a href="{:url('edit', array('id' => $vo.field_id , 'pid' => $Request.param.pid))}" class="button button-small bg-main icon-edit">编辑</a>
+              {else/}
+                <a href="{:url('add',array('name' => $vo.field , 'pid' => $Request.param.pid))}" class="button button-small bg-green icon-plus">启用</a>
+                <a href="javascript:;" url="{:url('ignore' , array('name' => $vo.field , 'pid' => $Request.param.pid))}" class="button button-small bg-dot icon-close-cirle js-action" title="忽略" refresh="1">忽略</a>
+              {/if}
               </td>
             </tr>
           {/volist}
