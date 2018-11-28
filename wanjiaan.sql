@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-11-28 19:33:51
+Date: 2018-11-28 19:36:00
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -143,7 +143,7 @@ CREATE TABLE `wja_auth_rule` (
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=55 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
+) ENGINE=MyISAM AUTO_INCREMENT=54 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
 
 -- ----------------------------
 -- Records of wja_auth_rule
@@ -199,9 +199,8 @@ INSERT INTO `wja_auth_rule` VALUES ('48', '1', 'admin', 'finance', 'lists', '提
 INSERT INTO `wja_auth_rule` VALUES ('49', '1', 'admin', 'finance', 'index', '对账管理', '', '47', '1', '9', '1', '1', '1543371506', '1543371506', '0');
 INSERT INTO `wja_auth_rule` VALUES ('50', '1', 'admin', 'installer', '', '安装员管理', 'user', '0', '1', '10', '1', '1', '1543371506', '1543371506', '0');
 INSERT INTO `wja_auth_rule` VALUES ('51', '1', 'admin', 'installer', 'index', '安装员列表', '', '50', '1', '10', '1', '1', '1543371506', '1543371506', '0');
-INSERT INTO `wja_auth_rule` VALUES ('52', '1', 'admin', 'installer', 'add', '新增安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
-INSERT INTO `wja_auth_rule` VALUES ('53', '1', 'admin', 'installer', 'edit', '编辑安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
-INSERT INTO `wja_auth_rule` VALUES ('54', '1', 'admin', 'installer', 'del', '删除安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('52', '1', 'admin', 'installer', 'edit', '编辑安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('53', '1', 'admin', 'installer', 'del', '删除安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
 
 -- ----------------------------
 -- Table structure for wja_channel_grade
