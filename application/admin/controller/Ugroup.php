@@ -20,13 +20,30 @@ class Ugroup extends FormBase
     public function purview(){
         $params = $this->request->param();
         $pkId = intval($params['id']);
+        $menus=[];
+        //获取所有权限及子权限
+        $rules=model('AuthRule')->getALLRule();
+        //dump($rules);exit;
         if($pkId){
             if(IS_POST){
                 $msg = lang($this->modelName.'_purview');
-                $grouppurview = json_encode($params['grouppurview']);
+                //接收提交的权限id
+                $rule=$params['rule'];
+                //遍历id取出权限信息，保存在$menus中，
+                foreach ($rule as $k => $v) {
+                    $menudata=db('AuthRule')->find($v);
+                    $menus[$k]['id']=$menudata['id'];
+                    $menus[$k]['rule']=strtolower($menudata['module'].'/'.$menudata['controller'].'/'.$menudata['action']);
+                    $menus[$k]['menustatus']=$menudata['menustatus'];
+                    $menus[$k]['title']=$menudata['title'];
+                }            
+                //dump($menus);exit;
+                //数组转json
+                $grouppurview = json_encode($menus);
                 $data['menu_json'] = $grouppurview;
+                //根据角色id保存数据库
                 $pk   =   $this->model->getPk();
-                $where[$pk] = $pkId;
+                $where[$pk] = $pkId; 
                 $rs = $this->model->where($where)->update($data);
                 if($rs){
                     $msg .= lang('success');
@@ -35,17 +52,28 @@ class Ugroup extends FormBase
                     $msg .= lang('fail');
                     $this->error($msg);
                 }
+
             }else{
+                //所有权限分配模板
+                $this->assign('rules', $rules);
                 //取得当前用户组详情
                 $info = parent::_assignInfo($pkId);
-                $grouppurview = $info['menu_json'];
-                if($grouppurview != 'all' && $grouppurview != ''){
-//                     $grouppurview = json_decode($grouppurview,true);
+                $ruleInfo = $info['menu_json'];
+                //有授权
+                if($ruleInfo != ''){
+                    $ruleInfo = json_decode($ruleInfo,true); 
+                    //dump($ruleInfo);exit;
+                    //遍历授权字符串取出id回显
+                    foreach ($ruleInfo as $k => $v) {
+                        $grouppurview[]=$v['id'];  
+                    }
+                }else{
+                    $grouppurview='';
                 }
 //                 $grouppurview = 'all';
                 //取得当前用户组授权树
-                $purviewvList = controller("purview","service")->getGroupPurview($info['menu_json']);
-                $this->assign('purviewvList', $purviewvList);
+                /*$purviewvList = controller("purview","service")->getGroupPurview($info['menu_json']);
+                $this->assign('purviewvList', $purviewvList);*/
                 $this->assign('grouppurview', $grouppurview);
                 return $this->fetch();
             }
