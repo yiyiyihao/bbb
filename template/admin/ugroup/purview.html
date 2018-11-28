@@ -11,22 +11,38 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	{foreach $purviewvList as $ckey=>$list}
-                    <div class="form-group">
-                    	<div class="label"><label>{$list.name}</label></div>
-                        <div class="field">
-							<div class="button-group checkbox">
-                            	<div class="action">
-                            	{foreach $list.list as $akey=>$authList}
-                                    <span class="button data-{$authList.type} labelbutton" data-type="{$authList.type}">
-                                        <input name="grouppurview[]" value="{$ckey}_{$akey}" type="checkbox"> {$authList.name}
-                                    </span>
-                                {/foreach}
-                            	</div>
-                            </div>
-                        </div>
-                    </div>
-                    {/foreach}
+                    <table id="table" class="form-group">
+                        <thead> 
+                            <tr>
+                                <th width="100">编号</th>
+                                <th width="20%">父权限</th>
+                                <th width="*">子权限</th>
+                            </tr>
+                        </thead>
+                           
+                        <tbody>
+                            {volist name="rules" id="vo"}
+                            {eq name="$vo.parent_id" value="0"}
+                            <tr>
+                                <td>{$vo.id}</td>
+                                
+                                <td>
+                                    <input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >{$vo.title}</td>
+                                <td>
+                                {volist name="rules" id="v"}
+                                {eq name="$v.parent_id" value="$vo.id"}
+                                    <input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />{$v.title}&nbsp;
+                                {/eq}
+                                {/volist}
+                                </td>
+                                
+                            </tr>
+                            {/eq}
+                            {/volist}
+                          
+                            
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div class="panel-foot">
