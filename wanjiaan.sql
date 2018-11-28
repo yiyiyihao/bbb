@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-11-27 18:09:34
+Date: 2018-11-28 12:12:02
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -98,7 +98,7 @@ CREATE TABLE `wja_auth_rule` (
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=46 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
+) ENGINE=MyISAM AUTO_INCREMENT=55 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
 
 -- ----------------------------
 -- Records of wja_auth_rule
@@ -113,7 +113,7 @@ INSERT INTO `wja_auth_rule` VALUES ('7', '1', 'admin', 'factory', 'del', '删除
 INSERT INTO `wja_auth_rule` VALUES ('8', '1', 'admin', 'authrule', '', '权限管理', 'star', '0', '1', '3', '1', '1', '1543216881', '1543217291', '0');
 INSERT INTO `wja_auth_rule` VALUES ('9', '1', 'admin', 'authrule', 'index', '权限列表', '', '8', '1', '3', '1', '1', '1543216929', '1543217295', '0');
 INSERT INTO `wja_auth_rule` VALUES ('10', '1', 'admin', 'sysadmin', '', '系统配置', 'setting', '0', '1', '4', '1', '1', '1543224679', '1543224679', '0');
-INSERT INTO `wja_auth_rule` VALUES ('11', '1', 'admin', 'system', 'grant', '厂商权限配置', '', '10', '1', '4', '1', '1', '1543225155', '1543228391', '0');
+INSERT INTO `wja_auth_rule` VALUES ('11', '1', 'admin', 'system', 'grant', '权限配置', '', '10', '1', '4', '1', '1', '1543225155', '1543368234', '0');
 INSERT INTO `wja_auth_rule` VALUES ('12', '1', 'admin', 'goods', '', '产品管理', 'tips', '0', '1', '5', '1', '1', '1543281935', '1543282035', '0');
 INSERT INTO `wja_auth_rule` VALUES ('13', '1', 'admin', 'goods', 'index', '产品列表', '', '12', '1', '5', '1', '1', '1543282122', '1543282122', '0');
 INSERT INTO `wja_auth_rule` VALUES ('14', '1', 'admin', 'goods', 'add', '新增产品', '', '12', '1', '5', '0', '1', '1543282144', '1543285072', '0');
@@ -148,6 +148,15 @@ INSERT INTO `wja_auth_rule` VALUES ('42', '1', 'admin', 'servicer', 'manager', '
 INSERT INTO `wja_auth_rule` VALUES ('43', '1', 'admin', 'goods', 'spec', '配置产品规格', '', '12', '1', '5', '0', '1', '1543289903', '1543289903', '0');
 INSERT INTO `wja_auth_rule` VALUES ('44', '1', 'admin', 'user', 'index', '账户管理', '', '10', '1', '4', '1', '1', '1543289903', '1543289903', '0');
 INSERT INTO `wja_auth_rule` VALUES ('45', '1', 'admin', 'ugroup', 'index', '角色管理', '', '10', '1', '4', '1', '1', '1543289903', '1543289903', '0');
+INSERT INTO `wja_auth_rule` VALUES ('46', '1', 'admin', 'factory', 'config', '厂商参数配置', '', '10', '1', '4', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('47', '1', 'admin', 'finance', '', '财务管理', 'ticket-list', '0', '1', '9', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('48', '1', 'admin', 'finance', 'lists', '提现审核', '', '47', '1', '9', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('49', '1', 'admin', 'finance', 'index', '对账管理', '', '47', '1', '9', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('50', '1', 'admin', 'installer', '', '安装员管理', 'user', '0', '1', '10', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('51', '1', 'admin', 'installer', 'index', '安装员列表', '', '50', '1', '10', '1', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('52', '1', 'admin', 'installer', 'add', '新增安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('53', '1', 'admin', 'installer', 'edit', '编辑安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
+INSERT INTO `wja_auth_rule` VALUES ('54', '1', 'admin', 'installer', 'del', '删除安装员', '', '50', '1', '10', '0', '1', '1543371506', '1543371506', '0');
 
 -- ----------------------------
 -- Table structure for wja_channel_grade
@@ -254,13 +263,14 @@ CREATE TABLE `wja_file` (
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '添加时间',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   PRIMARY KEY (`file_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_file
 -- ----------------------------
 INSERT INTO `wja_file` VALUES ('1', 'Fo0icQ_qiUVkg-AwiqPa4PC0LTqB', 'goods_20181127110724_basicprofile.jpg', 'pimvhcf3v.bkt.clouddn.com', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg', 'basicprofile.jpg', '11188', '1543288045', '1543288045');
 INSERT INTO `wja_file` VALUES ('2', 'FrCT-5YjuNdBbOiY94OuVMbuJK16', 'goods_20181127110736.png', 'pimvhcf3v.bkt.clouddn.com', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110736.png', 'cloud_未标题-3.png', '13031', '1543288056', '1543288056');
+INSERT INTO `wja_file` VALUES ('3', 'FmQYuophAXVDlPwZHSmOPPssP5sr', 'store_logo_20181127181255_logo1.jpg', 'pimvhcf3v.bkt.clouddn.com', 'http://pimvhcf3v.bkt.clouddn.com/store_logo_20181127181255_logo1.jpg', 'logo1.jpg', '65021', '1543313576', '1543313576');
 
 -- ----------------------------
 -- Table structure for wja_goods
@@ -3715,16 +3725,18 @@ CREATE TABLE `wja_store` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   `logo` varchar(255) NOT NULL DEFAULT '' COMMENT '厂商LOGO地址',
   PRIMARY KEY (`store_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of wja_store
 -- ----------------------------
 INSERT INTO `wja_store` VALUES ('1', '0', '1', '万佳安', '', '', '1', '1', '1543287954', '1543288047', '0', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg');
-INSERT INTO `wja_store` VALUES ('2', '0', '1', '测试厂商', '', '', '1', '1', '1543288024', '1543302512', '0', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110736.png');
+INSERT INTO `wja_store` VALUES ('2', '0', '1', '测试厂商', '', '', '1', '1', '1543288024', '1543313576', '0', 'http://pimvhcf3v.bkt.clouddn.com/store_logo_20181127181255_logo1.jpg');
 INSERT INTO `wja_store` VALUES ('3', '1', '2', '万佳安渠道', '', '', '1', '1', '1543302062', '1543302346', '0', '');
 INSERT INTO `wja_store` VALUES ('4', '1', '3', '万佳安经销商', '', '', '1', '1', '1543302246', '1543302246', '0', '');
 INSERT INTO `wja_store` VALUES ('5', '2', '4', '测试服务商', '', '', '1', '1', '1543302262', '1543302262', '0', '');
+INSERT INTO `wja_store` VALUES ('6', '2', '2', 'qudao2', '', '', '1', '1', '1543371206', '1543371206', '0', '');
+INSERT INTO `wja_store` VALUES ('7', '1', '3', '渠道添加经销商', '', '', '1', '1', '1543377072', '1543377072', '0', '');
 
 -- ----------------------------
 -- Table structure for wja_store_channel
@@ -3740,6 +3752,7 @@ CREATE TABLE `wja_store_channel` (
 -- Records of wja_store_channel
 -- ----------------------------
 INSERT INTO `wja_store_channel` VALUES ('3', '0');
+INSERT INTO `wja_store_channel` VALUES ('6', '0');
 
 -- ----------------------------
 -- Table structure for wja_store_dealer
@@ -3747,13 +3760,15 @@ INSERT INTO `wja_store_channel` VALUES ('3', '0');
 DROP TABLE IF EXISTS `wja_store_dealer`;
 CREATE TABLE `wja_store_dealer` (
   `store_id` int(10) unsigned NOT NULL COMMENT '商户ID',
+  `ostore_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '渠道商/零售商ID',
   PRIMARY KEY (`store_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='经销商/零售商数据表';
 
 -- ----------------------------
 -- Records of wja_store_dealer
 -- ----------------------------
-INSERT INTO `wja_store_dealer` VALUES ('4');
+INSERT INTO `wja_store_dealer` VALUES ('4', '0');
+INSERT INTO `wja_store_dealer` VALUES ('7', '3');
 
 -- ----------------------------
 -- Table structure for wja_store_factory
@@ -3812,15 +3827,16 @@ CREATE TABLE `wja_user` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`user_id`),
   KEY `username` (`username`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='前台会员表';
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COMMENT='前台会员表';
 
 -- ----------------------------
 -- Records of wja_user
 -- ----------------------------
-INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', 'xiaojun', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1543286987', '1543286987', '0');
-INSERT INTO `wja_user` VALUES ('2', '2', '1', '0', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1543310694', '1543310694', '0');
+INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', 'xiaojun', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1543371364', '1543371363', '0');
+INSERT INTO `wja_user` VALUES ('2', '2', '1', '0', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1543376905', '1543376905', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '0', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1543288394', '0', '0');
-INSERT INTO `wja_user` VALUES ('4', '3', '3', '0', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1543305956', '1543305955', '0');
+INSERT INTO `wja_user` VALUES ('4', '3', '3', '0', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1543376892', '1543376892', '0');
+INSERT INTO `wja_user` VALUES ('5', '3', '6', '0', '0', 'qudao2', '1aa8f5e66b6d6e4f96c0c3ce24a92577', '', '', '', '', '0.00', '', '', '1', '1', '1543371214', '1543371302', '1543371302', '0');
 
 -- ----------------------------
 -- Table structure for wja_user_address
@@ -3928,6 +3944,8 @@ DROP TABLE IF EXISTS `wja_user_installer`;
 CREATE TABLE `wja_user_installer` (
   `installer_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '安装员对应账号ID',
+  `factory_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '厂商ID',
+  `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID',
   `realname` varchar(255) NOT NULL DEFAULT '' COMMENT '真实姓名',
   `phone` varchar(11) NOT NULL DEFAULT '' COMMENT '联系电话',
   `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态',
