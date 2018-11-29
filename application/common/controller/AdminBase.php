@@ -86,6 +86,8 @@ class AdminBase extends Backend
                     $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
                 }
                 $action = strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
+//                 pre($action, 1);
+//                 pre($this->adminUser);
 
                 //dump($action);dump($this->adminUser);exit;
                 if(!in_array($action,$this->adminUser['rule'])){

@@ -442,7 +442,55 @@ class Index extends BaseApi
         }
         $this->_returnMsg(['msg' => '收货地址删除成功']);
     }
-    //申请成为安装员
+    //用户申请售后服务
+    protected function applayService()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        #TODO
+//         if ($user['installer']) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师不允许申请售后服务']);
+//         }
+        $orderType  = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;//默认为安装工单
+        $regionId   = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $userName   = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $phone      = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $address    = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        if (!$orderType || !in_array($orderType, [1, 2])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
+        }
+        if (!$userName) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户姓名(user_name)缺失']);
+        }
+        if (!$phone) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户电话(phone)缺失']);
+        }
+        if (!$regionId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_id)缺失']);
+        }
+        if (!$regionName) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_name)缺失']);
+        }
+        if (!$address) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户地址(address)缺失']);
+        }
+        $params = $this->postParams;
+        $params['user_id'] = $user['user_id'];
+        $workOrderModel = model('work_order');
+        #TODO 报修上传故障图片
+        $params['images'] = '';//图片
+        $params['images'] = $orderType;
+        $params['fault_desc'] = isset($this->postParams['fault_desc']) ? trim($this->postParams['fault_desc']) : '';
+        $params['order_type'] = $orderType;
+        $result = $workOrderModel->save($params);
+        if ($result) {
+            $this->_returnMsg(['msg' => '申请成功']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
+        }
+    }
+    
+    //申请成为售后工程师
     protected function applyBeInstaller()
     {
         $user = $this->_checkOpenid();
@@ -452,24 +500,24 @@ class Index extends BaseApi
         }
         $realname = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         if (!$realname){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '安装员真实姓名(realname)缺失']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师真实姓名(realname)缺失']);
         }
         $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         if (!$phone){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '安装员手机号码(phone)缺失']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师手机号码(phone)缺失']);
         }
         #TODO其它信息验证
         
         $installerModel = db('user_installer');
-        //判断当前用户是否为安装员
+        //判断当前用户是否为售后工程师
         $exist = $installerModel->where(['store_id' => $store['store_id'], 'is_del' => 0, 'user_id'   => $user['user_id']])->find();
         if ($exist){
             //0禁用 1正常 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝
-            $msg = $exist['status'] <= 0 ? get_installer_status($exist['status']): '已经是安装员';
+            $msg = $exist['status'] <= 0 ? get_installer_status($exist['status']): '已经是售后工程师';
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $msg]);
         }else{
             $status = 1;//默认不需要审核直接通过
-            //获取厂商/服务商配置(安装员申请是否需要审核)
+            //获取厂商/服务商配置(售后工程师申请是否需要审核)
             $storeConfig = $store['config_json'] ? json_decode($store['config_json'], 1) : [];
             if (isset($storeConfig['installer_check']) && $storeConfig['installer_check']) {
                 $status = -1;
@@ -496,15 +544,100 @@ class Index extends BaseApi
             ];
             $result = $installerModel->insertGetId($data);
             if ($result) {
-                $this->_returnMsg(['msg' => '安装员申请成功']);
+                $this->_returnMsg(['msg' => '售后工程师申请成功']);
             }else{
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '申请失败']);
             }
         }
     }
-    
+    //售后工程师售后工单列表
+    protected function workOrderList()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if (!$installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+        }
+        $orderType = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;//默认为安装工单
+        if (!$orderType || !in_array($orderType, [1, 2])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
+        }
+        $where = [
+            'installer_id' => $installer['installer_id'], 
+            'is_del' => 0,
+//             'order_type' => $orderType
+        ];
+        $field = 'worder_id, user_name, phone, region_name, address, images, fault_desc, status, add_time, receive_time, finish_time';
+        $order = 'add_time ASC';
+        $list = $this->_getModelList(db('work_order'), $where, $field, $order);
+        $this->_returnMsg(['list' => $list]);
+    }
+    //售后工单详情
+    protected function getWorkOrderDetail($return = FALSE)
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if (!$installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+        }
+        $worderId = isset($this->postParams['worder_id']) ? intval($this->postParams['worder_id']) : 0;
+        if (!$worderId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单ID(worder_id)缺失']);
+        }
+        $field = 'worder_id, order_type, user_name, phone, region_name, address, images, fault_desc, status, add_time, receive_time, finish_time';
+        $info = db('work_order')->field($field)->where(['worder_id' => $worderId, 'installer_id' => $installer['installer_id'], 'is_del' => 0])->find();
+        if (!$info) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单不存在或已删除']);
+        }
+        if ($return) {
+            return $info;
+        }
+        $this->_returnMsg(['detail' => $info]);
+    }
+    //售后工程师接单
+    protected function receiveWorkOrder()
+    {
+        $detail = $this->getWorkOrderDetail();
+        //状态(0为服务等待中 1已分配售后工程师 2售后工程师接单 3服务完成)
+        if ($detail['status'] == 2) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已接单']);
+        }elseif ($detail['status'] == 3){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已完成']);
+        }
+        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 2, 'receive_time' => time()]);
+        if ($result) {
+            $this->_returnMsg(['msg' => '接单成功,请联系客户上门服务']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+        }
+    }
+    //工单完成确认
+    protected function finishWorkOrder()
+    {
+        $detail = $this->getWorkOrderDetail();
+        #TODO 状态验证
+        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 3, 'finish_time' => time()]);
+        if ($result) {
+            $this->_returnMsg(['msg' => '服务完成']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+        }
+    }
     /****************************************************************====================================================================*************************************************************/
     
+    private function _checkInstaller($userId = 0)
+    {
+        $join = [
+            ['store S', 'S.store_id = UI.store_id'],
+            ['store F', 'F.store_id = UI.factory_id'],
+        ];
+        $field = 'UI.installer_id, UI.job_no, UI.realname, UI.phone, UI.status, S.name as store_name, F.name as factory_name';
+        $exist = db('user_installer')->alias('UI')->join($join)->field($field)->where(['UI.user_id' => $userId, 'UI.is_del' => 0])->find();
+        if ($exist) {
+            $exist['status_txt'] = get_installer_status($exist['status']);
+        }
+        return $exist;
+    }
     /**
      * 验证商户信息
      * @param number $storeId
@@ -530,13 +663,13 @@ class Index extends BaseApi
      * 验证openid对应用户信息
      * @return array
      */
-    private function _checkOpenid($openid = '', $field = 'UD.*, U.*')
+    private function _checkOpenid($openid = '', $field = '', $installFlag = FALSE)
     {
         $openid = $openid ? $openid : (isset($this->postParams['openid']) ? trim($this->postParams['openid']) : '');
         if (!$openid) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
         }
-        $field = $field.', U.status';
+        $field = ($field ? $field : 'UD.*, U.*').', U.status';
         $user = db('user_data')->alias('UD')->join('user U', 'UD.user_id = U.user_id', 'LEFT')->field($field)->where(['openid' => $openid, 'UD.user_id' => ['>', 0]])->find();
         if (!$user) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户不存在']);
@@ -544,6 +677,10 @@ class Index extends BaseApi
         if (!$user['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已禁用不允许登录']);
         }
+        if ($installFlag) {
+            $installer = $this->_checkInstaller($user['user_id']);
+        }
+        $user['installer'] = isset($installer) ? $installer : [];
         return $user;
     }
     /**

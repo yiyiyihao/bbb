@@ -2,7 +2,7 @@
 namespace app\admin\controller;
 use app\common\controller\FormBase;
 
-//安装员管理
+//售后工程师管理
 class Installer extends FormBase
 {
     var $adminType;
@@ -38,7 +38,7 @@ class Installer extends FormBase
         $params = parent::_getData();
         $realname = isset($params['realname']) ? trim($params['realname']) : '';
         if (!$realname) {
-            $this->error('安装员真实姓名不能为空');
+            $this->error('售后工程师真实姓名不能为空');
         }
         return $params;
     }

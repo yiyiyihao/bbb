@@ -18,19 +18,21 @@ class Worder extends BaseFactory
         ];
         $this->assign('orderTypes', $this->orderTypes);
     }
-    //分配安装员
+    //指派售后工程师
     public function dispatch()
     {
         $info = $this->_assignInfo();
+        #TODO 判断是否可以重新指派售后工程师
         if (IS_POST) {
             $params = $this->request->param();
             $installerId = isset($params['installer_id']) ? intval($params['installer_id']) : 0;
             if (!$installerId) {
-                $this->error('请选择安装员');
+                $this->error('请选择售后工程师');
             }
+            $params['status'] = 1;//已指派售后工程师
             $result = $this->model->save($params,['worder_id' => $info['worder_id']]);
             if ($result) {
-                $this->success('安装员分配成功', url('index'));
+                $this->success('售后工程师指派成功', url('index'));
             }else{
                 $this->error('操作失败');
             }
@@ -99,12 +101,15 @@ class Worder extends BaseFactory
     function _getData()
     {
         $data = parent::_getData();
+        $info = parent::_assignInfo();
         $storeId = isset($data['store_id']) ? intval($data['store_id']) : '';
         $orderType = isset($data['order_type']) ? intval($data['order_type']) : '';
         $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
         $phone = isset($data['phone']) ? trim($data['phone']) : '';
         $address = isset($data['address']) ? trim($data['address']) : '';
         $faultDesc = isset($data['fault_desc']) ? trim($data['fault_desc']) : '';
+        $regionId = isset($data['region_id']) ? intval($data['region_id']) : '';
+        
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){
             $this->error('请选择服务商');
         }
@@ -120,6 +125,9 @@ class Worder extends BaseFactory
         if (!$phone) {
             $this->error('请填写客户联系电话');
         }
+        if (!$regionId) {
+            $this->error('请选择客户所在区域');
+        }
         if (!$address) {
             $this->error('请填写客户地址');
         }
@@ -130,12 +138,14 @@ class Worder extends BaseFactory
             $data['fault_desc'] = '';
         }
         $data['images'] = '';
-        if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
-            $data['store_id'] = $this->adminStore['store_id'];
-            $data['factory_id'] = $this->adminStore['factory_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
-            $data['store_id'] = $storeId;
-            $data['factory_id'] = $this->adminStore['store_id'];
+        if (!$info) {
+            if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
+                $data['store_id'] = $this->adminStore['store_id'];
+                $data['factory_id'] = $this->adminStore['factory_id'];
+            }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+                $data['store_id'] = $storeId;
+                $data['factory_id'] = $this->adminStore['store_id'];
+            }
         }
         return $data;
     }
