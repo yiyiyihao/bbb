@@ -48,6 +48,9 @@ Do.add('webuploader', {
 Do.add('selectmul', {
     path: Config.libDir + 'selectmul.js'
 });
+Do.add('region', {
+    path: Config.libDir + 'region.js'
+});
 
 //调试函数
 function debug(obj) {

@@ -449,5 +449,9 @@ $.fn.FormPage = function (options) {
         if (form.find(".js-select").length > 0) {
             form.find('.js-select').selectsin();
         }
+		//地区联级选择初始化
+        if (form.find(".js-select-child").length > 0) {
+            form.find('.js-select-child').selectchild();
+        }
     });
 };

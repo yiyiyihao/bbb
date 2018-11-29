@@ -94,6 +94,7 @@ class FormBase extends AdminBase
         }
         
         if ($params) {
+            $params = array_filter($params);
             $where = array_merge($where, $params);
         }
         $count =  $this->model->where($where)->count();

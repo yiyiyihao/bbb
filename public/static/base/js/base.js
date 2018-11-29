@@ -298,7 +298,27 @@ $.ajaxSetup({
             });
         });
     };
-    
+	
+    //地区联级选择初始化
+    $.fn.selectchild = function (options) {
+		var opt = options;
+        this.each(function () {			
+			var defaults = {
+				postUrl: $(this).attr("posturl"),
+				str    : $(this).attr("str"),
+				formstr: $(this).attr("formstr"),
+				name:$(this).attr("formname"),
+				value:$(this).attr("formvalue"),
+				datatype:$(this).attr("validtype"),
+				notmsg:$(this).attr("notmsg"),
+			}
+			var options = $.extend(defaults, opt);
+            var id = this;
+            Do.ready('dialog','region', function () {
+                $(id).region(options);
+            });
+        });
+    };
 
 	//选择图片调用
 	$.fn.FileChose = function (options) {
