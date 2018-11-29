@@ -46,6 +46,8 @@ class AdminBase extends Backend
                             $menus[$k]['parent_id']=$v['parent_id'];
                             $menus[$k]['menustatus']=$v['menustatus'];
                             $menus[$k]['title']=$v['title']; 
+                            $menus[$k]['icon']=$v['icon'];
+
                         }
                         $this->adminUser['rule'][]=strtolower($v['module'].'/'.$v['controller'].'/'.$v['action']);
                     }
@@ -73,6 +75,7 @@ class AdminBase extends Backend
                             $menus[$k]['module']=strtolower($rule[0]);
                             $menus[$k]['controller']=strtolower($rule[1]);
                             $menus[$k]['action']=strtolower($rule[2]);
+                            $menus[$k]['icon']=$v['icon'];
                         }
                     }                    
                     $this->adminUser['rule'][]='admin/index/index';

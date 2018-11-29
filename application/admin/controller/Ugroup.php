@@ -37,6 +37,7 @@ class Ugroup extends FormBase
                     $menus[$k]['parent_id']=$menudata['parent_id'];
                     $menus[$k]['menustatus']=$menudata['menustatus'];
                     $menus[$k]['title']=$menudata['title'];
+                    $menus[$k]['icon']=$menudata['icon'];
                 }            
                 //dump($menus);exit;
                 //数组转json
