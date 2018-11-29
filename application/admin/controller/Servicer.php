@@ -9,8 +9,12 @@ class Servicer extends Store
     {
         $this->modelName = 'servicer';
         $this->model = model('store');
-        $this->storeType = 4;//服务商
-        $this->adminType = 5;
         parent::__construct();
+    }
+    function _init()
+    {
+        $this->storeType = STORE_SERVICE;//服务商
+        $this->adminType = ADMIN_SERVICE;
+        $this->groupId = GROUP_SERVICE;
     }
 }

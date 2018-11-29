@@ -89,7 +89,7 @@ class AdminBase extends Backend
 
                 //dump($action);dump($this->adminUser);exit;
                 if(!in_array($action,$this->adminUser['rule'])){
-                    $this->error('没有权限','admin/index/home');
+//                     $this->error('没有权限','admin/index/home');
                 }
 
             }

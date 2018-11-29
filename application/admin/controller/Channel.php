@@ -9,8 +9,12 @@ class Channel extends Store
     {
         $this->modelName = 'channel';
         $this->model = model('store');
-        $this->storeType = 2;//渠道商
-        $this->adminType = 3;
         parent::__construct();
+    }
+    function _init()
+    {
+        $this->storeType = STORE_CHANNEL;//渠道商
+        $this->adminType = ADMIN_CHANNEL;
+        $this->groupId = GROUP_CHANNEL;
     }
 }

@@ -5,27 +5,25 @@ namespace app\common\controller;
 class Store extends FormBase
 {
     var $storeType;
-    var $parent;
     var $groupId;
-    var $adminType = 1;
+    var $adminType;
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
         $this->model = $this->model ? $this->model : model($this->modelName);
         parent::__construct();
-        $this->groupId = 0;
-        if ($this->adminUser['admin_type'] != 1) {
+        $this->_init();
+        if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
             if ($this->storeType == 1) {
                 $this->error(lang('NO ACCESS'));
             }else{
-                if ($this->adminUser['admin_type'] != 2) {
-                    if (!($this->storeType == 3 && $this->adminUser['admin_type'] == 3) || $this->storeType != 3) {
+                if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+                    if (!($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_CHANNEL) || $this->storeType != STORE_DEALER) {
                         $this->error(lang('NO ACCESS'));
                     }
                 }
             }
         }
-        
         if (!$this->adminUser['store_id']){
             $this->_getFactorys();
         }
@@ -212,6 +210,7 @@ class Store extends FormBase
                 $this->error('二级域名已存在');
             }
         }
+        $data['config_json'] = '';
         $data['store_type'] = $this->storeType;
         return $data;
     }
@@ -356,5 +355,9 @@ class Store extends FormBase
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
         ];
         return $field;
+    }
+    function _init()
+    {
+        
     }
 }

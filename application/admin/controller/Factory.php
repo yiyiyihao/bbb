@@ -9,9 +9,13 @@ class Factory extends Store
     {
         $this->modelName = 'factory';
         $this->model = model('store');
-        $this->storeType = 1;//厂商
-        $this->adminType = 2;
         parent::__construct();
+    }
+    function _init()
+    {
+        $this->storeType = STORE_FACTORY;//厂商
+        $this->adminType = ADMIN_FACTORY;
+        $this->groupId = GROUP_FACTORY;
     }
     //厂商参数设置
     public function config()

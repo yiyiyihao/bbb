@@ -13,7 +13,7 @@
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
                 	{include file="common/factory" /}
-                    <div class="form-group js-select" posturl="{:url('Gcate/getAjaxList', ['store_id' => $info && $info['store_id'] ? $info['store_id']: $store_id])}" str="选择产品分类" searchName="请输入分类名称" formname="cate_id" formvalue='{$info.cate_id ?? 0}'></div>
+                    <div class="form-group js-select" posturl="{:url('Gcate/getAjaxList', ['store_id' => ($info && $info['store_id'] ? $info['store_id']: $store_id)])}" str="选择产品分类" searchName="请输入分类名称" formname="cate_id" formvalue='{$info.cate_id ?? 0}'></div>
                     <div class="form-group">
                         <div class="label">
                             <label>产品名称</label>
