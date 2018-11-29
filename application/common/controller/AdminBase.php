@@ -62,8 +62,6 @@ class AdminBase extends Backend
                         session('admin_user',NULL);
                         $this->error('未分配角色','login');
                     }
-                    //dump($this->adminUser);
-                    // pre($allrules['menu_json']);
                     //json转数组
                     $allrules= $allrules['menu_json'] ? json_decode($allrules['menu_json'],true) : [];
                     //遍历取出可显示的
@@ -76,36 +74,30 @@ class AdminBase extends Backend
                             $menus[$k]['controller']=strtolower($rule[1]);
                             $menus[$k]['action']=strtolower($rule[2]);
                         }
-                    }
-                    /*$menus[]=['rule'=>'admin/index/home','title'=>'后台首页','parent_id'=>1];
-                    $menus[]=['rule'=>'admin/login/index','title'=>'用户登录','parent_id'=>0];*/
-
+                    }                    
                     $this->adminUser['rule'][]='admin/index/index';
                     $this->adminUser['rule'][]='admin/login/index';
                     $this->adminUser['rule'][]='admin/login/logout';
                 }
-
                 $this->adminUser['menus']=$menus;
                 //pre($this->adminUser);
                 if ($this->adminUser['store_id']) {
 
                     $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
                 }
-                //$ac=$this->request->action()?$this->request->action():'index';
                 $action = strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
-                //dump($action);exit;
+
+                //dump($action);dump($this->adminUser);exit;
                 if(!in_array($action,$this->adminUser['rule'])){
                     $this->error('没有权限','admin/index/home');
                 }
 
             }
         }
-        
-        //检查用户是否拥有操作权限
+                //检查用户是否拥有操作权限
 //      if(!self::checkPurview($this->adminUser,$this->storeId)){
 //          $this->error("没有操作权限");
 //      }
-
         //初始化页面赋值
         $this->initAssign();
     }
