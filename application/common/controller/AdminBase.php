@@ -20,26 +20,73 @@ class AdminBase extends Backend
     }
     
     //后台管理预处理机制
-    private function init() {
-    	//检查管理员是否登陆
-    	defined('ADMIN_ID') or define('ADMIN_ID', $this->isLogin());
-    	$controller = $this->request->controller();
-    	if(!ADMIN_ID && !in_array(strtolower($controller), ['login'])){
-    		$this->redirect('/login');
-    	}
-    	$this->adminUser = session('admin_user');
-    	if ($this->adminUser['store_id']) {
-    	    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
-    	}
-    	$this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
-    	//检查用户是否拥有操作权限
-//     	if(!self::checkPurview($this->adminUser,$this->storeId)){
-//     	    $this->error("没有操作权限");
-//     	}
-    	//初始化页面赋值
-    	$this->initAssign();
+   private function init() {
+        //检查管理员是否登陆
+        defined('ADMIN_ID') or define('ADMIN_ID', $this->isLogin());
+        $controller = $this->request->controller();
+        if(!ADMIN_ID && !in_array(strtolower($controller), ['login'])){
+            $this->redirect('/login');
+        }else{
+            $this->adminUser = session('admin_user');
+            //如果有登录
+            if ($this->adminUser) {
+                //如果角色0，不验证权限
+                if($this->adminUser['group_id']==0){
+                    $allrules =model('AuthRule')->getALLRule();
+                    foreach ($allrules as $k => $v) {
+                        if($v['menustatus']==1){
+                            $menus[$k]['id']=$v['id'];
+                            $menus[$k]['rule']=strtolower($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                            $menus[$k]['parent_id']=$v['parent_id'];
+                            $menus[$k]['menustatus']=$v['menustatus'];
+                            $menus[$k]['title']=$v['title'];
+                        }
+                    }
+                }else{
+                    //普通用户
+                    //根据用户角色id查询menu_json，
+
+
+                    $allrules=db('user_group')->field('menu_json')->where(['group_id'=>$this->adminUser['group_id'],'is_del' => 0, 'status' => 1])->find();
+                    if(!$allrules['menu_json']){
+                        session('admin_user',NULL);
+                        $this->error('未分配角色','login');
+                    }
+                    //dump($this->adminUser);
+                    // pre($allrules['menu_json']);
+                    //json转数组
+                    $allrules= $allrules['menu_json'] ? json_decode($allrules['menu_json'],true) : [];
+                    //遍历取出可显示的
+                    foreach ($allrules as $k => $v) {
+                        if($v['menustatus']==1){
+                            $menus[]=$v;
+                        }
+                    }
+                    $menus[]=['rule'=>'admin/index/home','title'=>'后台首页','parent_id'=>1];
+                   
+                }
+                $this->adminUser['menus']=$menus;
+                //pre($this->adminUser);
+                if ($this->adminUser['store_id']) {
+
+                    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
+                }
+                
+            }
+            
+        
+            
+        }
+        
+        
+        //检查用户是否拥有操作权限
+//      if(!self::checkPurview($this->adminUser,$this->storeId)){
+//          $this->error("没有操作权限");
+//      }
+
+        //初始化页面赋值
+        $this->initAssign();
     }
-    
     //检查用户是否拥有操作权限
     private function checkPurview($user = [],$storeid = FALSE){
         if(ADMIN_ID == 1 || $user['groupPurview'] == 'all'){
