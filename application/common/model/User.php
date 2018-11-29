@@ -19,7 +19,7 @@ class User extends Model
      * @param number $userId
      * @return boolean 登录状态
      */
-    public function setLogin($user = FALSE, $userId = 0)
+    public function setLogin($user = FALSE, $userId = 0,$domain = 'admin')
     {
         if(!$user && !$userId){
             $this->error = lang('PARAM_ERROR');
@@ -77,7 +77,7 @@ class User extends Model
 		    'last_login_time' => $user['last_login_time'],
 		    /*'groupPurview'    => $groupPurview,*/
 		];
-    	session('admin_user', $adminUser);
+		session($domain.'_user', $adminUser);
         return TRUE;        
     }
     /**
@@ -97,8 +97,8 @@ class User extends Model
      * 注销当前用户
      * @return void
      */
-    public function logout(){
-        session('admin_user', null);
+    public function logout($domain = 'admin'){
+        session($domain.'_user', null);
     }    
     
     /**

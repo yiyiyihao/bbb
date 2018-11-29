@@ -3,7 +3,7 @@ namespace app\common\controller;
 use think\Request;
 
 //基本数据增删改查管理公共处理
-class FormBase extends AdminBase
+class FormBase extends CommonBase
 {
     var $model;
     var $modelName;

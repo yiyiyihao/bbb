@@ -1,8 +1,8 @@
 <?php
 namespace app\factory\controller;
-use app\common\controller\Index as CommonIndex;
+use app\common\controller\FormBase;
 
-class Index extends CommonIndex
+class FormFactory extends FormBase
 {
     function __construct(){
         parent::__construct();
