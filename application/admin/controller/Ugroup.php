@@ -34,6 +34,7 @@ class Ugroup extends FormBase
                     $menudata = $rules[$v];
                     $menus[$k]['id']=$menudata['id'];
                     $menus[$k]['rule']=strtolower($menudata['module'].'/'.$menudata['controller'].'/'.$menudata['action']);
+                    $menus[$k]['parent_id']=$menudata['parent_id'];
                     $menus[$k]['menustatus']=$menudata['menustatus'];
                     $menus[$k]['title']=$menudata['title'];
                 }            
