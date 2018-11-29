@@ -3,12 +3,15 @@ namespace app\common\controller;
 use think\facade\Request;
 use app\common\model\User;
 use think\Session;
+use app\common\model\AuthRule;
 //公共处理
 class CommonBase extends Base
 {
+    var $subMenu;
     var $adminUser;
     var $adminStore;
     var $adminFactory;//厂商二级域名登录赋值
+    var $breadCrumb;
 	//公共预处理方法
 	public function __construct()
     {
@@ -120,6 +123,25 @@ class CommonBase extends Base
         $this->assign('adminUser', $this->adminUser);
         $this->assign('adminStore', $this->adminStore);
         $this->assign('adminFactory', $this->adminFactory);
+    }    
+    
+    /**
+     * 取得管理员菜单
+     */
+    protected function getMenu($loginUserInfo = array(),$cutUrl = '',$urlComplete = true){
+        $loginUserInfo['action_purview'] = 'all';
+        if(!empty($loginUserInfo)){
+            if($loginUserInfo['action_purview'] != 'all'){
+                $menuPurview = unserialize($loginUserInfo['action_purview']);
+            }else{
+                $menuPurview = FALSE;
+            }
+        }
+        $menuList = array();
+        $menuService = new \app\admin\service\Menu;
+        $menuList = $menuService->getAdminMenu();
+        $menuList = array_order($menuList, 'sort_order', 'asc', true);
+        return $menuList;
     }
     
     /**
@@ -150,5 +172,38 @@ class CommonBase extends Base
         return [
             'error' => 0,
         ];;
+    }
+    
+    //获取页面的面包屑
+    protected function bread(){
+        //获取当前controller
+        $module             = strtolower($this->request->module());
+        $controller         = strtolower($this->request->controller());
+        $action             = strtolower($this->request->action());
+        $authRule       = AuthRule::getRuleList();
+        $listCrumb      = ['name'  => lang('index'),'url'   => url('index')];
+        $activeCrumb    = ['name'  => lang($action),'url'   => ''];
+        foreach ($authRule as $k=>$v){
+            if($v['module'] == $module && $v['controller'] == $controller && empty($v['action'])){
+                $listCrumb['name'] = $v['title'];
+            }
+            if($v['module'] == $module && $v['controller'] == $controller && $v['action'] == $action){
+                $activeCrumb['name'] = $v['title'];
+            }
+        }
+        $this->breadCrumb[] = $listCrumb;
+        $this->breadCrumb[] = $activeCrumb;
+        return $this->breadCrumb;
+    }
+    
+    //渲染输出
+    protected function fetch($template = '', $vars = [], $replace = [], $config = []) {
+        //获取当前页二级菜单
+        $subMenu = $this->subMenu;
+        $this->assign('subMenu',$subMenu);
+        //获取当前页面的面包屑
+        $breadCrumb = $this->bread();
+        $this->assign('breadCrumb',$breadCrumb);
+        return parent::fetch($template, $vars, $replace, $config);
     }
 }

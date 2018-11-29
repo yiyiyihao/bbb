@@ -37,13 +37,13 @@
         {eq name="$vo.parent_id" value="0"}
         <div class="nav-box fold">
             <div class="nav-head"><span class="icon-{$vo.icon ?? ''}"> <span class="head-name">{$vo.title}</span></span><i class="icon-bottom animate"></i></div>
-            {notempty name="menuList"}
+            {notempty name="vo.list"}
             <ul class="animate">
-                {volist name="menuList" id="v"}
+                {volist name="vo.list" id="v"}
                 {eq name="$v.parent_id" value="$vo.id"}
-                <li><a href="javascript:;"url="{:url($v['controller'].'/'.$v['action'])}"> {$v.title}</a></li>
-            {/eq}
-            {/volist}
+                    <li><a href="javascript:;" id='menu{notempty name="v.module"}{if $v.module != "admin"}_{$v.module}{/if}{/notempty}{notempty name="v.controller"}_{$v.controller}{/notempty}{notempty name="v.action"}_{$v.action}{/notempty}' data-m="{if $v.module != 'admin'}{$v.module}{/if}" data-c="{$v.controller}" data-a="{$v.action}" url="{$v.href}"> {$v.title}</a></li>
+                {/eq}
+                {/volist}
             </ul>
             {/notempty}
         </div>
