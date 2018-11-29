@@ -16,11 +16,15 @@ class Factory extends Store
         $this->storeType = STORE_FACTORY;//厂商
         $this->adminType = ADMIN_FACTORY;
         $this->groupId = GROUP_FACTORY;
+        // $userrule=implode(',', $this->adminUser['rule']);
+        //dump($userrule);exit;
+        $this->assign('userrule',$this->adminUser['rule']);
     }
     //厂商参数设置
     public function config()
     {
         $info = $this->_assignInfo();
         pre($info);
+        //dump($this->adminUser);
     }
 }
