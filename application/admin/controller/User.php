@@ -21,7 +21,7 @@ class User extends FormBase
         return 'U';
     }
     function _getField(){
-        return 'U.*, S.name as sname, G.name as gname';
+        return 'U.*, S.name as sname, G.name as gname, G.is_system';
     }
     function _getJoin()
     {
@@ -49,6 +49,10 @@ class User extends FormBase
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
                 $where['U.username'] = ['like','%'.$name.'%'];
+            }
+            $phone = isset($params['phone']) ? trim($params['phone']) : '';
+            if($phone){
+                $where['U.phone'] = ['like','%'.$phone.'%'];
             }
         }
         return $where;
@@ -94,7 +98,7 @@ class User extends FormBase
     }
     function _getUgroup()
     {
-        $groups = db('user_group')->where(['is_del' => 0, 'status' =>1,  'store_id' => ['IN', [0, $this->adminUser['store_id']]]])->select();
+        $groups = db('user_group')->where(['is_del' => 0, 'status' =>1,  'is_system' => 0])->select();
         $this->assign('groups', $groups);
         return $groups;
     }

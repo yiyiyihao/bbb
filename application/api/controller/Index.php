@@ -499,12 +499,25 @@ class Index extends BaseApi
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在']);
         }
         $realname = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
+        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $regionId   = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $workTime = isset($this->postParams['work_time']) ? trim($this->postParams['work_time']) : '';
+        
         if (!$realname){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师真实姓名(realname)缺失']);
         }
-        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         if (!$phone){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师手机号码(phone)缺失']);
+        }
+        if (!$regionId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_id)缺失']);
+        }
+        if (!$regionName) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_name)缺失']);
+        }
+        if (!$workTime) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '从业时间(work_time)缺失']);
         }
         #TODO其它信息验证
         

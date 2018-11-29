@@ -1,7 +1,7 @@
 <?php
 namespace app\factory\controller;
 //售后工单管理
-class Worder extends BaseFactory
+class Worder extends FactoryForm
 {
     var $orderTypes;
     public function __construct()
