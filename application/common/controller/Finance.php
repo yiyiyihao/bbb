@@ -1,6 +1,5 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\Store;
+namespace app\common\controller;
 
 //财务管理
 class Finance extends Store

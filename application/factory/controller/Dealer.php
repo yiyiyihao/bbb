@@ -1,12 +1,11 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Dealer as adminDealer;
-
-//经销商管理
-class Dealer extends adminDealer
+use app\common\controller\Dealer as CommonDealer;
+/**
+ * @author chany
+ * @date 2018-11-08
+ */
+class Dealer extends CommonDealer
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

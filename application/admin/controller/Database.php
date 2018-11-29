@@ -1,10 +1,9 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
 use think\Db;
 
 //数据表管理
-class Database extends FormBase
+class Database extends AdminForm
 {
     public function __construct()
     {

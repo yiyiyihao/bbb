@@ -1,8 +1,7 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
 //地址管理
-class Region extends FormBase
+class Region extends AdminForm
 {
     public function __construct()
     {

@@ -1,6 +1,5 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\FormBase;
+namespace app\common\controller;
 use think\Request;
 //商品规格管理
 class Gspec extends FormBase

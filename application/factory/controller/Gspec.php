@@ -1,11 +1,8 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Gspec as adminGspec;
+use app\common\controller\Gspec as CommonGspec;
 //产品规格管理
-class Gspec extends adminGspec
+class Gspec extends CommonGspec
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

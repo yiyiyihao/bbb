@@ -1,9 +1,8 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
 
 //平台权限节点管理
-class Authrule extends FormBase
+class Authrule extends AdminForm
 {
     public function __construct()
     {

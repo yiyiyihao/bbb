@@ -1,10 +1,9 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
 use think\Request;
 
 //系统管理
-class System extends FormBase
+class System extends AdminForm
 {
     public function __construct()
     {

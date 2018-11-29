@@ -1,11 +1,8 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Gcate as adminGcate;
+use app\common\controller\Gcate as CommonGcate;
 //产品分类管理
-class Gcate extends adminGcate
+class Gcate extends CommonGcate
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

@@ -1,8 +1,7 @@
 <?php
 namespace app\common\controller;
-use app\common\controller\Base;
 
-class UploadBase extends Base
+class UploadBase extends CommonBase
 {
     public $prex;
     public $_oname = '';

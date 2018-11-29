@@ -1,11 +1,8 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Goods as adminGoods;
+use app\common\controller\Goods as CommonGoods;
 //产品管理
-class Goods extends adminGoods
+class Goods extends CommonGoods
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

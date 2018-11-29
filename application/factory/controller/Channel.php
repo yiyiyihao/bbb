@@ -1,12 +1,11 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Channel as adminChannel;
-
-//渠道商管理
-class Channel extends adminChannel
+use app\common\controller\Channel as CommonChannel;
+/**
+ * @author chany
+ * @date 2018-11-08
+ */
+class Channel extends CommonChannel
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

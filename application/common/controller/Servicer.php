@@ -1,6 +1,5 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\Store;
+namespace app\common\controller;
 
 //服务商管理
 class Servicer extends Store

@@ -9,7 +9,6 @@ use think\facade\Request;
  */
 class Login extends CommonBase
 {
-    var $loginIndexTpl = 'index';
     public function index()
     {
         if(IS_POST){
@@ -50,10 +49,10 @@ class Login extends CommonBase
                 return $this->error($result['msg']);
             }
         }else{
-            $this->assign('title',config("setting.title"));
+            $this->assign('title',config("setting.title").lang('home_manager'));
             $this->import_resource('base:js/Validform.min.js,base:js/form.js');
             $this->view->engine->layout(false);
-            return $this->fetch($this->loginIndexTpl);
+            return $this->fetch();
         }
     }
     //页面登出

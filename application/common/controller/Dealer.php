@@ -1,6 +1,5 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\Store;
+namespace app\common\controller;
 
 //经销商管理
 class Dealer extends Store

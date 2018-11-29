@@ -1,11 +1,8 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\User as adminUser;
+use app\common\controller\User as CommonUser;
 
-class User extends adminUser
+class User extends CommonUser
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

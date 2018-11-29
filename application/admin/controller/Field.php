@@ -1,10 +1,10 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
+use app\admin\controller\AdminForm;
 use think\Db;
 
 //数据表字段管理
-class Field extends FormBase
+class Field extends AdminForm
 {
     var $pid;
     var $pModel;

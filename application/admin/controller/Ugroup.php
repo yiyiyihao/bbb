@@ -1,10 +1,9 @@
 <?php
 namespace app\admin\controller;
-use app\common\controller\FormBase;
 use think\Request;
 
 //用户分组管理
-class Ugroup extends FormBase
+class Ugroup extends AdminForm
 {
     var $storeId;
     public function __construct()

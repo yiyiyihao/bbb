@@ -1,12 +1,11 @@
 <?php
 namespace app\factory\controller;
-use app\admin\controller\Factory as adminFactory;
-
-//厂商管理
-class Factory extends adminFactory
+use app\common\controller\Factory as CommonFactory;
+/**
+ * @author chany
+ * @date 2018-11-08
+ */
+class Factory extends CommonFactory
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    
 }

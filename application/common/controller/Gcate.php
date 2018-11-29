@@ -1,6 +1,5 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\FormBase;
+namespace app\common\controller;
 
 //分类管理
 class Gcate extends FormBase
