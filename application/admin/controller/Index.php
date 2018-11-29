@@ -13,8 +13,9 @@ class Index extends AdminBase
      */
     public function index()
     {
-        $menuList = $this->getMenu($this->adminUser);
+        $menuList = $this->adminUser['menus'];
         $this->assign('menuList', $menuList);
+        //dump($menuList);exit;
         config('app_trace',false);
         return $this->fetch();
     }
@@ -122,7 +123,7 @@ class Index extends AdminBase
     /**
      * 取得管理员菜单
      */
-    protected function getMenu($loginUserInfo = array(),$cutUrl = '',$urlComplete = true){
+    /*protected function getMenu($loginUserInfo = array(),$cutUrl = '',$urlComplete = true){
         $loginUserInfo['action_purview'] = 'all';
         if(!empty($loginUserInfo)){
             if($loginUserInfo['action_purview'] != 'all'){
@@ -137,5 +138,5 @@ class Index extends AdminBase
         $menuList = array_order($menuList, 'sort_order', 'asc', true);
 //         session('admin_menu',$menuList);
         return $menuList;
-    }
+    }*/
 }
