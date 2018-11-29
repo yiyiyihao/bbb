@@ -46,6 +46,7 @@ class FormBase extends CommonBase
         $alias  = $this->_getAlias();
         $join   = $this->_getJoin();
         $order  = $this->_getOrder();
+        $this->assign('userrule',$this->adminUser['rule']);
         if (method_exists($this->model, 'save')) {
             //取得内容列表
             $count  = $this->model->alias($alias)->join($join)->field($field)->where($where)->count();
