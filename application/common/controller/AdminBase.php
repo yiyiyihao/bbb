@@ -40,12 +40,20 @@ class AdminBase extends Backend
                     foreach ($allrules as $k => $v) {
                         if($v['menustatus']==1){
                             $menus[$k]['id']=$v['id'];
-                            $menus[$k]['rule']=strtolower($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                            $menus[$k]['module']=strtolower($v['module']);
+                            $menus[$k]['controller']=strtolower($v['controller']);
+                            $menus[$k]['action']=strtolower($v['action']);
                             $menus[$k]['parent_id']=$v['parent_id'];
                             $menus[$k]['menustatus']=$v['menustatus'];
-                            $menus[$k]['title']=$v['title'];
+                            $menus[$k]['title']=$v['title']; 
                         }
+                        $this->adminUser['rule'][]=strtolower($v['module'].'/'.$v['controller'].'/'.$v['action']);
                     }
+                    //$menus[]=['rule'=>'admin/login/index','title'=>'用户登录','parent_id'=>0];
+                    $this->adminUser['rule'][]='admin/index/index';
+                    $this->adminUser['rule'][]='admin/login/index';
+                    $this->adminUser['rule'][]='admin/login/logout';
+                    $this->adminUser['rule'][]='admin/gcate/';
                 }else{
                     //普通用户
                     //根据用户角色id查询menu_json，
@@ -60,13 +68,36 @@ class AdminBase extends Backend
                     $allrules= $allrules['menu_json'] ? json_decode($allrules['menu_json'],true) : [];
                     //遍历取出可显示的
                     foreach ($allrules as $k => $v) {
+                        $this->adminUser['rule'][]=$v['rule'];
                         if($v['menustatus']==1){
-                            $menus[]=$v;
+                            $menus[$k]=$v;
+                            $rule=explode('/',$v['rule']);
+                            $menus[$k]['module']=strtolower($rule[0]);
+                            $menus[$k]['controller']=strtolower($rule[1]);
+                            $menus[$k]['action']=strtolower($rule[2]);
                         }
                     }
-                    $menus[]=['rule'=>'admin/index/home','title'=>'后台首页','parent_id'=>1];
+                    /*$menus[]=['rule'=>'admin/index/home','title'=>'后台首页','parent_id'=>1];
+                    $menus[]=['rule'=>'admin/login/index','title'=>'用户登录','parent_id'=>0];*/
+
+                    $this->adminUser['rule'][]='admin/index/index';
+                    $this->adminUser['rule'][]='admin/login/index';
+                    $this->adminUser['rule'][]='admin/login/logout';
                 }
+
                 $this->adminUser['menus']=$menus;
+                //pre($this->adminUser);
+                if ($this->adminUser['store_id']) {
+
+                    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
+                }
+                //$ac=$this->request->action()?$this->request->action():'index';
+                $action = strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
+                //dump($action);exit;
+                if(!in_array($action,$this->adminUser['rule'])){
+                    $this->error('没有权限','admin/index/home');
+                }
+
             }
         }
         
