@@ -14,6 +14,7 @@
                         <thead> 
                             <tr>
                                 <th width="100">编号</th>
+                                <th width="20%">父权限</th>
                                 <th width="*">子权限</th>
                             </tr>
                         </thead>
@@ -27,11 +28,19 @@
                                 <td>
                                 <div class="button-group">
                                     <div class="checkbox">
-                                    <label class='button labelbutton data-all{in name="$vo.id" value="$grouppurview"} active{/in}'><input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >{$vo.title}</label>
+                                    
+                                        <input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >
+                                        {$vo.title}
+                                    </label>
+                                </td>
+                                <td>
                                     
                                     {volist name="rules" id="v"}
                                     {eq name="$v.parent_id" value="$vo.id"}
-                                        <label class='button labelbutton data-single{in name="$v.id" value="$grouppurview"} active{/in}'><input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />{$v.title}</label>
+                                        
+                                            <input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />
+                                            {$v.title}
+                                        </label>
                                     {/eq}
                                     {/volist}
                                     </div>
