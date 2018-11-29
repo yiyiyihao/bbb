@@ -86,6 +86,9 @@ class Ugroup extends FormBase
     function _getWhere(){
         $where = ['is_del' => 0];
         $params = $this->request->param();
+        if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
+            $where['is_system'] = 0;
+        }
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
