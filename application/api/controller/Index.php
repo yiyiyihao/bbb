@@ -447,7 +447,7 @@ class Index extends BaseApi
     {
         $user = $this->_checkOpenid();
         $store = $this->_checkStore();
-        if ($store['store_type'] != 4){
+        if ($store['store_type'] != STORE_SERVICE){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在']);
         }
         $realname = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
@@ -463,14 +463,27 @@ class Index extends BaseApi
         $installerModel = db('user_installer');
         //判断当前用户是否为安装员
         $exist = $installerModel->where(['store_id' => $store['store_id'], 'is_del' => 0, 'user_id'   => $user['user_id']])->find();
-//         pre(['store_id' => $store['store_id'], 'is_del' => 0, 'user_id'   => $user['user_id']]);
         if ($exist){
             //0禁用 1正常 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝
             $msg = $exist['status'] <= 0 ? get_installer_status($exist['status']): '已经是安装员';
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $msg]);
         }else{
-            #TODO 获取厂商/服务商配置(安装员申请是否需要审核)
-            $status = 1;//现默认不需要审核直接通过
+            $status = 1;//默认不需要审核直接通过
+            //获取厂商/服务商配置(安装员申请是否需要审核)
+            $storeConfig = $store['config_json'] ? json_decode($store['config_json'], 1) : [];
+            if (isset($storeConfig['installer_check']) && $storeConfig['installer_check']) {
+                $status = -1;
+            }else{
+                //判断是否需要厂商审核
+                $factory = db('store')->where(['store_id' => $store['factory_id'], 'is_del' => 0, 'store_type' => STORE_FACTORY])->find();
+                if (!$factory) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商对应厂商不存在或已删除']);
+                }
+                $factoryConfig = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+                if (isset($factoryConfig['installer_check']) && $factoryConfig['installer_check']) {
+                    $status = -2;
+                }
+            }
             $data = [
                 'factory_id'=> $store['factory_id'],
                 'store_id'  => $store['store_id'],

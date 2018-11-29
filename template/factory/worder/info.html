@@ -1,0 +1,102 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>工单信息</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	{include file="common/factory" /}
+                	{if condition="$adminUser['admin_type'] == $Think.const.admin_factory"}
+                	<div class="form-group">
+						<div class="label">
+							<label>选择服务商</label>
+						</div>
+						<div class="field">
+							<select class="input" name="store_id" id="store_id" datatype="*" nullmsg="请选择服务商！">
+								<option value="">==服务商==</option>
+								{foreach name="stores" item="store" key="key"}
+									<option value="{$store.store_id}" {if condition="isset($info['store_id']) && $info['store_id'] == $store.store_id" }selected="selected"{/if} >{$store.name}</option> 
+								{/foreach}
+							</select>
+							<div class="input-note">请选择服务商</div>
+						</div>
+					</div>
+                	{/if}
+                	<div class="form-group">
+						<div class="label">
+							<label>工单类型</label>
+						</div>
+						<div class="field">
+							<select class="input" name="order_type" id="order_type" datatype="*" nullmsg="请选择工单类型！">
+								<option value="">==工单类型==</option>
+								{foreach name="orderTypes" item="orderType" key="key"}
+									<option value="{$key}" {if condition="isset($info['order_type']) && $info['order_type'] == $key" }selected="selected"{/if} >{$orderType}</option> 
+								{/foreach}
+							</select>
+							<div class="input-note">请选择工单类型</div>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="user_name" name="user_name" size="40" datatype="*" value="{$info['user_name'] ?? ''}">
+                            <div class="input-note">请填写客户名称</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户联系电话</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="40" datatype="*" value="{$info['phone'] ?? ''}">
+                            <div class="input-note">请填写联系电话</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户联系地址</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="address" name="address" size="60" datatype="*" value="{$info['address'] ?? ''}">
+                            <div class="input-note">请填写客户联系地址</div>
+                        </div>
+                    </div>
+	                <div class="form-group fault_desc {if condition='!$info || $info.order_type != 2'}hide{/if}">
+                        <div class="label">
+                            <label>故障详情</label>
+                        </div>
+                        <div class="field">
+                        	<textarea class="input" id="fault_desc" name="fault_desc" rows="6" cols="60">{$info['fault_desc'] ?? ''}</textarea>
+                            <div class="input-note">故障报修时请简要描述故障信息</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();  
+        $('#order_type').change(function(){
+			var order_type = $(this).val();
+			$(".fault_desc").hide();
+			if(order_type == 2){
+				$(".fault_desc").show();
+			}
+		});
+    }); 
+</script>

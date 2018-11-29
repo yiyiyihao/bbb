@@ -6,6 +6,7 @@ class User extends Model
 {
 	public $error;
 	protected $fields;
+	protected $pk = 'user_id';
 
 	//自定义初始化
     protected function initialize()

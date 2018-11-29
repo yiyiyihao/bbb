@@ -2,11 +2,11 @@
 namespace app\common\model;
 use think\Model;
 
-class UserData extends Model
+class WorkOrder extends Model
 {
 	public $error;
 	protected $fields;
-	protected $pk = 'udata_id';
+	protected $pk = 'worder_id';
 
 	//自定义初始化
     protected function initialize()

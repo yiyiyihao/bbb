@@ -1,0 +1,87 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                	{if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="sname" name="sname" size="30" value="{$_GET['sname'] ?? ''}" placeholder="服务商名称">
+                        </div>
+                    </div>
+                    {/if}
+                    <div class="form-group">
+						<div class="field">
+							<select class="input" name="order_type" id="order_type" datatype="*" nullmsg="请选择工单类型！">
+								<option value="">==工单类型==</option>
+								{foreach name="orderTypes" item="orderType" key="key"}
+									<option value="{$key}" {if condition="isset($_GET['order_type']) && $_GET['order_type'] == $key" }selected="selected"{/if} >{$orderType}</option> 
+								{/foreach}
+							</select>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="30" value="{$_GET['name'] ?? ''}" placeholder="客户姓名/电话">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="60">编号</th>
+          {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+          <th width="*">服务商</th>
+          {/if}
+          <th width="*">工单类型</th>
+          <th width="*">客户姓名</th>
+          <th width="*">客户电话</th>
+          <th width="*">客户地址</th>
+          <th width="*">安装员姓名</th>
+          <th width="120">下单时间</th>
+          <th width="60">状态</th>
+          <th width="250">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo"}
+            <tr>
+              <td>{$i}</td>
+              {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+              <td>{$vo.name}</td>
+              {/if}
+              <td>{$orderTypes[$vo.order_type]}</td>
+              <td>{$vo.user_name}</td>
+              <td>{$vo.phone}</td>
+              <td>{$vo.address}</td>
+              <td>{$vo.realname ?? '-'}</td>
+              <td>{$vo.add_time|date="Y-m-d H:i:s"}</td>
+              <td>{$vo['status']?'<span class="tag bg-green">可用</span>':'<span class="tag bg-red">禁用</span>'}</td>
+              <td>
+              	<span class="button-group">
+              		{if condition="$vo.installer_id == 0"}
+	              	<a href="{:url('dispatch', array('id' => $vo['worder_id']))}" class="button button-small bg-yellow icon-bell">分配安装员</a>
+	              	{/if}
+	              	<a href="{:url('edit', array('id' => $vo['worder_id']))}" class="button button-small bg-main icon-edit">编辑</a>
+	              	<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.worder_id}">删除</a>
+              	</span>
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

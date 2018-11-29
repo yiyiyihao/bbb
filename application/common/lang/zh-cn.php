@@ -30,6 +30,7 @@ return [
     'USER'                  =>  '账户',
     'USER_GROUP'            =>  '账户角色',
     'USER_INSTALLER'        =>  '安装员',
+    'WORK_ORDER'            =>  '售后工单',
 
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',

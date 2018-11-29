@@ -13,12 +13,16 @@ class Base extends Controller
     
     //底层通用参数初始化
     protected function initBase() {
-        defined('SYSTEM_ADMIN')     or define('SYSTEM_ADMIN',   1); //平台管理员 
-        defined('STORE_ADMIN')      or define('STORE_ADMIN',    2); //商户管理员
-        defined('STORE_FINANCE')    or define('STORE_FINANCE',  3); //商户财务
-        defined('STORE_SERVICE')    or define('STORE_SERVICE',  4); //商户客服
-        defined('STORE_OPERATOR')   or define('STORE_OPERATOR', 5); //商户运营
+        defined('ADMIN_SYSTEM') or define('ADMIN_SYSTEM',   1); //平台账户 
+        defined('ADMIN_FACTORY')or define('ADMIN_FACTORY',  2); //商户账户
+        defined('ADMIN_CHANNEL')or define('ADMIN_CHANNEL',  3); //渠道商账户
+        defined('ADMIN_DEALER') or define('ADMIN_DEALER',   4); //经销商/零售商账户
+        defined('ADMIN_SERVICE')or define('ADMIN_SERVICE',  5); //服务商账户
         
+        defined('STORE_FACTORY')or define('STORE_FACTORY',  1); //厂商商户
+        defined('STORE_CHANNEL')or define('STORE_CHANNEL',  2); //渠道商商户
+        defined('STORE_DEALER') or define('STORE_DEALER',   3); //经销商/零售商商户
+        defined('STORE_SERVICE')or define('STORE_SERVICE',  4); //服务商商户
         
         defined('NOW_TIME')or define('NOW_TIME', $_SERVER['REQUEST_TIME']);
     	defined('IS_POST') or define('IS_POST', $this->request->isPost());

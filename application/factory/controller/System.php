@@ -13,28 +13,46 @@ class System extends adminSystem
     }
     /**
      * 厂商权限配置
-     * @return mixed|string
      */
     public function factory(){
-        if (!$this->adminFactory || $this->adminUser['admin_type'] != 2) {
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_FACTORY) {
             $this->error(lang('NO ACCESS'));
         }
-        $params = $this->request->param();
-        $adminType = isset($params['type']) ? $params['type'] : 1;
-        $configName = 'admin_type_'.$adminType;
-        if($adminType){
-            $name = get_admin_type($adminType).'授权配置';
-            $info = $this->model->where(['name' => $configName, 'is_del' => 0])->find();
-            $configValue = $info? json_decode($info['config_value'], TRUE) : [];
-            if(IS_POST){
+        return $this->_storeConfig($this->adminStore['store_id']);
+    }
+    public function servicer()
+    {
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_SERVICE) {
+            $this->error(lang('NO ACCESS'));
+        }
+        return $this->_storeConfig($this->adminStore['store_id']);
+    }
+    
+    private function _storeConfig($storeId)
+    {
+        $storeModel = model('store');
+        $store = $storeModel->where(['store_id' => $storeId, 'is_del' => 0])->find();
+        if (!$store) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $config = $store['config_json'] ? json_decode($store['config_json'], 1) : [];
+        if (IS_POST) {
+            $params = $this->request->param();
+            if ($params) {
+                foreach ($params as $key => $value) {
+                    $config[$key] = $value;
+                }
+                $configJson = $config ? json_encode($config): '';
                 
-            }else{
-                $this->assign('name', $name);
-                $this->assign('config', $configValue);
-                return $this->fetch();
+                $result = $storeModel->save(['config_json' => $configJson], ['store_id' => $storeId]);
+                if ($result === FALSE) {
+                    $this->error($storeModel->error);
+                }
             }
+            $this->success('配置成功');
         }else{
-            $this->error(lang('param_error'));
+            $this->assign('config', $config);
+            return $this->fetch();
         }
     }
 }

@@ -34,8 +34,4 @@ class System extends FormBase
             $this->error(lang('param_error'));
         }
     }
-    public function factory()
-    {
-        $this->error('厂商配置信息');
-    }
 }
