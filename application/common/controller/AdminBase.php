@@ -30,6 +30,10 @@ class AdminBase extends Backend
             $this->adminUser = session('admin_user');
             //如果有登录
             if ($this->adminUser) {
+                $this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
+                if ($this->adminUser['store_id']) {
+                    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
+                }
                 //如果角色0，不验证权限
                 if($this->adminUser['group_id']==0){
                     $allrules =model('AuthRule')->getALLRule();
@@ -45,8 +49,6 @@ class AdminBase extends Backend
                 }else{
                     //普通用户
                     //根据用户角色id查询menu_json，
-
-
                     $allrules=db('user_group')->field('menu_json')->where(['group_id'=>$this->adminUser['group_id'],'is_del' => 0, 'status' => 1])->find();
                     if(!$allrules['menu_json']){
                         session('admin_user',NULL);
@@ -63,21 +65,10 @@ class AdminBase extends Backend
                         }
                     }
                     $menus[]=['rule'=>'admin/index/home','title'=>'后台首页','parent_id'=>1];
-                   
                 }
                 $this->adminUser['menus']=$menus;
-                //pre($this->adminUser);
-                if ($this->adminUser['store_id']) {
-
-                    $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
-                }
-                
             }
-            
-        
-            
         }
-        
         
         //检查用户是否拥有操作权限
 //      if(!self::checkPurview($this->adminUser,$this->storeId)){
