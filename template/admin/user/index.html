@@ -45,8 +45,8 @@
               <td>{$vo['sort_order']}</td>
               <td>
               	{if condition="$adminUser['admin_type'] == $Think.const.ADMIN_SYSTEM || !$vo['is_system']"}
-              	<a href="{:url('edit', array('id' => $vo['user_id']))}" class="button button-small bg-main icon-edit">编辑</a>
-                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.user_id}">删除</a>
+              	{if condition="in_array($action, $userrule)"}<a href="{:url('edit', array('id' => $vo['user_id']))}" class="button button-small bg-main icon-edit">编辑</a>{/if}
+                {if condition="in_array($action, $userrule)"}<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.user_id}">删除</a>{/if}
                 {/if}
               </td>
             </tr>
