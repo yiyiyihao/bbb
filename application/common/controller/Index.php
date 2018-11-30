@@ -13,8 +13,7 @@ class Index extends CommonBase
      */
     public function index()
     {
-//         $menuList = $this->adminUser['menus'];
-        $menuList = $this->getMenu($this->adminUser);
+        $menuList = $this->getMenu();
 //         pre($menuList);
         $this->assign('menuList', $menuList);
         config('app_trace',false);

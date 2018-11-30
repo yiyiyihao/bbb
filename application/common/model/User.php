@@ -55,7 +55,7 @@ class User extends Model
             $groupPurview = $group['menu_json'];
         }else{
             #TODO 获取系统设置权限
-            $groupPurview = '';
+            $groupPurview = [];
         }
         
         if ($user['admin_type'] != ADMIN_SYSTEM) {

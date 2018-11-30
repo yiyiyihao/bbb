@@ -47,9 +47,9 @@ class FormBase extends CommonBase
         $join   = $this->_getJoin();
         $order  = $this->_getOrder();
         //页面
-        $this->assign('userrule',$this->adminUser['rule']);
+        /* $this->assign('userrule',$this->adminUser['rule']);
         $action=strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
-        $this->assign('action',$action);
+        $this->assign('action',$action); */
 
         if (method_exists($this->model, 'save')) {
             //取得内容列表

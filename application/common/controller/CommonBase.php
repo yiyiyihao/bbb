@@ -17,18 +17,18 @@ class CommonBase extends Base
     {
     	parent::__construct();
     	$domain = Request::panDomain();
-    	$adminDomain = config('app.admin_domain');
+    	$adminDomain = config('app.admin_domain');    	
+    	if($domain == $adminDomain){
+    	    $this->initAdmin($domain);
+    	}else{
+    	    $this->initFactory($domain);
+    	}
     	//检查管理员是否登陆
     	defined('ADMIN_ID') or define('ADMIN_ID', $this->isLogin($domain));
     	$controller = $this->request->controller();
     	if(!ADMIN_ID && !in_array(strtolower($controller), ['login'])){
     	    $this->redirect('/login');
     	}else{
-        	if($domain == $adminDomain){
-        	    $this->initAdmin($domain);
-        	}else{
-        	    $this->initFactory($domain);
-        	}
     	    //公共登录鉴权处理
     	    $this->commonInit($domain);
     	}
@@ -40,58 +40,33 @@ class CommonBase extends Base
         if ($this->adminUser) {
             //如果角色0，不验证权限
             if($this->adminUser['group_id']==0){
-                $allrules = model('AuthRule')->getALLRule();
-                foreach ($allrules as $k => $v) {
-                    if($v['menustatus']==1){
-                        $menus[$k]['id']=$v['id'];
-                        $menus[$k]['module']=strtolower($v['module']);
-                        $menus[$k]['controller']=strtolower($v['controller']);
-                        $menus[$k]['action']=strtolower($v['action']);
-                        $menus[$k]['parent_id']=$v['parent_id'];
-                        $menus[$k]['menustatus']=$v['menustatus'];
-                        $menus[$k]['title']=$v['title'];
-                    }
-                    $this->adminUser['rule'][]=strtolower($v['module'].'/'.$v['controller'].'/'.$v['action']);
-                }
-                //$menus[]=['rule'=>'admin/login/index','title'=>'用户登录','parent_id'=>0];
-                $this->adminUser['rule'][]='admin/index/index';
-                $this->adminUser['rule'][]='admin/login/index';
-                $this->adminUser['rule'][]='admin/login/logout';
-                $this->adminUser['rule'][]='admin/gcate/';
+                
             }else{
                 //普通用户
-                //json转数组(从登陆信息中取出权限配置)
-                $allrules = isset($this->adminUser['groupPurview']) && $this->adminUser['groupPurview'] ? json_decode($this->adminUser['groupPurview'],true) : [];
-                if(!$allrules){
+                //从登陆信息中取出权限配置
+                $groupPurview = $this->adminUser['groupPurview'];
+                if(!$groupPurview){
                     session($domain.'_user',NULL);
                     $this->error('未分配角色','/login');
                 }
-                //遍历取出可显示的
-                foreach ($allrules as $k => $v) {
-                    $this->adminUser['rule'][]=$v['rule'];
-                    if($v['menustatus']==1){
-                        $menus[$k]=$v;
-                        $rule=explode('/',$v['rule']);
-                        $menus[$k]['module']=strtolower($rule[0]);
-                        $menus[$k]['controller']=strtolower($rule[1]);
-                        $menus[$k]['action']=strtolower($rule[2]);
+                //json转数组
+                $groupPurview = json_decode($groupPurview,true);
+                $tempRule = [];
+                if(!empty($groupPurview)){
+                    foreach ($groupPurview as $k=>$v){
+                        $key = $v['module'];
+                        if($v['controller']) $key .= '_'.$v['controller'];
+                        if($v['action'])     $key .= '_'.$v['action'];
+                        $tempRule[$key] = $v;
                     }
                 }
-                $this->adminUser['rule'][]='admin/index/index';
-                $this->adminUser['rule'][]='admin/login/index';
-                $this->adminUser['rule'][]='admin/login/logout';
-            }
-            $this->adminUser['menus']=$menus;
-            //pre($this->adminUser);
-            if ($this->adminUser['store_id']) {
-                
-                $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
-            }
-            $action = strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
-            
-            //dump($action);dump($this->adminUser);exit;
-            if(!in_array($action,$this->adminUser['rule'])){
-                //                     $this->error('没有权限','admin/index/home');
+                $module             = strtolower($this->request->module());
+                $controller         = strtolower($this->request->controller());
+                $action             = strtolower($this->request->action());
+                $tempAction = $module . '_' . $controller . '_' . $action;
+                if(!isset($tempRule[$tempAction])){
+                    $this->error(lang('PERMISSION_DENIED'));
+                }
             }
             //初始化页面赋值
             $this->initAssign();
@@ -105,8 +80,9 @@ class CommonBase extends Base
     
     //厂商管理后台初始化流程
     protected function initFactory($domain){
-        $factory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['domain' => trim($domain), 'S.is_del' => 0])->find();
+        $this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
         if (!$this->adminFactory) {
+            $factory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['domain' => trim($domain), 'S.is_del' => 0])->find();
             $this->adminFactory = $factory;
             session('admin_factory', $factory);
         }
@@ -127,18 +103,11 @@ class CommonBase extends Base
     /**
      * 取得管理员菜单
      */
-    protected function getMenu($loginUserInfo = array(),$cutUrl = '',$urlComplete = true){
-        $loginUserInfo['action_purview'] = 'all';
-        if(!empty($loginUserInfo)){
-            if($loginUserInfo['action_purview'] != 'all'){
-                $menuPurview = unserialize($loginUserInfo['action_purview']);
-            }else{
-                $menuPurview = FALSE;
-            }
-        }
+    protected function getMenu(){
+        $domain = Request::panDomain();
         $menuList = array();
         $menuService = new \app\admin\service\Menu;
-        $menuList = $menuService->getAdminMenu();
+        $menuList = $menuService->getAdminMenu($this->adminUser, $domain);
         $menuList = array_order($menuList, 'sort_order', 'asc', true);
         return $menuList;
     }
