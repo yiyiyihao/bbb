@@ -13,8 +13,8 @@
                     <table id="table" class="table table-hover">
                         <thead> 
                             <tr>
-                                <th width="100">编号</th>
-                                <th width="20%">父权限</th>
+                                <th width="80">编号</th>
+                                <th width="200">父权限</th>
                                 <th width="*">子权限</th>
                             </tr>
                         </thead>
@@ -22,29 +22,26 @@
                         <tbody>
                             {volist name="rules" id="vo"}
                             {eq name="$vo.parent_id" value="0"}
-                            <tr>
+                            <tr class="checkgroup">
                                 <td>{$vo.id}</td>
                                 
                                 <td>
-                                <div class="button-group">
-                                    <div class="checkbox">
-                                    
+                                    <div class="checkbox data-all {in name="$vo.id" value="$grouppurview"}checked{/in}">
                                         <input type="checkbox" class="top" {in name="$vo.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$vo.id}" >
-                                        {$vo.title}
-                                    </label>
+                                        <i class="icon-check"></i><span>{$vo.title}</span>
+                                    </div>
                                 </td>
                                 <td>
                                     
                                     {volist name="rules" id="v"}
                                     {eq name="$v.parent_id" value="$vo.id"}
-                                        
+                                        <div class="checkbox data-single {in name="$v.id" value="$grouppurview"}checked{/in}">
                                             <input type="checkbox" class="child" {in name="$v.id" value="$grouppurview"}checked{/in} name="rule[]" value="{$v.id}" />
-                                            {$v.title}
-                                        </label>
+                                            <i class="icon-check"></i><span>{$v.title}</span>
+                                        </div>
                                     {/eq}
                                     {/volist}
-                                    </div>
-                                </div>
+                                
                                 </td>
                                 
                             </tr>

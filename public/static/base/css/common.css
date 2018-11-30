@@ -109,6 +109,16 @@ td,th{padding:0;}
 .button-group-small .button{padding:5px 10px;font-size:12px;font-weight:normal;line-height:18px;}
 .button-group-little .button{padding:3px 5px;font-size:12px;font-weight:normal;line-height:16px;}
 .button-group label input,.button-group .labelbutton input{position:absolute;filter:alpha(opacity=0);opacity:0;z-index:-1;}
+.checkbox{ margin:5px 10px 5px 0; height:30px; line-height:30px; display:inline-block;}
+.checkbox input{ display:none;}
+.checkbox i{ display:inline-block; line-height:30px; width:30px; border:1px solid #d2d2d2; border-radius:2px 0 0 2px; text-align:center; color:#fff;}
+.checkbox span{ display:inline-block; line-height:32px; padding:0 10px; background:#d2d2d2; color:#fff; border-radius:0 2px 2px 0;}
+.checkbox:hover i{ color:#c2c2c2;}
+.checkbox:hover span{ background:#c2c2c2;}
+.checkbox.checked i{ color:#009688;}
+.checkbox.checked span{ background:#009688;}
+.checkbox.checked:hover i{ color:#00887b;}
+.checkbox.checked:hover span{ background:#00887b;}
 .radio .icon, .checkbox .icon{display: none;}
 .radio .active .icon, .checkbox .active .icon{display: inline-block;}
 .input-inline{padding-left:1px;}

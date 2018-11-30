@@ -339,40 +339,40 @@ $(function(){
 		$(this).parent(".radio").find("label.active").removeClass("active");
 		$(this).addClass("active");
 	});
-	$(".checkbox").on("click",".labelbutton",function(e){
+	$(".checkgroup").on("click",".checkbox",function(e){
 		if ($(e.target).is("input")) return;
-		$(this).toggleClass("active");
-		if($(this).hasClass("active")){
+		$(this).toggleClass("checked");
+		if($(this).hasClass("checked")){
 			$(this).find("input[type='checkbox']").prop("checked",true);
 		}else{
 			$(this).find("input[type='checkbox']").prop("checked",false);
 		}
 		if($(this).hasClass("data-all")){
-			var c = $(this).closest('.checkbox').find(".data-single");
-			if($(this).hasClass("active")){
-				c.addClass("active");
-				c.find("input[type='checkbox']").prop("checked",false);
+			var c = $(this).parents('.checkgroup').find(".data-single");
+			if($(this).hasClass("checked")){
+				c.addClass("checked");
+				c.find("input[type='checkbox']").prop("checked",true);
 			}else{
-				c.removeClass("active");
+				c.removeClass("checked");
 				c.find("input[type='checkbox']").prop("checked",false);
 			}
 		}else if($(this).hasClass("data-single")){
-			var s = $(this).closest('.checkbox').find(".data-single");
-			var c = $(this).closest('.checkbox').find(".data-single.active");
+			var s = $(this).parents('.checkgroup').find(".data-single");
+			var c = $(this).parents('.checkgroup').find(".data-single.checked");
 			var len = s.length;
 			var cLen = c.length;
 			if(len == cLen){
 				//console.log("len:"+len+",cLen:"+cLen+"==");
-				var da = $(this).closest('.checkbox').find(".data-all");
-				var ds = $(this).closest('.checkbox').find(".data-single.active");
-				da.addClass('active');
+				var da = $(this).parents('.checkgroup').find(".data-all");
+				var ds = $(this).parents('.checkgroup').find(".data-single.checked");
+				da.addClass('checked');
 				da.find("input[type='checkbox']").prop("checked",true);
-				ds.find("input[type='checkbox']").prop("checked",false);
+				ds.find("input[type='checkbox']").prop("checked",true);
 			}else{
-				var da = $(this).closest('.checkbox').find(".data-all");
-				var ds = $(this).closest('.checkbox').find(".data-single.active");
+				var da = $(this).parents('.checkgroup').find(".data-all");
+				var ds = $(this).parents('.checkgroup').find(".data-single.checked");
 				//console.log("len:"+len+",cLen:"+cLen+"!=");
-				da.removeClass('active');
+				da.removeClass('checked');
 				da.find("input[type='checkbox']").prop("checked",false);
 				ds.find("input[type='checkbox']").prop("checked",true);
 			}
