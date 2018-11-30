@@ -10,34 +10,65 @@ class Installer extends FormBase
         $this->modelName = 'user_installer';
         $this->model = db($this->modelName);
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [1,2])) {
-            if ($this->adminUser['admin_type'] != 5) {
+        
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY])) {
+            if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
                 $this->error('NO ACCESS');
             }
         }
-        if (!$this->adminUser['store_id']){
-            $store = new \app\common\controller\Store();
-            $store->_getFactorys();
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+            $this->_getFactorys();
         }
         $this->search= self::_searchData();
         $this->table = self::_tableData();
         $this->field = self::_fieldData();
-        $this->breadCrumb[] = [
-            'name' => '待审核',
-            'url' => url('checklist'),
-        ];
-        unset($this->subMenu['add']);
+//         $this->breadCrumb[] = [
+//             'name' => '待审核',
+//             'url' => url('checklist'),
+//         ];
+        $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     function _getData()
     {
         $info = $this->_assignInfo();
-        if (!$info) {
-            $this->error(lang('NO ACCESS'));
-        }
         $params = parent::_getData();
+        $storeId = isset($params['store_id']) ? intval($params['store_id']) : '';
         $realname = isset($params['realname']) ? trim($params['realname']) : '';
+        $phone = isset($params['phone']) ? trim($params['phone']) : '';
+        $regionId = isset($params['region_id']) ? intval($params['region_id']) : '';
+        $regionName = isset($params['region_name']) ? trim($params['region_name']) : '';
+        $avatar = isset($params['avatar']) ? trim($params['avatar']) : '';
+        $fontimg = isset($params['idcard_font_img']) ? trim($params['idcard_font_img']) : '';
+        $backimg = isset($params['idcard_back_img']) ? trim($params['idcard_back_img']) : '';
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){
+            $this->error('请选择服务商');
+        }
         if (!$realname) {
-            $this->error('售后工程师真实姓名不能为空');
+            $this->error('真实姓名不能为空');
+        }
+        if (!$phone) {
+            $this->error('联系电话不能为空');
+        }
+        if (!$regionId || !$regionName) {
+            $this->error('请选择服务区域');
+        }
+        if (!$avatar) {
+            $this->error('请上传工程师头像');
+        }
+        if (!$fontimg) {
+            $this->error('请上传身份证正面图片');
+        }
+        if (!$backimg) {
+            $this->error('请上传身份证反面图片');
+        }
+        if (!$info) {
+            if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
+                $params['store_id'] = $this->adminStore['store_id'];
+                $params['factory_id'] = $this->adminStore['factory_id'];
+            }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+                $params['store_id'] = $storeId;
+                $params['factory_id'] = $this->adminStore['store_id'];
+            }
         }
         return $params;
     }
@@ -79,17 +110,6 @@ class Installer extends FormBase
         }
         return $where;
     }
-    function _assignInfo($pkId = 0){
-        $info = parent::_assignInfo($pkId);
-        $this->_getUgroup();
-        return $info;
-    }
-    function _getUgroup()
-    {
-        $groups = db('user_group')->where(['is_del' => 0, 'status' =>1,  'store_id' => ['IN', [0, $this->adminUser['store_id']]]])->select();
-        $this->assign('groups', $groups);
-        return $groups;
-    }
     /**
      * 列表搜索配置
      */
@@ -127,9 +147,24 @@ class Installer extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
+        $array = [];
+        if ($this->adminUser['admin_type'] == ADMIN_SERVICE){
+            $array = ['title'=>'服务商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
+        }else{
+            $servicers = db('store')->field('store_id as id, name as cname')->where(['is_del' => 0, 'status' => 1, 'store_type' => STORE_SERVICE, 'factory_id' => $this->adminUser['store_id']])->select();
+            $this->assign('servicers', $servicers);
+            $array = ['title'=>'选择服务商','type'=>'select','options'=>'servicers','name' => 'store_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==选择服务商==','notetext'=>'请选择服务商'];
+        }
         $field = [
-            ['title'=>lang($this->modelName).'真实姓名','type'=>'text','name'=>'realname','size'=>'30','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'真实姓名'],
-            ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'phone','size'=>'30','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'联系电话'],
+            ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
+            $array,
+            ['title'=>'真实姓名','type'=>'text','name'=>'realname','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'真实姓名'],
+            ['title'=>'头像','type'=>'uploadImg','name'=>'avatar', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            ['title'=>'联系电话','type'=>'text','name'=>'phone','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'联系电话'],
+            ['title'=>'服务区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'],
+            ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
+            ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
                 ['text'=>'可用','value'=>'1'],
                 ['text'=>'禁用','value'=>'0'],

@@ -20,7 +20,7 @@ class User extends FormBase
         return 'U';
     }
     function _getField(){
-        return 'U.*, S.name as sname, G.name as gname';
+        return 'U.*, S.name as sname, G.name as gname, G.is_system';
     }
     function _getJoin()
     {

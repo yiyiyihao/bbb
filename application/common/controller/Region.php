@@ -1,9 +1,7 @@
 <?php
-namespace app\admin\controller;
-use app\common\controller\Region as commonRegion;
-
+namespace app\common\controller;
 //地址管理
-class Region extends commonRegion
+class Region extends FormBase
 {
     public function __construct()
     {

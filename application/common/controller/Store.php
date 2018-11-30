@@ -14,7 +14,7 @@ class Store extends FormBase
         parent::__construct();
         $this->_init();
         if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
-            if ($this->storeType == 1) {
+            if ($this->storeType == STORE_FACTORY) {
                 $this->error(lang('NO ACCESS'));
             }else{
                 if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
@@ -281,12 +281,6 @@ class Store extends FormBase
         }
         return $where;
     }
-    function _getFactorys()
-    {
-        //获取所属厂商列表
-        $stores = db('store')->where(['is_del' => 0, 'status' => 1, 'store_type' => 1])->field('store_id as id, name as cname')->select();
-        $this->assign('factorys', $stores);
-    }
     /**
      * 列表搜索配置
      */
@@ -334,8 +328,8 @@ class Store extends FormBase
      */
     function _fieldData(){
         $array = [];
-        if ($this->storeType != 1) {
-            if ($this->adminUser['admin_type'] != 1){
+        if ($this->storeType != STORE_FACTORY) {
+            if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
             }else{
                 $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];

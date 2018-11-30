@@ -206,4 +206,10 @@ class CommonBase extends Base
         $this->assign('breadCrumb',$breadCrumb);
         return parent::fetch($template, $vars, $replace, $config);
     }
+    protected function _getFactorys()
+    {
+        //获取所属厂商列表
+        $stores = db('store')->where(['is_del' => 0, 'status' => 1, 'store_type' => 1])->field('store_id as id, name as cname')->select();
+        $this->assign('factorys', $stores);
+    }
 }

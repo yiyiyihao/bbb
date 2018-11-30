@@ -1,7 +1,6 @@
 <?php
-namespace app\admin\controller;
+namespace app\factory\controller;
 use app\common\controller\Region as commonRegion;
-
 //地址管理
 class Region extends commonRegion
 {

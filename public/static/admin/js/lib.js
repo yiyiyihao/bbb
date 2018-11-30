@@ -441,6 +441,9 @@ $.fn.FormPage = function (options) {
         if (form.find(".js-time").length > 0) {
             form.find('.js-time').attr("readonly","readonly").Time();
         }
+        if (form.find(".js-date").length > 0) {
+            form.find('.js-date').attr("readonly","readonly").Time({'timepicker': false, format:'Y-m-d'});
+        }
         //区域多选框初始化
         if (form.find(".js-selectmul").length > 0) {
             form.find('.js-selectmul').selectmul();
