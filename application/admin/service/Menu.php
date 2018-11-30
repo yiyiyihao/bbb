@@ -12,7 +12,8 @@ class Menu{
     public function getAdminMenu($type = 1){
         $authRule = AuthRule::getRuleList();
         foreach ($authRule as $k=>$v){
-            $module     = (!empty($v['module']) && $v['module'] != 'admin') ? '/'.$v['module'] : '';
+//             $module     = (!empty($v['module']) && $v['module'] != 'admin') ? '/'.$v['module'] : '';
+            $module = '';
             $controller = !empty($v['controller']) ? '/'.$v['controller'] : '';
             $action     = !empty($v['action']) ? '/'.$v['action'] : '';
             $authRule[$k]['href'] = $module.$controller.$action;
