@@ -64,6 +64,10 @@ class User extends Model
                 return FALSE;
             }
             #TODO 厂商/(服务商/渠道商/经销商)
+            $adminFactory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['domain' => trim($domain), 'is_del' => 0])->find();
+            session('admin_factory',$adminFactory);
+            $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+            session('admin_store',$adminStore);
         }
         //设置session
 		$adminUser = [

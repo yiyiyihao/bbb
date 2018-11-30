@@ -38,10 +38,6 @@ class CommonBase extends Base
         $this->adminUser = session($domain.'_user');
         //如果有登录
         if ($this->adminUser) {
-            $this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
-            if ($this->adminUser['store_id']) {
-                $this->adminStore = db('store')->field('store_id, name')->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
-            }
             //如果角色0，不验证权限
             if($this->adminUser['group_id']==0){
                 $allrules = model('AuthRule')->getALLRule();
@@ -111,7 +107,8 @@ class CommonBase extends Base
     
     //厂商管理后台初始化流程
     protected function initFactory($domain){
-        $this->adminFactory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['domain' => trim($domain), 'is_del' => 0])->find();
+        $this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
+        $this->adminStore = $this->adminStore ? $this->adminStore : session('admin_store');
     }
     
     //页面初始化赋值
