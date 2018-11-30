@@ -44,9 +44,10 @@
           <th width="*">客户姓名</th>
           <th width="*">客户电话</th>
           <th width="*">客户地址</th>
+          <th width="*">预约服务时间</th>
           <th width="*">售后工程师姓名</th>
           <th width="120">下单时间</th>
-          <th width="60">状态</th>
+          <th width="80">状态</th>
           <th width="250">操作</th>
         </tr>
         {notempty name="list"}
@@ -60,15 +61,17 @@
               <td>{$vo.user_name}</td>
               <td>{$vo.phone}</td>
               <td>{$vo.region_name} {$vo.address}</td>
+              <td>{$vo.appointment}</td>
               <td>{$vo.realname ?? '-'}</td>
               <td>{$vo.add_time|date="Y-m-d H:i:s"}</td>
-              <td>{$vo['status']?'<span class="tag bg-green">可用</span>':'<span class="tag bg-red">禁用</span>'}</td>
+              <td><span class="tag bg-green">{:get_worder_status($vo['status'])}</span></td>
               <td>
               	<span class="button-group">
-              		{if condition="$vo.installer_id == 0"}
-	              	<a href="{:url('dispatch', array('id' => $vo['worder_id']))}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">派单</a>
+              		{if condition="$vo.status == 0"}
+	              	<a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">派单</a>
 	              	{/if}
-	              	<a href="{:url('edit', array('id' => $vo['worder_id']))}" class="button button-small bg-main icon-edit">编辑</a>
+	              	<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
+	              	<a href="javascript:;" url="{:url('cacel', ['id' => $vo['worder_id']])}" class="button button-small bg-red icon-delete js-action" refresh="true" title="确定取消当前工单">取消</a>
 	              	<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.worder_id}">删除</a>
               	</span>
               </td>

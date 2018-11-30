@@ -4,6 +4,7 @@ namespace app\factory\controller;
 class Worder extends FactoryForm
 {
     var $orderTypes;
+    var $statusList;
     public function __construct()
     {
         $this->modelName = 'work_order';
@@ -16,6 +17,12 @@ class Worder extends FactoryForm
             1 => '安装工单',
             2 => '售后维修单'
         ];
+        $this->statusList = get_worder_status();
+        $crumb = [];
+        foreach ($this->statusList as $key => $value) {
+            $crumb[] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];
+        }
+        $this->breadCrumb = $crumb;
         $this->assign('orderTypes', $this->orderTypes);
     }
     //指派售后工程师
@@ -29,7 +36,7 @@ class Worder extends FactoryForm
             if (!$installerId) {
                 $this->error('请选择售后工程师');
             }
-            $params['status'] = 1;//已指派售后工程师
+            $params['status'] = 1;//已指派售后工程师等待工程师接单
             $result = $this->model->save($params,['worder_id' => $info['worder_id']]);
             if ($result) {
                 $this->success('售后工程师指派成功', url('index'));
@@ -71,15 +78,21 @@ class Worder extends FactoryForm
         return 'WO.add_time DESC';
     }
     function _getWhere(){
+        $params = $this->request->param();
+        $status = isset($params['status']) ? intval($params['status']) : 0;
+        if (!isset($this->statusList[$status])) {
+            $status = 0;
+        }
         $where = [
-            'WO.is_del'      => 0,
+            'WO.is_del' => 0,
+            'WO.status'    => $status,
         ];
         if ($this->adminUser['admin_type'] == 2) {
             $where['WO.factory_id'] = $this->adminUser['store_id'];
         }elseif ($this->adminUser['admin_type'] == 3 && $this->storeType == 3){
             $where['WO.ostore_id'] = $this->adminUser['store_id'];
         }
-        $params = $this->request->param();
+        
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){

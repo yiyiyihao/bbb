@@ -278,6 +278,10 @@ class Store extends FormBase
             if($name){
                 $where['S.name'] = ['like','%'.$name.'%'];
             }
+            $uname = isset($params['uname']) ? trim($params['uname']) : '';
+            if($uname){
+                $where['S.user_name|S.mobile'] = ['like','%'.$uname.'%'];
+            }
         }
         return $where;
     }
@@ -286,7 +290,8 @@ class Store extends FormBase
      */
     function _searchData(){
         $search = [
-            ['type' => 'input', 'name' =>  'name', 'value' => lang($this->modelName).'名称', 'width' => '20'],
+            ['type' => 'input', 'name' =>  'name', 'value' => lang($this->modelName).'名称', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'uname', 'value' => '联系人姓名/电话', 'width' => '30'],
         ];
         return $search;
     }
@@ -294,22 +299,26 @@ class Store extends FormBase
      * 列表项配置
      */
     function _tableData(){
-        $array = $btnArray = [];
-        if ($this->storeType == 1) {
+        $array = $array1 = $array2 = $btnArray = [];
+        if ($this->storeType == STORE_FACTORY) {
             $array = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text'];
         }else{
             $array = ['title'     => '所属厂商','width'  => '100','value'     => 'sname','type'      => 'text'];
         }
-        if ($this->storeType == 2) {
+        if ($this->storeType == STORE_CHANNEL) {
+            $array1 = ['title'     => '负责区域', 'width'   => '100','value'     => 'region_name', 'type'      => 'text'];
+            $array2 = ['title'     => '保证金金额', 'width'   => '100','value'     => 'caution_money', 'type'      => 'text'];
             $btnArray = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
         }
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
             $array,
             ['title'     => lang($this->modelName).'名称','width'  => '*','value'   => 'name','type'      => 'text'],
-            ['title'     => 'LOGO', 'width'   => '60','value'     => 'logo', 'type'      => 'image'],
+            $array1,
+            $array2,
+            ['title'     => '联系人姓名', 'width'   => '100','value'     => 'user_name', 'type'      => 'text'],
+            ['title'     => '联系电话', 'width'   => '60','value'     => 'mobile', 'type'      => 'text'],
             ['title'     => '管理员账号','width' => '120','value'     => 'username','type'      => 'text'],
-            ['title'     => lang($this->modelName).'地址','width'  => '*','value'       => 'address','type'      => 'text'],
             ['title'     => '状态','width'    => '60','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
             ['title'     => '排序','width'    => '60','value'      => 'sort_order','type'      => 'text'],
             ['title'     => '操作','width'    => '*','value'   => 'store_id','type'      => 'button','button'    =>
@@ -327,7 +336,7 @@ class Store extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
-        $array = [];
+        $array = $array1 = $array2 = $array3 = [];
         if ($this->storeType != STORE_FACTORY) {
             if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
@@ -337,10 +346,23 @@ class Store extends FormBase
         }else{
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
+        if ($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
+            $this->assign('channels', $channels);
+            $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
+        }
+        if ($this->storeType == STORE_CHANNEL) {
+            $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'caution_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
+            $array3 = ['title'=>'负责区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'];
+        }
         $field = [
-            $array,
+            $array, $array1,
             ['title'=>lang($this->modelName).'名称','type'=>'text','name'=>'name','size'=>'40','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'名称请不要填写特殊字符'],
             ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            ['title'=>lang($this->modelName).'联系人姓名','type'=>'text','name'=>'user_name','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系人姓名'],
+            ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'mobile','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系电话'],
+            $array2,
+            $array3,
             ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'],
             ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
                 ['text'=>'可用','value'=>'1'],
@@ -348,7 +370,7 @@ class Store extends FormBase
             ]],
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
         ];
-        return $field;
+        return array_filter($field);
     }
     function _init()
     {

@@ -571,18 +571,33 @@ class Index extends BaseApi
         if (!$installer) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
         }
-        $orderType = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;//默认为安装工单
+        $orderType = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;
+        $status = isset($this->postParams['status']) ? intval($this->postParams['status']): 0;
+        if (!get_worder_status($status)) {
+            $status = 0;
+        }
         if (!$orderType || !in_array($orderType, [1, 2])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
         }
         $where = [
             'installer_id' => $installer['installer_id'], 
             'is_del' => 0,
-//             'order_type' => $orderType
         ];
-        $field = 'worder_id, user_name, phone, region_name, address, images, fault_desc, status, add_time, receive_time, finish_time';
+        if ($orderType) {
+            $where['order_type'] = $orderType;
+        }
+        if (isset($this->postParams['status'])) {
+            $where['status'] = $status;
+        }
+        $field = 'worder_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
         $order = 'add_time ASC';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $list[$key]['status_txt'] = get_worder_status($value['status']);
+                $list[$key]['images'] = $value['images'] ? json_decode($value['images'], 1) : [];
+            }
+        }
         $this->_returnMsg(['list' => $list]);
     }
     //售后工单详情
@@ -597,7 +612,7 @@ class Index extends BaseApi
         if (!$worderId) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单ID(worder_id)缺失']);
         }
-        $field = 'worder_id, order_type, user_name, phone, region_name, address, images, fault_desc, status, add_time, receive_time, finish_time';
+        $field = 'worder_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
         $info = db('work_order')->field($field)->where(['worder_id' => $worderId, 'installer_id' => $installer['installer_id'], 'is_del' => 0])->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单不存在或已删除']);
@@ -610,12 +625,27 @@ class Index extends BaseApi
     //售后工程师接单
     protected function receiveWorkOrder()
     {
-        $detail = $this->getWorkOrderDetail();
-        //状态(0为服务等待中 1已分配售后工程师 2售后工程师接单 3服务完成)
-        if ($detail['status'] == 2) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已接单']);
-        }elseif ($detail['status'] == 3){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已完成']);
+        $detail = $this->getWorkOrderDetail(TRUE);
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($detail['status']) {
+            case -1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已取消']);
+            break;
+            case 0:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单未分派']);
+            break;
+            case 2:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已接收']);
+            break;
+            case 3:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单服务中']);
+            break;
+            case 4:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务已完成']);
+            break;
+            default:
+                ;
+            break;
         }
         $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 2, 'receive_time' => time()]);
         if ($result) {
@@ -624,14 +654,89 @@ class Index extends BaseApi
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
         }
     }
-    //工单完成确认
+    //售后工程师现场签到
+    protected function signWorkOrder()
+    {
+        $detail = $this->getWorkOrderDetail(TRUE);
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($detail['status']) {
+            case -1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已取消']);
+                break;
+            case 0:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单未分派']);
+                break;
+            case 1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单待接收']);
+                break;
+            case 3:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单服务中']);
+                break;
+            case 4:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务已完成']);
+                break;
+            default:
+                ;
+                break;
+        }
+        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 3, 'receive_time' => time()]);
+        if ($result) {
+            $this->_returnMsg(['msg' => '签到成功,服务开始']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+        }
+    }
+    //取消工单
+    protected function cacelWorkOrder()
+    {
+        $detail = $this->getWorkOrderDetail(TRUE);
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($detail['status']) {
+            case -1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已取消,不能重复取消']);
+                break;
+            case 4:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务已完成,不能取消工单']);
+                break;
+            default:
+                ;
+                break;
+        }
+        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => -1, 'cancel_time' => time()]);
+        if ($result) {
+            $this->_returnMsg(['msg' => '工单已取消']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+        }
+    }
+    //工单完成
     protected function finishWorkOrder()
     {
-        $detail = $this->getWorkOrderDetail();
-        #TODO 状态验证
-        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 3, 'finish_time' => time()]);
+        $detail = $this->getWorkOrderDetail(TRUE);
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($detail['status']) {
+            case -1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已取消']);
+                break;
+            case 0:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单未分派']);
+                break;
+            case 1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单待接收']);
+                break;
+            case 2:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师未抵达']);
+                break;
+            case 4:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务已完成']);
+                break;
+            default:
+                ;
+                break;
+        }
+        $result = db('work_order')->where(['worder_id' => $detail['worder_id']])->update(['update_time' => time(), 'status' => 4, 'finish_time' => time()]);
         if ($result) {
-            $this->_returnMsg(['msg' => '服务完成']);
+            $this->_returnMsg(['msg' => '工单已完成']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
         }

@@ -28,6 +28,39 @@ class Installer extends FormBase
 //         ];
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
+    /**
+     * 工程师绑定小程序二维码
+     */
+    public function wxacode()
+    {
+        $info = $this->_assignInfo();
+        if (!$info || $info['is_del']) {
+            $this->error('安装工程师不存在或已删除');
+        }
+        //远程判断图片是否存在
+        $qiniuApi = new \app\common\api\QiniuApi();
+        $config = $qiniuApi->config;
+        $domain = $config ? 'http://'.$config['domain'].'/': '';
+        $filename = 'installer_wxacode_'.$info['store_id'].'.png';
+        $result = curl_post($domain.$filename, []);
+        $page = 'pages/index/index';//二维码扫码打开页面
+        $scene = 'type=installer&id='.$info['installer_id'];//最大32个可见字符，只支持数字，大小写英文以及部分特殊字符：!#$&'()*+,/:;=?@-._~，其它字符请自行编码为合法字符（因不支持%，中文无法使用 urlencode 处理，请使用其他编码方式）
+        if (isset($result['error'])) {
+            $wechatApi = new \app\common\api\WechatApi('wechat_applet');
+            $data = $wechatApi->getWXACodeUnlimit($scene, $page);
+            if ($wechatApi->error) {
+                $this->error($wechatApi->error);
+            }else{
+                $result = $qiniuApi->uploadFileData($data, $filename);
+                if (isset($result['error']) && $result['error'] > 0) {
+                    $this->error($result['msg']);
+                }
+                $result = $this->model->where(['installer_id' => $info['installer_id']])->update(['update_time' => time(), 'wxacode' => $domain.$filename]);
+            }
+        }
+        echo '<img src="'.$domain.$filename.'">';
+    }
+    
     function _getData()
     {
         $info = $this->_assignInfo();
@@ -77,12 +110,12 @@ class Installer extends FormBase
         return 'UI';
     }
     function _getField(){
-        return 'UI.*, U.username, S.name as sname, SF.name as fname';
+        return 'UI.*, S.name as sname, SF.name as fname, UD.udata_id';
     }
     function _getJoin()
     {
         return [
-            ['user U', 'U.user_id = UI.user_id', 'LEFT'],
+            ['user_data UD', 'UD.user_id = UI.user_id AND UD.third_type = "wechat_applet" AND UD.is_del = 0', 'LEFT'],
             ['store SF', 'SF.store_id = UI.factory_id', 'LEFT'],
             ['store S', 'S.store_id = UI.store_id', 'LEFT'],
         ];
@@ -94,11 +127,18 @@ class Installer extends FormBase
     function _getWhere(){
         $where = [
             'UI.is_del'     => 0,
-//             'UI.admin_type' => ['>', 0],
-            'UI.user_id' => ['>', 1],
         ];
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $where['UI.factory_id'] = $this->adminUser['store_id'];
+        }elseif ($this->adminUser['admin_type'] == ADMIN_SERVICE){
+            $where['UI.store_id'] = $this->adminUser['store_id'];
+        }
         $params = $this->request->param();
         if ($params) {
+            $rname = isset($params['rname']) ? trim($params['rname']) : '';
+            if($rname){
+                $where['UI.region_name'] = ['like','%'.$rname.'%'];
+            }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
                 $where['UI.realname'] = ['like','%'.$name.'%'];
@@ -115,7 +155,8 @@ class Installer extends FormBase
      */
     function _searchData(){
         $search = [
-            ['type' => 'input', 'name' =>  'name', 'value' => '真实姓名', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'rname', 'value' => '服务区域', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'name', 'value' => '工程师姓名', 'width' => '30'],
             ['type' => 'input', 'name' =>  'phone', 'value' => '联系电话', 'width' => '30'],
         ];
         return $search;
@@ -126,15 +167,17 @@ class Installer extends FormBase
     function _tableData(){
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'user_id','type'      => 'index'],
-            ['title'     => '所属厂商','width' => '*','value'     => 'fname','type'      => 'text'],
-            ['title'     => '所属服务商','width' => '*','value'     => 'sname','type'      => 'text'],
+            ['title'     => '厂商','width' => '*','value'     => 'fname','type'      => 'text'],
+            ['title'     => '服务商','width' => '*','value'     => 'sname','type'      => 'text'],
+            ['title'     => '服务区域','width'  => '*','value'      => 'region_name','type'      => 'text'],
             ['title'     => '真实姓名','width'  => '*','value'      => 'realname','type'      => 'text'],
-            ['title'     => '登录用户名','width'  => '*','value'     => 'username','type'      => 'text'],
             ['title'     => '联系电话','width'  => '*','value'      => 'phone','type'      => 'text'],
+            ['title'     => '是否绑定小程序','width'=> '*','value'      => 'udata_id','type'      => 'yesOrNo', 'yes'       => '是','no'        => '否'],
             ['title'     => '状态','width'    => '80','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
             ['title'     => '排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
             ['title'     => '操作','width'    => '*','value'      => 'installer_id','type'      => 'button','button'    =>
                 [
+                    ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],
                     ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'],
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']

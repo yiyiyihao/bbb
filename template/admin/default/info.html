@@ -11,7 +11,7 @@
                 {notempty name="field"}
                 {volist name="field" key="k" id="vo"}
                 {if condition="$vo['type'] == 'region'"}
-                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info[$vo.name]|default=""}' formstr="{$info[$vo.name]|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
                 {else/}
                 <div class="form-group">
                     <div class="label">
