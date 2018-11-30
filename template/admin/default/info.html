@@ -37,8 +37,8 @@
                             {/case}
                             {case uploadImg}
 	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
-				                <div class="image_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="image_preview" width="120"></div>
-				                <a class="button bg-main button-small js-img-upload" data="{$vo['name'] ?? ''}" preview="image_preview" href="javascript:;" >
+				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="{$vo['name'] ?? ''}" preview="{$vo['name'] ?? ''}_preview" href="javascript:;" >
 				                	<span class="icon-upload"> 上传</span>
 				                </a>
                             {/case}
