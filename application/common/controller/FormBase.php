@@ -50,7 +50,6 @@ class FormBase extends CommonBase
         $this->assign('userrule',$this->adminUser['rule']);
         $action=strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
         $this->assign('action',$action);
-        dump($action);
 
         if (method_exists($this->model, 'save')) {
             //取得内容列表
