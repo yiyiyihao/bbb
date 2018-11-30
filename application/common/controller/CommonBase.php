@@ -60,14 +60,12 @@ class CommonBase extends Base
                 $this->adminUser['rule'][]='admin/gcate/';
             }else{
                 //普通用户
-                //从登陆信息中取出权限配置
-                $allrules = $this->adminUser['groupPurview'];
-                if(!$this->adminUser['groupPurview']){
-                    session('admin_user',NULL);
-                    $this->error('未分配角色','login');
+                //json转数组(从登陆信息中取出权限配置)
+                $allrules = isset($this->adminUser['groupPurview']) && $this->adminUser['groupPurview'] ? json_decode($this->adminUser['groupPurview'],true) : [];
+                if(!$allrules){
+                    session($domain.'_user',NULL);
+                    $this->error('未分配角色','/login');
                 }
-                //json转数组
-                $allrules= $this->adminUser['groupPurview'] ? json_decode($this->adminUser['groupPurview'],true) : [];
                 //遍历取出可显示的
                 foreach ($allrules as $k => $v) {
                     $this->adminUser['rule'][]=$v['rule'];
@@ -107,7 +105,11 @@ class CommonBase extends Base
     
     //厂商管理后台初始化流程
     protected function initFactory($domain){
-        $this->adminFactory = $this->adminFactory ? $this->adminFactory : session('admin_factory');
+        $factory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['domain' => trim($domain), 'S.is_del' => 0])->find();
+        if (!$this->adminFactory) {
+            $this->adminFactory = $factory;
+            session('admin_factory', $factory);
+        }
         $this->adminStore = $this->adminStore ? $this->adminStore : session('admin_store');
     }
     
