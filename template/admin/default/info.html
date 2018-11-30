@@ -10,6 +10,9 @@
                 <div class="tab-panel active" id="tab-1">
                 {notempty name="field"}
                 {volist name="field" key="k" id="vo"}
+                {if condition="$vo['type'] == 'region'"}
+                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info[$vo.name]|default=""}' formstr="{$info[$vo.name]|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                {else/}
                 <div class="form-group">
                     <div class="label">
                         <label>{$vo.title}</label>
@@ -18,7 +21,10 @@
                     	{switch vo.type}
                         	{case text}
                         		<input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
-                        	{/case}                        	
+                        	{/case}
+                        	{case datetime}
+                        		<input type="text" class="input {$vo['class'] ?? ''}" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
+                        	{/case}
                             {case radio}
 	                            {notempty name="vo.radioList"}
 	                            <div class="button-group radio">
@@ -53,6 +59,7 @@
                         <div class="input-note">{$vo['notetext'] ?? ''}</div>
                     </div>
                 </div>
+                {/if}
                 {/volist}
                 {/notempty}
                 </div>
