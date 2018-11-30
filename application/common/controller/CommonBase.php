@@ -60,14 +60,14 @@ class CommonBase extends Base
                 $this->adminUser['rule'][]='admin/gcate/';
             }else{
                 //普通用户
-                //根据用户角色id查询menu_json，
-                $allrules = db('user_group')->field('menu_json')->where(['group_id'=>$this->adminUser['group_id'],'is_del' => 0, 'status' => 1])->find();
-                if(!$allrules['menu_json']){
+                //从登陆信息中取出权限配置
+                $allrules = $this->adminUser['groupPurview'];
+                if(!$this->adminUser['groupPurview']){
                     session('admin_user',NULL);
                     $this->error('未分配角色','login');
                 }
                 //json转数组
-                $allrules= $allrules['menu_json'] ? json_decode($allrules['menu_json'],true) : [];
+                $allrules= $this->adminUser['groupPurview'] ? json_decode($this->adminUser['groupPurview'],true) : [];
                 //遍历取出可显示的
                 foreach ($allrules as $k => $v) {
                     $this->adminUser['rule'][]=$v['rule'];
