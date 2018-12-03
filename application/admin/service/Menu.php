@@ -19,7 +19,7 @@ class Menu{
             $authRule[$k]['href'] = $module.$controller.$action;
         }
         $this->authRule = $authRule;
-        if(isset($user['groupPurview'])){
+        if(isset($user['groupPurview']) && $user['groupPurview']){
             $groupPurview = $user['groupPurview'];
             $groupPurview = json_decode($groupPurview,true);
             if(!empty($groupPurview)){
