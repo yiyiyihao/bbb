@@ -39,7 +39,7 @@ class CommonBase extends Base
         //如果有登录
         if ($this->adminUser) {
             //如果角色0，不验证权限
-            if($this->adminUser['group_id']==0){
+            if($this->adminUser['user_id'] == 1){
                 
             }else{
                 //普通用户
@@ -54,9 +54,9 @@ class CommonBase extends Base
                 $tempRule = [];
                 if(!empty($groupPurview)){
                     foreach ($groupPurview as $k=>$v){
-                        $key = $v['module'];
-                        if($v['controller']) $key .= '_'.$v['controller'];
-                        if($v['action'])     $key .= '_'.$v['action'];
+                        $key = isset($v['module']) ? $v['module'] : '';
+                        if(isset($v['controller']) && $v['controller']) $key .= '_'.$v['controller'];
+                        if(isset($v['action']) && $v['action'])     $key .= '_'.$v['action'];
                         $tempRule[$key] = $v;
                     }
                 }
