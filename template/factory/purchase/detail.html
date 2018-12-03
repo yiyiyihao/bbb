@@ -1,0 +1,42 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>工单信息</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="user_name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品价格</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="20" datatype="*" value="{$info['min_price'] ?? ''}">元
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">立即购买</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();  
+    }); 
+</script>

@@ -64,7 +64,8 @@ class User extends Model
                 return FALSE;
             }
             #TODO (服务商/渠道商/经销商)
-            $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+            $adminStore = $user['store'];
+//             $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             session('admin_store',$adminStore);
         }
         //设置session
@@ -133,6 +134,9 @@ class User extends Model
         if(!$user['status']){
             $this->error = lang('LOGIN_FORBIDDEN');
             return FALSE;
+        }
+        if ($user['admin_type'] && $user['store_id']) {
+            $user['store'] = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
         }
         if ($groupFlag) {
             if ($user['group_id']) {

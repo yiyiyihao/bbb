@@ -151,7 +151,21 @@ class Goods extends FormBase
             $this->error("参数错误");
         }
     }
-    
+    public function getSkuList()
+    {
+        $params = $this->request->param();
+        $goodsId = isset($params['goods_id']) ? intval($params['goods_id']) : 0;
+        if(!$goodsId){
+            $this->error('参数错误');
+        }
+        $where = [
+            'is_del' => 0,
+            'status' => 1,
+            'goods_id' => $goodsId,
+        ];
+        $this->model = db('goods_sku');
+        $this->getAjaxList($where, 'sku_id as id, sku_name as name');
+    }
     function _getField(){
         $field = 'G.*, C.name as cate_name';
         $field .= ', S.name as sname';

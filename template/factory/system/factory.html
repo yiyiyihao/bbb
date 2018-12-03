@@ -3,14 +3,76 @@
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>厂商参数配置</strong>
+                    <!-- <strong>参数配置</strong> -->
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">订单设置</a></li>
+                        <li><a href="#tab-2">商户配置</a></li>
+                        <li><a href="#tab-3">售后配置</a></li>
+                        <li><a href="#tab-4">审核配置</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>待支付订单取消时间</label>
+                        </div>
+                        <div class="field">
+                            <label>订单</label>
+                            <input type="text" class="input" id="order_cancel_time" name="order_cancel_time" size="5" datatype="n" value="{$config['order_cancel_time'] ?? ''}">
+                            <label>分钟内未付款，系统自动取消订单</label>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>售后工程师申请是否厂商审核</label>
+                            <label>退货退款时间</label>
+                        </div>
+                        <div class="field">
+                            <label>支付成功后</label>
+                            <input type="text" class="input" id="order_cancel_time" name="order_cancel_time" size="5" datatype="n" value="{$config['order_return_time'] ?? ''}">
+                            <label>天后，不允许退货退款</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-2">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>渠道佣金比例</label>
+                        </div>
+                        <div class="field">
+                        	<label>其下级零售商销售额的</label>
+                            <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$info['channel_commission_ratio'] ?? ''}">
+                            <label>%</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>零售商佣金比例</label>
+                        </div>
+                        <div class="field">
+                        	<label>零售商销售额的</label>
+                            <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$info['channel_commission_ratio'] ?? ''}">
+                            <label>%</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-3">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>客户名称</label>
+                        </div>
+                        <div class="field">
+                        	<label>安装服务费的</label>
+                            <input type="text" class="input" id="user_name" name="user_name" size="5" datatype="n" value="{$info['user_name'] ?? ''}">
+                            <label>% 作为绩效考核金</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-4">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>售后工程师审核</label>
                         </div>
                         <div class="field">
                         	<div class="button-group radio">

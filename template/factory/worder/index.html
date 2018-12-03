@@ -36,30 +36,30 @@
     <table id="table" class="table table-hover ">
       <tbody>
         <tr>
-          <th width="60">编号</th>
+          <th width="100">工单编号</th>
           {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
           <th width="*">服务商</th>
           {/if}
           <th width="*">工单类型</th>
-          <th width="*">客户姓名</th>
-          <th width="*">客户电话</th>
+          <th width="*">售后产品</th>
+          <th width="*">客户信息</th>
           <th width="*">客户地址</th>
-          <th width="*">预约服务时间</th>
-          <th width="*">售后工程师姓名</th>
-          <th width="120">下单时间</th>
-          <th width="80">状态</th>
-          <th width="250">操作</th>
+          <th width="120">预约服务时间</th>
+          <th width="120">售后工程师姓名</th>
+          <th width="120">服务提交时间</th>
+          <th width="70">状态</th>
+          <th width="*">操作</th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo"}
             <tr>
-              <td>{$i}</td>
+              <td>{$vo['worder_sn']}</td>
               {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
               <td>{$vo.name}</td>
               {/if}
               <td>{$orderTypes[$vo.order_type]}</td>
-              <td>{$vo.user_name}</td>
-              <td>{$vo.phone}</td>
+              <td>{$vo.gname} {$vo.sku_name}</td>
+              <td>{$vo.user_name} {$vo.phone}</td>
               <td>{$vo.region_name} {$vo.address}</td>
               <td>{$vo.appointment}</td>
               <td>{$vo.realname ?? '-'}</td>
@@ -70,8 +70,13 @@
               		{if condition="$vo.status == 0"}
 	              	<a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">派单</a>
 	              	{/if}
+	              	<a href="{:url('detail', ['id' => $vo['worder_id']])}" class="button button-small bg-green icon-edit">工单查看</a>
+	              	{if condition="!in_array($vo['status'], [-1, 3, 4])"}
 	              	<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
-	              	<a href="javascript:;" url="{:url('cacel', ['id' => $vo['worder_id']])}" class="button button-small bg-red icon-delete js-action" refresh="true" title="确定取消当前工单">取消</a>
+	              	{/if}
+	              	{if condition="!in_array($vo.status, [-1, 3, 4])"}
+	              	<a href="javascript:;" url="{:url('cancel', ['id' => $vo['worder_id']])}" class="button button-small bg-red icon-delete js-action" refresh="true" title="确定取消当前工单">取消</a>
+	              	{/if}
 	              	<a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.worder_id}">删除</a>
               	</span>
               </td>

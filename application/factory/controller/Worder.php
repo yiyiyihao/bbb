@@ -29,16 +29,14 @@ class Worder extends FactoryForm
     public function dispatch()
     {
         $info = $this->_assignInfo();
-        #TODO 判断是否可以重新指派售后工程师
         if (IS_POST) {
             $params = $this->request->param();
             $installerId = isset($params['installer_id']) ? intval($params['installer_id']) : 0;
             if (!$installerId) {
                 $this->error('请选择售后工程师');
             }
-            $params['status'] = 1;//已指派售后工程师等待工程师接单
-            $result = $this->model->save($params,['worder_id' => $info['worder_id']]);
-            if ($result) {
+            $result = $this->model->dispatchWorder($info['worder_id'], ADMIN_ID, $installerId);
+            if ($result !== FALSE) {
                 $this->success('售后工程师指派成功', url('index'));
             }else{
                 $this->error('操作失败');
@@ -48,10 +46,41 @@ class Worder extends FactoryForm
             return $this->fetch();
         }
     }
+    /**
+     * 工单详情
+     */
+    public function detail()
+    {
+        $info = $this->_assignInfo();
+        //查询售后产品
+        $info['goods'] = db('goods_sku')->alias('GS')->join([['goods G', 'G.goods_id = GS.goods_id', 'INNER']])->where(['sku_id' => $info['sku_id'], 'G.goods_id' => $info['goods_id']])->find();
+        $info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
+        $this->assign('info', $info);
+        return $this->fetch();
+    }
+    /**
+     * 取消工单
+     */
+    public function cancel()
+    {
+        $info = $this->_assignInfo();
+        $result = $this->model->cancelWorder($info['worder_id'], ADMIN_ID);
+        if ($result === FALSE) {
+            $this->error($this->model->error);
+        }else{
+            $this->success('取消售后订单成功');
+        }
+    }
     public function getAjaxList($where = [], $field = '')
     {
         $this->model = db('user_installer');
         parent::getAjaxList([], 'installer_id as id,  CONCAT(realname, " | ", phone) as name');
+    }
+    public function del()
+    {
+        #TODO 判断工单状态对应删除权限
+        
+//         parent::del();    
     }
     
     function _getAlias()
@@ -59,7 +88,7 @@ class Worder extends FactoryForm
         return 'WO';
     }
     function _getField(){
-        $field = 'I.*, WO.*';
+        $field = 'I.*, WO.*, G.name as gname, GS.sku_name';
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $field .= ',S.name';
         }
@@ -68,6 +97,8 @@ class Worder extends FactoryForm
     function _getJoin()
     {
         $join[] = ['user_installer I', 'I.installer_id = WO.installer_id', 'LEFT'];
+        $join[] = ['goods G', 'WO.goods_id = G.goods_id', 'LEFT'];
+        $join[] = ['goods_sku GS', 'WO.sku_id = GS.sku_id', 'LEFT'];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $join[] = ['store S', 'S.store_id = WO.store_id', 'LEFT'];
         }
@@ -85,14 +116,15 @@ class Worder extends FactoryForm
         }
         $where = [
             'WO.is_del' => 0,
-            'WO.status'    => $status,
         ];
+        if (isset($params['status'])) {
+            $where['WO.status'] = $status;
+        }
         if ($this->adminUser['admin_type'] == 2) {
             $where['WO.factory_id'] = $this->adminUser['store_id'];
         }elseif ($this->adminUser['admin_type'] == 3 && $this->storeType == 3){
             $where['WO.ostore_id'] = $this->adminUser['store_id'];
         }
-        
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
@@ -100,7 +132,7 @@ class Worder extends FactoryForm
             }
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
                 $sname = isset($params['sname']) ? trim($params['sname']) : '';
-                if($name){
+                if($sname){
                     $where['S.name'] = ['like','%'.$sname.'%'];
                 }
             }
@@ -117,12 +149,17 @@ class Worder extends FactoryForm
         $info = parent::_assignInfo();
         $storeId = isset($data['store_id']) ? intval($data['store_id']) : '';
         $orderType = isset($data['order_type']) ? intval($data['order_type']) : '';
+        $goodsId = isset($data['goods_id']) ? intval($data['goods_id']) : '';
+        $skuId = isset($data['sku_id']) ? intval($data['sku_id']) : '';
         $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
         $phone = isset($data['phone']) ? trim($data['phone']) : '';
         $address = isset($data['address']) ? trim($data['address']) : '';
+        $appointment = isset($data['appointment']) ? trim($data['appointment']) : '';
         $faultDesc = isset($data['fault_desc']) ? trim($data['fault_desc']) : '';
         $regionId = isset($data['region_id']) ? intval($data['region_id']) : '';
-        
+        if ($info && in_array($info['status'], [-1, 3, 4])) {
+            $this->error('工单当前状态不允许编辑');
+        }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){
             $this->error('请选择服务商');
         }
@@ -131,6 +168,12 @@ class Worder extends FactoryForm
         }
         if (!isset($this->orderTypes[$orderType])) {
             $this->error('工单类型错误');
+        }
+        if (!$goodsId) {
+            $this->error('请选择售后产品');
+        }
+        if (!$skuId) {
+            $this->error('请选择售后产品规格属性');
         }
         if (!$userName) {
             $this->error('请填写客户姓名');
@@ -143,6 +186,9 @@ class Worder extends FactoryForm
         }
         if (!$address) {
             $this->error('请填写客户地址');
+        }
+        if (!$appointment) {
+            $this->error('请填写客户预约服务时间');
         }
         if ($orderType == 2 && !$faultDesc) {
             $this->error('请简要描述故障信息');
@@ -159,16 +205,21 @@ class Worder extends FactoryForm
                 $data['store_id'] = $storeId;
                 $data['factory_id'] = $this->adminStore['store_id'];
             }
+            $data['post_user_id'] = ADMIN_ID;
         }
         return $data;
     }
     function _assignInfo($pkId = 0){
         $info = parent::_assignInfo();
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $factoryId = $this->adminUser['store_id'];
             //获取厂商下的服务商列表
             $stores = db('store')->field('store_id, name')->where(['is_del' => 0, 'status' => 1, 'factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_SERVICE])->select();
             $this->assign('stores', $stores);
+        }elseif ($this->adminFactory['admin_type'] == ADMIN_SERVICE){
+            $factoryId = $this->adminUser['factory_id'];
         }
+        $this->assign('factory_id', $factoryId);
         return $info;
     }
 }

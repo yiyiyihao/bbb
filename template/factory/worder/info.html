@@ -39,6 +39,20 @@
 							<div class="input-note">请选择工单类型</div>
 						</div>
 					</div>
+					<div class="form-group js-select" posturl="{:url('Goods/getAjaxList', ['store_id' => $factory_id])}" str="选择售后产品" searchName="请输入产品名称" formname="goods_id" formvalue='{$info.goods_id ?? 0}' validtype='*'></div>
+					<div class="form-group goods_skus hide">
+						<div class="label">
+							<label>产品属性</label>
+						</div>
+						<div class="field">
+							<select class="input" name="sku" id="sku" nullmsg="请选择产品属性！">
+								<option value="">==选择产品属性==</option>
+								{foreach name="stores" item="store" key="key"}
+									<option value="{$store.store_id}" {if condition="isset($info['store_id']) && $info['store_id'] == $store.store_id" }selected="selected"{/if} >{$store.name}</option> 
+								{/foreach}
+							</select>
+						</div>
+					</div>
                     <div class="form-group">
                         <div class="label">
                             <label>客户名称</label>
@@ -72,7 +86,7 @@
                             <label>预约服务时间</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input js-time" id="appointment" name="appointment" size="40" value="{$info['appointment'] ?? ''}">
+                            <input type="text" class="input js-time" datatype="*" id="appointment" name="appointment" size="40" value="{$info['appointment'] ?? ''}">
                             <div class="input-note">请填写预约服务时间</div>
                         </div>
                     </div>
@@ -91,6 +105,7 @@
                 <div class="form-button">
                     <button class="button bg-main" type="submit">保存</button>
                     <button class="button bg" type="reset">重置</button>
+                    <input type="hidden" name="sku_id" id="sku_id" value="{$info['sku_id'] ?? 0}">
                     <div id="tips"></div>
                 </div>
             </div>
@@ -101,6 +116,22 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();  
+        var goodsId = "{$info['goods_id'] ?? 0}";
+        var skuId = "{$info['sku_id'] ?? 0}";
+        if(goodsId > 0 && skuId > 0){
+        	getSkus(goodsId, skuId);
+        	//$("select[name='goods_id']").find("option[val='"+skuId+"']").click();
+        }
+        $('#form').on("change","select[name='goods_id']",function(){
+			var goodsId = $(this).children('option:selected').val();
+			getSkus(goodsId);
+		})
+		$('#sku').change(function(){
+			var skuid = $(this).val();
+			if(skuid > 0){
+				$("#sku_id").val(skuid);
+			}
+		});
         $('#order_type').change(function(){
 			var order_type = $(this).val();
 			$(".fault_desc").hide();
@@ -108,5 +139,31 @@
 				$(".fault_desc").show();
 			}
 		});
+        function getSkus(goodsId, skuId = 0)
+        {
+        	if(goodsId){
+				$.post('{:url("goods/getSkuList")}', {goods_id: goodsId}, function(result){
+        			var item = result.data;
+        			if(item.length > 0){
+        				if(item.length > 1){
+        					var html = '<option value="">==选择产品属性==</option>';
+            				$.each(item, function(i, value) {
+            					html += '<option value="'+value.id+'" '+(skuId ? 'selected="selected"' : '')+'>'+value.name+'</option>';
+            				});
+            				$("#sku").html(html);
+            				$("#sku_id").val(skuId ? skuId : 0);
+            				$(".goods_skus").show();
+        				}else{
+        					$("#sku_id").val(skuId ? skuId : item[0]['id']);
+        					$(".goods_skus").hide();
+        				}
+        			}else{
+        				layer.alert('产品异常');
+        				$("#sku_id").html('');
+        				$(".goods_skus").hide();
+        			}
+        		});
+			}
+        }
     }); 
 </script>

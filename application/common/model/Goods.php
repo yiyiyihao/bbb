@@ -38,4 +38,22 @@ class Goods extends Model
         }
         return FALSE;
     }
+    
+    public function _checkSku($skuId = 0)
+    {
+        if(!$skuId){
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        $sku = db('goods_sku')->where(['sku_id' => $skuId, 'is_del' => 0])->find();
+        if (!$sku) {
+            $this->error = '产品不存在或已删除';
+            return FALSE;
+        }
+        if (!$sku['status']) {
+            $this->error = '产品已下架';
+            return FALSE;
+        }
+        return $sku;
+    }
 }

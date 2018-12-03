@@ -32,7 +32,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      * 是否存在数据
      * @var bool
      */
-    private $exists = false;
+    protected $exists = false;
 
     /**
      * 是否Replace
