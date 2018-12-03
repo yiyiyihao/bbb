@@ -39,7 +39,7 @@ class CommonBase extends Base
         //如果有登录
         if ($this->adminUser) {
             //如果角色0，不验证权限
-            if($this->adminUser['user_id'] == 1){
+            if($this->adminUser['group_id']==0){
                 
             }else{
                 //普通用户
@@ -47,29 +47,45 @@ class CommonBase extends Base
                 $groupPurview = $this->adminUser['groupPurview'];
                 if(!$groupPurview){
                     session($domain.'_user',NULL);
-                    $this->error('未分配角色','/login');
+                    $this->error(lang('NO_GROUP'),'/login');
                 }
                 //json转数组
                 $groupPurview = json_decode($groupPurview,true);
                 $tempRule = [];
+                //dump($groupPurview);exit;
                 if(!empty($groupPurview)){
-                    foreach ($groupPurview as $k=>$v){
-                        $key = isset($v['module']) ? $v['module'] : '';
-                        if(isset($v['controller']) && $v['controller']) $key .= '_'.$v['controller'];
-                        if(isset($v['action']) && $v['action'])     $key .= '_'.$v['action'];
-                        $tempRule[$key] = $v;
+                    if(is_array($groupPurview)){
+                        foreach ($groupPurview as $k=>$v){
+                            $key = $v['module'];
+                            if($v['controller']) $key .= '_'.$v['controller'];
+                            if($v['action'])     $key .= '_'.$v['action'];
+                            $tempRule[$key] = $v;
+                            //dump($v);
+                        }
                     }
                 }
                 $module             = strtolower($this->request->module());
                 $controller         = strtolower($this->request->controller());
                 $action             = strtolower($this->request->action());
                 $tempAction = $module . '_' . $controller . '_' . $action;
+                $tempRule["admin_login_index"]=[
+                    ['model'=>'admin'],
+                    ['controller'=>'login'],
+                    ['action'=>'index']
+                ];
+                $tempRule["admin_index_index"]=[
+                    ['model'=>'admin'],
+                    ['controller'=>'index'],
+                    ['action'=>'index']
+                ];
                 if(!isset($tempRule[$tempAction])){
                     $this->error(lang('PERMISSION_DENIED'));
                 }
             }
             //初始化页面赋值
             $this->initAssign();
+        }else{
+            $this->error(lang('NO_LOGIN'),'Login/index');
         }
     }    
     
