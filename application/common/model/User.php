@@ -125,7 +125,7 @@ class User extends Model
      */
     public function _checkUser($userId = 0, $groupFlag = FALSE)
     {
-        $user = db('User')->where(['user_id' => ADMIN_ID, 'is_del' => 0])->find();
+        $user = db('User')->where(['user_id' => $userId, 'is_del' => 0])->find();
         if (!$user){
             $this->error = lang('USERNOTEXIST');
             return FALSE;
