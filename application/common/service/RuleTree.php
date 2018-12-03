@@ -72,21 +72,23 @@ class RuleTree
         {
             $pre    =   "";
             $pad    =   "";
-            if($n==$cnt)
+            if($n==$cnt)//最后一个节点
             {
-                $pre    =   $this->icon[2];
+                $pre    =   $this->icon[2].'';
+                $pad    =   $space ? $this->icon[0] : "";
             }
             else
             {
                 $pre    =   $this->icon[1];
-                $pad    =   $space?$this->icon[0]:"";
+                $pad    =   $space ? $this->icon[0] : "";
             }
-            $childs[$i][$this->field['cname']]  =   ($space?$pre.$space:"").$childs[$i][$this->field['title']];
+//             echo 'n:'.$n.' cnt:'.$cnt.'<br>';
+            $childs[$i][$this->field['cname']]  =   ($space ? $pre.$space : "").$childs[$i][$this->field['title']];
             $this->formatList[]                 =   $childs[$i];
             //递归下一级分类
             $filed = isset($this->field[$pkId]) ? $this->field[$pkId]: $pkId;
-            $this->_searchList($childs[$i][$filed], $space.$pad.$this->icon[3], $pkId);
-//             $cnt++;
+            $this->_searchList($childs[$i][$filed], $space.$pad.' ', $pkId);
+            $cnt++;
         }
     }
     

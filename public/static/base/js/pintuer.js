@@ -361,7 +361,8 @@ $(function(){
 			var c = $(this).parents('.checkgroup').find(".data-single.checked");
 			var len = s.length;
 			var cLen = c.length;
-			if(len == cLen){
+			//if(len == cLen){//原处理 必须下级节点全部选中 上级节点才勾选
+			if(cLen > 0){// 现修改 下级任一（需显示节点）被选中，上级即勾选
 				//console.log("len:"+len+",cLen:"+cLen+"==");
 				var da = $(this).parents('.checkgroup').find(".data-all");
 				var ds = $(this).parents('.checkgroup').find(".data-single.checked");
