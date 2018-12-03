@@ -338,8 +338,8 @@ class Store extends FormBase
                 [
                     ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-yellow'],
                     $btnArray,
-                    $edit,
-                    $del
+                    $edit??'',
+                    $del??''
                 ]
             ]
         ];
