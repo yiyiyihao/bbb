@@ -20,6 +20,7 @@
       <tbody>
         <tr>
           <th width="100">编号</th>
+          <th width="150">角色分组</th>
           <th width="*">角色名称</th>
           <th width="80">状态</th>
           <th width="100">排序</th>
@@ -29,6 +30,7 @@
           {volist name="list" id="vo"}
             <tr>
               <td>{$i}</td>
+              <td>{switch vo.group_type}{case 1}平台角色{/case}{case 2}厂商角色{/case}{/switch}</td>
               <td>{$vo.name}</td>
               <td>{$vo['status']?'<span class="tag bg-green">可用</span>':'<span class="tag bg-red">禁用</span>'}</td>
               <td>{$vo.sort_order}</td>

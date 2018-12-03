@@ -16,6 +16,7 @@ class Authrule extends AdminForm
         $this->field = self::_fieldData();
         $this->perPage = 100;
     }
+        
     public function grant()
     {
         $params = $this->request->param();
@@ -82,33 +83,5 @@ class Authrule extends AdminForm
             ['title'     => '操作','width'     => '160','type'      => 'button','value'   => 'id','button'    =>  [['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']]]
         ];
         return $table;
-    }
-    /**
-     * 详情字段配置
-     */
-    /*function _fieldData(){
-        parent::_fieldData();
-        $field = [
-            ['title'=>'上级节点','type'=>'select','options'=>'rulelist','name'=>'parent_id','size'=>'40','datatype'=>'','default'=>'','default_option'=>'==顶级节点==','notetext'=>'顶级节点请留空,其它上级节点请慎重选择'],
-            ['title'=>'权限名称','type'=>'text','name'=>'title','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写权限节点名称'],
-            ['title'=>'权限模块','type'=>'text','name'=>'module','size'=>'20','datatype'=>'','default'=>'','notetext'=>'请填写权限节点操作module,留空默认admin'],
-            ['title'=>'权限控制器','type'=>'text','name'=>'controller','size'=>'20','datatype'=>'','default'=>'','notetext'=>'请填写权限节点操作控制器'],
-            ['title'=>'权限操作','type'=>'text','name'=>'action','size'=>'20','datatype'=>'','default'=>'','notetext'=>'请填写权限节点操作行为'],
-            ['title'=>'菜单图标','type'=>'text','name'=>'icon','size'=>'20','datatype'=>'','default'=>'','notetext'=>'请填写权限节点操作行为'],
-            ['title'=>'节点状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'可用','value'=>'1'],
-                ['text'=>'禁用','value'=>'0'],
-            ]],
-            ['title'=>'权限状态','type'=>'radio','name'=>'authopen','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'开启','value'=>'1'],
-                ['text'=>'关闭','value'=>'0'],
-            ]],
-            ['title'=>'显示状态','type'=>'radio','name'=>'menustatus','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'开启','value'=>'1'],
-                ['text'=>'关闭','value'=>'0'],
-            ]],
-            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'255','notetext'=>''],
-        ];
-        return $field;
-    }*/
+    }    
 }

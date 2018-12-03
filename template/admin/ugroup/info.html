@@ -17,11 +17,25 @@
                             <label>角色名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="60" datatype="*" value="{$info['name'] ?? ''}">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
                             <div class="input-note">角色名称请不要填写特殊字符</div>
                         </div>
                     </div>
-                    
+                    <div class="form-group">
+                        <div class="label">
+                            <label>角色分组</label>
+                        </div>
+                        <div class="field">
+                        	{notpresent name="info.group_type"}
+                                {assign name="info.group_type" value="" /}
+                            {/notpresent}
+                            <select class="input" id="group_type" name="group_type" datatype="*">
+                            	<option value="">--请选择--</option>
+                            	<option value="1"{eq name="info.group_type" value="1"} selected="selected"{/eq}>平台角色</option>
+                                <option value="2"{eq name="info.group_type" value="2"} selected="selected"{/eq}>厂商角色</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="expand"></div>
                     <div class="form-group">
                         <div class="label">

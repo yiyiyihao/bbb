@@ -16,12 +16,27 @@ class Ugroup extends AdminForm
     /**
      * 用户组授权
      */
-    public function purview(){
+    public function purview(){       
         $params = $this->request->param();
-        $pkId = intval($params['id']);
-        $menus=[];
+        $pkId   = intval($params['id']);
+        //取得当前用户组详情
+        $info = parent::_assignInfo($pkId);
+        $group = 'factory';
+        $groupType = 2;
+        if(isset($info['group_type']) && $info['group_type']){
+            switch ($info['group_type']){
+                case 1:
+                    $group      = 'admin';
+                    $groupType  = 1;
+                break;
+                case 2:
+                    $group      = 'factory';
+                break;
+            }
+        }
+        $menus  = [];
         //获取所有权限及子权限
-        $rules  =   model('AuthRule')->getALLRule('factory');
+        $rules  =   model('AuthRule')->getALLRule($group);
         if($pkId){
             if(IS_POST){
                 $msg = lang($this->modelName.'_purview');
@@ -58,11 +73,9 @@ class Ugroup extends AdminForm
                 }
 
             }else{
-                $rules = $this->_menu($rules,2);
+                $rules = $this->_menu($rules,$groupType);
                 //所有权限分配模板
                 $this->assign('rules', $rules);
-                //取得当前用户组详情
-                $info = parent::_assignInfo($pkId);
                 $ruleInfo = $info['menu_json'];
                 //有授权
                 if($ruleInfo != ''){
