@@ -1,6 +1,5 @@
 <?php
 namespace app\common\controller;
-use app\common\controller\CommonBase;
 use think\facade\Request;
 /**
  * @author chany
