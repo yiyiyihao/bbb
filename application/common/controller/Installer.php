@@ -22,10 +22,6 @@ class Installer extends FormBase
         $this->search= self::_searchData();
         $this->table = self::_tableData();
         $this->field = self::_fieldData();
-//         $this->breadCrumb[] = [
-//             'name' => '待审核',
-//             'url' => url('checklist'),
-//         ];
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     /**
@@ -177,7 +173,7 @@ class Installer extends FormBase
             ['title'     => '排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
             ['title'     => '操作','width'    => '*','value'      => 'installer_id','type'      => 'button','button'    =>
                 [
-                    ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],
+//                     ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],
                     ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'],
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']

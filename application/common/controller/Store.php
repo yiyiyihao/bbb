@@ -220,10 +220,12 @@ class Store extends FormBase
     }
     function _getField(){
         $field = 'S.name, U.*, AS.*, S.*';
-        if ($this->storeType == 2) {
+        if ($this->storeType == STORE_CHANNEL) {
             $field .= ', CG.name as gname';
+        }elseif ($this->storeType == STORE_DEALER){
+            $field .= ', S2.name as cname';
         }
-        if ($this->storeType != 1) {
+        if ($this->storeType != STORE_FACTORY) {
             $field .= ', S1.name as sname';
         }
         return $field;
@@ -250,10 +252,12 @@ class Store extends FormBase
                 break;
         }
         $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
-        if ($this->storeType == 2) {
+        if ($this->storeType == STORE_CHANNEL) {
             $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];
+        }elseif ($this->storeType == STORE_DEALER){
+            $join[] = ['store S2', 'S2.store_id = AS.ostore_id', 'LEFT'];
         }
-        if ($this->storeType != 1) {
+        if ($this->storeType != STORE_FACTORY) {
             $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
         }
         return $join;
@@ -267,9 +271,9 @@ class Store extends FormBase
             'S.is_del'      => 0,
             'S.store_type'  => $this->storeType,
         ];
-        if ($this->adminUser['admin_type'] == 2) {
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == 3 && $this->storeType == 3){
+        }elseif ($this->adminUser['admin_type'] == ADMIN_DEALER && $this->storeType == STORE_DEALER){
             $where['AS.ostore_id'] = $this->adminUser['store_id'];
         }
         $params = $this->request->param();
@@ -315,6 +319,8 @@ class Store extends FormBase
             $array1 = ['title'     => '负责区域', 'width'   => '100','value'     => 'region_name', 'type'      => 'text'];
             $array2 = ['title'     => '保证金金额', 'width'   => '100','value'     => 'caution_money', 'type'      => 'text'];
             $btnArray = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
+        }elseif ($this->storeType == STORE_DEALER){
+            $array1 = ['title'     => '所属渠道', 'width'   => '100','value'     => 'cname', 'type'      => 'text'];
         }
         //判断是否有编辑删除的权限
         if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
