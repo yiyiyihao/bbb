@@ -299,6 +299,12 @@ class Store extends FormBase
      * 列表项配置
      */
     function _tableData(){
+        //获取当前访问方法
+        $module             = strtolower($this->request->module());
+        $controller         = strtolower($this->request->controller());
+        $tempAction = $module . '_' . $controller . '_' ;
+        //dump($tempAction);exit;
+        //组合表格
         $array = $array1 = $array2 = $btnArray = [];
         if ($this->storeType == STORE_FACTORY) {
             $array = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text'];
@@ -309,6 +315,13 @@ class Store extends FormBase
             $array1 = ['title'     => '负责区域', 'width'   => '100','value'     => 'region_name', 'type'      => 'text'];
             $array2 = ['title'     => '保证金金额', 'width'   => '100','value'     => 'caution_money', 'type'      => 'text'];
             $btnArray = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
+        }
+        //判断是否有编辑删除的权限
+        if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
+            $edit=['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'];
+        }
+        if(isset($this->adminUser['tempRule'][$tempAction.'del'])){
+            $del=['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'];
         }
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
@@ -325,8 +338,8 @@ class Store extends FormBase
                 [
                     ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-yellow'],
                     $btnArray,
-                    ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
-                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']
+                    $edit,
+                    $del
                 ]
             ]
         ];

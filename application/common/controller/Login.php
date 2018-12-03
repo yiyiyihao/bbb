@@ -9,6 +9,7 @@ use think\facade\Request;
  */
 class Login extends CommonBase
 {
+    public $is_check_login = FALSE;//不校验登陆
     public function __construct()
     {
         parent::__construct();

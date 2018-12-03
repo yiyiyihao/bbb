@@ -12,6 +12,7 @@ class CommonBase extends Base
     var $adminStore;
     var $adminFactory;//厂商二级域名登录赋值
     var $breadCrumb;
+    var $is_check_login = TRUE;//校验登陆
 	//公共预处理方法
 	public function __construct()
     {
@@ -35,57 +36,68 @@ class CommonBase extends Base
     }
     //公共登录处理初始化
     protected function commonInit($domain){
-        $this->adminUser = session($domain.'_user');
-        //如果有登录
-        if ($this->adminUser) {
-            //如果角色0，不验证权限
-            if($this->adminUser['group_id']==0){
-                
-            }else{
-                //普通用户
-                //从登陆信息中取出权限配置
-                $groupPurview = $this->adminUser['groupPurview'];
-                if(!$groupPurview){
-                    session($domain.'_user',NULL);
-                    $this->error(lang('NO_GROUP'),'/login');
-                }
-                //json转数组
-                $groupPurview = json_decode($groupPurview,true);
-                $tempRule = [];
-                //dump($groupPurview);exit;
-                if(!empty($groupPurview)){
-                    if(is_array($groupPurview)){
-                        foreach ($groupPurview as $k=>$v){
-                            $key = $v['module'];
-                            if($v['controller']) $key .= '_'.$v['controller'];
-                            if($v['action'])     $key .= '_'.$v['action'];
-                            $tempRule[$key] = $v;
-                            //dump($v);
+        if($this->is_check_login){
+            $this->adminUser = session($domain.'_user');
+            //dump($this->adminUser);exit;
+            //如果有登录
+
+            if ($this->adminUser) {
+                //如果角色0，不验证权限
+                //dump($this->adminUser);exit;
+                if($this->adminUser['group_id']==0){
+                    
+                }else{
+                    //普通用户
+                    //从登陆信息中取出权限配置
+                    $groupPurview = $this->adminUser['groupPurview'];
+                    if(!$groupPurview){
+                        session($domain.'_user',NULL);
+                        $this->error(lang('NO_GROUP'),'/login');
+                    }
+                    //json转数组
+                    $groupPurview = json_decode($groupPurview,true);
+                    $tempRule = [];
+                    //dump($groupPurview);exit;
+                    if(!empty($groupPurview)){
+                        if(is_array($groupPurview)){
+                            foreach ($groupPurview as $k=>$v){
+                                $key = $v['module'];
+                                if($v['controller']) $key .= '_'.$v['controller'];
+                                if($v['action'])     $key .= '_'.$v['action'];
+                                $tempRule[$key] = $v;
+                                //dump($v);
+                            }
                         }
                     }
+                    $module             = strtolower($this->request->module());
+                    $controller         = strtolower($this->request->controller());
+                    $action             = strtolower($this->request->action());
+                    $tempAction = $module . '_' . $controller . '_' . $action;
+                    $tempRule["admin_login_index"]=[
+                        'model'=>'admin',
+                        'controller'=>'login',
+                        'action'=>'index'
+                    ];
+                    $tempRule["admin_login_logout"]=[
+                        'model'=>'admin',
+                        'controller'=>'login',
+                        'action'=>'logout'
+                    ];
+                    $tempRule["admin_index_index"]=[
+                        'model'=>'admin',
+                        'controller'=>'index',
+                        'action'=>'index'
+                    ];
+                    $this->adminUser['tempRule']=$tempRule;
+                    if(!isset($tempRule[$tempAction])){
+                        $this->error(lang('PERMISSION_DENIED'));
+                    }
                 }
-                $module             = strtolower($this->request->module());
-                $controller         = strtolower($this->request->controller());
-                $action             = strtolower($this->request->action());
-                $tempAction = $module . '_' . $controller . '_' . $action;
-                $tempRule["admin_login_index"]=[
-                    ['model'=>'admin'],
-                    ['controller'=>'login'],
-                    ['action'=>'index']
-                ];
-                $tempRule["admin_index_index"]=[
-                    ['model'=>'admin'],
-                    ['controller'=>'index'],
-                    ['action'=>'index']
-                ];
-                if(!isset($tempRule[$tempAction])){
-                    $this->error(lang('PERMISSION_DENIED'));
-                }
+                //初始化页面赋值
+                $this->initAssign();
+            }else{
+                $this->error(lang('NO_LOGIN'),'login');
             }
-            //初始化页面赋值
-            $this->initAssign();
-        }else{
-            $this->error(lang('NO_LOGIN'),'Login/index');
         }
     }    
     
