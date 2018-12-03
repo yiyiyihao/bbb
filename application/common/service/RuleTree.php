@@ -10,7 +10,7 @@ class RuleTree
     //格式化后的分类
     private $formatList = array();
     //格式化的字符
-    private $icon = array('│','├','└');
+    private $icon = array('│','├','└',' ─ ');
     //字段映射，分类id，上级分类parent_id,分类名称name,格式化后分类名称fullname
     private $field = array();
      
@@ -65,28 +65,28 @@ class RuleTree
         //下级分类的数组
         $childs = $this->getChild($id);
         //如果没下级分类，结束递归
-        if(!($n=count($childs))) return;
+        if(!($n = count($childs))) return;
         $cnt=1;
         //循环所有的下级分类
         for($i=0;$i<$n;$i++)
         {
-            $pre="";
-            $pad="";
+            $pre    =   "";
+            $pad    =   "";
             if($n==$cnt)
             {
-                $pre=$this->icon[2];
+                $pre    =   $this->icon[2];
             }
             else
             {
-                $pre=$this->icon[1];
-                $pad=$space?$this->icon[0]:"";
+                $pre    =   $this->icon[1];
+                $pad    =   $space?$this->icon[0]:"";
             }
-            $childs[$i][$this->field['cname']]=($space?$space.$pre:"").$childs[$i][$this->field['title']];
-            $this->formatList[]=$childs[$i];
+            $childs[$i][$this->field['cname']]  =   ($space?$pre.$space:"").$childs[$i][$this->field['title']];
+            $this->formatList[]                 =   $childs[$i];
             //递归下一级分类
             $filed = isset($this->field[$pkId]) ? $this->field[$pkId]: $pkId;
-            $this->_searchList($childs[$i][$filed], $space.$pad." ", $pkId);
-            $cnt++;
+            $this->_searchList($childs[$i][$filed], $space.$pad.$this->icon[3], $pkId);
+//             $cnt++;
         }
     }
     

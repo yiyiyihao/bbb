@@ -34,7 +34,6 @@
         <div id="siderbar-nav">
         {notempty name="menuList"}
         {volist name="menuList" id="vo"}
-        {eq name="$vo.parent_id" value="0"}
         <div class="nav-box fold">
             <div class="nav-head"><span class="icon-{$vo.icon ?? ''}"> <span class="head-name">{$vo.title}</span></span><i class="icon-bottom animate"></i></div>
             {notempty name="vo.list"}
@@ -47,7 +46,6 @@
             </ul>
             {/notempty}
         </div>
-        {/eq}
         {/volist}
         {/notempty}
         <span id="nav-bar" class="animate"></span>

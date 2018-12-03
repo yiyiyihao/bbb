@@ -32,6 +32,7 @@ class AuthRule extends Model
 	        $where = [
 	            'module'        => $module,
 	            'menustatus'    => 1,
+	            'parent_id'     => ['neq',0],
 	            'status'        => 1,
 	            'is_del'        => 0,
 	        ];
@@ -54,6 +55,7 @@ class AuthRule extends Model
 	    if(!$allRules){
 	        $where = [
 	            'module'        => $module,
+	            'parent_id'     => ['neq',0],
 	            'status'        => 1,
 	            'is_del'        => 0,
 	        ];

@@ -21,7 +21,7 @@ class Ugroup extends AdminForm
         $pkId = intval($params['id']);
         $menus=[];
         //获取所有权限及子权限
-        $rules=model('AuthRule')->getALLRule();
+        $rules  =   model('AuthRule')->getALLRule('factory');
         if($pkId){
             if(IS_POST){
                 $msg = lang($this->modelName.'_purview');
@@ -58,6 +58,7 @@ class Ugroup extends AdminForm
                 }
 
             }else{
+                $rules = $this->_menu($rules,2);
                 //所有权限分配模板
                 $this->assign('rules', $rules);
                 //取得当前用户组详情
@@ -69,10 +70,10 @@ class Ugroup extends AdminForm
                     //dump($ruleInfo);exit;
                     //遍历授权字符串取出id回显
                     foreach ($ruleInfo as $k => $v) {
-                        $grouppurview[]=$v['id'];  
+                        $grouppurview[] =   $v['id'];  
                     }
                 }else{
-                    $grouppurview='';
+                    $grouppurview       =   '';
                 }
 //                 $grouppurview = 'all';
                 //取得当前用户组授权树
@@ -84,6 +85,23 @@ class Ugroup extends AdminForm
         }else{
             $this->error(lang('param_error'));
         }
+    }
+    
+    /**
+     * 重组数组分层
+     */
+    private function _menu($rules = [],$pid){
+        $menu = [];
+        foreach ($rules as $k=>$v){
+            if($v['parent_id'] == $pid){
+                $menu[$k] = $v;
+                $child = self::_menu($rules,$v['id']);
+                if(!empty($child)){
+                    $menu[$k]['list'] = $child;
+                }
+            }
+        }
+        return $menu;
     }
     
     function _getWhere(){

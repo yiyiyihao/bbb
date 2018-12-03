@@ -32,7 +32,8 @@ class Menu{
                 $this->authRule = $tempRule;
             }
         }
-        $adminMenu = self::_menu(0);
+        $pid = ($domain == 'admin') ? 1 : 2;
+        $adminMenu = self::_menu($pid);
         return $adminMenu;
     }
     

@@ -32,7 +32,8 @@ class Authrule extends AdminForm
     {
         parent::_afterList($list);
         foreach ($list as $k=>$v){
-            $module     = (!empty($v['module']) && $v['module'] != 'admin') ? '/'.$v['module'] : '';
+//             $module     = (!empty($v['module']) && $v['module'] != 'admin') ? '/'.$v['module'] : '';
+            $module = '';
             $controller = !empty($v['controller']) ? '/'.$v['controller'] : '';
             $action     = !empty($v['action']) ? '/'.$v['action'] : '';
             $list[$k]['href'] = $module.$controller.$action;
@@ -72,6 +73,7 @@ class Authrule extends AdminForm
             ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
             ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
             ['title'     => '节点名称','width'   => '*','value'     => 'cname','type'      => 'text'],
+            ['title'     => '权限归属','width'     => '100','value'     => 'module','type'      => 'text'],
             ['title'     => '操作地址','width'     => '*','value'     => 'href','type'      => 'text'],
             ['title'     => '是否验证权限','width'     => '120','value'     => 'authopen','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
             ['title'     => '是否显示菜单','width'     => '120','value'     => 'menustatus','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
