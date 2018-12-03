@@ -30,11 +30,11 @@ class Ugroup extends AdminForm
                 //遍历id取出权限信息，保存在$menus中，
                 foreach ($rule as $k => $v) {
 //                     $menudata=db('AuthRule')->find($v);
-                    $menudata               =   $rules[$v];
-                    $menus[$k]['id']        =   $menudata['id'];
-                    $menus[$k]['module']    =   $menudata['module'];
-                    $menus[$k]['controller']=   $menudata['controller'];
-                    $menus[$k]['action']    =   $menudata['action'];
+//                     $menudata               =   $rules[$v];
+                    $menus[$k]['id']        =   $rules[$v]['id'];
+                    $menus[$k]['module']    =   $rules[$v]['module'];
+                    $menus[$k]['controller']=   $rules[$v]['controller'];
+                    $menus[$k]['action']    =   $rules[$v]['action'];
 //                     $menus[$k]['rule']=strtolower($menudata['module'].'/'.$menudata['controller'].'/'.$menudata['action']);
 //                     $menus[$k]['parent_id']=$menudata['parent_id'];
 //                     $menus[$k]['menustatus']=$menudata['menustatus'];

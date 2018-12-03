@@ -17,7 +17,7 @@ class Factory extends Store
         $this->groupId = GROUP_FACTORY;
         // $userrule=implode(',', $this->adminUser['rule']);
         //dump($userrule);exit;
-        $this->assign('userrule',$this->adminUser['rule']);
+        //$this->assign('userrule',$this->adminUser['rule']);
     }
     //厂商参数设置
     public function config()

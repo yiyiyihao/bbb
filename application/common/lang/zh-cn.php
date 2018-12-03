@@ -8,10 +8,12 @@ return [
     'SYSTEM_ERROR'          =>  '系统异常',
     'USERNOTEXIST'          =>  '用户不存在',
     'PERMISSION_DENIED'     =>  '没有权限',
+    'NO_GROUP'              =>  '未分配角色',
     'USERORPSW_NULL'        =>  '用户名或密码为空',
     'USER_HAS_BEEN_DISABLED'=>  '用户已经被禁用',
     'PSW_ERROR'             =>  '密码错误',
     'LOGIN_FORBIDDEN'       =>  '账户已被禁用',
+    'NO_LOGIN'              =>  '未登录',
     'LOGIN_SUCCESS'         =>  '登录成功',
     'LOGOUT_SUCCESS'        =>  '退出成功',
     

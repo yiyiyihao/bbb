@@ -317,7 +317,7 @@ class Store extends FormBase
             $array1,
             $array2,
             ['title'     => '联系人姓名', 'width'   => '100','value'     => 'user_name', 'type'      => 'text'],
-            ['title'     => '联系电话', 'width'   => '60','value'     => 'mobile', 'type'      => 'text'],
+            ['title'     => '联系电话', 'width'   => '160','value'     => 'mobile', 'type'      => 'text'],
             ['title'     => '管理员账号','width' => '120','value'     => 'username','type'      => 'text'],
             ['title'     => '状态','width'    => '60','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
             ['title'     => '排序','width'    => '60','value'      => 'sort_order','type'      => 'text'],
