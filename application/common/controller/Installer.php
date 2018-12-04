@@ -162,22 +162,29 @@ class Installer extends FormBase
      * 列表项配置
      */
     function _tableData(){
+        $status_ser=['text'  => '待服务商审核','action'=> 'text','icon'  => '','value'   => -3,'bgClass' => ''];
+        $status_fac=['text'  => '待厂商审核',  'action'=> 'text','icon'  => '','value'   => -1,'bgClass' => ''];
+        
         $table = [
-            ['title'     => '编号','width'    => '60','value'      => 'user_id','type'      => 'index'],
-            ['title'     => '厂商','width' => '*','value'     => 'fname','type'      => 'text'],
-            ['title'     => '服务商','width' => '*','value'     => 'sname','type'      => 'text'],
-            ['title'     => '服务区域','width'  => '*','value'      => 'region_name','type'      => 'text'],
-            ['title'     => '真实姓名','width'  => '*','value'      => 'realname','type'      => 'text'],
-            ['title'     => '联系电话','width'  => '*','value'      => 'phone','type'      => 'text'],
-            ['title'     => '是否绑定小程序','width'=> '*','value'      => 'udata_id','type'      => 'yesOrNo', 'yes'       => '是','no'        => '否'],
-            ['title'     => '状态','width'    => '80','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
-            ['title'     => '排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
-            ['title'     => '操作','width'    => '*','value'      => 'installer_id','type'      => 'button','button'    =>
+            ['title'     => '编号','width'      => '60','value'    => 'user_id','type'      => 'index'],
+            ['title'     => '厂商','width'      => '*','value'     => 'fname','type'        => 'text'],
+            ['title'     => '服务商','width'    => '*','value'     => 'sname','type'        => 'text'],
+            ['title'     => '服务区域','width'  => '*','value'      => 'region_name','type' => 'text'],
+            ['title'     => '真实姓名','width'  => '*','value'      => 'realname','type'    => 'text'],
+            ['title'     => '联系电话','width'  => '*','value'      => 'phone','type'       => 'text'],
+            ['title'     => '是否绑定小程序','width'=> '*','value'   => 'udata_id','type'    => 'yesOrNo', 'yes'      => '是','no'       => '否'],
+            ['title'     => '状态','width'      => '80','value'     => 'status','type'      => 'yesOrNo', 'yes'      => '可用','no'     => '禁用'],
+            ['title'     => '排序','width'      => '80','value'     => 'sort_order','type'  => 'text'],
+            ['title'     => '操作','width'      => '*','value'      => 'installer_id','type' => 'button','button'    =>
                 [
 //                     ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],
                     ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'],
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
-                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']
+                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'],
+                    /*['text'  => '待服务商审核','action'=> 'a',   'icon'  => '','value'   => 'status','bgClass' => ''],
+                    ['text'  => '待厂商审核',  'action'=> 'text','icon'  => '','value'   => 'status','bgClass' => '']*/
+                    $status_ser??'',
+                    $status_fac??''
                 ]
             ]
         ];
@@ -225,12 +232,13 @@ class Installer extends FormBase
     function check(){
         $info = $this->_assignInfo();
         $adminUser = $this->adminUser;
-        //dump($info);exit;
+        //dump($adminUser);exit;
         //当需要服务商审核，并且是服务商帐号登录
         if($info['status']==-3 && $adminUser['group_id']==4){
             if(IS_POST){
                 //获取提交信息
                 $params = $this->request->param();
+                dump($params);exit;
                 if($params['check']=='1'){
                     $con_status = parent::checkStatus($info['factory_id']);
                     if($con_status == 1){
@@ -239,6 +247,7 @@ class Installer extends FormBase
                         $this->updateCheck($info['installer_id'],1);//状态改为1
                     }
                 }else{
+                    $this->setRemark($adminUser,$params,$info['installer_id']);
                     $this->updateCheck($info['installer_id'],0);//状态改为0
                 }
             }
@@ -254,6 +263,7 @@ class Installer extends FormBase
                 if($params['check']=='1'){
                     $this->updateCheck($info['installer_id'],1); //状态改为1
                 }else{
+                    $this->setRemark($adminUser,$params,$info['installer_id']);
                     $this->updateCheck($info['installer_id'],0);//状态改为0
                 }
             }
@@ -274,5 +284,14 @@ class Installer extends FormBase
         }else{
             $this->error('失败','index');
         }
+    }
+    function setRemark($adminUser,$params,$installer_id){
+        //remark入库
+        $remark=[
+            'store_id' =>  $adminUser['store_id'],
+            'remark'   =>  $params['remark']
+        ];
+        $remark=json_encode($remark);  
+        $this->model->where(['installer_id'=>$installer_id])->update(['remark'=>$remark]);
     }
 }
