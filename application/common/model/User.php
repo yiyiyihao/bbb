@@ -63,9 +63,11 @@ class User extends Model
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
-            #TODO (服务商/渠道商/经销商)
-            $adminStore = $user['store'];
-//             $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+            if (isset($user['store'])&& $user['store']) {
+                $adminStore = $user['store'];
+            }else{
+                $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+            }
             session('admin_store',$adminStore);
         }
         //设置session
