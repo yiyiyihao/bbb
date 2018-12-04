@@ -1,0 +1,33 @@
+<style>
+.error,.success{ font-size:20px; padding:20px 0 40px;}
+</style>
+<div class="panel admin-box">
+	<div class="panel-head"><span>操作提示</span></div>
+    <div class="panel-body">
+        <?php switch ($code) {?>
+            <?php case 1:?>
+            <p class="success"><i class="icon-check text-main"></i> <?php echo(strip_tags($msg));?></p>
+            <?php break;?>
+            <?php case 0:?>
+            <p class="error"><i class="icon-tips text-red"></i> <?php echo(strip_tags($msg));?></p>
+            <?php break;?>
+        <?php } ?>
+        <p class="detail"></p>
+        <p class="jump">
+            页面在 <b id="wait"><?php echo($wait);?></b> 秒后自动 <a id="href" href="<?php echo($url);?>">跳转</a>
+        </p>
+    </div>
+</div>
+<script type="text/javascript">
+	(function(){
+		var wait = document.getElementById('wait'),
+			href = document.getElementById('href').href;
+		var interval = setInterval(function(){
+			var time = --wait.innerHTML;
+			if(time <= 0) {
+				location.href = href;
+				clearInterval(interval);
+			};
+		}, 1000);
+	})();
+</script>
