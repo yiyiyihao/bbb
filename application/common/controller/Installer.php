@@ -238,7 +238,6 @@ class Installer extends FormBase
             if(IS_POST){
                 //获取提交信息
                 $params = $this->request->param();
-                dump($params);exit;
                 if($params['check']=='1'){
                     $con_status = parent::checkStatus($info['factory_id']);
                     if($con_status == 1){
@@ -258,7 +257,6 @@ class Installer extends FormBase
             if(IS_POST){
             //获取提交信息
                 $params = $this->request->param();
-                //dump($params);exit;
                 //提交如果为1，审核同意，否则status为0
                 if($params['check']=='1'){
                     $this->updateCheck($info['installer_id'],1); //状态改为1
