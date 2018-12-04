@@ -128,18 +128,6 @@ class FormBase extends CommonBase
         $params = $this->request->param();
         if(IS_POST){
             $data = $this->_getData();
-            if($this->modelName = 'user_installer'){
-                if($this->checkStatus($data['store_id'])){
-                    $data['status']=-3;
-                }else{
-                    if($this->checkStatus($data['factory_id'])){
-                        $data['status']=-1;
-                    }else{
-                        $data['status']=1;
-                    }
-                }
-            }
-            //dump($data);exit;
             if (method_exists($this->model, 'save')) {
                 $pkId = $this->model->save($data);
             }else{
@@ -356,11 +344,4 @@ class FormBase extends CommonBase
     {
         return FALSE;
     }
-    //审核状态
-    function checkStatus($id){
-        //获取当前服务商的厂商的是否审核
-        $status = db('store')->field('config_json')->find($id);
-        $status = json_decode($status['config_json'],true);
-        return $status['installer_check'];
-    }  
 }

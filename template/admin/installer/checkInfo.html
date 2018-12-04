@@ -8,54 +8,64 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                {notempty name="field"}
-                {volist name="field" key="k" id="vo"}
-                {if condition="$vo['type'] == 'region'"}
-                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
-                {else/}
-                <div class="form-group">
-                    <div class="label">
-                        <label>{$vo.title}</label>
-                    </div>
-                    <div class="field">
-                    	{switch vo.type}
-                        	{case text}
-                                <label type="text">{$info[$vo.name]|default=$vo.default}</label>
-                        	{/case}
-                        	{case datetime}
-                                <label type="text">{$info[$vo.name]|default=$vo.default}</label>
-                        	{/case}
-                            {case radio}
-	                            {notempty name="vo.radioList"}
-	                            <div class="button-group radio">
-                                <label>{if condition="$vo.default == 1"}可用{elseif condition="$vo.default == -3"}厂商审核中{else/}禁用{/if}</label>
-	                            </div>
-	                            {/notempty}
-                            {/case}
-                            {case uploadImg}
-	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
-				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
-                            {/case}
-                            {case select}
-                                   {php}
-                                       $vars = (get_defined_vars());
-                                       $options = $vars[$vo['options']];
-                                   {/php}
+                    {notempty name="field"}
+                    {volist name="field" key="k" id="vo"}
+                    {if condition="$vo['type'] == 'region'"}
+                    <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                    {else/}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>{$vo.title}</label>
+                        </div>
+                        <div class="field">
+                        	{switch vo.type}
+                            	{case text}
+                                    <label type="text">{$info[$vo.name]|default=$vo.default}</label>
+                            	{/case}
+                            	{case datetime}
+                                    <label type="text">{$info[$vo.name]|default=$vo.default}</label>
+                            	{/case}
+                                {case radio}
+    	                            {notempty name="vo.radioList"}
+    	                            <div class="button-group radio">
+                                    <label>{if condition="$vo.default == 1"}可用{elseif condition="$vo.default == -3"}厂商审核中{else/}禁用{/if}</label>
+    	                            </div>
+    	                            {/notempty}
+                                {/case}
+                                {case uploadImg}
+    	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
+    				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
+                                {/case}
+                                {case select}
+                                       {php}
+                                           $vars = (get_defined_vars());
+                                           $options = $vars[$vo['options']];
+                                       {/php}
 
-	                               {foreach name="options" item="option" key="key"}
-	                               {if condition="!isset($option['id'])"}
-	                               <label value="{$key}" >{if ($info && $info[$vo.name] == $key)}{$option}{/if} </label>
-	                               {else/}
-	                               <label value="{$option.id}"> {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}{$option.cname}{/if} </label>
-	                               {/if}
-	                               {/foreach}	                            
-                            {/case}
-                        {/switch}
+    	                               {foreach name="options" item="option" key="key"}
+    	                               {if condition="!isset($option['id'])"}
+    	                               <label value="{$key}" >{if ($info && $info[$vo.name] == $key)}{$option}{/if} </label>
+    	                               {else/}
+    	                               <label value="{$option.id}"> {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}{$option.cname}{/if} </label>
+    	                               {/if}
+    	                               {/foreach}	                            
+                                {/case}
+                            {/switch}
+                        </div>
+
                     </div>
-                </div>
-                {/if}
-                {/volist}
-                {/notempty}
+
+                    {/if}
+                    {/volist}
+                    {/notempty}
+                    <div class="label">
+                        <label>拒绝理由</label>
+                    </div>
+                    <div class="field"> 
+                        <textarea class="input" name='remark'></textarea>
+                    </div>
+                    <div class="input-note">如果拒绝，请填写拒绝理由</div>
+                   
                 </div>
             </div>
             <div class="panel-foot">

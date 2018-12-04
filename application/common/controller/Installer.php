@@ -181,8 +181,6 @@ class Installer extends FormBase
                     ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'],
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'],
-                    /*['text'  => '待服务商审核','action'=> 'a',   'icon'  => '','value'   => 'status','bgClass' => ''],
-                    ['text'  => '待厂商审核',  'action'=> 'text','icon'  => '','value'   => 'status','bgClass' => '']*/
                     $status_ser??'',
                     $status_fac??''
                 ]
@@ -239,7 +237,7 @@ class Installer extends FormBase
                 //获取提交信息
                 $params = $this->request->param();
                 if($params['check']=='1'){
-                    $con_status = parent::checkStatus($info['factory_id']);
+                    $con_status = $this->checkStatus($info['factory_id']);
                     if($con_status == 1){
                         $this->updateCheck($info['installer_id'],-1);//状态改为-1
                     }else{
@@ -292,4 +290,11 @@ class Installer extends FormBase
         $remark=json_encode($remark);  
         $this->model->where(['installer_id'=>$installer_id])->update(['remark'=>$remark]);
     }
+    //审核状态
+    function checkStatus($id){
+        //获取当前服务商的厂商的是否审核
+        $status = db('store')->field('config_json')->find($id);
+        $status = json_decode($status['config_json'],true);
+        return $status['installer_check'];
+    } 
 }
