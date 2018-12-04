@@ -37,18 +37,18 @@
 				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
                             {/case}
                             {case select}
-                                <label></label>
-	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty}>
-	                               <option value="{$vo.default|default=''}">{$vo.default_option}</option>                                   
-                                   {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
+                                   {php}
+                                       $vars = (get_defined_vars());
+                                       $options = $vars[$vo['options']];
+                                   {/php}
+
 	                               {foreach name="options" item="option" key="key"}
 	                               {if condition="!isset($option['id'])"}
-	                               <option value="{$key}" {if ($info && $info[$vo.name] == $key)}selected="selected"{/if} >{$option}</option>
+	                               <label value="{$key}" >{if ($info && $info[$vo.name] == $key)}{$option}{/if} </label>
 	                               {else/}
-	                               <option value="{$option.id}" {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               <label value="{$option.id}"> {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}{$option.cname}{/if} </label>
 	                               {/if}
-	                               {/foreach}
-	                            </select>
+	                               {/foreach}	                            
                             {/case}
                         {/switch}
                     </div>
