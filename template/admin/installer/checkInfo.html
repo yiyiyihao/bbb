@@ -1,0 +1,78 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab boxShadow">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>{$name}</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                {notempty name="field"}
+                {volist name="field" key="k" id="vo"}
+                {if condition="$vo['type'] == 'region'"}
+                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                {else/}
+                <div class="form-group">
+                    <div class="label">
+                        <label>{$vo.title}</label>
+                    </div>
+                    <div class="field">
+                    	{switch vo.type}
+                        	{case text}
+                                <label type="text">{$info[$vo.name]|default=$vo.default}</label>
+                        	{/case}
+                        	{case datetime}
+                                <label type="text">{$info[$vo.name]|default=$vo.default}</label>
+                        	{/case}
+                            {case radio}
+	                            {notempty name="vo.radioList"}
+	                            <div class="button-group radio">
+                                <label>{if condition="$vo.default == 1"}可用{elseif condition="$vo.default == -3"}厂商审核中{else/}禁用{/if}</label>
+	                            </div>
+	                            {/notempty}
+                            {/case}
+                            {case uploadImg}
+	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
+				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
+                            {/case}
+                            {case select}
+                                <label></label>
+	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty}>
+	                               <option value="{$vo.default|default=''}">{$vo.default_option}</option>                                   
+                                   {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
+	                               {foreach name="options" item="option" key="key"}
+	                               {if condition="!isset($option['id'])"}
+	                               <option value="{$key}" {if ($info && $info[$vo.name] == $key)}selected="selected"{/if} >{$option}</option>
+	                               {else/}
+	                               <option value="{$option.id}" {if isset($option['id']) && isset($info[$vo.name]) && ($info[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               {/if}
+	                               {/foreach}
+	                            </select>
+                            {/case}
+                        {/switch}
+                    </div>
+                </div>
+                {/if}
+                {/volist}
+                {/notempty}
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit" name='check' value='1'>审核通过</button>
+                    <button class="button bg" type="submit" name='check' value='0'>不通过</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    /*Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+        	'uploadUrl' : "{$uploadUrl ?? ''}",
+        });
+    }); */
+</script>
