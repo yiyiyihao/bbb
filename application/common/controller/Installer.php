@@ -193,7 +193,15 @@ class Installer extends FormBase
         }else{
             $servicers = db('store')->field('store_id as id, name as cname')->where(['is_del' => 0, 'status' => 1, 'store_type' => STORE_SERVICE, 'factory_id' => $this->adminUser['store_id']])->select();
             $this->assign('servicers', $servicers);
-            $array = ['title'=>'选择服务商','type'=>'select','options'=>'servicers','name' => 'store_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==选择服务商==','notetext'=>'请选择服务商'];
+            $array = [      'title'=>'选择服务商',
+                            'type'=>'select',
+                            'options'=>'servicers',
+                            'name' => 'store_id', 
+                            'size'=>'40' , 
+                            'datatype'=>'*', 
+                            'default'=>'',
+                            'default_option'=>'==选择服务商==',
+                            'notetext'=>'请选择服务商'];
         }
         $field = [
             ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
@@ -217,13 +225,14 @@ class Installer extends FormBase
     function check(){
         $info = $this->_assignInfo();
         $adminUser = $this->adminUser;
+        //dump($info);exit;
         //当需要服务商审核，并且是服务商帐号登录
         if($info['status']==-3 && $adminUser['group_id']==4){
             if(IS_POST){
                 //获取提交信息
                 $params = $this->request->param();
                 if($params['check']=='1'){
-                    $con_status = $this->factoryStatus($adminUser['store_id']);
+                    $con_status = parent::checkStatus($info['factory_id']);
                     if($con_status == 1){
                         $this->updateCheck($info['installer_id'],-1);//状态改为-1
                     }else{
@@ -254,14 +263,7 @@ class Installer extends FormBase
             $this->error('不需要审核','index');
         }
     }
-    //厂商审核状态
-    function factoryStatus($store_id){
-        //获取当前服务商的厂商的是否审核
-        $factory = db('store')->field('factory_id')->find($store_id);
-        $con_json = db('store')->field('config_json')->find($factory['factory_id']);
-        $con_json = json_decode($con_json['config_json'],true);
-        return $con_json['installer_check'];
-    }
+    
     //更新
     function updateCheck($installer_id,$status){
         $where=['installer_id'=>$installer_id];
