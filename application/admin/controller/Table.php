@@ -3,15 +3,15 @@ namespace app\admin\controller;
 use app\admin\controller\AdminForm;
 use think\Db;
 
-//数据表字段管理
-class Field extends AdminForm
+//数据表列表字段管理
+class Table extends AdminForm
 {
     var $pid;
     var $pModel;
     public function __construct()
     {
-        $this->modelName = 'form_field';
-        $this->model = model('field');
+        $this->modelName = 'form_table';
+        $this->model = model('table');
         $this->pModel= db('form_model');
         parent::__construct();
         $this->subMenu['add'] = [];
@@ -84,26 +84,26 @@ class Field extends AdminForm
             //取得现有数据表结构
             $sql = "SHOW COLUMNS FROM ".config('database.prefix').$info['name'];
             $fields = Db::query($sql);
-            $fieldList = [];
+            $tableList = [];
             foreach ($fields as $k=>$v){
-                $fieldList[]['field'] = $v['Field'];
+                $tableList[]['field'] = $v['Field'];
             }
-            foreach ($fieldList as $k=>$v){
+            foreach ($tableList as $k=>$v){
                 foreach ($list as $key=>$val){
-                    if($list[$key]['field'] == $fieldList[$k]['field']){
-                        $fieldList[$k] = $val;
+                    if($list[$key]['field'] == $tableList[$k]['field']){
+                        $tableList[$k] = $val;
                     }
                 }
             }
-            foreach ($fieldList as $k=>$v){
+            foreach ($tableList as $k=>$v){
                 if(isset($v['is_del']) && $v['is_del'] == 1){
-                    unset($fieldList[$k]);
+                    unset($tableList[$k]);
                 }
             }
         }else{
-            $fieldList = $list;
+            $tableList = $list;
         }
-        return $fieldList;
+        return $tableList;
     }
     
     /**

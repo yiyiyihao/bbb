@@ -2,11 +2,11 @@
 namespace app\common\model;
 use think\Model;
 
-class Field extends Model
+class Table extends Model
 {
 	public $error;
-	protected $pk = 'field_id';
-	protected $tableName = 'form_field';
+	protected $pk = 'table_id';
+	protected $tableName = 'form_table';
 	protected $table;
 	
 	protected $field = true;
@@ -17,13 +17,13 @@ class Field extends Model
 	    parent::initialize();
 	}
 	
-	//取得模型字段列表
-	static function getFieldList($model){
-	    $cacheName = $model.'fieldList';
+	//取得模型列表字段
+	static function getTableList($model){
+	    $cacheName = $model.'tableList';
 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
-	    $fieldList = cache($cacheName);
-	    if(!$fieldList){
+	    $tableList = cache($cacheName);
+	    if(!$tableList){
 	        $where = [
 	            'M.name'        => $model,
 	            'F.status'        => 1,
@@ -31,16 +31,16 @@ class Field extends Model
 	        ];
 	        $join[] = ['model M', 'M.model_id = F.model_id', 'LEFT'];
 	        $field = 'F.*,M.name';
-	        $fieldList = $this
+	        $tableList = $this
 	        ->alias("F")
 	        ->join($join)
 	        ->field($field)
 	        ->where($where)->order('sort_order')->select();
-	        cache($cacheName, $fieldList);
+	        cache($cacheName, $tableList);
 	    }
 	    //重新格式化数据
-	    $fields = [];
-	    foreach ($fieldList as $k=>$v){
+	    $tables = [];
+	    foreach ($tableList as $k=>$v){
 	        $temp['title']     = $v['title'];
 	        $temp['name']      = $v['field'];
 	        $temp['datatype']  = $v['datatype'];
@@ -95,8 +95,8 @@ class Field extends Model
 	            break;
 	        }
 	        
-	        $fields[$k] = $temp;
+	        $tables[$k] = $temp;
 	    }
-	    return $fields;
+	    return $tables;
 	}
 }

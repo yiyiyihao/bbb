@@ -14,6 +14,7 @@ Route::get('think', function () {
 });
 
 Route::get('hello/:name', 'index/hello');
+Route::domain('www', 'index');
 Route::domain('admin', 'admin');
 Route::domain('api', 'api');
 Route::domain('*', 'factory');

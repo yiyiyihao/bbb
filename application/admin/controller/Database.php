@@ -7,8 +7,8 @@ class Database extends AdminForm
 {
     public function __construct()
     {
-        $this->modelName = 'model';
-        $this->model = db('model');
+        $this->modelName = 'form_model';
+        $this->model = db('form_model');
         parent::__construct();
         $this->subMenu['add'] = [];
         $this->perPage = 100;

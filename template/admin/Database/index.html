@@ -9,7 +9,7 @@
           <th width="*"></th>
           <th width="80">状态</th>
           <th width="100">排序</th>
-          <th width="180">操作</th>
+          <th width="270">操作</th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo"}
@@ -22,7 +22,8 @@
               <td>{$vo.sort_order|default='--'}</td>
               <td>
               	{if isset($vo.model_id)}
-              	<a href="{:url('field/index', array('pid' => $vo['model_id']))}" class="button button-small bg-main icon-list">字段列表</a>
+                <a href="{:url('table/index', array('pid' => $vo['model_id']))}" class="button button-small bg-main icon-list">列表字段</a>
+              	<a href="{:url('field/index', array('pid' => $vo['model_id']))}" class="button button-small bg-blue icon-list">详情字段</a>
               	<a href="{:url('edit', array('id' => $vo['model_id']))}" class="button button-small bg-main icon-edit">编辑</a>
                 {else/}
                 <a href="{:url('add',array('name' => $vo.name))}" class="button button-small bg-green icon-plus">启用</a>
