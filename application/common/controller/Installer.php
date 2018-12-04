@@ -7,6 +7,7 @@ class Installer extends FormBase
     var $adminType;
     public function __construct()
     {
+        $this->infotempfile = 'checkInfo';
         $this->modelName = 'user_installer';
         $this->model = db($this->modelName);
         parent::__construct();
@@ -211,5 +212,65 @@ class Installer extends FormBase
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
         ];
         return array_filter($field);
+    }
+    //审核
+    function check(){
+        $info = $this->_assignInfo();
+        $adminUser = $this->adminUser;
+        //当需要服务商审核，并且是服务商帐号登录
+        if($info['status']==-3 && $adminUser['group_id']==4){
+            if(IS_POST){
+                //获取提交信息
+                $params = $this->request->param();
+                if($params['check']=='1'){
+                    $con_status = $this->factoryStatus($adminUser['store_id']);
+                    if($con_status == 1){
+                        $this->updateCheck($info['installer_id'],-1);//状态改为-1
+                    }else{
+                        $this->updateCheck($info['installer_id'],1);//状态改为1
+                    }
+                }else{
+                    $this->updateCheck($info['installer_id'],0);//状态改为0
+                }
+            }
+            return $this->fetch('checkInfo');
+        }
+        //当需要厂商审核，并且厂商帐号登录
+        elseif($info['status']==-1 && $adminUser['group_id']==1){
+            if(IS_POST){
+            //获取提交信息
+                $params = $this->request->param();
+                //dump($params);exit;
+                //提交如果为1，审核同意，否则status为0
+                if($params['check']=='1'){
+                    $this->updateCheck($info['installer_id'],1); //状态改为1
+                }else{
+                    $this->updateCheck($info['installer_id'],0);//状态改为0
+                }
+            }
+            return $this->fetch('checkInfo');
+        }
+        else{
+            $this->error('不需要审核','index');
+        }
+    }
+    //厂商审核状态
+    function factoryStatus($store_id){
+        //获取当前服务商的厂商的是否审核
+        $factory = db('store')->field('factory_id')->find($store_id);
+        $con_json = db('store')->field('config_json')->find($factory['factory_id']);
+        $con_json = json_decode($con_json['config_json'],true);
+        return $con_json['installer_check'];
+    }
+    //更新
+    function updateCheck($installer_id,$status){
+        $where=['installer_id'=>$installer_id];
+        $update=['status'=>$status];
+        $result = $this->model->where($where)->update($update);
+        if($result){
+            $this->success('审核完成','index');
+        }else{
+            $this->error('失败','index');
+        }
     }
 }
