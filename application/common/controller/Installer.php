@@ -9,7 +9,7 @@ class Installer extends FormBase
     {
         $this->infotempfile = 'checkInfo';
         $this->modelName = 'user_installer';
-        $this->model = db($this->modelName);
+        $this->model = model($this->modelName);
         parent::__construct();
         
         if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY])) {
