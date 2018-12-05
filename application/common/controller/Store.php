@@ -322,11 +322,10 @@ class Store extends FormBase
         }elseif ($this->storeType == STORE_DEALER){
             $array1 = ['title'     => '所属渠道', 'width'   => '100','value'     => 'cname', 'type'      => 'text'];
         }
-        pre($this->adminUser);
         //判断是否有编辑删除的权限
-//         if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
+        if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
             $edit=['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'];
-//         }
+        }
         if(isset($this->adminUser['tempRule'][$tempAction.'del'])){
             $del=['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'];
         }
