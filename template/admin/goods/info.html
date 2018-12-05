@@ -13,7 +13,19 @@
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
                 	{include file="common/factory" /}
-                    <div class="form-group js-select" posturl="{:url('Gcate/getAjaxList', ['store_id' => ($info && $info['store_id'] ? $info['store_id']: $store_id)])}" str="选择产品分类" searchName="请输入分类名称" formname="cate_id" formvalue='{$info.cate_id ?? 0}'></div>
+                    <div class="form-group">
+						<div class="label">
+							<label>产品分类</label>
+						</div>
+						<div class="field">
+							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择产品分类！">
+								{foreach name="cates" item="cate" key="key"}
+									<option value="{$key}" {if ($key && isset($info['cate_id']) && $info['cate_id'] == $key)}selected="selected"{/if} >{$cate.name}</option> 
+								{/foreach}
+							</select>
+							<div class="input-note">请选择产品类型</div>
+						</div>
+					</div>
                     <div class="form-group">
                         <div class="label">
                             <label>产品名称</label>
@@ -24,18 +36,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-						<div class="label">
-							<label>产品类型</label>
-						</div>
-						<div class="field">
-							<select class="input" name="goods_type" id="goods_type" datatype="n"nullmsg="请选择产品类型！">
-								{foreach name="goodsTypes" item="goodsType" key="key"}
-									<option value="{$key}" {if condition="!$info || ($key && isset($info['goods_type']) && $info['goods_type'] == $key)" }selected="selected"{/if} >{$goodsType}</option> 
-								{/foreach}
-							</select>
-							<div class="input-note">请选择产品类型</div>
-						</div>
-					</div>
+                        <div class="label">
+                            <label>产品类型</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            {foreach name="goodsTypes" item="goodsType" key="key"}
+                                <label class='button{if ($key && isset($info['goods_type']) && $info['goods_type'] == $key)} active{/if}'><input name="goods_type" value="{$key}" {if ($key && isset($info['goods_type']) && $info['goods_type'] == $key)}checked="checked"{/if} type="radio">{$goodsType}</label>
+                            {/foreach}
+                            </div>
+                            <div class="input-note">请选择产品类型</div>
+                        </div>
+                    </div>
                     <div class="form-group">
 		                <div class="label">
 		                  <label>上传图片</label>
@@ -178,21 +190,6 @@
             {else /}
             cookie: 'goodsUpload',
             {/present}
-          });  
-        $('#store_id').change(function(){
-			var id = $(this).val();
-			if(id > 0){
-				$("#cate_id").val(0);
-				$(".js-select").selectsin({
-					'str' 		: '选择产品分类',
-					'searchName': '请输入分类名称',
-					'name' 		: 'cate_id',
-					'id' 		: '{$store_id}',
-					'postUrl' 	: "/Gcate/getAjaxList/store_id/"+id,
-				});
-			}else{
-				$('.js-select').hide();
-			}
-		});
+        });
     }); 
 </script>

@@ -66,7 +66,7 @@ td,th{padding:0;}
 .mr5,.margin-right{ margin-right:5px;}
 .mb15{margin-bottom: 15px;}
 
-.button{border:solid 1px #ddd;background:transparent;border-radius:4px;font-size:14px;padding:10px 15px;margin:0;display:inline-block;line-height:20px;/*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
+.button{border:solid 1px #ddd;background:transparent;border-radius:4px;font-size:14px;padding:8px 15px;margin:0;display:inline-block;line-height:20px;/*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
 .button[disabled]{pointer-events:none;cursor:not-allowed;webkit-box-shadow:none;box-shadow:none;filter:alpha(opacity=50);opacity:.5;}
 .button:active{background-image:none;outline:0;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
 .button:hover{transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;}
