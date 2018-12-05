@@ -28,7 +28,7 @@
                                 {case radio}
     	                            {notempty name="vo.radioList"}
     	                            <div class="button-group radio">
-                                    <label>{if condition="$vo.default == 1"}可用{elseif condition="$vo.default == -3"}厂商审核中{else/}禁用{/if}</label>
+                                    <label>{if condition="$vo.default == 1"}可用{else/}禁用{/if}</label>
     	                            </div>
     	                            {/notempty}
                                 {/case}
@@ -58,13 +58,16 @@
                     {/if}
                     {/volist}
                     {/notempty}
-                    <div class="label">
-                        <label>拒绝理由</label>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>拒绝理由</label>
+                        </div>
+                        <div class="field"> 
+                            <textarea class="input" name='remark'></textarea>
+                            <div class="input-note">如果拒绝，请填写拒绝理由</div>
+                        </div>
+                        
                     </div>
-                    <div class="field"> 
-                        <textarea class="input" name='remark'></textarea>
-                    </div>
-                    <div class="input-note">如果拒绝，请填写拒绝理由</div>
                    
                 </div>
             </div>
