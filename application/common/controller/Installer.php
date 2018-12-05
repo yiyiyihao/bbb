@@ -176,9 +176,11 @@ class Installer extends FormBase
             ['title'=> '状态',   'width'=>'180','value'=> 'status',       'type'=> 'status','status'=>
                 [
                     ['text'  => '审核通过', 'value'   => 1,'bgClass'=> 'bg-main'],
-                    ['text'  => '禁用',     'value'   => 0,'bgClass'=> 'bg-red'],
+                    ['text'  => '禁用',     'value'   => 0,'bgClass'=> ''],
                     ['text'  => '待服务商审核','value' => -3,'bgClass'=> 'bg-yellow'],
+                    ['text'  => '服务商拒绝','value' => -4,'bgClass'=> 'bg-yellow'],
                     ['text'  => '待厂商审核','value'   => -1,'bgClass'=> 'bg-yellow'],
+                    ['text'  => '厂商拒绝','value'   => -2,'bgClass'=> 'bg-yellow'],
                 ]
         ],
             ['title'=> '排序',   'width'=>'80','value'=> 'sort_order',   'type'=> 'text'],
@@ -199,7 +201,7 @@ class Installer extends FormBase
     function _fieldData(){
         $array = [];
         if ($this->adminUser['admin_type'] == ADMIN_SERVICE){
-            $array = ['title'=>'服务商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
+            $array = ['title'=>'服务商名称','type'=>'text','name'=>' ','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
         }else{
             $servicers = db('store')->field('store_id as id, name as cname')->where(['is_del' => 0, 'status' => 1, 'store_type' => STORE_SERVICE, 'factory_id' => $this->adminUser['store_id']])->select();
             $this->assign('servicers', $servicers);
@@ -213,8 +215,11 @@ class Installer extends FormBase
                             'default_option'=>'==选择服务商==',
                             'notetext'=>'请选择服务商'];
         }
+        if($this->request->action()!='check'){
+            $sort=['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''];
+        }
         $field = [
-            ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
+            ['title'=>'厂商名称','type'=>'text','name'=>' ','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
             $array,
             ['title'=>'真实姓名','type'=>'text','name'=>'realname','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'真实姓名'],
             ['title'=>'公安机关备案号','type'=>'text','name'=>'security_record_num', 'size'=>'40', 'datatype'=>'*','default'=>'','notetext'=>'请填写公安机关备案号'],
@@ -223,7 +228,7 @@ class Installer extends FormBase
             ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
             ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
-            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
+            $sort??''
         ];
         return array_filter($field);
     }
