@@ -17,6 +17,7 @@ class Worder extends FactoryForm
             1 => '安装工单',
             2 => '售后维修单'
         ];
+        $this->subMenu['showmenu'] = true;
         $this->statusList = get_worder_status();
         foreach ($this->statusList as $key => $value) {
             $this->subMenu['menu'][] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];

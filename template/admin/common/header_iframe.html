@@ -51,6 +51,7 @@
   			{/notempty}
         </div>
 </div>
+{if $subMenu.showmenu}
 {notempty name="subMenu.menu"}
 <div class="main-submenu">
 {foreach name="subMenu.menu" item="data"}
@@ -58,4 +59,5 @@
 {/foreach}
 </div>
 {/notempty}
+{/if}
 <div class="admin-main duration-animate animation-upbit">

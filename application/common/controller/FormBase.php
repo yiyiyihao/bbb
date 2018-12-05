@@ -28,6 +28,7 @@ class FormBase extends CommonBase
                 'url'   => url('index'),
             ],
         ];
+        $this->subMenu['showmenu'] = false;
         $this->subMenu['add'] = [
             'name' => lang('ADD').lang($this->modelName),
             'url' => url("add"),
