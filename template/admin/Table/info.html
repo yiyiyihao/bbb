@@ -4,8 +4,7 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">基本信息</a>
-                        </li>
+                        <li class="active"><a href="#tab-1">基本信息</a></li>
                     </ul>
                 </div>
             </div>
@@ -41,68 +40,89 @@
                                 <option value="2">函数处理</option>
                                 <option value="3">索引</option>
                                 <option value="4">图标</option>
-                                <option value="5">操作按钮</option>
+                                <option value="5">图片</option>
+                                <option value="6">操作按钮</option>
                             </select>
                             <div class="input-note">请选择字段内容处理方式</div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>字段值</label>
+                    <div class="textExtend">
+                        <div class="form-group hide textType functionType iconType imageType">
+                            <div class="label">
+                                <label>字段值</label>
+                            </div>
+                            <div class="field">
+                                <input type="text" class="input" id="value" name="value" size="40" value="{$info.value|default=''}">
+                                <div class="input-note">字段值请谨慎填写</div>
+                            </div>
                         </div>
-                        <div class="field">
-                            <input type="text" class="input" id="value" name="value" datatype="" size="40" value="{$info.value|default=''}">
-                            <div class="input-note">字段值请谨慎填写</div>
+                        <div class="form-group hide functionType">
+                            <div class="label">
+                                <label>函数名称</label>
+                            </div>
+                            <div class="field">
+                                <input type="text" class="input" id="function" name="function" size="40" value="{$info.function|default=''}">
+                                <div class="input-note">函数名称请谨慎填写</div>
+                            </div>
                         </div>
+                        <div class="form-group hide textType">
+                            <div class="label">
+                                <label>是否支持编辑</label>
+                            </div>
+                            <div class="field">
+                               {notpresent name="info.is_edit"}
+                                    {assign name="info.is_edit" value="0" /}
+                               {/notpresent}
+                                <div class="button-group radio">
+                                    {if condition="$info.is_edit eq 1"}
+                                    <label class="button active"><input name="is_edit" value="1" checked="checked" type="radio">
+                                    {else /}
+                                    <label class="button"><input name="is_edit" value="1" type="radio">
+                                    {/if}
+                                    可编辑</label>
+                                    {if condition="$info.is_edit eq 0"}
+                                    <label class="button active"><input name="is_edit" value="0" checked="checked" type="radio">
+                                    {else /}
+                                    <label class="button"><input name="is_edit" value="0" type="radio">
+                                    {/if}
+                                    不可编辑</label>
+                                </div>
+                                <div class="input-note">设置为可编辑后,字段值在双击的时候,会变成可编辑框,修改后会自动更新数据</div>
+                            </div>
+                        </div>
+                        <div class="form-group hide textType indexType">
+                            <div class="label">
+                                <label>是否支持字段排序</label>
+                            </div>
+                            <div class="field">
+                               {notpresent name="info.is_sort"}
+                                    {assign name="info.is_sort" value="0" /}
+                               {/notpresent}
+                                <div class="button-group radio">
+                                    {if condition="$info.is_sort eq 1"}
+                                    <label class="button active"><input name="is_sort" value="1" checked="checked" type="radio">
+                                    {else /}
+                                    <label class="button"><input name="is_sort" value="1" type="radio">
+                                    {/if}
+                                    可排序</label>
+                                    {if condition="$info.is_sort eq 0"}
+                                    <label class="button active"><input name="is_sort" value="0" checked="checked" type="radio">
+                                    {else /}
+                                    <label class="button"><input name="is_sort" value="0" type="radio">
+                                    {/if}
+                                    不可排序</label>
+                                </div>
+                                <div class="input-note">设置为可排序后,列表上回出现排序按钮,点击按该字段升序/倒序排列</div>
+                            </div>
+                        </div> 
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>是否支持编辑</label>
+                            <label>排序</label>
                         </div>
                         <div class="field">
-                           {notpresent name="info.is_edit"}
-                                {assign name="info.is_edit" value="0" /}
-                           {/notpresent}
-                            <div class="button-group radio">
-                                {if condition="$info.is_edit eq 1"}
-                                <label class="button active"><input name="is_edit" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="is_edit" value="1" type="radio">
-                                {/if}
-                                可编辑</label>
-                                {if condition="$info.is_edit eq 0"}
-                                <label class="button active"><input name="is_edit" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="is_edit" value="0" type="radio">
-                                {/if}
-                                不可编辑</label>
-                            </div>
-                            <div class="input-note">设置为可编辑后,字段值在双击的时候,会变成可编辑框,修改后会自动更新数据</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>是否支持字段排序</label>
-                        </div>
-                        <div class="field">
-                           {notpresent name="info.is_sort"}
-                                {assign name="info.is_sort" value="0" /}
-                           {/notpresent}
-                            <div class="button-group radio">
-                                {if condition="$info.is_sort eq 1"}
-                                <label class="button active"><input name="is_sort" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="is_sort" value="1" type="radio">
-                                {/if}
-                                可排序</label>
-                                {if condition="$info.is_sort eq 0"}
-                                <label class="button active"><input name="is_sort" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="is_sort" value="0" type="radio">
-                                {/if}
-                                不可排序</label>
-                            </div>
-                            <div class="input-note">设置为可排序后,列表上回出现排序按钮,点击按该字段升序/倒序排列</div>
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default='255'}">
+                            <div class="input-note">开启自定义排序有效</div>
                         </div>
                     </div>
                 </div>
@@ -119,10 +139,10 @@
     </div>
 </form>
 <script>
-    Do.ready('base', 'field' ,function () {
+    Do.ready('base', 'tablelist' ,function () {
         //表单综合处理
         $('#form').FormPage(); 
-		$('#form').Table(); 
+		$('#form').TableList(); 
 		init();		//初始化编辑
 		function init(){}
     }); 

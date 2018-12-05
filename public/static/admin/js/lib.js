@@ -292,7 +292,7 @@ $.fn.EChart = function (options) {
 		}
 	}
     var options = $.extend(defaults, typeOptions);
-	console.log(options);
+	//console.log(options);
 	var chartObj = this;
     Do.ready('eChart', function () {
 		var id = chartObj.attr("id");

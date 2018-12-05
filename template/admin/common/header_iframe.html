@@ -51,7 +51,7 @@
   			{/notempty}
         </div>
 </div>
-{if $subMenu.showmenu}
+{if isset($subMenu.showmenu) && $subMenu.showmenu}
 {notempty name="subMenu.menu"}
 <div class="main-submenu">
 {foreach name="subMenu.menu" item="data"}

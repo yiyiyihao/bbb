@@ -6,25 +6,18 @@
           <th width="100">编号</th>
           <th width="*">数据字段</th>
           <th width="100">显示标题</th>
-          <th width="80">状态</th>
           <th width="100">排序</th>
-          <th width="180">操作</th>
+          <th width="100">操作</th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo"}
             <tr>
               <td>{$i}</td>
-              <td>{$vo.field}</td>
+              <td>{$vo.value|default='--'}</td>
               <td>{$vo.title|default=''}</td>
-              <td>{$vo['status']?'<span class="tag bg-green">已启用</span>':'<span class="tag bg-red">未启用</span>'}</td>
               <td>{$vo['sort_order']|default=''}</td>
               <td>
-              {if isset($vo.field_id)}
-              	<a href="{:url('edit', array('id' => $vo.field_id , 'pid' => $Request.param.pid))}" class="button button-small bg-main icon-edit">编辑</a>
-              {else/}
-                <a href="{:url('add',array('name' => $vo.field , 'pid' => $Request.param.pid))}" class="button button-small bg-green icon-plus">启用</a>
-                <a href="javascript:;" url="{:url('ignore' , array('name' => $vo.field , 'pid' => $Request.param.pid))}" class="button button-small bg-dot icon-close-cirle js-action" title="忽略" refresh="1">忽略</a>
-              {/if}
+              <a href="{:url('edit', array('id' => $vo.table_id , 'pid' => $Request.param.pid))}" class="button button-small bg-main icon-edit">编辑</a>
               </td>
             </tr>
           {/volist}

@@ -33,3 +33,6 @@ Do.add('editor', {
 Do.add('field', {
     path: Config.libDir + 'field.js',
 });
+Do.add('tablelist', {
+    path: Config.libDir + 'tablelist.js',
+});
