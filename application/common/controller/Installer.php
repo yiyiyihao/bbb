@@ -82,15 +82,15 @@ class Installer extends FormBase
         if (!$regionId || !$regionName) {
             $this->error('请选择服务区域');
         }
-        if (!$avatar) {
-            $this->error('请上传工程师头像');
-        }
-        if (!$fontimg) {
-            $this->error('请上传身份证正面图片');
-        }
-        if (!$backimg) {
-            $this->error('请上传身份证反面图片');
-        }
+//         if (!$avatar) {
+//             $this->error('请上传工程师头像');
+//         }
+//         if (!$fontimg) {
+//             $this->error('请上传身份证正面图片');
+//         }
+//         if (!$backimg) {
+//             $this->error('请上传身份证反面图片');
+//         }
         if (!$info) {
             if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
                 $params['store_id'] = $this->adminStore['store_id'];
@@ -223,10 +223,10 @@ class Installer extends FormBase
             ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
             ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
-            ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
+            /* ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
                 ['text'=>'可用','value'=>'1'],
                 ['text'=>'禁用','value'=>'0'],
-            ]],
+            ]], */
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
         ];
         return array_filter($field);
