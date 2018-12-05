@@ -1,0 +1,91 @@
+<div class="panel admin-box">
+    <div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="{:url('index')}">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="角色名称">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    {notempty name="table"}
+<table id="table" class="table table-hover ">
+  <tbody>
+    <tr>
+        {volist name="table" id="tb"}
+        <th width="{$tb['width'] ?? 20}">{$tb.title}</th>
+        {/volist}
+    </tr>
+    {notempty name="list"}
+      {volist name="list" key="k" id="vo"}
+        <tr>
+        {volist name="table" id="td"}
+        {if condition="$td && is_array($td)"}
+        <td>
+            {switch td.type}
+                {case index}{$k}{/case}
+                {case text}{$vo[$td['value']] ?? ''}{/case}
+                {case yesOrNo}{$vo[$td['value']]?'<span class="tag bg-green">'.$td['yes'].'</span>':'<span class="tag bg-gray">'.$td['no'].'</span>'}{/case}
+                {case status}
+                    <span class="button-group">
+                        {volist name="td.status" id="sta"}
+                            {notempty name="sta"}
+                                {if condition="$vo['status']==$sta.value"}
+                                    <label class="button button-small  {$sta.bgClass} js">{$sta.text}</label>
+                                {/if}
+                            {/notempty}
+                        {/volist}
+                    </span>
+                {/case}
+                {case icon}<span class="icon-{$vo[$td['value']]}"></span>{/case}
+                {case image}
+                    <img src="{$vo[$td['value']]|default='/static/base/images/default.png'}" width="{$td['width'] ?? 50}">
+                {/case}
+                {case button}
+                    <span class="button-group">
+                        {volist name="td.button" id="button"}
+                            {notempty name="button"}
+                                {switch button.action}
+                                    {case edit}
+                                        <a href="{:url('edit', array('id' => $vo[$td['value']]))}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>  
+                                    {/case}
+                                    {case del}
+                                        <a href="javascript:;" url="{:url('del')}" class="button button-small icon-{$button.icon} {$button.bgClass} js-del" title="{$button.text}" data-id="{$vo[$td['value']]}">{$button.text}</a> 
+                                    {/case}
+                                    {default}
+                                    {if condition="($vo['status']==-1 && $adminUser['group_id']==1)||($vo['status']==-3 && $adminUser['group_id']==4)"}
+                                            <a href="{:url($button.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? '_blank'}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
+                                    {/if}
+                                {/switch}
+                            {/notempty}
+                        {/volist}
+                    </span>
+                {/case}
+            {/switch}
+        </td>
+        {/if}
+        {/volist}
+        </tr>
+      {/volist}
+    {/notempty}
+  </tbody>
+</table>
+{/notempty}
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>
+
+
