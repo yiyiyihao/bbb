@@ -161,28 +161,33 @@ class Installer extends FormBase
     /**
      * 列表项配置
      */
-    function _tableData(){
-        $status_ser=['text'  => '待服务商审核','action'=> 'text','icon'  => '','value'   => -3,'bgClass' => ''];
-        $status_fac=['text'  => '待厂商审核',  'action'=> 'text','icon'  => '','value'   => -1,'bgClass' => ''];
-        
+    function _tableData(){ 
+        $adminUser = $this->adminUser;
+        $this->assign($adminUser,'adminUser');
+            $check = ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'];
         $table = [
-            ['title'     => '编号','width'      => '60','value'    => 'user_id','type'      => 'index'],
-            ['title'     => '厂商','width'      => '*','value'     => 'fname','type'        => 'text'],
-            ['title'     => '服务商','width'    => '*','value'     => 'sname','type'        => 'text'],
-            ['title'     => '服务区域','width'  => '*','value'      => 'region_name','type' => 'text'],
-            ['title'     => '真实姓名','width'  => '*','value'      => 'realname','type'    => 'text'],
-            ['title'     => '联系电话','width'  => '*','value'      => 'phone','type'       => 'text'],
-            ['title'     => '是否绑定小程序','width'=> '*','value'   => 'udata_id','type'    => 'yesOrNo', 'yes'      => '是','no'       => '否'],
-            ['title'     => '状态','width'      => '80','value'     => 'status','type'      => 'yesOrNo', 'yes'      => '可用','no'     => '禁用'],
-            ['title'     => '排序','width'      => '80','value'     => 'sort_order','type'  => 'text'],
-            ['title'     => '操作','width'      => '*','value'      => 'installer_id','type' => 'button','button'    =>
+            ['title'=> '编号',   'width'=>'60','value'=> 'user_id',      'type'=> 'index'],
+            ['title'=> '厂商',   'width'=>'*', 'value'=> 'fname',        'type'=> 'text'],
+            ['title'=> '服务商', 'width'=>'*', 'value'=> 'sname',        'type'=> 'text'],
+            ['title'=> '服务区域','width'=>'*','value' => 'region_name', 'type'=> 'text'],
+            ['title'=> '真实姓名','width'=>'*','value' => 'realname',    'type'=> 'text'],
+            ['title'=> '联系电话','width'=>'*','value' => 'phone',       'type'=> 'text'],
+            ['title'=> '是否绑定小程序','width'=> '*','value'   => 'udata_id','type'=> 'yesOrNo', 'yes'      => '是','no'       => '否'],
+            ['title'=> '状态',   'width'=>'180','value'=> 'status',       'type'=> 'status','status'=>
                 [
-//                     ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],
-                    ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'],
+                    ['text'  => '审核通过', 'value'   => 1,'bgClass'=> 'bg-main'],
+                    ['text'  => '禁用',     'value'   => 0,'bgClass'=> 'bg-red'],
+                    ['text'  => '待服务商审核','value' => -3,'bgClass'=> 'bg-yellow'],
+                    ['text'  => '待厂商审核','value'   => -1,'bgClass'=> 'bg-yellow'],
+                ]
+        ],
+            ['title'=> '排序',   'width'=>'80','value'=> 'sort_order',   'type'=> 'text'],
+            ['title'=> '操作',   'width'=>'*', 'value'=> 'installer_id', 'type'=> 'button','button'    =>
+                [
+//                     ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],   
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'],
-                    $status_ser??'',
-                    $status_fac??''
+                    $check??''
                 ]
             ]
         ];
@@ -227,3 +232,5 @@ class Installer extends FormBase
         return array_filter($field);
     }
 }
+
+
