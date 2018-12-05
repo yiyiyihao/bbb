@@ -47,7 +47,7 @@ class Index extends CommonBase
     public function profile()
     {
         $userModel = new \app\common\model\User();
-        $user = $userModel->_checkUser(ADMIN_ID, TRUE);
+        $user = $userModel->checkUser(ADMIN_ID, TRUE);
         if (IS_POST){
             $params = $this->request->param();
             $realname = isset($params['realname']) && $params['realname'] ? trim($params['realname']) : '';
@@ -79,7 +79,7 @@ class Index extends CommonBase
     public function password()
     {
         $userModel = new \app\common\model\User();
-        $user = $userModel->_checkUser(ADMIN_ID, FALSE);
+        $user = $userModel->checkUser(ADMIN_ID, FALSE);
         if (IS_POST){
             $params = $this->request->param();
             $password = isset($params['password']) && $params['password'] ? trim($params['password']) : '';
@@ -105,10 +105,10 @@ class Index extends CommonBase
                 $this->error($userModel->error);
             }
             //判断原密码是否正确
-            if ($user['password'] <> $userModel->_pwdEncryption($password)) {
+            if ($user['password'] <> $userModel->pwdEncryption($password)) {
                 $this->error('原登录密码验证错误');
             }
-            $result = $userModel->save(['password' => $userModel->_pwdEncryption($newPwd), 'update_time' => time()], ['user_id' => ADMIN_ID]);
+            $result = $userModel->save(['password' => $userModel->pwdEncryption($newPwd), 'update_time' => time()], ['user_id' => ADMIN_ID]);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{

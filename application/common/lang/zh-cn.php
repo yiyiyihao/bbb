@@ -20,7 +20,7 @@ return [
     'FACTORY'               =>  '厂商',
     'CHANNEL'               =>  '渠道商',
     'CHANNEL_GRADE'         =>  '渠道等级',
-    'DEALER'                =>  '经销商',
+    'DEALER'                =>  '零售商',
     'SERVICER'              =>  '服务商',
     
     'GOODS'                 =>  '产品',
@@ -31,6 +31,7 @@ return [
     'SYSTEM'                =>  '系统管理',
     'USER'                  =>  '账户',
     'USER_GROUP'            =>  '账户角色',
+    'USER_GROUP_PURVIEW'    =>  '角色授权',
     'USER_INSTALLER'        =>  '售后工程师',
     'WORK_ORDER'            =>  '售后工单',
 

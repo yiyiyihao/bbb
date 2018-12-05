@@ -3,7 +3,7 @@
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>工单信息</strong>
+                    <strong>产品信息</strong>
                 </div>
             </div>
             <div class="tab-body">
@@ -13,7 +13,7 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="user_name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <input type="text" class="input" id="user_name" name="name" disabled="disabled" size="40" datatype="*" value="{$info['name'] ?? ''}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -21,14 +21,48 @@
                             <label>产品价格</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="phone" name="phone" size="20" datatype="*" value="{$info['min_price'] ?? ''}">元
+                            <input type="text" class="input" id="phone" name="phone" disabled="disabled" size="20" datatype="*" value="{$info['min_price'] ?? ''}">元
                         </div>
                     </div>
+                    {notempty name="skus"}
+                    <div class="table-responsive">
+					    <table id="table" class="table table-hover ">
+					      <tbody>
+					        <tr>
+					          <th width="*">属性名称</th>
+					          <th width="*">属性货号</th>
+					          <th width="*">库存</th>
+					          <th width="*">价格</th>
+					          <th width="*"></th>
+					        </tr>
+					          {volist name="skus" id="vo"}
+					            <tr>
+					              <td>{$vo.sku_name}</td>
+					              <td>{$vo.sku_sn}</td>
+					              <td>{$vo.sku_stock}</td>
+					              <td>{$vo['install_price']+$vo['price']}元</td>
+					              <td><a href="{:url('confirm', ['sku_id' => $vo['sku_id'], 'num' => 1])}" class="button button-small bg-yellow">立即购买</a></td>
+					            </tr>
+					          {/volist}
+					      </tbody>
+					    </table>
+					  </div>
+					  {/notempty}
+                    <!-- <div class="form-group">
+                        <div class="label">
+                            <label>购买数量</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="num" name="num" size="20" datatype="n" value="1">
+                        </div>
+                    </div> -->
                 </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
-                    <button class="button bg-main" type="submit">立即购买</button>
+                	{notempty name="$info['sku_id']"}
+                    <a href="{:url('confirm', ['sku_id' => $info['sku_id'], 'num' => 1])}" class="button button-small bg-yellow">立即购买</a>
+                    {/notempty}
                 </div>
             </div>
         </div>

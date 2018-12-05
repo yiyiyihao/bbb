@@ -1,6 +1,7 @@
 <?php
 namespace app\api\controller;
-class Index extends BaseApi
+
+class Index extends ApiBase
 {
     var $method;
     var $reduceStock;
@@ -611,7 +612,7 @@ class Index extends BaseApi
         if (!$worderSn) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
-        $field = 'worder_id, worder_sn, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
+        $field = 'worder_id, worder_sn, installer_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
         $info = db('work_order')->field($field)->where(['worder_sn' => $worderSn, 'is_del' => 0])->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
@@ -635,7 +636,7 @@ class Index extends BaseApi
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->receiveWorder($detail, $user, $installer);
+        $result = $worderModel->worderReceive($detail, $user, $installer);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '接单成功,请联系客户上门服务']);
         }else{
@@ -656,7 +657,7 @@ class Index extends BaseApi
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->signWorder($detail, $user, $installer);
+        $result = $worderModel->worderSign($detail, $user, $installer);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '签到成功,服务开始']);
         }else{
@@ -674,7 +675,7 @@ class Index extends BaseApi
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->cancelWorder($detail, $user);
+        $result = $worderModel->worderCancel($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单取消成功']);
         }else{
@@ -692,7 +693,7 @@ class Index extends BaseApi
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->finishWorder($detail, $user);
+        $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单完成操作成功']);
         }else{

@@ -75,7 +75,7 @@ class CommonBase extends Base
                 $action             = strtolower($this->request->action());
                 $tempAction = $module . '_' . $controller . '_' . $action;
                 if(!isset($tempRule[$tempAction]) && $action != 'logout'){
-                    $this->error(lang('PERMISSION_DENIED'));
+//                     $this->error(lang('PERMISSION_DENIED'));
                 }
             }
         }

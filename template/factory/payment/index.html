@@ -1,0 +1,68 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="{:url('index')}">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="100">编号</th>
+          <th width="*">支付名称</th>
+          <!-- <th width="*">支付code</th> -->
+          <th width="*">客户端类型</th>
+          <th width="*">支付简介</th>
+          <th width="80">状态</th>
+          <th width="100">排序</th>
+          <th width="160">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo"}
+            <tr>
+              <td>{$i}</td>
+              <td>{$vo.name}</td>
+              <!-- <td>{$vo.code}</td> -->
+              <td>{$displayTypes[$vo['display_type']] ?? ''}</td>
+              <td>{$vo['description'] ?? ''}</td>
+              <td>
+              	{if condition="!isset($vo['status'])"}
+              	<span class="tag bg-red">未配置</span> 
+              	{else/}
+	              	{if condition="isset($vo['status']) && $vo['status']"}
+	              	<span class="tag bg-green">可用</span> 
+	              	{else/}
+	              	<span class="tag bg-red">禁用</span>
+	              	{/if}
+              	{/if}
+              </td>
+              <td>{$vo['sort_order'] ?? 1}</td>
+              <td>
+              	<a href="{:url('config', ['code' => $vo['code']])}" class="button button-small bg-main icon-edit">配置</a>
+              	{if condition="isset($vo['pay_id']) && $vo['pay_id']"}           
+                <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-trash js-del" title="删除" data-id="{$vo['pay_id'] ?? 0}">删除</a>
+                {/if}
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

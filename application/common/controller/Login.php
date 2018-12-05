@@ -44,7 +44,7 @@ class Login extends CommonBase
             if(!$user['status']){
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
-            if($user['password']<> $userModel->_pwdEncryption($passWord)){
+            if($user['password']<> $userModel->pwdEncryption($passWord)){
                 return $this->error(lang('PSW_ERROR'));
             }
             $result = $this->updateLogin($user,$domain);

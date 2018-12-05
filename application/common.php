@@ -10,6 +10,87 @@
 // +----------------------------------------------------------------------
 
 // 应用公共文件
+/**
+ * 获取订单状态
+ * @param  $order    : 订单信息
+ * @return [string]
+ */
+function get_order_status($order = array()) {
+    $arr = array();
+    switch ($order['status']) {
+        case 2: // 已取消
+            $arr['now'] = 'cancel';
+            $arr['wait'] = 'cancel';
+            $arr['status_text'] = ch_order_status($arr['wait']);
+            break;
+        case 3: // 已回收
+            $arr['now'] = 'recycle';
+            $arr['wait'] = 'recycle';
+            $arr['status_text'] = ch_order_status($arr['wait']);
+            break;
+        case 4: // 前台用户已删除
+            $arr['now'] = 'delete';
+            break;
+        default:    // 正常状态
+            if (!isset($order['pay_type'])) {
+                $order['pay_type'] = 1;
+            }
+            if ($order['pay_type'] == 1 && $order['pay_status'] == 0) {
+                $arr['now'] = 'create'; // 创建订单
+                $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_delivery';
+            }elseif ($order['pay_type'] == 1 && $order['pay_status'] == 1 && $order['delivery_status'] == 0) {
+                $arr['now'] = 'pay';    // 已支付
+                $arr['wait'] = 'load_delivery';
+            }elseif ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
+                $arr['now'] = 'part_delivery';   // 部分发货
+                $arr['wait'] = 'part_delivery';
+            }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
+                $arr['now'] = 'all_delivery';   // 已发货
+                $arr['wait'] = 'load_finish';
+            }elseif ($order['delivery_status'] != 0 && $order['finish_status'] == 1) {
+                $arr['now'] = 'part_finish';   // 部分完成
+                $arr['wait'] = 'part_delivery';
+            }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 2) {
+                $arr['now'] = 'all_finish';   // 已完成
+                $arr['wait'] = 'all_finish';
+            }
+            $arr['status_text'] = ch_order_status($arr['wait']);
+            break;
+    }
+    return $arr;
+}
+
+/**
+ * 获取状态中文信息
+ * @param  string $ident 标识
+ * @return [string]
+ */
+function ch_order_status($ident) {
+    $arr = array(
+        'cancel'        => '已取消',
+        'recycle'       => '已回收',
+        'delete'        => '已删除',
+        'create'        => '创建订单',
+        'load_pay'      => '待付款',
+        'load_delivery' => '待发货',
+        'pay'           => '已付款',
+        'part_delivery' => '部分发货',
+        'all_delivery'  => '已发货',
+        'load_finish'   => '待收货',
+        'part_finish'   => '部分完成',
+        'all_finish'    => '已完成',
+        'receive'       => '已收货',
+        
+        // 前台时间轴
+        'time_cancel'   => '取消订单',
+        'time_recycle'  => '回收订单',
+        'time_create'   => '提交订单',
+        'time_pay'      => '确认付款',
+        'time_delivery' => '商品发货',
+        'time_finish'   => '确认收货',
+    );
+    return isset($arr[$ident]) ? $arr[$ident] : '';
+}
 
 function get_worder_status($status = FALSE)
 {

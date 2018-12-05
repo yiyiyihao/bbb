@@ -66,7 +66,7 @@ class Store extends FormBase
                 $this->error($userModel->error);
             }
             if ($params['password']) {
-                $params['password'] = $userModel->_pwdEncryption(trim($params['password']));
+                $params['password'] = $userModel->pwdEncryption(trim($params['password']));
             }
             if (!$info) {
                 $params['admin_type'] = $this->adminType;

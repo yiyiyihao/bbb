@@ -64,7 +64,7 @@ class Ugroup extends AdminForm
                 $pk   =   $this->model->getPk();
                 $where[$pk] = $pkId; 
                 $rs = $this->model->where($where)->update($data);
-                if($rs){
+                if($rs !== FALSE){
                     $msg .= lang('success');
                     $this->success($msg, url("index"), TRUE);
                 }else{

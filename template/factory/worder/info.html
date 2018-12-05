@@ -47,9 +47,6 @@
 						<div class="field">
 							<select class="input" name="sku" id="sku" nullmsg="请选择产品属性！">
 								<option value="">==选择产品属性==</option>
-								{foreach name="stores" item="store" key="key"}
-									<option value="{$store.store_id}" {if condition="isset($info['store_id']) && $info['store_id'] == $store.store_id" }selected="selected"{/if} >{$store.name}</option> 
-								{/foreach}
 							</select>
 						</div>
 					</div>

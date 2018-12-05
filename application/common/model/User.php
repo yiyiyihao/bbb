@@ -39,7 +39,7 @@ class User extends Model
             }
         }else{
             //重新取得用户信息
-            $user = $this->_checkUser($userId, TRUE);
+            $user = $this->checkUser($userId, TRUE);
         }
         if ($user['admin_type'] <= 0) {
             $this->error = lang('PERMISSION_DENIED');
@@ -66,7 +66,7 @@ class User extends Model
             if (isset($user['store'])&& $user['store']) {
                 $adminStore = $user['store'];
             }else{
-                $adminStore = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+                $adminStore = db('store')->field('store_id, name, factory_id')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             }
             session('admin_store',$adminStore);
         }
@@ -90,7 +90,7 @@ class User extends Model
      * @param string $password
      * @return string
      */
-    public function _pwdEncryption($password = '')
+    public function pwdEncryption($password = '')
     {
         if (!$password) {
             return FALSE;
@@ -126,7 +126,7 @@ class User extends Model
      * @param string $groupFlag 是否返回用户管理员分组信息
      * @return array
      */
-    public function _checkUser($userId = 0, $groupFlag = FALSE)
+    public function checkUser($userId = 0, $groupFlag = FALSE)
     {
         $user = db('User')->where(['user_id' => $userId, 'is_del' => 0])->find();
         if (!$user){
@@ -138,7 +138,7 @@ class User extends Model
             return FALSE;
         }
         if ($user['admin_type'] && $user['store_id']) {
-            $user['store'] = db('store')->field('store_id, name')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+            $user['store'] = db('store')->field('store_id, name, store_type')->where(['store_id' => $user['store_id'], 'is_del' => 0, 'status' => 1])->find();
         }
         if ($groupFlag) {
             if ($user['group_id']) {
@@ -184,7 +184,7 @@ class User extends Model
                 return FALSE;
             }
             //检查登录用户名是否存在
-            $exist = $this->_checkUsername($username);
+            $exist = $this->checkUsername($username);
             if ($exist) {
                 $this->error = '登录用户名已经存在';
                 return FALSE;
@@ -220,7 +220,7 @@ class User extends Model
      * @param string $username
      * @return number
      */
-    public function _checkUsername($username = '')
+    public function checkUsername($username = '')
     {
         $exist = $this->where(['username' => $username, 'is_del' => 0])->find();
         return $exist ? 1: 0;

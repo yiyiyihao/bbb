@@ -35,11 +35,11 @@ class Worder extends FactoryForm
             if (!$installerId) {
                 $this->error('请选择售后工程师');
             }
-            $result = $this->model->dispatchWorder($info['worder_id'], ADMIN_ID, $installerId);
+            $result = $this->model->worderDispatch($info, $this->adminUser, $installerId);
             if ($result !== FALSE) {
                 $this->success('售后工程师指派成功', url('index'));
             }else{
-                $this->error('操作失败');
+                $this->error('操作失败:'.$this->model->error);
             }
         }else{
             $this->assign('info', $info);
@@ -64,7 +64,7 @@ class Worder extends FactoryForm
     public function cancel()
     {
         $info = $this->_assignInfo();
-        $result = $this->model->cancelWorder($info['worder_id'], ADMIN_ID);
+        $result = $this->model->worderCancel($info, $this->adminUser);
         if ($result === FALSE) {
             $this->error($this->model->error);
         }else{
@@ -175,6 +175,26 @@ class Worder extends FactoryForm
         if (!$skuId) {
             $this->error('请选择售后产品规格属性');
         }
+        if (!$info) {
+            if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
+                $data['store_id'] = $this->adminStore['store_id'];
+                $data['factory_id'] = $this->adminStore['factory_id'];
+            }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+                $data['store_id'] = $storeId;
+                $data['factory_id'] = $this->adminStore['store_id'];
+            }
+            $data['post_user_id'] = ADMIN_ID;
+            $storeId = $data['factory_id'];
+        }else{
+            $storeId = $info['factory_id'];
+        }
+        //根据产品规格获取预安装费
+        $goodsModel = new \app\common\model\Goods();
+        $sku = $goodsModel->checkSku($skuId, $storeId);
+        if (!$sku) {
+            $this->error('您选择的售后产品不存在或已删除');
+        }
+        $data['install_price'] = $sku['install_price'];
         if (!$userName) {
             $this->error('请填写客户姓名');
         }
@@ -197,16 +217,6 @@ class Worder extends FactoryForm
             $data['fault_desc'] = '';
         }
         $data['images'] = '';
-        if (!$info) {
-            if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
-                $data['store_id'] = $this->adminStore['store_id'];
-                $data['factory_id'] = $this->adminStore['factory_id'];
-            }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
-                $data['store_id'] = $storeId;
-                $data['factory_id'] = $this->adminStore['store_id'];
-            }
-            $data['post_user_id'] = ADMIN_ID;
-        }
         return $data;
     }
     function _assignInfo($pkId = 0){
@@ -216,7 +226,7 @@ class Worder extends FactoryForm
             //获取厂商下的服务商列表
             $stores = db('store')->field('store_id, name')->where(['is_del' => 0, 'status' => 1, 'factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_SERVICE])->select();
             $this->assign('stores', $stores);
-        }elseif ($this->adminFactory['admin_type'] == ADMIN_SERVICE){
+        }elseif ($this->adminUser['admin_type'] == ADMIN_SERVICE){
             $factoryId = $this->adminUser['factory_id'];
         }
         $this->assign('factory_id', $factoryId);

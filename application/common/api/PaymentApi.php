@@ -9,16 +9,19 @@ class PaymentApi
     var $payments;  //支付方式列表
     var $config;    //支付方式配置信息
     var $payCode;
+    var $storeId;
     var $error;
-    public function __construct($payCode = '', $option = []){
+    public function __construct($storeId = 0, $payCode = '', $option = []){
+        $this->storeId = $storeId;
         $this->payments = [
-            'wechat_js' => [
-                'code' => 'wechat_js',
-                'name' => '微信公众号支付',
-                'desc' => '',
+            'wechat_native' => [
+                'code' => 'wechat_native',
+                'name' => '微信扫码支付',
+                'desc' => '用户打开"微信扫一扫“，扫描商户的二维码后完成支付',
+                'display_type' => 1,//支付显示客户端1:PC端 2微信小程序端 3APP客户端
                 'config' => [
                     'app_id' => [
-                        'desc' => '微信支付分配的公众账号ID',
+                        'desc' => '微信支付分配的公众账号ID（企业号corpid即为此appId）',
                     ],
                     'mch_id' => [
                         'desc' => '微信支付分配的商户号',
@@ -31,7 +34,8 @@ class PaymentApi
             'wechat_applet' => [
                 'code' => 'wechat_applet',
                 'name' => '微信小程序支付',
-                'desc' => '',
+                'display_type' => 2,
+                'desc' => '用户在微信小程序中使用微信支付的场景',
                 'config' => [
                     'app_id' => [
                         'desc' => '微信分配的小程序ID',
@@ -44,32 +48,45 @@ class PaymentApi
                     ],
                 ],
             ],
-            'wechat_app' => [
-                'code' => 'wechat_app',
-                'name' => '微信APP支付',
-                'desc' => '',
-                'config' => [
-                    'app_id' => [
-                        'desc' => '微信APP支付分配的APPID',
-                    ],
-                    'mch_id' => [
-                        'desc' => '微信APP支付分配的商户号',
-                    ],
-                    'mch_key' => [
-                        'desc' => '微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置',
-                    ],
-                ],
-            ],
-            'balance' => [
-                'code' => 'balance',
-                'name' => '余额支付',
-                'desc' => '账户余额支付',
-            ],
+//             'wechat_js' => [
+//                 'code' => 'wechat_js',
+//                 'name' => '微信公众号支付',
+//                 'desc' => '用户通过微信扫码、关注公众号等方式进入商家H5页面，并在微信内调用JSSDK完成支付',
+//                 'display_type' => 3,
+//                 'config' => [
+//                     'app_id' => [
+//                         'desc' => '微信支付分配的公众账号ID',
+//                     ],
+//                     'mch_id' => [
+//                         'desc' => '微信支付分配的商户号',
+//                     ],
+//                     'mch_key' => [
+//                         'desc' => '微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置',
+//                     ],
+//                 ],
+//             ],
+//             'wechat_app' => [
+//                 'code' => 'wechat_app',
+//                 'name' => '微信APP支付',
+//                 'desc' => '商户APP中集成微信SDK，用户点击后跳转到微信内完成支付',
+//                 'display_type' => 3,
+//                 'config' => [
+//                     'app_id' => [
+//                         'desc' => '微信APP支付分配的APPID',
+//                     ],
+//                     'mch_id' => [
+//                         'desc' => '微信APP支付分配的商户号',
+//                     ],
+//                     'mch_key' => [
+//                         'desc' => '微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置',
+//                     ],
+//                 ],
+//             ],
         ];
         if ($option) {
             $this->config = $option;
         }else{
-            $payment = db('payment')->where(['is_del' => 0, 'status' => 1, 'store_id' => 1, 'pay_code' => $payCode])->find();
+            $payment = db('payment')->where(['is_del' => 0, 'status' => 1, 'store_id' => $storeId, 'pay_code' => $payCode])->find();
             $this->config = $payment && $payment['config_json'] ? json_decode($payment['config_json'], TRUE): [];
         }
         $this->payCode = strtolower($payCode);
@@ -85,13 +102,16 @@ class PaymentApi
             $this->error = '订单信息不能为空';
             return FALSE;
         }
+        $tradeType = '';
         switch ($this->payCode) {
-            case 'wechat_app':
+            case 'wechat_app'://微信APP支付
                 $tradeType = 'APP';
-            case 'wechat_applet':
-                $tradeType = 'JSAPI';
-            case 'wechat_js':
-                $this->config['notify_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/api/pay/wechat';//异步通知地址
+            case 'wechat_applet'://微信小程序支付
+                $tradeType = $tradeType ? $tradeType : 'JSAPI';
+            case 'wechat_native'://微信扫码支付
+                $tradeType = $tradeType ? $tradeType : 'NATIVE';
+            case 'wechat_js'://微信公众号支付
+                $this->config['notify_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/api/pay/wechat/code/'.$this->payCode;//异步通知地址
                 $tradeType = isset($tradeType) && $tradeType ? $tradeType : 'JSAPI';
                 $result = $this->wechatUnifiedOrder($order, $tradeType);
                 if ($result) {
@@ -128,50 +148,11 @@ class PaymentApi
                     $this->error = $this->error ? $this->error :'支付请求异常';
                     return FALSE;
                 }
-            break;
-            case 'balance':
-                $userId = isset($order['user_id']) ? intval($order['user_id']) : 0;
-                if (!$userId) {
-                    $this->error = '订单信息异常';
-                    return FALSE;
-                }
-                $user = db('user')->where(['user_id' => $userId])->find();
-                if (!$user) {
-                    $this->error = '用户不存在';
-                    return FALSE;
-                }
-                $realAmount = $order['real_amount'];
-                $balance = $user['balance'];
-                if ($balance <= 0 || $balance < $realAmount) {
-                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '账户余额不足，请充值']);
-                }
-                /*  //用户余额变动
-                $userService = new \app\common\service\User();
-                $result = $userService->assetChange($user['user_id'], 'balance', -$realAmount, 'order_pay', $order['order_sn'].'(订单支付)', $order);
-                if ($result === FALSE) {
-                    $this->error = $userService->error;
-                    return FALSE;
-                }
-                $orderService = new \app\common\service\Order();
-                //余额支付处理
-                $params = [
-                    'pay_method'    => $this->payCode,
-                    'paid_amount'   => $order['real_amount'],
-                    'remark'        => '订单完成支付,等待商家发货',
-                ];
-                $result = $orderService->orderPay($order['order_sn'], 0, $user['user_id'], $params);
-                if ($result === FALSE) {
-                    //退还支付金额
-                    $result = $userService->assetChange($user['user_id'], 'balance', $realAmount, 'system_return', $order['order_sn'].'(订单支付失败,系统退款)', $order);
-                    $this->error = $orderService->error;
-                    return FALSE;
-                } */
-                return TRUE;
-            break;
+                break;
             default:
                 $this->error = '支付方式错误';
                 return FALSE;
-            break;
+                break;
         }
     }
     /**
@@ -193,9 +174,15 @@ class PaymentApi
             'total_fee'         => intval((100 * $order['real_amount'])),
         ];
         if ($tradeType == 'JSAPI') {
-            $params['openid'] = isset($order['openid']) ? $order['openid']: '';
+            $params['openid'] = isset($order['openid']) ? trim($order['openid']): '';
             if (!$params['openid']) {
                 $this->error = 'openid缺失';
+                return FALSE;
+            }
+        }elseif ($tradeType == 'NATIVE'){
+            $params['product_id'] = isset($order['product_id']) ? intval($order['product_id']): 0;
+            if (!$params['product_id']) {
+                $this->error = '商品ID(product_id)缺失';
                 return FALSE;
             }
         }
@@ -205,6 +192,9 @@ class PaymentApi
         $paramsXml = array_to_xml($params);
         $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';//统一下单接口地址
         $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, true);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
         $result = xml_to_array($returnXml);
         return $result;
     }
@@ -229,7 +219,7 @@ class PaymentApi
     /*
      *与微信通讯获得二维码地址信息，必须以xml格式
      */
-    private function _wechatPostXmlCurl($xml, $url, $second = 30)
+    private function _wechatPostXmlCurl($xml, $url, $second = 60)
     {
         //初始化curl
         $ch = curl_init();
@@ -238,9 +228,11 @@ class PaymentApi
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         
-        $code = $this->payCode == 'wechat_app' ? $this->payCode : 'wechat_js';
-        $sslcert = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_cert.pem';
-        $sslkey = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_key.pem';
+//         $code = $this->payCode == 'wechat_app' ? $this->payCode : 'wechat_js';
+//         $sslcert = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_cert.pem';
+//         $sslkey = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_key.pem';
+        $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
+        $sslkey = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
         
         curl_setopt($ch, CURLOPT_SSLCERT, $sslcert);
         curl_setopt($ch, CURLOPT_SSLKEY, $sslkey);
@@ -257,6 +249,15 @@ class PaymentApi
         $errno = curl_errno($ch);
         $info  = curl_getinfo($ch);
         curl_close($ch);
+        if ($errno > 0) {
+            if ($errno == 58) {
+                $this->error = 'CURL证书错误';
+                return FALSE;
+            }else{
+                $this->error = 'CURL错误'.$errno;
+                return FALSE;
+            }
+        }
         //返回结果
         return $data;
     }

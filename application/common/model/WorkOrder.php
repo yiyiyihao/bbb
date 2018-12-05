@@ -25,30 +25,47 @@ class WorkOrder extends Model
             $sn = $this->_getWorderSn();
             $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
             //工单创建成功后填写工单号
-            $result = $this->_checkWorder($worderId, $data['post_user_id']);
+            $result = $this->checkWorder($worderId, $data['post_user_id']);
             $worder = $result['worder'];
             $user = $result['user'];
-            $this->_worderLog($worder, $user, '创建工单');
+            $this->worderLog($worder, $user, '创建工单');
         }
         return $result;
     }
     /**
+     * 根据工单号获取售后工单信息
+     * @param string $worderSn
+     * @param array $user
+     * @return boolean|unknown
+     */
+    public function checkWorder($worderSn = '', $user = [])
+    {
+        if (!$worderSn) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        $info = $this->where(['worder_sn' => $worderSn, 'is_del' => 0])->find();
+        if (!$info) {
+            $this->error = lang('NO ACCESS');
+            return FALSE;
+        }
+        return $info;
+    }
+    /**
      * 分配安装员操作
-     * @param int $worderId
-     * @param int $userId
+     * @param array $worder
+     * @param array $user
      * @param int $installerId
      * @return boolean
      */
-    public function dispatchWorder($worderId = 0, $userId = 0, $installerId = 0)
+    public function worderDispatch($worder = [], $user = [], $installerId = 0)
     {
-        $result = $this->_checkWorder($worderId, $userId);
-        if ($result === FALSE) {
+        if (!$worder) {
+            $this->error = '参数错误';
             return FALSE;
         }
-        $worder = $result['worder'];
-        $user = $result['user'];
         //判断用户是否有分派工程师权限(仅服务商有分派工程师权限)
-        if ($user['admin_type'] == ADMIN_SERVICE && $user['store_id'] == $worder['store_id']) {
+        if ($user['admin_type'] == ADMIN_SERVICE && $user['store_id'] != $worder['store_id']) {
             $this->error = '当前账户无操作权限';
             return FALSE;
         }
@@ -61,17 +78,26 @@ class WorkOrder extends Model
             $this->error = '售后工程师已禁用，请启用后选择';
             return FALSE;
         }
+        $action = '分派工程师';
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['status']) {
-            case -1:
-                $this->error = '工单已取消,无操作权限';
-                return FALSE;
-            case 1:#TODO 指派后是否可另外指派
-                $this->error = '工单已指派安装员,无操作权限';
-                return FALSE;
-            case 2:
-                $this->error = '工单已接收,无操作权限';
-                return FALSE;
+            case -1://已取消可另外分派
+                $action = '重新分派工程师';
+                break;
+            case 1://已分派工程师 可另外分派
+                if ($worder['installer_id'] == $installerId) {
+                    $this->error = '不能重复分派同一工程师';
+                    return FALSE;
+                }
+                $action = '重新分派工程师';
+                break;
+            case 2://待上门  可另外分派
+                if ($worder['installer_id'] == $installerId) {
+                    $this->error = '不能重复分派同一工程师';
+                    return FALSE;
+                }
+                $action = '重新分派工程师';
+                break;
             case 3:
                 $this->error = '工程师服务中,无操作权限';
                 return FALSE;
@@ -86,7 +112,7 @@ class WorkOrder extends Model
         if ($result !== FALSE) {
             //操作日志记录
             $msg = '工程师姓名:'.$installer['realname'].'<br>工程师电话:'.$installer['phone'];
-            $this->_worderLog($worder, $user, '分派售后工程师', $msg);
+            $this->worderLog($worder, $user, $action, $msg);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -100,9 +126,13 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function receiveWorder($worder, $user, $installer)
+    public function worderReceive($worder, $user, $installer)
     {
-        if ($worder['installer_id'] != $installer['installer_id']) {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
             $this->error = '无操作权限';
             return FALSE;
         }
@@ -130,7 +160,7 @@ class WorkOrder extends Model
         $result = $this->save(['status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->_worderLog($worder, $user, '工程师接单');
+            $this->worderLog($worder, $user, '工程师接单');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -144,8 +174,12 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function signWorder($worder, $user, $installer)
+    public function worderSign($worder, $user, $installer)
     {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
         if ($worder['installer_id'] != $installer['installer_id']) {
             $this->error = '无操作权限';
             return FALSE;
@@ -174,15 +208,25 @@ class WorkOrder extends Model
         $result = $this->save(['status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->_worderLog($worder, $user, '工程师签到,服务开始');
+            $this->worderLog($worder, $user, '工程师签到,服务开始');
             return TRUE;
         }else{
             $this->error = '系统异常';
             return FALSE;
         }
     }
-    public function finishWorder($worder, $user)
+    /**
+     * 工单完成操作
+     * @param array $worder
+     * @param array $user
+     * @return boolean
+     */
+    public function worderFinish($worder, $user)
     {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['status']) {
             case -1:
@@ -204,32 +248,24 @@ class WorkOrder extends Model
         $result = $this->save(['status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->_worderLog($worder, $user, '确认完成');
+            $this->worderLog($worder, $user, '确认完成');
             return TRUE;
         }else{
             $this->error = '系统异常';
             return FALSE;
         }
     }
-        
     /**
      * 取消工单操作
      * @param int $worderId
      * @param int $userId
      * @return boolean
      */
-    public function cancelWorder($worderId = 0, $userId = 0)
+    public function worderCancel($worder = [], $user = [])
     {
-        if (is_array($worderId) && is_array($worderId)) {
-            $worder = $worderId;
-            $user = $userId;
-        }else{
-            $result = $this->_checkWorder($worderId, $userId);
-            if ($result === FALSE) {
-                return FALSE;
-            }
-            $worder = $result['worder'];
-            $user = $result['user'];
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['status']) {
@@ -250,7 +286,7 @@ class WorkOrder extends Model
         $result = $this->save(['status' => -1, 'cancel_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->_worderLog($worder, $user, '取消工单', '');
+            $this->worderLog($worder, $user, '取消工单', '');
         }else{
             $this->error = '系统异常';
             return FALSE;
@@ -264,7 +300,7 @@ class WorkOrder extends Model
      * @param string $msg
      * @return number|string
      */
-    public function _worderLog($worder, $user, $action = '', $msg = '')
+    public function worderLog($worder, $user, $action = '', $msg = '')
     {
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
@@ -288,38 +324,5 @@ class WorkOrder extends Model
         }else{
             return $sn;
         }
-    }
-    private function _checkWorder($worderId = 0, $userId = 0)
-    {
-        if (!$worderId) {
-            $this->error = '参数错误';
-            return FALSE;
-        }
-        $info = $this->where(['worder_id' => $worderId, 'is_del' => 0])->find();
-        if(!$info){
-            $this->error = '售后工单不存在或已删除';
-            return FALSE;
-        }
-        if ($userId > 0) {
-            $user = db('user')->where(['user_id' => $userId, 'is_del' => 0])->find();
-            if (!$user) {
-                $this->error = '操作用户不存在或已删除';
-                return FALSE;
-            }
-            if ($user['status'] != 1) {
-                $this->error = '操作用户已禁用';
-                return FALSE;
-            }
-        }else{
-            $user = [
-                'user_id' => 0,
-                'nickname' => '系统',
-            ];
-        }
-        #TODO判断用户是否有操作权限
-        return [
-            'worder' => $info,
-            'user' => $user,
-        ];
     }
 }

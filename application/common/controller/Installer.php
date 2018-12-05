@@ -217,16 +217,12 @@ class Installer extends FormBase
             ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
             $array,
             ['title'=>'真实姓名','type'=>'text','name'=>'realname','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'真实姓名'],
-            ['title'=>'头像','type'=>'uploadImg','name'=>'avatar', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            ['title'=>'公安机关备案号','type'=>'text','name'=>'security_record_num', 'size'=>'40', 'datatype'=>'*','default'=>'','notetext'=>'请填写公安机关备案号'],
             ['title'=>'联系电话','type'=>'text','name'=>'phone','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'联系电话'],
             ['title'=>'服务区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'],
             ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
             ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
-            /* ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'可用','value'=>'1'],
-                ['text'=>'禁用','value'=>'0'],
-            ]], */
             ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
         ];
         return array_filter($field);

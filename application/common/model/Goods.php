@@ -21,7 +21,7 @@ class Goods extends Model
      * @param int $num 修改商品库存数量(大于0为增加,小于0为减少)
      * @return boolean
      */
-    public function _setGoodsStock($sku, $num)
+    public function setGoodsStock($sku, $num)
     {
         if (!$sku || !$num) {
             return FALSE;
@@ -38,14 +38,62 @@ class Goods extends Model
         }
         return FALSE;
     }
-    
-    public function _checkSku($skuId = 0)
+    public function checkGoods($goodsId = 0)
+    {
+        if(!$goodsId){
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        $goods = $this->where(['goods_id' => $goodsId, 'is_del' => 0])->find();
+        if (!$goods) {
+            $this->error = '产品不存在或已删除';
+            return FALSE;
+        }
+        if (!$goods['status']) {
+            $this->error = '产品已下架';
+            return FALSE;
+        }
+        $goods['specs_json'] = $goods['specs_json'] ? json_decode($goods['specs_json'], TRUE) : [];
+        $goods['imgs'] = $goods['imgs'] ? json_decode($goods['imgs'], TRUE) : [];
+        
+        $data = $this->getGoodsSkus($goodsId);
+        if (is_int($data)) {
+            $goods['sku_id'] = $data;
+            $goods['skus'] = [];
+        }elseif (is_array($data)){
+            $goods['sku_id'] = 0;
+            $goods['skus'] = $data;
+        }
+        return $goods;
+    }
+    //获取商品规格属性
+    public function getGoodsSkus($goodsId = false)
+    {
+        if ($goodsId <= 0) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        $where = ['is_del' => 0, 'status' => 1, 'goods_id' => $goodsId];
+        $skus = db('goods_sku')->field('sku_id, sku_name, sku_sn, sku_thumb, sku_stock, install_price, price, spec_value, sales')->order('sort_order ASC, update_time DESC')->where($where)->select();
+        if ($skus && count($skus) == 1) {
+            $sku = reset($skus);
+            if ($sku && $sku['spec_value'] == "") {
+                return $sku['sku_id'];
+            }
+        }
+        return $skus;
+    }
+    public function checkSku($skuId = 0, $storeId = 0)
     {
         if(!$skuId){
             $this->error = '参数错误';
             return FALSE;
         }
-        $sku = db('goods_sku')->where(['sku_id' => $skuId, 'is_del' => 0])->find();
+        $where = ['sku_id' => $skuId, 'is_del' => 0];
+        if ($storeId) {
+            $where['store_id'] = $storeId;
+        }
+        $sku = db('goods_sku')->where($where)->find();
         if (!$sku) {
             $this->error = '产品不存在或已删除';
             return FALSE;
