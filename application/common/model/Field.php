@@ -6,7 +6,7 @@ class Field extends Model
 {
 	public $error;
 	protected $pk = 'field_id';
-	protected $tableName = 'form_field';
+	protected $tableName = 'field';
 	protected $table;
 	
 	protected $field = true;
@@ -18,7 +18,7 @@ class Field extends Model
 	}
 	
 	//取得模型字段列表
-	static function getFieldList($model){
+	function getFieldList($model){
 	    $cacheName = $model.'fieldList';
 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
