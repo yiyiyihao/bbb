@@ -33,7 +33,7 @@
                                     {/case}
 
 		                        	{default}
-		                        		<a href="{:url($button.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? '_blank'}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
+		                        		<a href="{:url($button.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? ''}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
 		                        {/switch}
 	                        {/notempty}
                         {/volist}
