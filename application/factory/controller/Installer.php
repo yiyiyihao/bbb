@@ -33,7 +33,8 @@ class Installer extends CommonInstaller
             if(IS_POST){
                 //获取提交信息
                 $params = $this->request->param();
-                if($params['check']=='1'){
+                //dump($params);exit;
+                if($params['status']=='1'){
                     $con_status = $this->checkStatus($info['factory_id']);
                     if($con_status == 1){
                         $this->updateCheck($info['installer_id'],-1);//状态改为-1
@@ -42,7 +43,7 @@ class Installer extends CommonInstaller
                     }
                 }else{
                     $this->setRemark($adminUser,$params,$info['installer_id']);
-                    $this->updateCheck($info['installer_id'],-4);//状态改为-4服务商拒绝
+                    $this->updateCheck($info['installer_id'],-4);//状态改为-4
                 }
             }
             return $this->fetch('checkInfo');
@@ -52,8 +53,9 @@ class Installer extends CommonInstaller
             if(IS_POST){
             //获取提交信息
                 $params = $this->request->param();
+                //dump($params);exit;
                 //提交如果为1，审核同意，否则status为-2厂商拒绝
-                if($params['check']=='1'){
+                if($params['status']=='1'){
                     $this->updateCheck($info['installer_id'],1); //状态改为1
                 }else{
                     $this->setRemark($adminUser,$params,$info['installer_id']);
@@ -81,7 +83,6 @@ class Installer extends CommonInstaller
     function setRemark($adminUser,$params,$installer_id){
         //remark入库
         $remark=[
-            'store_id' =>  $adminUser['store_id'],
             'remark'   =>  $params['remark']
         ];
         $remark=json_encode($remark);  

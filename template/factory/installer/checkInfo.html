@@ -20,18 +20,12 @@
                         <div class="field">
                         	{switch vo.type}
                             	{case text}
-                                    <label type="text">{$info[$vo.name]|default=$vo.default}</label>
+                                    <input type="text" value="{$info[$vo.name]|default=$vo.default}" class="input" disabled/>
                             	{/case}
                             	{case datetime}
                                     <label type="text">{$info[$vo.name]|default=$vo.default}</label>
                             	{/case}
-                                <!-- {case radio}
-    	                            {notempty name="vo.radioList"}
-    	                            <div class="button-group radio">
-                                    <label>{if condition="$vo.default == 1"}可用{else/}禁用{/if}</label>
-    	                            </div>
-    	                            {/notempty}
-                                {/case} -->
+                                
                                 {case uploadImg}
     	                            <input type="hidden" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="38" value="{$info[$vo.name]|default=''}">
     				                <div class="{$vo['name'] ?? ''}_preview" style="margin-bottom:10px;"><img src="{$info[$vo.name]|default='/static/base/images/default.png'}" id="{$vo['name'] ?? ''}_preview" width="120"></div>
@@ -50,6 +44,22 @@
     	                               {/if}
     	                               {/foreach}	                            
                                 {/case}
+                                {case textarea}
+                                    <textarea class="input {$vo['class'] ?? ''}" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}"></textarea>
+                                    <div class="input-note">{$vo['notetext'] ?? ''}!</div>
+                                {/case}
+
+                                {case radio}
+                                {notempty name="vo.radioList"}
+                                <div class="button-group radio">
+                                {volist name="vo.radioList" id="radio"}
+                                    <label class='button {if ($info && $radio.value == $info[$vo.name]) || ($info && $radio.value == $vo.default)}active{/if}'>
+                                    <input name="{$vo['name'] ?? ''}" value="{$radio.value}" type="radio" {if ($info && $radio.value == $info[$vo.name]) || ($info && $radio.value == $vo.default)} checked="checked"{/if}>{$radio.text}</label>
+                                {/volist}
+                                </div>
+                                {/notempty}
+                                {/case}
+
                             {/switch}
                         </div>
 
@@ -58,23 +68,13 @@
                     {/if}
                     {/volist}
                     {/notempty}
-                    <div class="form-group">
-                        <div class="label">
-                            <label>拒绝理由</label>
-                        </div>
-                        <div class="field"> 
-                            <textarea class="input" name='remark'></textarea>
-                            <div class="input-note">如果拒绝，请填写拒绝理由</div>
-                        </div>
-                        
-                    </div>
                    
                 </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
-                    <button class="button bg-main" type="submit" name='check' value='1'>审核通过</button>
-                    <button class="button bg" type="submit" name='check' value='0'>拒绝</button>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
                 </div>
             </div>
@@ -82,10 +82,10 @@
     </div>
 </form>
 <script>
-    /*Do.ready('base', function () {
+    Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{$uploadUrl ?? ''}",
+        	//'uploadUrl' : "{$uploadUrl ?? ''}",
         });
-    }); */
+    });
 </script>

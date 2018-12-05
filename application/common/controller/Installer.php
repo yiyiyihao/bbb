@@ -175,12 +175,12 @@ class Installer extends FormBase
             ['title'=> '是否绑定小程序','width'=> '*','value'   => 'udata_id','type'=> 'yesOrNo', 'yes'      => '是','no'       => '否'],
             ['title'=> '状态',   'width'=>'180','value'=> 'status',       'type'=> 'status','status'=>
                 [
-                    ['text'  => '审核通过', 'value'   => 1,'bgClass'=> 'bg-main'],
+                    ['text'  => '审核通过', 'value'   => 1,'bgClass'=> ''],
                     ['text'  => '禁用',     'value'   => 0,'bgClass'=> ''],
-                    ['text'  => '待服务商审核','value' => -3,'bgClass'=> 'bg-yellow'],
-                    ['text'  => '服务商拒绝','value' => -4,'bgClass'=> 'bg-yellow'],
-                    ['text'  => '待厂商审核','value'   => -1,'bgClass'=> 'bg-yellow'],
-                    ['text'  => '厂商拒绝','value'   => -2,'bgClass'=> 'bg-yellow'],
+                    ['text'  => '待服务商审核','value' => -3,'bgClass'=> ''],
+                    ['text'  => '服务商拒绝','value' => -4,'bgClass'=> ''],
+                    ['text'  => '待厂商审核','value'   => -1,'bgClass'=> ''],
+                    ['text'  => '厂商拒绝','value'   => -2,'bgClass'=> ''],
                 ]
         ],
             ['title'=> '排序',   'width'=>'80','value'=> 'sort_order',   'type'=> 'text'],
@@ -217,6 +217,12 @@ class Installer extends FormBase
         }
         if($this->request->action()!='check'){
             $sort=['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''];
+        }else{
+            $check=['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
+                ['text'=>'审核通过','value'=>'1'],
+                ['text'=>'拒绝','value'=>'0'],
+            ]];
+            $textarea=['title'=>'拒绝理由','type'=>'textarea','name'=>'remark','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'如果拒绝，请填写拒绝理由'];
         }
         $field = [
             ['title'=>'厂商名称','type'=>'text','name'=>' ','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
@@ -228,6 +234,8 @@ class Installer extends FormBase
             ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
             ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            $check??'',
+            $textarea??'',
             $sort??''
         ];
         return array_filter($field);
