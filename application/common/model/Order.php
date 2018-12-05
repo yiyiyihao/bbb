@@ -14,7 +14,6 @@ class Order extends Model
     {
         parent::initialize();
         $this->orderSkuModel = db('order_sku');
-        $this->_initParams();
     }
     /**
      * 获取字订单详情信息
@@ -137,7 +136,8 @@ class Order extends Model
                 $this->error = '请选择物流公司';
                 return FALSE;
             }
-            if (!$this->deliverys[$deliveryIdentif]) {
+            $deliverys = get_delivery();
+            if (!$deliverys[$deliveryIdentif]) {
                 $this->error = '物流公司错误';
                 return FALSE;
             }
@@ -153,7 +153,7 @@ class Order extends Model
                 'user_id'   => $order['user_id'],
                 'osku_ids'  => $oskuIds ? $oskuIds : '',
                 'delivery_identif'  => $deliveryIdentif,
-                'delivery_name'     => $this->deliverys[$deliveryIdentif]['name'],
+                'delivery_name'     => $deliverys[$deliveryIdentif]['name'],
                 'delivery_sn'       => $deliverySn,
                 'delivery_time'     => time(),
                 'add_time'          => time(),
@@ -812,46 +812,5 @@ class Order extends Model
         }else{
             return $sn;
         }
-    }
-    private function _initParams()
-    {
-        $this->deliverys = [
-            'shunfeng' => [
-                'identif' => 'shunfeng',
-                'name' => '顺丰快递',
-            ],
-            'ems' => [
-                'identif' => 'ems',
-                'name' => 'EMS邮政',
-            ],
-            'debang' => [
-                'identif' => 'debang',
-                'name' => '德邦快递',
-            ],
-            'yuantong' => [
-                'identif' => 'yuantong',
-                'name' => '圆通快递',
-            ],
-            'zhongtong' => [
-                'identif' => 'zhongtong',
-                'name' => '中通快递',
-            ],
-            'yunda' => [
-                'identif' => 'yunda',
-                'name' => '韵达快递',
-            ],
-            'tiantian' => [
-                'identif' => 'tiantian',
-                'name' => '天天快递',
-            ],
-            'shentong' => [
-                'identif' => 'shentong',
-                'name' => '申通快递',
-            ],
-            'huitongkuaidi' => [
-                'identif' => 'huitongkuaidi',
-                'name' => '百世汇通',
-            ],
-        ];
     }
 }

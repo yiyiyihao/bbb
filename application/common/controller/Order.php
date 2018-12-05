@@ -4,10 +4,9 @@ namespace app\common\controller;
 class Order extends FormBase
 {
     var $model;
-    var $deliverys;
     public function __construct()
     {
-        $this->modelName = 'order';
+        $this->modelName = $this->modelName ? $this->modelName : 'order';
         $this->model = db($this->modelName);
         $this->model = new \app\common\model\Order();
         parent::__construct();
@@ -32,8 +31,6 @@ class Order extends FormBase
             'name' => '已取消',
             'url' => url('index', ['status' => 2]),
         ];
-        $this->deliverys = $this->model->deliverys;
-        $this->assign('deliverys', $this->deliverys);
     }
     public function detail()
     {
@@ -131,6 +128,7 @@ class Order extends FormBase
                 $this->success('订单发货成功', url('detail', ['order_sn' => $orderSn]));
             }
         }else{
+            $this->assign('deliverys', get_delivery());
             $this->subMenu['menu'][] = [
                 'name' => '订单查看',
                 'url' => url('detail', ['order_sn' => $orderSn]),

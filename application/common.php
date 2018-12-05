@@ -1,15 +1,55 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: 流年 <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-
 // 应用公共文件
+function get_delivery($identif = FALSE)
+{
+    $deliverys = [
+        'shunfeng' => [
+            'identif' => 'shunfeng',
+            'name' => '顺丰快递',
+        ],
+        'ems' => [
+            'identif' => 'ems',
+            'name' => 'EMS邮政',
+        ],
+        'debang' => [
+            'identif' => 'debang',
+            'name' => '德邦快递',
+        ],
+        'yuantong' => [
+            'identif' => 'yuantong',
+            'name' => '圆通快递',
+        ],
+        'zhongtong' => [
+            'identif' => 'zhongtong',
+            'name' => '中通快递',
+        ],
+        'yunda' => [
+            'identif' => 'yunda',
+            'name' => '韵达快递',
+        ],
+        'tiantian' => [
+            'identif' => 'tiantian',
+            'name' => '天天快递',
+        ],
+        'shentong' => [
+            'identif' => 'shentong',
+            'name' => '申通快递',
+        ],
+        'huitongkuaidi' => [
+            'identif' => 'huitongkuaidi',
+            'name' => '百世汇通',
+        ],
+    ];
+    if ($identif === FALSE) {
+        return $deliverys;
+    }
+    if (isset($deliverys[$identif])) {
+        return $deliverys[$identif];
+    }else{
+        return '';
+    }
+}
+
 /**
  * 获取订单状态
  * @param  $order    : 订单信息

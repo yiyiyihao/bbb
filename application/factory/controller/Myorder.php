@@ -6,14 +6,10 @@ class Myorder extends commonOrder
 {
     public function __construct()
     {
-        $this->modelName = 'order';
+        $this->modelName = 'myorder';
         $this->model = model('order');
         parent::__construct();
         unset($this->subMenu['add']);
-        $this->subMenu['menu'][] = [
-            'name' => '零售商订单',
-            'url' => url('lists'),
-        ];
     }
     public function pay()
     {

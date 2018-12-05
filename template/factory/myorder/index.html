@@ -72,7 +72,7 @@
               	<a href="javascript:;" url="{:url('cancel', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-red icon-trash js-action" refresh="true" title="取消订单">取消订单</a>
               	{/if}
               	{if condition="$vo['pay_status'] == 1 AND $vo['status'] == 1 AND $vo['delivery_status'] == 2 AND $vo['finish_status'] != 2"}
-              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main" refresh="true">确定收货</a>
+              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main js-action" refresh="true" title="确定收货">确定收货</a>
               	{/if}
               </td>
             </tr>

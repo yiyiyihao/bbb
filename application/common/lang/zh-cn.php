@@ -34,6 +34,10 @@ return [
     'USER_GROUP_PURVIEW'    =>  '角色授权',
     'USER_INSTALLER'        =>  '售后工程师',
     'WORK_ORDER'            =>  '售后工单',
+    
+    'ORDER'                 =>  '订单',
+    'MYORDER'               =>  '我的订单',
+    'SUBORDER'              =>  '零售商订单',
 
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',
