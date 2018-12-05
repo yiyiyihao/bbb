@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-05 19:36:05
+Date: 2018-12-05 19:47:27
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -4084,6 +4084,7 @@ CREATE TABLE `wja_sys_message` (
   `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '新增用户账户ID',
   `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID',
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT '公告标题',
+  `special_display` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '特殊展示场景:1登录后弹窗显示',
   `description` varchar(1000) NOT NULL DEFAULT '' COMMENT '公告描述',
   `content` text NOT NULL COMMENT '公告内容',
   `to_store_types` varchar(255) NOT NULL DEFAULT '' COMMENT '接收公告商户类型(1厂商 2渠道商 3经销商/零售商 4服务商),多个用英文逗号分隔',
