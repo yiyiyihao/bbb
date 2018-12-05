@@ -6,7 +6,7 @@ class Field extends Model
 {
 	public $error;
 	protected $pk = 'field_id';
-	protected $tableName = 'field';
+	protected $tableName = 'form_field';
 	protected $table;
 	
 	protected $field = true;
@@ -29,7 +29,7 @@ class Field extends Model
 	            'F.status'        => 1,
 	            'F.is_del'        => 0,
 	        ];
-	        $join[] = ['model M', 'M.model_id = F.model_id', 'LEFT'];
+	        $join[] = ['form_model M', 'M.model_id = F.model_id', 'LEFT'];
 	        $field = 'F.*,M.name';
 	        $fieldList = $this
 	        ->alias("F")
