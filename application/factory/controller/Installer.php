@@ -12,10 +12,10 @@ class Installer extends CommonInstaller
     {
         $data = parent::_getData();
         $params = $this->request->param();
-        if(parent::checkStatus($data['store_id'])){
+        if($this->checkStatus($data['store_id'])){
             $data['status']=-3;
         }else{
-            if(parent::checkStatus($data['factory_id'])){
+            if($this->checkStatus($data['factory_id'])){
                 $data['status']=-1;
             }else{
                 $data['status']=1;
