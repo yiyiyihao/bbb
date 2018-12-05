@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-05 19:25:46
+Date: 2018-12-05 19:36:05
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -4076,20 +4076,20 @@ INSERT INTO `wja_store_servicer` VALUES ('5');
 INSERT INTO `wja_store_servicer` VALUES ('8');
 
 -- ----------------------------
--- Table structure for wja_sys_msg
+-- Table structure for wja_sys_message
 -- ----------------------------
-DROP TABLE IF EXISTS `wja_sys_msg`;
-CREATE TABLE `wja_sys_msg` (
+DROP TABLE IF EXISTS `wja_sys_message`;
+CREATE TABLE `wja_sys_message` (
   `msg_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '新增用户账户ID',
   `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID',
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT '公告标题',
   `description` varchar(1000) NOT NULL DEFAULT '' COMMENT '公告描述',
   `content` text NOT NULL COMMENT '公告内容',
-  `to_store_type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '接收公告商户类型(1厂商 2渠道商 3经销商/零售商 4服务商)',
-  `region_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '指定区域接收通知',
-  `region_name` varchar(255) NOT NULL DEFAULT '' COMMENT '指定区域名称',
-  `to_store_ids` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定接收公告的商户ID',
+  `to_store_types` varchar(255) NOT NULL DEFAULT '' COMMENT '接收公告商户类型(1厂商 2渠道商 3经销商/零售商 4服务商),多个用英文逗号分隔',
+  `region_ids` varchar(255) NOT NULL DEFAULT '' COMMENT '指定区域接收通知(多个区域id用英文逗号分隔)',
+  `region_json` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定区域信息(区域id,区域名称),json格式保存',
+  `to_store_ids` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定接收公告的商户ID(多个用英文逗号分隔)',
   `is_top` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否置顶',
   `sort_order` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '排序',
   `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0禁用 1正常 2发布)',
@@ -4097,11 +4097,11 @@ CREATE TABLE `wja_sys_msg` (
   `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`msg_id`),
-  KEY `store_id` (`store_id`)
+  KEY `store_id` (`store_id`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='公告数据表';
 
 -- ----------------------------
--- Records of wja_sys_msg
+-- Records of wja_sys_message
 -- ----------------------------
 
 -- ----------------------------
