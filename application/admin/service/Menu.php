@@ -17,7 +17,7 @@ class Menu{
             $module = '';
             $controller = !empty($v['controller']) ? '/'.$v['controller'] : '';
             $action     = !empty($v['action']) ? '/'.$v['action'] : '';
-            $authRule[$k]['href'] = $module.$controller.$action;
+            $authRule[$k]['href'] = url($module.$controller.$action);
         }
         $this->authRule = $authRule;
         if(isset($user['groupPurview'])){
