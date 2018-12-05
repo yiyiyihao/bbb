@@ -11,171 +11,98 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-	                <div class="form-group">
+                	<div class="form-group">
                         <div class="label">
-                            <label>数据表名</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="field" name="field" size="40" datatype="*" value="{if !empty($info.field)}{$info.field}{elseif !empty($Request.param.name)}{$Request.param.name}{/if}" {if !empty($Request.param.name)} readonly="readonly"{/if}>
-                            <div class="input-note">数据表字段名,非必须情况,请勿修改</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>标题名称</label>
+                            <label>显示标题</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="title" name="title" datatype="*" size="40" value="{$info.title|default=''}">
-                            <div class="input-note">新增/编辑详情内容页面字段标题名称</div>
+                            <div class="input-note">列表显示字段标题</div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>提示文字</label>
+                            <label>显示宽度</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="notemsg" name="notemsg" size="60" value="{$info.notemsg|default=''}">
-                            <div class="input-note">详情对应字段下发默认提示文字</div>
+                            <input type="text" class="input" id="width" name="width" datatype="*" size="40" value="{$info.width|default='*'}">
+                            <div class="input-note">列表字段宽度,*表示自动</div>
                         </div>
                     </div>
                     <div class="form-group js-type-select">
                         <div class="label">
-                            <label>字段显示类型</label>
+                            <label>字段内容</label>
                         </div>
                         <div class="field">
-                        	<input type="hidden" name="model_id" id="model_id" value="{$Request.param.pid|default=0}">
                         	<input type="hidden" name="type" id="type" datatype="*" value="{$info.type|default=''}">
-                            <input type="hidden" name="type_extend" id="type_extend" value="{$info.type_extend|default=''}">
                         	<select class="input">
                                 <option value="">--请选择类型--</option>
-                                <option value="1">文本框</option>
-                                <option value="2">文本域</option>
-                                <option value="3">单选</option>
-                                <option value="4">复选</option>
-                                <option value="5">选择菜单</option>
-                                <option value="6">图片上传</option>                                
-                                <option value="7">编辑器</option>
+                                <option value="1">字段值</option>
+                                <option value="2">函数处理</option>
+                                <option value="3">索引</option>
+                                <option value="4">图标</option>
+                                <option value="5">操作按钮</option>
                             </select>
-                            <div class="input-note">请选择字段显示管理类型</div>
-                        </div>
-                    </div>
-                    <div class="textExtend">
-                        <div class="form-group hide textType textType-all">
-                            <div class="label">
-                                <label>文本扩展选项</label>
-                            </div>
-                            <div class="field">                            
-                                <div class="button-group radio">
-                                    <label class='button'><input value="text" type="radio">普通文本</label>
-                                    <label class='button'><input value="password" type="radio">密码文本</label>
-                                    <label class='button'><input value="number" type="radio">数字文本</label>
-                                    <label class='button'><input value="date" type="radio">日期选择框</label>
-                                    <label class='button'><input value="dategroup" type="radio">日期区间选择</label>
-                                </div>
-                                <div class="input-note">文本类型扩展选项</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide selectType selectType-all">
-                            <div class="label">
-                                <label>菜单扩展选项</label>
-                            </div>
-                            <div class="field">                            
-                                <div class="button-group radio">
-                                    <label class='button'><input value="select" type="radio">普通下拉菜单</label>
-                                    <label class='button'><input value="select-search" type="radio">搜索单选</label>
-                                    <label class='button'><input value="select-mul-search" type="radio">搜索复选</label>
-                                    <label class='button'><input value="select-child" type="radio">联动单选</label>
-                                </div>
-                                <div class="input-note">下拉菜单类型扩展选项</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide checkBox checkBox-all">
-                            <div class="label">
-                                <label>复选选项来源</label>
-                            </div>
-                            <div class="field">                            
-                                <div class="button-group radio">
-                                    <label class='button'><input value="fixed" type="radio">固定值</label>
-                                    <label class='button'><input value="assign" type="radio">页面赋值</label>
-                                </div>
-                                <div class="input-note">复选类型扩展选项</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide imgUpload imgUpload-all">
-                            <div class="label">
-                                <label>图片上传选项</label>
-                            </div>
-                            <div class="field">                            
-                                <div class="button-group radio">
-                                    <label class='button'><input value="single" type="radio">单图上传</label>
-                                    <label class='button'><input value="multi" type="radio">多图上传</label>
-                                    <label class='button'><input value="multi-title" type="radio">多图+封面</label>
-                                </div>
-                                <div class="input-note">图片上传类型扩展选项</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide textType textType-text textType-number textArea">
-                            <div class="label">
-                                <label>显示长度/高度</label>
-                            </div>
-                            <div class="field">
-                                <input type="text" class="input" id="size" name="size" size="20" value="{$info.size|default=''}">
-                                <div class="input-note">控制输入框长度或文本域高度</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide checkBox checkBox-assign selectType selectType-select selectType-select-search selectType-select-mul-search">
-                            <div class="label">
-                                <label>数据来源变量</label>
-                            </div>
-                            <div class="field">
-                                <input type="text" class="input" id="variable" name="variable" size="20" value="{$info.variable|default=''}">
-                                <div class="input-note">页面变量名称,请谨慎填写</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide radioType checkBox checkBox-fixed">
-                            <div class="label">
-                                <label>字段可选参数</label>
-                            </div>
-                            <div class="field">
-                                <textarea class="input" id="value" name="value" rows="3" cols="60">{$info.value|default=''}</textarea>
-                                <div class="input-note">单选/多选时,可能的待选选项</div>
-                            </div>
-                        </div>
-                        <div class="form-group hide textType textType-text textType-number textArea radioType selectType selectType-select">
-                            <div class="label">
-                                <label>字段默认值</label>
-                            </div>
-                            <div class="field">
-                                <textarea class="input" id="default" name="default" rows="2" cols="60">{$info.default|default=''}</textarea>
-                                <div class="input-note">字段默认值,单选时为选项中的某个值</div>
-                            </div>
+                            <div class="input-note">请选择字段内容处理方式</div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>验证规则</label>
+                            <label>字段值</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="datatype" name="datatype" size="30" value="{$info.datatype|default=''}">
-                            <div class="input-note">验证规则,验证不能为空,请填写"*"</div>
+                            <input type="text" class="input" id="value" name="value" datatype="" size="40" value="{$info.value|default=''}">
+                            <div class="input-note">字段值请谨慎填写</div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>空字段提醒</label>
+                            <label>是否支持编辑</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="nullmsg" name="nullmsg" size="60" value="{$info.nullmsg|default=''}">
-                            <div class="input-note">验证不能为空时,用户空输入的时候的提醒话术</div>
+                           {notpresent name="info.is_edit"}
+                                {assign name="info.is_edit" value="0" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.is_edit eq 1"}
+                                <label class="button active"><input name="is_edit" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_edit" value="1" type="radio">
+                                {/if}
+                                可编辑</label>
+                                {if condition="$info.is_edit eq 0"}
+                                <label class="button active"><input name="is_edit" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_edit" value="0" type="radio">
+                                {/if}
+                                不可编辑</label>
+                            </div>
+                            <div class="input-note">设置为可编辑后,字段值在双击的时候,会变成可编辑框,修改后会自动更新数据</div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>错误提醒</label>
+                            <label>是否支持字段排序</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="errormsg" name="errormsg" size="60" value="{$info.errormsg|default=''}">
-                            <div class="input-note">验证其它类型时,用户未按规则要求输入的错误提示</div>
+                           {notpresent name="info.is_sort"}
+                                {assign name="info.is_sort" value="0" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.is_sort eq 1"}
+                                <label class="button active"><input name="is_sort" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_sort" value="1" type="radio">
+                                {/if}
+                                可排序</label>
+                                {if condition="$info.is_sort eq 0"}
+                                <label class="button active"><input name="is_sort" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_sort" value="0" type="radio">
+                                {/if}
+                                不可排序</label>
+                            </div>
+                            <div class="input-note">设置为可排序后,列表上回出现排序按钮,点击按该字段升序/倒序排列</div>
                         </div>
                     </div>
                 </div>
@@ -183,6 +110,7 @@
             <div class="panel-foot">
                 <div class="form-button">
                     <div id="tips"></div>
+                    <input type="hidden" name="model_id" id="model_id" value="{$Request.param.pid|default=0}">
                     <button class="button bg-main" type="submit">保存</button>
                     <button class="button bg" type="reset">重置</button>
                 </div>
@@ -194,45 +122,8 @@
     Do.ready('base', 'field' ,function () {
         //表单综合处理
         $('#form').FormPage(); 
-		$('#form').Field(); 
+		$('#form').Table(); 
 		init();		//初始化编辑
-		function init(){
-			var type = $('#type').val();
-			var typeExtend = $('#type_extend').val();
-			if(type != ''){
-				//模拟菜单点击
-				$(".js-type-select select").val(type).trigger("change");
-				switch (type){
-					case '1':		//文本类型
-					if(typeExtend != ''){
-						$(".textType-all input").each(function(i,e){
-							if($(this).val() == typeExtend){
-								$(this).parent().trigger("click");
-							}
-						})
-					}
-					break;
-					case '2':		//文本域
-					break;
-					case '3':		//单选
-					break;
-					case '4':		//复选
-					break;
-					case '5':		//选择菜单
-					if(typeExtend != ''){
-						$(".selectType-all input").each(function(i,e){
-							if($(this).val() == typeExtend){
-								$(this).parent().trigger("click");
-							}
-						})
-					}
-					break;
-					case '6':		//图片上传
-					break;
-					case '7':		//编辑器
-					break;					
-				}
-			}
-		}
+		function init(){}
     }); 
 </script>

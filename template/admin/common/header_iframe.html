@@ -35,12 +35,6 @@
         	<div class="bread-crumb">
             	<a href="{:url('/index/home')}">主页</a> {notempty name="breadCrumb"}{foreach name="breadCrumb" item="crumb"}<i>/</i> {if condition="($crumb.url)"}<a href="{$crumb.url}">{$crumb.name}</a>{else /}<span>{$crumb.name}</span>{/if}{/foreach}{/notempty}
             </div>
-        	{notempty name="subMenu.menu"}
-            <div class="float-left hide">
-            {foreach name="subMenu.menu" item="data"}
-                  {if condition="($data.url eq $self)"}<a class="button-line active" href="{$data.url}">{else /}<a class="button-line" href="{$data.url}">{/if} {$data.name}</a>
-            {/foreach}
-            </div>
             {notempty name="subMenu.add"}
         	<div class="button-group float-right">
               {notempty name="subMenu.add.name"} <a class="button button-small icon-plus" href="{$subMenu.add.url}"> {$subMenu.add.name}</a>
@@ -56,6 +50,12 @@
       	    {/notempty}
   			{/notempty}
         </div>
+</div>
+{notempty name="subMenu.menu"}
+<div class="main-submenu">
+{foreach name="subMenu.menu" item="data"}
+      {if condition="($data.url eq $self)"}<a class="button button-small bg-main" href="{$data.url}">{else /}<a class="button button-small bg-white" href="{$data.url}">{/if} {$data.name}</a>
+{/foreach}
 </div>
 {/notempty}
 <div class="admin-main duration-animate animation-upbit">

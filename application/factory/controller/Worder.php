@@ -18,11 +18,9 @@ class Worder extends FactoryForm
             2 => '售后维修单'
         ];
         $this->statusList = get_worder_status();
-        $crumb = [];
         foreach ($this->statusList as $key => $value) {
-            $crumb[] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];
+            $this->subMenu['menu'][] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];
         }
-        $this->breadCrumb = $crumb;
         $this->assign('orderTypes', $this->orderTypes);
     }
     //指派售后工程师
