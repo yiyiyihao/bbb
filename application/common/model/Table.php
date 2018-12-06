@@ -37,6 +37,7 @@ class Table extends Model
 	    foreach ($tableList as $k=>$v){
 	        $temp['title']     = $v['title'];
 	        $temp['width']     = $v['width'];
+	        $temp['sort']      = $v['sort_order'];
 	        switch ($v['type']){
 	            case 1://字段取值
 	                $temp['type']      = 'text';
@@ -68,7 +69,7 @@ class Table extends Model
             'title'     => '操作',
             'width'     => '160',
             'type'      => 'button',
-            'value'     => 'id',
+            'sort'      => '256',
             'button'    =>  [
                 [
                     'text'  => '编辑',
