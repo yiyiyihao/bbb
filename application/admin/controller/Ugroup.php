@@ -116,6 +116,17 @@ class Ugroup extends AdminForm
         }
         return $menu;
     }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        $btnArray = [];
+        $btnArray = ['text'  => '授权','action'=> 'purview', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
+        $table['actions']['button'][] = $btnArray;
+        $table['actions']['width']  = '210';
+        return $table;
+    }
     
     function _getWhere(){
         $where = ['is_del' => 0];

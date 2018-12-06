@@ -17,11 +17,11 @@ return [
     'LOGIN_SUCCESS'         =>  '登录成功',
     'LOGOUT_SUCCESS'        =>  '退出成功',
     
-    'FACTORY'               =>  '厂商',
-    'CHANNEL'               =>  '渠道商',
+    'STORE_FACTORY'         =>  '厂商',
+    'STORE_CHANNEL'         =>  '渠道商',
     'CHANNEL_GRADE'         =>  '渠道等级',
-    'DEALER'                =>  '零售商',
-    'SERVICER'              =>  '服务商',
+    'STORE_DEALER'          =>  '零售商',
+    'STORE_SERVICER'        =>  '服务商',
     
     'GOODS'                 =>  '产品',
     'GOODS_CATE'            =>  '产品分类',

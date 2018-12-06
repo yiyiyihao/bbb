@@ -6,7 +6,7 @@ class Factory extends Store
 {
     public function __construct()
     {
-        $this->modelName = 'factory';
+        $this->modelName = 'store_factory';
         $this->model = model('store');
         parent::__construct();
     }

@@ -2,6 +2,20 @@
 // 应用公共文件
 
 /**
+ * 角色分组名称
+ */
+function groupname($type = 0){
+    $name = '';
+    switch ($type){
+        case 1:
+            $name = '平台角色';break;
+        case 2:
+            $name = '厂商角色';break;
+    }
+    return $name;
+}
+
+/**
  * 开启/关闭状态文字格式化
  */
 function openorclose($status = 0){
