@@ -224,14 +224,15 @@ class FormBase extends CommonBase
     //以下为私有方法
     
     function _initList(){
-        $this->_tableData();
-        $this->assign('table', $this->table);
+        $tableList = $this->_tableData();        
+        $tableList = array_order($tableList,'sort');
+        $this->assign('table', $tableList);
         $this->assign('search', $this->search);
     }
     //获取列表序列化数据
     function _tableData(){
         $tableModel = model("table");
-        $tableList  = $tableModel->getTableList($this->modelName);
+        $tableList  = $tableModel->getTableList($this->modelName,$this->model->getPK());
         return $tableList;
     }
     //获取详情序列化数据
@@ -321,7 +322,7 @@ class FormBase extends CommonBase
         }
         unset($this->subMenu['add']);
         $this->assign("name",       lang('EDIT').lang($this->modelName));
-        $this->assign("field",      $this->field);
+        $this->assign("field",      $this->_fieldData());
         $this->assign("uploadUrl", $this->uploadUrl);
         
         if($pkId > 0){

@@ -18,17 +18,23 @@ class Table extends Model
 	}
 	
 	//取得模型列表字段
-	function getTableList($model){
+	function getTableList($model,$pk = 'id'){
 	    $cacheName = $model.'tableList';
 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
 	    $tableList = cache($cacheName);
 	    if(!$tableList){
 	        $where = [
-	            'status'        => 1,
-	            'is_del'        => 0,
+	            'M.name'        => $model,
+	            'T.status'        => 1,
+	            'T.is_del'        => 0,
 	        ];
+	        $join[] = ['form_model M', 'M.model_id = T.model_id', 'LEFT'];
+	        $field = 'T.*,M.name';
 	        $tableList = $this
+	        ->alias("T")
+	        ->join($join)
+	        ->field($field)
 	        ->where($where)->order('sort_order')->select();
 	        cache($cacheName, $tableList);
 	    }
@@ -66,10 +72,26 @@ class Table extends Model
 	        $tables[$k] = $temp;
 	    }
 	    $tables[] = [
+	        'title'     => '状态',
+	        'width'     => '60',
+	        'type'      => 'function',
+	        'sort'      => '260',
+	        'value'     => 'status',
+	        'function'  => 'yesorno',
+	    ];
+	    $tables[] = [
+	        'title'     => '排序',
+	        'width'     => '60',
+	        'type'      => 'text',
+	        'sort'      => '270',
+	        'value'     => 'sort_order',
+	    ];
+	    $tables['actions'] = [
             'title'     => '操作',
             'width'     => '160',
             'type'      => 'button',
-            'sort'      => '256',
+            'sort'      => '270',
+	        'value'     => $pk,   //编辑/删除项键值
             'button'    =>  [
                 [
                     'text'  => '编辑',

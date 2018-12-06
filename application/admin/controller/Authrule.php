@@ -12,8 +12,6 @@ class Authrule extends AdminForm
         if ($this->adminUser['user_id'] != 1) {
             $this->error(lang('NO ACCESS'));
         }
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
         $this->perPage = 100;
     }
         
@@ -68,20 +66,4 @@ class Authrule extends AdminForm
         }
         $this->assign('rulelist', $rule);
     }
-    
-    /* function _tableData(){
-        $table = [
-            ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
-            ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
-            ['title'     => '节点名称','width'   => '*','value'     => 'cname','type'      => 'text'],
-            ['title'     => '权限归属','width'     => '100','value'     => 'module','type'      => 'text'],
-            ['title'     => '操作地址','width'     => '*','value'     => 'href','type'      => 'text'],
-            ['title'     => '是否验证权限','width'     => '120','value'     => 'authopen','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
-            ['title'     => '是否显示菜单','width'     => '120','value'     => 'menustatus','type'      => 'yesOrNo','yes'       => '开启','no'        => '关闭'],
-            ['title'     => '状态','width'     => '60','value'     => 'status','type'      => 'yesOrNo','yes'       => '可用','no'        => '禁用'],
-            ['title'     => '排序','width'     => '60','value'     => 'sort_order','type'      => 'text'],
-            ['title'     => '操作','width'     => '160','type'      => 'button','value'   => 'id','button'    =>  [['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']]]
-        ];
-        return $table;
-    } */    
 }

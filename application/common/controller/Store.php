@@ -28,8 +28,8 @@ class Store extends FormBase
             $this->_getFactorys();
         }
         $this->search= self::_searchData();
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
+//         $this->table = self::_tableData();
+//         $this->field = self::_fieldData();
         $this->uploadUrl = url('admin/Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     public function manager()
@@ -309,8 +309,23 @@ class Store extends FormBase
         $tempAction = $module . '_' . $controller . '_' ;
         //dump($tempAction);exit;
         //组合表格
-        $array = $array1 = $array2 = $btnArray = [];
-        if ($this->storeType == STORE_FACTORY) {
+        $array = $btnArray = [];
+        switch ($this->storeType){
+            case STORE_FACTORY:         //厂商
+                $array[] = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text','sort'  => '12'];
+                break;
+            case STORE_CHANNEL:         //渠道
+                $array[] = ['title'     => '负责区域',  'width'   => '*','value'     => 'region_name', 'type'      => 'text','sort'  => '13'];
+                $array[] = ['title'     => '保证金金额', 'width'  => '100','value'      => 'caution_money', 'type'    => 'text','sort'  => '14'];
+                $btnArray[] = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
+                break;
+            case STORE_DEALER:          //经销商
+                $array[] = ['title'     => '所属渠道', 'width'   => '*','value'     => 'cname', 'type'      => 'text','sort'  => '13'];
+                break;
+            case STORE_SERVICE:         //服务商
+                break;
+        }
+        /*if ($this->storeType == STORE_FACTORY) {
             $array = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text'];
         }else{
             $array = ['title'     => '所属厂商','width'  => '100','value'     => 'sname','type'      => 'text'];
@@ -324,10 +339,10 @@ class Store extends FormBase
         }
         //判断是否有编辑删除的权限
 //         if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
-            $edit=['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'];
+//             $edit=['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'];
 //         }
 //         if(isset($this->adminUser['tempRule'][$tempAction.'del'])){
-            $del=['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'];
+//             $del=['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'];
 //         }
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
@@ -348,7 +363,10 @@ class Store extends FormBase
                     $del??''
                 ]
             ]
-        ];
+        ]; */        
+        $table = parent::_tableData();
+        $table = array_merge($table,$array);
+        $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
         return array_filter($table);
     }
     /**
