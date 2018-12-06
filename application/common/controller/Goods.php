@@ -313,6 +313,17 @@ class Goods extends FormBase
         }
         return TRUE;
     }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        $btnArray = [];
+        $btnArray = ['text'  => '产品规格','action'=> 'spec', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
+        $table['actions']['button'][] = $btnArray;
+        $table['actions']['width']  = '240';
+        return $table;
+    }
     
     private function _getCategorys($sid = 0)
     {

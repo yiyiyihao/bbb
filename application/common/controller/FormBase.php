@@ -224,7 +224,8 @@ class FormBase extends CommonBase
     //以下为私有方法
     
     function _initList(){
-        $tableList = $this->_tableData();        
+        $tableList = $this->_tableData();
+        if(isset($tableList[0]['sort'])){
         $tableList = array_order($tableList,'sort');
         //处理列表操作权限
         $adminUser = $this->adminUser;
@@ -252,6 +253,7 @@ class FormBase extends CommonBase
                     }
                 }
             }
+        }
         }
         $this->assign('table', $tableList);
         $this->assign('search', $this->search);

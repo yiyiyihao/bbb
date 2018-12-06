@@ -106,27 +106,7 @@ class User extends FormBase
         ];
         return $search;
     }
-    /**
-     * 列表项配置
-     */
-    function _tableData(){
-        $table = [
-            ['title'     => '编号','width'    => '60','value'      => 'user_id','type'      => 'index'],
-            ['title'     => '所属商户','width' => '100','value'     => 'sname','type'      => 'text'],
-            ['title'     => '角色名称','width'  => '*','value'      => 'gname','type'      => 'text'],
-            ['title'     => '登录用户名','width'  => '*','value'     => 'username','type'      => 'text'],
-            ['title'     => '联系电话','width'  => '*','value'      => 'phone','type'      => 'text'],
-            ['title'     => '状态','width'    => '80','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
-            ['title'     => '排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
-            ['title'     => '操作','width'    => '*','value'      => 'user_id','type'      => 'button','button'    =>
-                [
-                    ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
-                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']
-                ]
-            ]
-        ];
-        return array_filter($table);
-    }
+    
     /**
      * 详情字段配置
      */

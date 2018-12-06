@@ -1,5 +1,18 @@
 <?php
 // 应用公共文件
+/**
+ * 商品类型名称
+ */
+function goodstype($type = 0){
+    $name = '';
+    switch ($type){
+        case 1:
+            $name = '标准产品';break;
+        case 2:
+            $name = '产品配件';break;
+    }
+    return $name;
+}
 
 /**
  * 角色分组名称
