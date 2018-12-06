@@ -303,11 +303,7 @@ class Store extends FormBase
      * 列表项配置
      */
     function _tableData(){
-        //获取当前访问方法
-        $module             = strtolower($this->request->module());
-        $controller         = strtolower($this->request->controller());
-        $tempAction = $module . '_' . $controller . '_' ;
-        //dump($tempAction);exit;
+        $table = parent::_tableData();
         //组合表格
         $array = $btnArray = [];
         switch ($this->storeType){
@@ -318,6 +314,7 @@ class Store extends FormBase
                 $array[] = ['title'     => '负责区域',  'width'   => '*','value'     => 'region_name', 'type'      => 'text','sort'  => '13'];
                 $array[] = ['title'     => '保证金金额', 'width'  => '100','value'      => 'caution_money', 'type'    => 'text','sort'  => '14'];
                 $btnArray[] = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
+                $table['actions']['width']  = '260';
                 break;
             case STORE_DEALER:          //经销商
                 $array[] = ['title'     => '所属渠道', 'width'   => '*','value'     => 'cname', 'type'      => 'text','sort'  => '13'];
@@ -364,7 +361,6 @@ class Store extends FormBase
                 ]
             ]
         ]; */        
-        $table = parent::_tableData();
         $table = array_merge($table,$array);
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
         return array_filter($table);
