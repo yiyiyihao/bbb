@@ -5,6 +5,7 @@
         <tr>
           <th width="100">编号</th>
           <th width="*">数据字段</th>
+          <th width="100">显示宽度</th>
           <th width="100">显示标题</th>
           <th width="100">排序</th>
           <th width="100">操作</th>
@@ -13,7 +14,8 @@
           {volist name="list" id="vo"}
             <tr>
               <td>{$i}</td>
-              <td>{$vo.value|default='--'}</td>
+              <td>{$vo.field|default='--'}</td>
+              <td>{$vo.width|default=''}</td>
               <td>{$vo.title|default=''}</td>
               <td>{$vo['sort_order']|default=''}</td>
               <td>
