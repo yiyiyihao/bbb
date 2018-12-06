@@ -16,7 +16,7 @@ class Table extends AdminForm
         parent::__construct();
         $this->perPage = 100;
         $params = $this->request->param();
-        $this->pid = $params['pid'];
+        $this->pid = isset($params['pid']) ? intval($params['pid']) : 0;
         $this->subMenu['add']['url'] = url("add",['pid'=>$this->pid]);
     }
     
