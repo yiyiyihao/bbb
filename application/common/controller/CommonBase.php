@@ -74,7 +74,7 @@ class CommonBase extends Base
                     }
                 }
                 $tempAction = $module . '_' . $controller . '_' . $action;
-                if(!isset($tempRule[$tempAction]) && $action != 'logout'){
+                if(!isset($tempRule[$tempAction]) && $action != 'logout' && !IS_AJAX){
                     $this->error(lang('PERMISSION_DENIED'));
                 }
             }else{
