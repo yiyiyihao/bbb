@@ -363,7 +363,7 @@ class Store extends FormBase
         ]; */        
         $table = array_merge($table,$array);
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
-        return array_filter($table);
+        return $table;
     }
     /**
      * 详情字段配置

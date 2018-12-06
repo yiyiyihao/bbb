@@ -226,6 +226,33 @@ class FormBase extends CommonBase
     function _initList(){
         $tableList = $this->_tableData();        
         $tableList = array_order($tableList,'sort');
+        //处理列表操作权限
+        $adminUser = $this->adminUser;
+        if($adminUser['user_id'] > 1 && !empty($adminUser['groupPurview'])){
+            $groupPurview = $adminUser['groupPurview'];
+            $purviewList  = json_decode($groupPurview,1);
+            $last = end($tableList);
+            if(isset($last['button'])){
+                $list = $last['button'];
+                $module             = strtolower($this->request->module());
+                $controller         = strtolower($this->request->controller());
+                $action             = strtolower($this->request->action());
+                foreach ($list as $k=>$btn){
+                    $flag = false;
+                    $tempStr = url($module.'/'.$controller.'/'.$btn['action']);
+                    foreach ($purviewList as $key=>$v){
+                        $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                        if($pstr == $tempStr){
+                            $flag = true;
+                        }
+                        if($flag) continue;
+                    }
+                    if(!$flag){
+                        unset($tableList[count($tableList)]['button'][$k]);
+                    }
+                }
+            }
+        }
         $this->assign('table', $tableList);
         $this->assign('search', $this->search);
     }

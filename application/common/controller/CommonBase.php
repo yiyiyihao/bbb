@@ -51,6 +51,9 @@ class CommonBase extends Base
             //json转数组
             $groupPurview = json_decode($groupPurview,true);
             $tempRule = [];
+            $module             = strtolower($this->request->module());
+            $controller         = strtolower($this->request->controller());
+            $action             = strtolower($this->request->action());
             if(!empty($groupPurview)){
                 foreach ($groupPurview as $k=>$v){
                     $key = $v['module'];
@@ -70,12 +73,13 @@ class CommonBase extends Base
                         }
                     }
                 }
-                $module             = strtolower($this->request->module());
-                $controller         = strtolower($this->request->controller());
-                $action             = strtolower($this->request->action());
                 $tempAction = $module . '_' . $controller . '_' . $action;
                 if(!isset($tempRule[$tempAction]) && $action != 'logout'){
-//                     $this->error(lang('PERMISSION_DENIED'));
+                    $this->error(lang('PERMISSION_DENIED'));
+                }
+            }else{
+                if($controller != 'login'){
+                    $this->error(lang('NO_GROUP'));
                 }
             }
         }
@@ -120,6 +124,65 @@ class CommonBase extends Base
         $menuList = $menuService->getAdminMenu($this->adminUser, $domain);
         $menuList = array_order($menuList, 'sort_order', 'asc', true);
         return $menuList;
+    }
+    
+    /**
+     * 初始化表单页面二级菜单
+     */
+    protected function initSubMenu($adminUser = []){
+        if($adminUser['user_id'] == 1) return;
+        if(empty($adminUser['groupPurview'])) $this->error(lang('NO_GROUP'));
+        $groupPurview = $adminUser['groupPurview'];
+        $purviewList = json_decode($groupPurview,1);
+        $subMenu = $this->subMenu;
+        $module             = strtolower($this->request->module());
+        $controller         = strtolower($this->request->controller());
+        $action             = strtolower($this->request->action());
+        foreach ($subMenu['menu'] as $k=>$menu){
+            $flag = false;
+            $tempStr = url($module.$menu['url']);
+            foreach ($purviewList as $key=>$v){
+                $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                if($pstr == $tempStr){
+                    $flag = true;
+                }
+                if($flag) continue;
+            }
+            if(!$flag){
+                unset($subMenu['menu'][$k]);
+            }
+        }
+        if(isset($subMenu['add']['url'])){
+            $tempStr = url($module.$subMenu['add']['url']);
+            $flag = false;
+            foreach ($purviewList as $key=>$v){
+                $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                if($pstr == $tempStr){
+                    $flag = true;
+                }
+                if($flag) continue;
+            }
+            if(!$flag){
+                unset($subMenu['add']);
+            }
+        }else{
+            foreach ($subMenu['add'] as $k=>$add){
+                $flag = false;
+                $tempStr = url($module.$add['url']);
+                foreach ($purviewList as $key=>$v){
+                    $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
+                    if($pstr == $tempStr){
+                        $flag = true;
+                    }
+                    if($flag) continue;
+                }
+                if(!$flag){
+                    unset($subMenu['add'][$k]);
+                }
+            }
+        }
+        $this->subMenu = $subMenu;
+//         pre($this->subMenu);
     }
     
     /**
@@ -177,6 +240,7 @@ class CommonBase extends Base
     //渲染输出
     protected function fetch($template = '', $vars = [], $replace = [], $config = []) {
         //获取当前页二级菜单
+        if(!empty($this->subMenu)) $this->initSubMenu($this->adminUser);
         $subMenu = $this->subMenu;
         $this->assign('subMenu',$subMenu);
         //获取当前页面的面包屑
