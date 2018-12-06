@@ -313,7 +313,6 @@ class Store extends FormBase
             case STORE_CHANNEL:         //渠道
                 $array[] = ['title'     => '负责区域',  'width'   => '*','value'     => 'region_name', 'type'      => 'text','sort'  => '13'];
                 $array[] = ['title'     => '保证金金额', 'width'  => '100','value'      => 'caution_money', 'type'    => 'text','sort'  => '14'];
-                $btnArray[] = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
                 $table['actions']['width']  = '260';
                 break;
             case STORE_DEALER:          //经销商
