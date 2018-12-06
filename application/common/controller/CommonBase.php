@@ -165,7 +165,7 @@ class CommonBase extends Base
             if(!$flag){
                 unset($subMenu['add']);
             }
-        }else{
+        }elseif (isset($subMenu['add']) && $subMenu['add']){
             foreach ($subMenu['add'] as $k=>$add){
                 $flag = false;
                 $tempStr = url($module.$add['url']);
