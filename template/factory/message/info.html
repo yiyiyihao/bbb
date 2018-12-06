@@ -1,0 +1,84 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab boxShadow">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>{$name}</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                {notempty name="field"}
+                {volist name="field" key="k" id="vo"}
+                {if condition="$vo['type'] == 'region'"}
+                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                {else/}
+                <div class="form-group">
+                    <div class="label">
+                        <label>{$vo.title}</label>
+                    </div>
+                    <div class="field">
+                    	{switch vo.type}
+                        	{case text}
+                        		<input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
+                        	{/case}
+
+
+
+                            {case ueditor}
+                                <!-- <input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}"> -->
+                                
+                                    <!-- 加载编辑器的容器 -->
+                                    <script id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}" type="text/plain" style="min-height: 400px;"></script>
+                                    <!-- 配置文件 -->
+                                    <script type="text/javascript" src="__PUBLIC__/a.txt"></script>
+                                    <!-- 编辑器源码文件 -->
+                                    <script type="text/javascript" src="__PUBLIC__/ueditor/ueditor.all.js"></script>
+                                    <!-- 实例化编辑器 -->
+                                    <script type="text/javascript">
+                                        var ue = UE.getEditor('container');
+                                    </script>
+                                    http://pimvhcf3v.bkt.clouddn.com/store_logo_20181206172046_59b79985b824db2aa4ea5f5ba898835d.jpg
+                                   
+                            {/case}
+
+
+
+
+                            {case radio}
+	                            {notempty name="vo.radioList"}
+	                            <div class="button-group radio">
+	                            {volist name="vo.radioList" id="radio"}
+	                            	<label class='button {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)}active{/if}'>
+	                            	<input name="{$vo['name'] ?? ''}" value="{$radio.value}" type="radio" {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)} checked="checked"{/if}>{$radio.text}</label>
+	                            {/volist}
+	                            </div>
+	                            {/notempty}
+                            {/case}
+                        {/switch}
+                        <div class="input-note">{$vo['notetext'] ?? ''}</div>
+                    </div>
+                </div>
+                {/if}
+                {/volist}
+                {/notempty}
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+        	'uploadUrl' : "{$uploadUrl ?? ''}",
+        });
+    }); 
+</script>
