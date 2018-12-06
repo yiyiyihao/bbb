@@ -230,7 +230,9 @@ class FormBase extends CommonBase
     }
     //获取列表序列化数据
     function _tableData(){
-        return;
+        $tableModel = model("table");
+        $tableList  = $tableModel->getTableList($this->modelName);
+        return $tableList;
     }
     //获取详情序列化数据
     function _fieldData(){

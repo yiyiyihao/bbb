@@ -15,6 +15,7 @@
         	{switch td.type}
             	{case index}{$k}{/case}
                 {case text}{$vo[$td['value']] ?? ''}{/case}
+                {case function}{php}echo call_user_func($td['function'],$vo[$td['value']]);{/php}{/case}
                 {case yesOrNo}{$vo[$td['value']]?'<span class="tag bg-green">'.$td['yes'].'</span>':'<span class="tag bg-gray">'.$td['no'].'</span>'}{/case}
                 {case icon}<span class="icon-{$vo[$td['value']]}"></span>{/case}
                 {case image}

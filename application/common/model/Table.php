@@ -18,23 +18,17 @@ class Table extends Model
 	}
 	
 	//取得模型列表字段
-	static function getTableList($model){
+	function getTableList($model){
 	    $cacheName = $model.'tableList';
 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
 	    $tableList = cache($cacheName);
 	    if(!$tableList){
 	        $where = [
-	            'M.name'        => $model,
-	            'F.status'        => 1,
-	            'F.is_del'        => 0,
+	            'status'        => 1,
+	            'is_del'        => 0,
 	        ];
-	        $join[] = ['model M', 'M.model_id = F.model_id', 'LEFT'];
-	        $field = 'F.*,M.name';
 	        $tableList = $this
-	        ->alias("F")
-	        ->join($join)
-	        ->field($field)
 	        ->where($where)->order('sort_order')->select();
 	        cache($cacheName, $tableList);
 	    }
@@ -42,61 +36,53 @@ class Table extends Model
 	    $tables = [];
 	    foreach ($tableList as $k=>$v){
 	        $temp['title']     = $v['title'];
-	        $temp['name']      = $v['field'];
-	        $temp['datatype']  = $v['datatype'];
-	        $temp['notetext']  = $v['notemsg'];
-	        $temp['nullmsg']   = $v['nullmsg'];
-	        $temp['errormsg']  = $v['errormsg'];
+	        $temp['width']     = $v['width'];
 	        switch ($v['type']){
-	            case 1://文本类型
-	                $temp['type']      = $v['type_extend'];
-	                $temp['size']      = $v['size'];
-	                $temp['default']   = $v['default'];
+	            case 1://字段取值
+	                $temp['type']      = 'text';
+	                $temp['value']     = $v['field'];
 	            break;
-	            case 2://文本域
-	                $temp['type']      = 'textarea';
-	                $temp['size']      = $v['size'];
-	                $temp['default']   = $v['default'];
+	            case 2://函数处理
+	                $temp['type']      = 'function';
+	                $temp['function']  = $v['function'];
+	                $temp['value']     = $v['field'];
 	            break;
-	            case 3://单选
-	                $temp['type']      = 'radio';
-	                $temp['default']   = $v['default'];
-	                $tempList = explode("\n", trim($v['value']));
-	                $radioList = [];
-	                if($tempList){
-	                    foreach ($tempList as $key=>$val){
-	                        $valArray = explode("|", trim($val));
-	                        $radioList[$key]['text'] = $valArray[0];
-	                        $radioList[$key]['value'] = $valArray[1];
-	                    }
-	                }
-	                $temp['radioList'] = $radioList;
+	            case 3://索引
+	                $temp['type']      = 'index';	                
 	            break;
-	            case 4://复选
+	            case 4://图标
+	                $temp['type']      = 'icon';
+	                $temp['value']     = $v['field'];
 	            break;
-	            case 5://选择菜单
-	                $temp['options']      = $v['variable'];
-	                $temp['type']         = $v['type_extend'];
-	                switch ($v['type_extend']){
-	                    case 'select':
-	                        $temp['default_option']   = $v['default'];
-	                    break;
-	                    case 'select-search':
-	                    break;
-	                    case 'select-mul-search':
-	                    break;
-	                    case 'select-child':
-	                    break;
-	                }
+	            case 5://图片
+	                $temp['type']      = 'image';
+	                $temp['value']     = $v['field'];
 	            break;
-	            case 6://图片上传
-	            break;
-	            case 7://编辑器
+	            case 6://操作按钮
 	            break;
 	        }
 	        
 	        $tables[$k] = $temp;
 	    }
+	    $tables[] = [
+            'title'     => '操作',
+            'width'     => '160',
+            'type'      => 'button',
+            'value'     => 'id',
+            'button'    =>  [
+                [
+                    'text'  => '编辑',
+                    'action'=> 'edit',
+                    'icon'  => 'edit',
+                    'bgClass'=> 'bg-main'	                    
+                ],[
+                    'text'  => '删除',
+                    'action'=> 'del',
+                    'icon'  => 'delete',
+                    'bgClass'=> 'bg-red'	                    
+                ]	                
+            ]
+	    ];
 	    return $tables;
 	}
 }

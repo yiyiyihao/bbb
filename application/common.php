@@ -1,5 +1,23 @@
 <?php
 // 应用公共文件
+
+/**
+ * 开启/关闭状态文字格式化
+ */
+function openorclose($status = 0){
+    return $status == 1 ? '<span class="tag bg-green">开启</span>' : '<span class="tag bg-gray">关闭</span>';
+}
+
+/**
+ * 启用/禁用状态文字格式化
+ */
+function yesorno($status = 0){
+    return $status == 1 ? '<span class="tag bg-green">启用</span>' : '<span class="tag bg-gray">禁用</span>';
+}
+
+/**
+ * 
+ */
 function get_delivery($identif = FALSE)
 {
     $deliverys = [

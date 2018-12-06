@@ -69,7 +69,7 @@ class Authrule extends AdminForm
         $this->assign('rulelist', $rule);
     }
     
-    function _tableData(){
+    /* function _tableData(){
         $table = [
             ['title'     => '编号','width'     => '60','value'     => 'id','type'      => 'index'],
             ['title'     => '图标','width'     => '50','value'     => 'icon','type'      => 'icon'],
@@ -83,5 +83,5 @@ class Authrule extends AdminForm
             ['title'     => '操作','width'     => '160','type'      => 'button','value'   => 'id','button'    =>  [['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']]]
         ];
         return $table;
-    }    
+    } */    
 }
