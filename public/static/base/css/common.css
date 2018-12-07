@@ -216,7 +216,7 @@ textarea.input{height:auto;}
 .panel-head .panel-head-tab li.active{ border-left:1px solid #dadada; border-right:1px solid #ccc; border-top:2px solid #006090;background:#fff;}
 .panel-head .tab-head{ padding-top:10px; margin-bottom:-1px;}
 .panel-foot{padding:10px 20px;border-radius:0 0 4px 4px;border-top:solid 1px #ddd; }
-.fixed-pannel .panel-foot{position:fixed; width:100%; bottom:0; left:0; background:#fff;}
+.fixed-pannel .panel-foot{position:fixed; width:100%; bottom:0; left:0; background:#fff; z-index:100;}
 .fixed-pannel{}
 .fixed-pannel:after{ content:''; height:63px; width:100%; display:block;}
 .panel-body{padding:15px; background:#fff;}

@@ -20,7 +20,19 @@ class Purchase extends FactoryForm
         $skus = $this->model->getGoodsSkus($info['goods_id']);
         $this->assign('skus', is_array($skus) ? $skus : []);
         $info['sku_id'] = is_int($skus) ? $skus : 0;
+        $info['thumb_big'] = $this->_thumbToBig($info['thumb']);
+        $info['imgs'] = json_decode($info['imgs'],true);
+        foreach ($info['imgs'] as $k=>$v){
+            $imgs[$k]["thumb"] = $v;
+            $imgs[$k]["thumb_big"] = $this->_thumbToBig($v);
+        }
+        $info['imgs'] = $imgs;
+//         pre($info);
         $this->assign('info', $info);
+        $this->import_resource(array(
+            'script'=> 'cart.js,jquery.jqzoom-core.js',
+            'style' => 'goods.css,jquery.jqzoom.css',
+        ));
         return $this->fetch();
     }
     public function confirm()
@@ -68,5 +80,9 @@ class Purchase extends FactoryForm
             }
         }
         return $where;
+    }
+    
+    private function _thumbToBig($src){
+        return str_replace("imageMogr2/auto-orient/thumbnail/500x500!/blur/1x0/quality/75","imageMogr2/auto-orient/thumbnail/!1000x1000r/gravity/Center/crop/1000x1000/format/jpg/blur/1x0/quality/100",$src);
     }
 }
