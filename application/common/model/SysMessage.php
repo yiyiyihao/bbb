@@ -21,10 +21,7 @@ class SysMessage extends Model
         }
         $flag = $this->exists;
         $result = $msgId = parent::save($data, $where, $sequence);
-        /*if (!$flag) {
-            $no = $this->_getJobNo();
-            $this->save(['job_no' => $no], ['installer_id' => $installerId]);
-        }*/
+       
         return $result;
     }
     
