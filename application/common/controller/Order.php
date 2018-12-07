@@ -10,26 +10,27 @@ class Order extends FormBase
         $this->model = db($this->modelName);
         $this->model = new \app\common\model\Order();
         parent::__construct();
+        $this->subMenu['showmenu'] = true;
         unset($this->subMenu['add']);
         $this->subMenu['menu'][] = [
             'name' => '待付款',
             'url' => url('index', ['pay_status' => 0]),
         ];
-        $this->subMenu['menu'][] = [
+        /* $this->subMenu['menu'][] = [
             'name' => '待发货',
             'url' => url('index', ['delivery_status' => 0]),
         ];
         $this->subMenu['menu'][] = [
             'name' => '待收货',
             'url' => url('index', ['delivery_status' => 1]),
-        ];
+        ]; */
         $this->subMenu['menu'][] = [
             'name' => '已完成',
             'url' => url('index', ['finish_status' => 1]),
         ];
         $this->subMenu['menu'][] = [
             'name' => '已取消',
-            'url' => url('index', ['status' => 2]),
+            'url' => url('index', ['order_status' => 2]),
         ];
     }
     public function detail()
@@ -212,8 +213,8 @@ class Order extends FormBase
     function _getWhere(){
         $params = $this->request->param();
         $where = $this->buildmap($params);
-        if ($params && !isset($where['O.status'])) {
-            $where['O.status'] = ['neq','4'];
+        if ($params && !isset($where['O.order_status'])) {
+            $where['O.order_status'] = ['neq','4'];
         }
         if ($params) {
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
@@ -240,7 +241,7 @@ class Order extends FormBase
         $map = [];
         $map['O.store_id'] = $this->adminUser['store_id'];
         if(isset($param['pay_status'])){
-            $map['O.status'] = 1;
+            $map['O.order_status'] = 1;
             $map['O.pay_status'] = $param['pay_status'];
         }elseif(isset($param['delivery_status'])){
             if ($param['delivery_status']) {
@@ -252,8 +253,8 @@ class Order extends FormBase
             $map['O.finish_status'] = 0;
         }elseif(isset($param['finish_status'])){
             $map['O.finish_status'] = 2;
-        }elseif(isset($param['status'])){
-            $map['O.status'] = $param['status'];
+        }elseif(isset($param['order_status'])){
+            $map['O.order_status'] = $param['order_status'];
         }
         return $map;
     }

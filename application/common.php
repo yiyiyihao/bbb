@@ -1,5 +1,29 @@
 <?php
 // 应用公共文件
+
+function time_to_date($time = 0)
+{
+    $time = $time ? $time : time();
+    return date('Y-m-d H:i:s', $time);
+}
+/**
+ * 佣金状态
+ */
+function get_commission_status($status = FALSE){
+    $statusList = [
+        0 => '未入账',
+        1 => '已入账',
+        2 => '已退还',
+    ];
+    if ($status === FALSE) {
+        return $statusList;
+    }
+    if (isset($statusList[$status])) {
+        return $statusList[$status];
+    }else{
+        return '';
+    }
+}
 /**
  * 商品类型名称
  */
@@ -49,7 +73,7 @@ function yorn($status = 0){
 }
 
 /**
- * 
+ * 快递信息
  */
 function get_delivery($identif = FALSE)
 {
@@ -108,7 +132,7 @@ function get_delivery($identif = FALSE)
  */
 function get_order_status($order = array()) {
     $arr = array();
-    switch ($order['status']) {
+    switch ($order['order_status']) {
         case 2: // 已取消
             $arr['now'] = 'cancel';
             $arr['wait'] = 'cancel';

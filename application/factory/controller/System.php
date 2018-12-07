@@ -39,11 +39,6 @@ class System extends adminSystem
                 $this->error('渠道佣金比例必须大于0');
             }
             
-//             $dealerCommissionRatio  = $params['dealer_commission_ratio'] = isset($params['dealer_commission_ratio']) ? round(floatval($params['dealer_commission_ratio']), 2) : 0;
-//             if ($dealerCommissionRatio < 0) {
-//                 $this->error('零售商佣金比例必须大于0');
-//             }
-            
             $installerReturnRatio = $params['installer_return_ratio'] =  isset($params['installer_return_ratio']) ? round(floatval($params['installer_return_ratio']), 2) : 0;
             if ($installerReturnRatio < 0) {
                 $this->error('工程师安装服务费百分比必须大于0');
@@ -81,6 +76,10 @@ class System extends adminSystem
     
     private function _storeConfig($params = [])
     {
+        //获取系统默认配置
+        $default = $this->getSystemConfig('system_default');
+        $defaultConfig = $default['config_value'];
+        
         $storeModel = model('store');
         $store = $storeModel->where(['store_id' => $this->adminStore['store_id'], 'is_del' => 0])->find();
         if (!$store) {
@@ -102,6 +101,13 @@ class System extends adminSystem
             }
             $this->success('配置成功');
         }else{
+            if ($defaultConfig) {
+                foreach ($defaultConfig as $key => $value) {
+                    if (!isset($config[$key])) {
+                        $config[$key] = $value;
+                    }
+                }
+            }
             $this->assign('config', $config);
             return $this->fetch();
         }

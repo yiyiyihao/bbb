@@ -18,6 +18,7 @@ class Store extends Model
     {
         self::event('after_insert', function ($data) {
             self::_after($data);
+            db('store_account')->insert(['store_id' => $data['store_id']]);
         });
         self::event('after_update', function ($data) {
             self::_after($data, $data['store_id']);

@@ -33,7 +33,12 @@ class Order extends Model
         }
         $order['_status'] = get_order_status($order);
         $detail['order'] = $order;
-        $detail['skus'] = db('order_sku')->where(['order_sn' => $orderSn])->select();
+        $field = 'OS.order_sn, OS.goods_id, OS.sku_id, OS.sku_name, OS.sku_thumb, OS.sku_spec, OS.num, OS.price, OS.install_price, OS.pay_price, OS.real_amount';
+        $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn';
+        $where = [
+            'OS.order_sn' => $orderSn,
+        ];
+        $detail['skus'] = db('order_sku')->field($field)->alias('OS')->join([['order_sku_delivery OSD', 'OS.osku_id IN (OSD.osku_ids) AND OSD.order_sn = '.$orderSn, 'LEFT']])->where($where)->select();
         $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC')->select();
         $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
         return $detail;
@@ -52,7 +57,7 @@ class Order extends Model
         if (!$order) {
             return FALSE;
         }
-        if ($order['status'] != 1) {
+        if ($order['order_status'] != 1) {
             $this->error = '订单已取消, 不能执行当前操作';
             return FALSE;
         }
@@ -108,7 +113,7 @@ class Order extends Model
         if (!$order) {
             return FALSE;
         }
-        if ($order['status'] != 1) {
+        if ($order['order_status'] != 1) {
             $this->error = '订单已取消, 不能执行当前操作';
             return FALSE;
         }
@@ -116,7 +121,7 @@ class Order extends Model
             $this->error = '订单未支付, 不能执行当前操作';
             return FALSE;
         }
-        if ($order['delivery_status'] == 2 || $order['finish_status']) {
+        if ($order['order_type'] != 1 && ($order['delivery_status'] == 2 || $order['finish_status'])) {
             $this->error = '订单所有商品已发货, 不能执行当前操作';
             return FALSE;
         }
@@ -158,6 +163,7 @@ class Order extends Model
                 'osku_ids'  => $oskuIds ? $oskuIds : '',
                 'delivery_identif'  => $deliveryIdentif,
                 'delivery_name'     => $deliverys[$deliveryIdentif]['name'],
+                'delivery_status'   => 1,
                 'delivery_sn'       => $deliverySn,
                 'delivery_time'     => time(),
                 'add_time'          => time(),
@@ -266,10 +272,10 @@ class Order extends Model
         if (!$order) {
             return FALSE;
         }
-        if ($order['status'] != 1) {
+        /* if ($order['order_status'] != 1) {
             $this->error = '不能支付当前订单';
             return FALSE;
-        }
+        } */
         if ($order['pay_status']) {
             $this->error = '已支付, 不能重复支付';
             return FALSE;
@@ -328,18 +334,33 @@ class Order extends Model
                     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
                     $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
                     if ($ratio > 0) {
-                        $incomeAmount = round($paidAmount * $ratio/100, 2);//四舍五入保留小数点后两位
-                        $insert = [
-                            'store_id'          => $store['ostore_id'],
-                            'from_store_id'     => $store['store_id'],
-                            'order_id'          => $order['order_id'],
-                            'order_sn'          => $order['order_sn'],
-                            'order_amount'      => $paidAmount,
-                            'commission_ratio'  => $ratio,
-                            'income_amount'     => $incomeAmount,
-                            'add_time'          => time(),
-                        ];
-                        $result = db('commission')->insertGetId($insert);
+                        $skus = $this->orderSkuModel->where(['order_id' => $order['order_id']])->select();
+                        if ($skus) {
+                            $dataSet = [];
+                            //计算当前订单总收益
+                            $totalAmount = round($order['real_amount'] * $ratio/100, 2);
+                            foreach ($skus as $key => $value) {
+                                $incomeAmount = round($value['real_amount'] * $ratio/100, 2);//四舍五入保留小数点后两位
+                                $dataSet[] = [
+                                    'store_id'          => $store['ostore_id'],
+                                    'from_store_id'     => $store['store_id'],
+                                    'order_id'          => $order['order_id'],
+                                    'order_sn'          => $order['order_sn'],
+                                    'osku_id'           => $value['osku_id'],
+                                    'goods_id'          => $value['goods_id'],
+                                    'sku_id'            => $value['sku_id'],
+                                    'order_amount'      => $value['real_amount'],
+                                    'commission_ratio'  => $ratio,
+                                    'income_amount'     => $incomeAmount,
+                                    'add_time'          => time(),
+                                ];
+                            }
+                            $result = db('store_commission')->insertAll($dataSet);
+                            if ($result) {
+                                //修改商户账户收益信息
+                                $result = db('store_account')->where(['store_id' => $store['ostore_id']])->inc('pending_amount', $totalAmount)->inc('total_amount', $totalAmount)->update();
+                            }
+                        }
                     }
                 }
             }
@@ -363,7 +384,7 @@ class Order extends Model
             $this->error = '参数错误';
             return FALSE;
         }
-        if ($order['status'] != 1) {
+        if ($order['order_status'] != 1) {
             $this->error = '不能取消当前订单';
             return FALSE;
         }
@@ -375,7 +396,7 @@ class Order extends Model
             $this->error = '已发货, 不能取消当前订单';
             return FALSE;
         }
-        $result = $this->save(['status' => 2], ['order_id' => $order['order_id']]);
+        $result = $this->save(['order_status' => 2], ['order_id' => $order['order_id']]);
         if (!$result) {
             $this->error = $this->error;
             return FALSE;
@@ -542,6 +563,80 @@ class Order extends Model
             }
         }
     }
+    
+    /**
+     * 订单关闭退货退款功能操作
+     * @param string $orderSn   订单号
+     * @param number $storeId   商户ID
+     * @param number $userId    操作用户ID
+     * @param string $remark    操作备注
+     * @return boolean
+     */
+    public function orderCloseReturn($orderSn = '', $user = [], $remark = ''){
+        if (!is_string($orderSn)) {
+            $order = $orderSn;
+        }else{
+            $order = $this->checkOrder($orderSn, $user);
+            if ($order === FALSE) {
+                return FALSE;
+            }
+        }
+        if (!$user) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        if ($order['order_status'] != 1) {
+            $this->error = '无操作权限';
+            return FALSE;
+        }
+        if (!$order['pay_status']) {
+            $this->error = '未支付,无操作权限';
+            return FALSE;
+        }
+        $list = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'return_status' => 0])->select();
+        $oskuIds = array_column($list, 'osku_id');
+        
+        $result = $this->orderSkuModel->where(['osku_id' => ['IN', $oskuIds]])->update(['return_status' => -1, 'update_time' => time()]);
+        if ($result > 0) {
+            if ($list && $oskuIds && $order['order_type'] == 1 && $order['osku_id'] > 0) {
+                //订单关闭退款退货功能后,订单入账处理
+                $where = [
+                    'order_id' => $order['order_id'],
+                    'osku_id' => ['IN', $oskuIds],
+                ];
+                $commissionModel = db('store_commission');
+                $datas = $commissionModel->where($where)->select();
+                if ($datas) {
+                    $result = $commissionModel->where($where)->update(['commission_status' => 1, 'update_time' => time()]);
+                    if ($result > 0) {
+                        $storeAccount = db('store_account');
+                        $amount = 0;
+                        foreach ($datas as $key => $value) {
+                            $amount += $value['income_amount'];
+                        }
+                        //可提现金额增加 待结算金额减少 总收益不变
+                        $result = $storeAccount->where(['store_id' => $value['store_id']])->inc('amount', $amount)->dec('pending_amount', $amount)->update();
+                    }
+                }
+            }
+            //订单对应商品数量
+            $totalCount = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
+            //已退款/已关闭退款商品数量
+            $lastCount = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'return_status' => ['IN', [2, -1]]])->count();
+            if ($totalCount <= $lastCount) {
+                //若订单下商品全部退还 则关闭当前订单
+                $result = $this->save(['order_status' => 3], ['order_id' => $order['order_id']]);
+                if (!$result) {
+                    $this->error = $this->error;
+                    return FALSE;
+                }
+            }
+            $remark = $remark ? $remark : '系统自动关闭产品退货退款功能';
+            $this->orderTrack($order, 0, $remark);
+            return $this->orderLog($order, $user, '关闭退货退款功能', $remark);
+        }
+        return TRUE;
+    }
     /**
      * 订单跟踪信息入库
      * @param array $sub            子订单信息
@@ -605,16 +700,18 @@ class Order extends Model
             return FALSE;
         }
         $where = ['order_sn' => $orderSn];
-        if ($user['admin_type'] == ADMIN_FACTORY) {
-            $where['store_id'] = $user['store_id'];
-        }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
-            $storeIds = [$user['store_id']];
-            if ($user['admin_type'] == ADMIN_CHANNEL) {
-                //获取零售商的下级经销商
-                $ids = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
-                $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
+        if ($user && isset($user['store_id']) && $user['store_id'] > 0) {
+            if ($user['admin_type'] == ADMIN_FACTORY) {
+                $where['store_id'] = $user['store_id'];
+            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
+                $storeIds = [$user['store_id']];
+                if ($user['admin_type'] == ADMIN_CHANNEL) {
+                    //获取零售商的下级经销商
+                    $ids = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
+                    $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
+                }
+                $where['user_store_id'] = ['IN', $storeIds];
             }
-            $where['user_store_id'] = ['IN', $storeIds];
         }
         $order = $this->where($where)->find();
         if (!$order) {

@@ -44,8 +44,8 @@ class Suborder extends commonOrder
     function _getWhere(){
         $params = $this->request->param();
         $where = $this->buildmap($params);
-        if ($params && !isset($where['O.status'])) {
-            $where['O.status'] = ['neq','4'];
+        if ($params && !isset($where['O.order_status'])) {
+            $where['O.order_status'] = ['neq','4'];
         }
         if ($params) {
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
@@ -75,7 +75,7 @@ class Suborder extends commonOrder
             'S.status' => 1,
         ];
         if(isset($param['pay_status'])){
-            $map['O.status'] = 1;
+            $map['O.order_status'] = 1;
             $map['O.pay_status'] = $param['pay_status'];
         }elseif(isset($param['delivery_status'])){
             if ($param['delivery_status']) {
@@ -87,8 +87,8 @@ class Suborder extends commonOrder
             $map['O.finish_status'] = 0;
         }elseif(isset($param['finish_status'])){
             $map['O.finish_status'] = 2;
-        }elseif(isset($param['status'])){
-            $map['O.status'] = $param['status'];
+        }elseif(isset($param['order_status'])){
+            $map['O.order_status'] = $param['order_status'];
         }
         return $map;
     }

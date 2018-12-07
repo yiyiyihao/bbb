@@ -5,7 +5,7 @@ class Commission extends FactoryForm
 {
     public function __construct()
     {
-        $this->modelName = 'commission';
+        $this->modelName = 'store_commission';
         $this->model = db($this->modelName);
         parent::__construct();
         //渠道

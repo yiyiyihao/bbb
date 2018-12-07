@@ -60,14 +60,14 @@
               <td>
               	<span class="button-group">
 	              	<a href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-eye">订单查看</a>
-	              	{if condition="$vo['pay_status'] == 0 && $vo['status'] == 1"}
+	              	{if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1"}
 	              	<a href="{:url('updatePrice', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-green">调整订单金额</a>
 	              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-main icon-edit js-open" title="确认收款">确认收款</a>
 	              	{/if}
-	              	{if condition="$vo['pay_status'] == 0 AND $vo['status'] == 1"}
+	              	{if condition="$vo['pay_status'] == 0 AND $vo['order_status'] == 1"}
 	              	<a href="javascript:;" url="{:url('cancel', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-red icon-trash js-action" refresh="true" title="取消订单">取消订单</a>
 	              	{/if}
-	              	{if condition="$vo['pay_status'] == 1 AND $vo['status'] == 1 AND $vo['delivery_status'] == 2 AND $vo['finish_status'] != 2"}
+	              	{if condition="$vo['pay_status'] == 1 AND $vo['order_status'] == 1 AND $vo['delivery_status'] == 2 AND $vo['finish_status'] != 2"}
 	              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-yellow" refresh="true">确定完成</a>
 	              	{/if}
               	</span>

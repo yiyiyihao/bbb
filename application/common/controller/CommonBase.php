@@ -240,7 +240,7 @@ class CommonBase extends Base
     //渲染输出
     protected function fetch($template = '', $vars = [], $replace = [], $config = []) {
         //获取当前页二级菜单
-        if(!empty($this->subMenu)) $this->initSubMenu($this->adminUser);
+//         if(!empty($this->subMenu)) $this->initSubMenu($this->adminUser);
         $subMenu = $this->subMenu;
         $this->assign('subMenu',$subMenu);
         //获取当前页面的面包屑

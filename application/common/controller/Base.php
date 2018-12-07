@@ -10,6 +10,20 @@ class Base extends Controller
     	parent::__construct();
     	$this->initBase();
     }
+    protected function getSystemConfig($key = '')
+    {
+        //获取系统默认配置
+        $where = [
+            'is_del' => 0, 
+            'status' => 1,
+        ];
+        if ($key) {
+            $where['config_key'] = trim($key);
+        }
+        $info = db('config')->where($where)->find();
+        $info['config_value'] = $info && $info['config_value'] ? json_decode($info['config_value'], 1) : [];
+        return $info;
+    }
     
     //底层通用参数初始化
     protected function initBase() {

@@ -145,6 +145,7 @@
 					          <th width="100">购买数量</th>
 					          <th width="100">支付金额</th>
 					          <th width="100">发货状态</th>
+					          <th width="*">物流信息</th>
 					          <th width="220">操作</th>
 					        </tr>
 					        {notempty name="info.skus"}
@@ -162,9 +163,12 @@
 					              	{else/}待发货
 					              	{/if}
 					              </td>
+					              <td>{$vo.delivery_name}<br>{$vo.delivery_sn}</td>
 					              <td>
-					              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
-					                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
+					              	{if condition="$info['order']['order_type'] != 1"}
+						              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
+						                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
+						                {/if}
 					                {/if}
 					              </td>
 					            </tr>

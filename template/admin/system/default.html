@@ -1,0 +1,82 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">订单设置</a></li>
+                        <li><a href="#tab-2">工单配置</a></li>
+                        <li><a href="#tab-5">财务设置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>待支付订单取消时间</label>
+                        </div>
+                        <div class="field">
+                            <label>订单</label>
+                            <input type="number" min="1" class="input" id="order_cancel_minute" name="order_cancel_minute" datatype="n" value="{$config['order_cancel_minute'] ?? ''}">
+                            <label>分钟内未付款，系统自动取消订单</label>
+                            <div class="input-note">未设置则当前厂商下的订单无自动取消操作</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>退货退款时间</label>
+                        </div>
+                        <div class="field">
+                            <label>支付成功</label>
+                            <input type="number" min="1" class="input" id="order_return_day" name="order_return_day" size="5" datatype="n" value="{$config['order_return_day'] ?? ''}">
+                            <label>天后，不允许退货退款</label>
+                            <div class="input-note">未设置则当前厂商下的订单无退货退款时间限制</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-2">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>工单自动评价时间</label>
+                        </div>
+                        <div class="field">
+                        	<label>售后服务完成，如用户未评价，</label>
+                            <input type="number" min="1" class="input" id="workorder_auto_assess_day" name="workorder_auto_assess_day" size="5" datatype="n" value="{$config['workorder_auto_assess_day'] ?? ''}">
+                            <label>天后，系统自动给好评并完成服务费结算；</label>
+                            <div class="input-note">未设置则当前厂商下的售后工单无自动好评和自动服务结算操作</div>
+                        </div>
+                    </div>
+                </div>
+            	<div class="tab-panel" id="tab-5">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>提现日期设置</label>
+                        </div>
+                        <div class="field">
+                        	<label>每月</label>
+                            <input type="number" min="1" max="27" class="input" id="monthly_withdraw_start_date" name="monthly_withdraw_start_date" size="5" datatype="n" value="{$config['monthly_withdraw_start_date'] ?? ''}">
+                            <label>日 ~ </label>
+                            <input type="number" min="2" max="28" class="input" id="monthly_withdraw_end_date" name="monthly_withdraw_end_date" size="5" datatype="n" value="{$config['monthly_withdraw_end_date'] ?? ''}">
+                            <label>日，允许提现</label>
+                            <div class="input-note">设置默认提现日期</div>
+                        </div>
+                    </div>
+               </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>
