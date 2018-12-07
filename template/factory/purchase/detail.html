@@ -13,7 +13,7 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="user_name" name="name" disabled="disabled" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <input type="text" class="input" disabled="disabled" size="40" datatype="*" value="{$info['name'] ?? ''}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -21,7 +21,15 @@
                             <label>产品价格</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="phone" name="phone" disabled="disabled" size="20" datatype="*" value="{$info['min_price'] ?? ''}">元
+                            <input type="text" class="input" disabled="disabled" size="20" datatype="*" value="{$info['min_price'] + $info['install_price']}">元
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品类型</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" disabled="disabled" size="20" datatype="*" value="{$info.goods_type == 1 ? '普通商品' : '样品'}">
                         </div>
                     </div>
                     {notempty name="skus"}
@@ -40,7 +48,7 @@
 					              <td>{$vo.sku_name}</td>
 					              <td>{$vo.sku_sn}</td>
 					              <td>{$vo.sku_stock}</td>
-					              <td>{$vo['install_price']+$vo['price']}元</td>
+					              <td>{$vo['install_price'] + $vo['price']}元</td>
 					              <td><a href="{:url('confirm', ['sku_id' => $vo['sku_id'], 'num' => 1])}" class="button button-small bg-yellow">立即购买</a></td>
 					            </tr>
 					          {/volist}

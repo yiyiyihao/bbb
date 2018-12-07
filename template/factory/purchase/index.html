@@ -29,12 +29,11 @@
           {volist name="list" id="vo"}
             <tr>
               <td>{$vo['name']}</td>
-              <td>{$vo.goods_type}</td>
+              <td>{$vo.goods_type == 1 ? '普通商品' : '样品'}</td>
               <td>
-              	{if condition="$vo.min_price == $vo.max_price"}
-              	{$vo.min_price}
-              	{else/}
-              	{$vo.min_price} {$vo.max_price}
+              	{$vo.min_price + $vo.install_price}
+              	{if condition="$vo.min_price != $vo.max_price"}
+              	  ~ {$vo.max_price + $vo.install_price}
               	{/if}
               	元
               </td>

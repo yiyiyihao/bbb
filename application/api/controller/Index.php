@@ -443,21 +443,22 @@ class Index extends ApiBase
         }
         $this->_returnMsg(['msg' => '收货地址删除成功']);
     }
-    //用户申请售后服务
-    protected function applayService()
+    //客户申请售后服务
+    protected function postWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         #TODO
 //         if ($user['installer']) {
 //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师不允许申请售后服务']);
 //         }
-        $orderType  = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;//默认为安装工单
+        $orderType  = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 0;//默认为安装工单
         $regionId   = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
         $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
         $userName   = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
         $phone      = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $address    = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
         $appointment = isset($this->postParams['appointment']) ? trim($this->postParams['appointment']) : '';
+        $faultDesc = isset($this->postParams['fault_desc']) ? trim($this->postParams['fault_desc']) : '';
         if (!$orderType || !in_array($orderType, [1, 2])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
         }
@@ -477,22 +478,55 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户地址(address)缺失']);
         }
         if (!$appointment) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户预约服务时间缺失']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户预约服务时间(appointment)缺失']);
+        }
+        if ($orderType == 2 && !$faultDesc) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '故障描述(fault_desc)缺失']);
         }
         $params = $this->postParams;
         $workOrderModel = model('work_order');
+        $params = [
+            'order_type' => $orderType,
+            ''
+        ];
         #TODO 报修上传故障图片
         $params['images'] = '';//图片
-        $params['images'] = $orderType;
-        $params['fault_desc'] = isset($this->postParams['fault_desc']) ? trim($this->postParams['fault_desc']) : '';
+        $params['fault_desc'] = $faultDesc;
         $params['order_type'] = $orderType;
         $params['post_user_id'] = $params['user_id'] = $user['user_id'];
+        pre($params);
         $result = $workOrderModel->save($params);
         if ($result) {
             $this->_returnMsg(['msg' => '售后工单申请成功']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
         }
+    }
+    //客户提交售后评价
+    protected function postWorkOrderReview()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if ($installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师不允许提交售后评价']);
+        }
+        $detail = $this->getWorkOrderDetail(TRUE);
+        $worderModel = new \app\common\model\WorkOrder();
+        $result = $worderModel->worderAssess($detail, $user);
+        if ($result !== FALSE) {
+            $this->_returnMsg(['msg' => '接单成功,请联系客户上门服务']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
+        }
+    }
+    protected function getWorkOrderReviewConfig()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if ($installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师不允许提交售后评价']);
+        }
+        $config = db('config')->where(['is_del' => 0, 'status' => 1, 'config_key' => CONFIG_WORKORDER_ASSESS])->select();
     }
     
     //申请成为售后工程师
@@ -664,7 +698,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
     }
-    //取消工单
+    //工程师取消工单
     protected function cancelWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
@@ -682,7 +716,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
     }
-    //工单完成
+    //工程师完成工单
     protected function finishWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);

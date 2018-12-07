@@ -13,7 +13,26 @@ class Suborder extends commonOrder
             $this->error('NO ACCESS');
         }
         unset($this->subMenu['add']);
-        $this->indextempfile = 'myorder/index';
+    }
+    public function cancel()
+    {
+        $this->error('NO ACCESS');
+    }
+    public function pay()
+    {
+        $this->error('NO ACCESS');
+    }
+    public function updatePrice()
+    {
+        $this->error('NO ACCESS');
+    }
+    public function delivery()
+    {
+        $this->error('NO ACCESS');
+    }
+    public function finish()
+    {
+        $this->error('NO ACCESS');
     }
     function _getJoin(){
         return [

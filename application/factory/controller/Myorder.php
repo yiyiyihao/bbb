@@ -9,7 +9,18 @@ class Myorder extends commonOrder
         $this->modelName = 'myorder';
         $this->model = model('order');
         parent::__construct();
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->error('NO ACCESS');
+        }
         unset($this->subMenu['add']);
+    }
+    public function updatePrice()
+    {
+        $this->error('NO ACCESS');
+    }
+    public function delivery()
+    {
+        $this->error('NO ACCESS');
     }
     public function pay()
     {

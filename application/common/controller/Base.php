@@ -29,6 +29,8 @@ class Base extends Controller
         defined('GROUP_DEALER') or define('GROUP_DEALER',   3); //经销商/零售商角色
         defined('GROUP_SERVICE')or define('GROUP_SERVICE',  4); //服务商角色
         
+        defined('CONFIG_WORKORDER_ASSESS')or define('CONFIG_WORKORDER_ASSESS',  'config_workorder_assess');
+        
         defined('NOW_TIME')or define('NOW_TIME', $_SERVER['REQUEST_TIME']);
     	defined('IS_POST') or define('IS_POST', $this->request->isPost());
     	defined('IS_AJAX') or define('IS_AJAX', $this->request->isAjax());

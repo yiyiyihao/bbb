@@ -1362,7 +1362,19 @@ class Request
             // 强制类型转换
             $this->typeCast($data, $type);
         }
-
+        #TODO  去掉获取请求参数的路径参数
+        if ($data && is_array($data)) {
+            $module = strtolower($this->module());
+            $controller = strtolower($this->controller());
+            $action = strtolower($this->action());
+            $url = $controller.'/'.$action;
+            foreach ($data as $key => $value) {
+                if (strstr($key, $url) !== FALSE) {
+                    unset($data[$key]);
+                    break;
+                }
+            }
+        }
         return $data;
     }
 

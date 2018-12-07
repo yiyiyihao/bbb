@@ -3,7 +3,6 @@
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>产品信息</strong>
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">基本信息</a>
                         </li>
@@ -20,7 +19,7 @@
 						<div class="field">
 							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择产品分类！">
 								{foreach name="cates" item="cate" key="key"}
-									<option value="{$key}" {if ($key && isset($info['cate_id']) && $info['cate_id'] == $key)}selected="selected"{/if} >{$cate.name}</option> 
+									<option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option> 
 								{/foreach}
 							</select>
 							<div class="input-note">请选择产品类型</div>
@@ -28,11 +27,15 @@
 					</div>
                     <div class="form-group">
                         <div class="label">
-                            <label>产品名称</label>
+                            <label>产品类别</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
-                            <div class="input-note">产品名称请不要填写特殊字符</div>
+                            <div class="button-group radio">
+                            {volist name="goodsCates" id="goodsCate"}
+                                <label class='button{if (!$info && $i == 1 ) ||(isset($info['goods_cate']) && $info['goods_cate'] == $key)} active{/if}'><input name="goods_cate" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['goods_cate']) && $info['goods_cate'] == $key)}checked="checked"{/if} type="radio">{$goodsCate}</label>
+                            {/volist}
+                            </div>
+                            <div class="input-note">请选择产品类别</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -41,11 +44,20 @@
                         </div>
                         <div class="field">
                             <div class="button-group radio">
-                            {foreach name="goodsTypes" item="goodsType" key="key"}
-                                <label class='button{if ($key && isset($info['goods_type']) && $info['goods_type'] == $key)} active{/if}'><input name="goods_type" value="{$key}" {if ($key && isset($info['goods_type']) && $info['goods_type'] == $key)}checked="checked"{/if} type="radio">{$goodsType}</label>
-                            {/foreach}
+                            {volist name="goodsTypes" id="goodsType"}
+                                <label class='button{if (!$info && $i == 1 ) || (isset($info['goods_type']) && $info['goods_type'] == $key)} active{/if}'><input name="goods_type" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['goods_type']) && $info['goods_type'] == $key)}checked="checked"{/if} type="radio">{$goodsType}</label>
+                            {/volist}
                             </div>
                             <div class="input-note">请选择产品类型</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <div class="input-note">产品名称请不要填写特殊字符</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -86,31 +98,64 @@
 	                </div> 
 	                <div class="form-group">
                         <div class="label">
-                            <label>产品货号</label>
+                            <label>产品编码</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}">
-                            <div class="input-note">产品货号请不要填写特殊字符</div>
+                            <div class="input-note">产品编码请不要填写特殊字符</div>
                         </div>
                     </div>
 	                <div class="form-group">
 		                <div class="label">
-		                  <label>产品价格</label>
+		                  <label>产品售价</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写产品价格！"> 元
+		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写产品售价！"> 元
 		                  <div class="input-note"></div>
 		                </div>
 		              </div>
+		              <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
+		                <div class="label">
+		                  <label>安装费用</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" nullmsg="请填写产品安装费用！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		              </div>
+		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
+                        <div class="label">
+                            <label>样品限购数量</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" min="0" class="input" id="sample_purchase_limit" name="sample_purchase_limit" value="{$info['sample_purchase_limit'] ?? ''}">
+                            <div class="input-note">单个用户样品限购数量(只有样品类型的商品才有此设置  样品不需要安装费设置)</div>
+                        </div>
+                    </div>
 		              <div class="form-group">
 		                <div class="label">
 		                  <label>产品库存</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="goods_stock" name="goods_stock" size="12" value="{$info.goods_stock|default=0}" nullmsg="请填写产品库存！" {if condition="$info && isset($info['skuinfo']) && $info['skuinfo']"}disabled="disabled"{/if}>
+		                  <input type="number" min="0" class="input" id="goods_stock" name="goods_stock" size="12" value="{$info.goods_stock|default=0}" nullmsg="请填写产品库存！" {if condition="$info && isset($info['skuinfo']) && $info['skuinfo']"}disabled="disabled"{/if}>
 		                  <div class="input-note"></div>
 		                </div>
 		              </div>
+		              <div class="form-group">
+                        <div class="label">
+                            <label>库存计数</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            {volist name="stockReduces" id="stockReduce"}
+                                <label class='button{if (!$info && (!$info && $i == 1 ) ) || (isset($info['stock_reduce_time']) && $info['stock_reduce_time'] == $key)} active{/if}'>
+                                	<input name="stock_reduce_time" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['stock_reduce_time']) && $info['stock_reduce_time'] == $key)}checked="checked"{/if} type="radio">{$stockReduce}
+                                </label>
+                            {/volist}
+                            </div>
+                            <div class="input-note">请选择库存计数类型</div>
+                        </div>
+                    </div>
 	                <div class="form-group">
 			            <div class="label">
 			              <label>产品描述</label>
@@ -178,12 +223,21 @@
 </form>
 <script>
 	var Config = {
-		'editorUploadUrl' : "{:url('admin/Upload/editorupload', ['prex' => 'goods_'])}",
+		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'goods_'])}",
 	};
+	$('input[name="goods_type"]').change(function(){
+		var goods_type = $(this).val();
+		$(".sample, .install").hide();
+		if(goods_type == 2){
+			$(".sample").show();
+		}else{
+			$(".install").show();
+		}
+	});
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{:url('admin/Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
             {present name="info['goods_id']"}
             cookie: 'editgoods{$info.goods_id}',
             num: {$info.imgnum}

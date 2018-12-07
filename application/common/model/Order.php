@@ -60,7 +60,7 @@ class Order extends Model
             $this->error = '订单未支付, 不能执行当前操作';
             return FALSE;
         }
-        if (!$order['delivery_status']) {
+        if ($order['order_type'] != 1 && !$order['delivery_status']) {
             $this->error = '订单未发货, 不能执行当前操作';
             return FALSE;
         }
@@ -78,15 +78,19 @@ class Order extends Model
             $this->error = $this->getError();
             return FALSE;
         }
-        //修改订单商品表 已发货状态改为已收货
-        $result = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => 1])->update(['delivery_status' => 2]);
-        //修改订单商品物流表 收货状态改为1
-        $result = db('order_sku_delivery')->where(['order_sn' => $orderSn])->update(['isreceive' => 1, 'receive_time' => time()]);
-        
-        #TODO 确认完成计算渠道/零售商佣金返利
+        if ($order['order_type'] != 1) {
+            //修改订单商品表 已发货状态改为已收货
+            $result = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => 1])->update(['delivery_status' => 2]);
+            //修改订单商品物流表 收货状态改为1
+            $result = db('order_sku_delivery')->where(['order_sn' => $orderSn])->update(['isreceive' => 1, 'receive_time' => time()]);
+        }
         
         $remark = isset($extra['remark']) && trim($extra['remark']) ? trim($extra['remark']) : '';
-        $action = $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
+        if ($order['order_type'] == 1) {
+            $action = '确认完成';
+        }else{
+            $action = $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
+        }
         $this->orderTrack($order, 0, $remark);
         return $this->orderLog($order, $user, $action, $remark);
     }
@@ -307,6 +311,39 @@ class Order extends Model
         }
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
+        if ($order['order_type'] == 1) {
+            $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
+        }
+        //订单支付成功后,订单入账处理
+        if ($order['order_type'] == 1 && $order['user_store_id'] > 0 && $paidAmount > 0) {
+            $where = [
+                'is_del' => 0,
+                'S.store_id' => $order['user_store_id'],
+            ];
+            $store = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where($where)->find();
+            if ($store && $store['ostore_id']) {
+                //获取厂商信息
+                $factory = db('store')->where(['is_del' => 0, 'store_id' => $store['factory_id']])->find();
+                if ($factory) {
+                    $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+                    $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
+                    if ($ratio > 0) {
+                        $incomeAmount = round($paidAmount * $ratio/100, 2);//四舍五入保留小数点后两位
+                        $insert = [
+                            'store_id'          => $store['ostore_id'],
+                            'from_store_id'     => $store['store_id'],
+                            'order_id'          => $order['order_id'],
+                            'order_sn'          => $order['order_sn'],
+                            'order_amount'      => $paidAmount,
+                            'commission_ratio'  => $ratio,
+                            'income_amount'     => $incomeAmount,
+                            'add_time'          => time(),
+                        ];
+                        $result = db('commission')->insertGetId($insert);
+                    }
+                }
+            }
+        }
         return TRUE;
     }
     /**
@@ -408,6 +445,7 @@ class Order extends Model
             //创建订单
             $orderSn = $this->_getOrderSn();
             $orderData = [
+                'order_type'    => 1,   //1商户订单:支付成功后自动完成
                 'order_sn'      => $orderSn,
                 'store_id'      => $storeId,
                 'user_id'       => $user['user_id'],
@@ -570,7 +608,13 @@ class Order extends Model
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $where['store_id'] = $user['store_id'];
         }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
-            $where['user_store_id'] = $user['store_id'];
+            $storeIds = [$user['store_id']];
+            if ($user['admin_type'] == ADMIN_CHANNEL) {
+                //获取零售商的下级经销商
+                $ids = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
+                $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
+            }
+            $where['user_store_id'] = ['IN', $storeIds];
         }
         $order = $this->where($where)->find();
         if (!$order) {

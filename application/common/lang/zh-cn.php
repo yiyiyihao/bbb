@@ -29,6 +29,7 @@ return [
     
     'AUTH_RULE'             =>  '权限节点',
     'SYSTEM'                =>  '系统管理',
+    'ASSESS_CONFIG'         =>  '评价配置',
     'USER'                  =>  '账户',
     'USER_GROUP'            =>  '账户角色',
     'USER_GROUP_PURVIEW'    =>  '角色授权',

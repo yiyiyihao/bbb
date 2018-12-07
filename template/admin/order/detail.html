@@ -157,8 +157,7 @@
 					              <td>
 					              	{if condition="$info['order']['pay_status'] == 1 AND $info['order']['status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] == 0"}
 					              	<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="确认发货">确认发货</a>
-					              	{/if}
-					              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
+					              	{elseif condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0" /}
 					                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
 					                {/if}
 					              </td>
