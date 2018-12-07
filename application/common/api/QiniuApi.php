@@ -19,8 +19,8 @@ class QiniuApi
             'domain'    => 'pimvhcf3v.bkt.clouddn.com',                 //空间绑定的域名
 //             'domain'    => 'pimvhcf3v.bkt.clouddn.com',                 //空间绑定的域名
             'thumb_config' => [
-                'goods_thumb_500'   => '?imageMogr2/auto-orient/thumbnail/500x500!/blur/1x0/quality/75',
-                'goods_thumb_1000'  => '?imageMogr2/auto-orient/thumbnail/1000x1000!/blur/1x0/quality/100',
+                'goods_thumb_500'   => '?imageMogr2/auto-orient/thumbnail/!500x500r/gravity/Center/crop/500x500/format/jpg/blur/1x0/quality/75',
+                'goods_thumb_1000'  => '?imageMogr2/auto-orient/thumbnail/!1000x1000r/gravity/Center/crop/1000x1000/format/jpg/blur/1x0/quality/75',
 //                 'avatar_thumb' => '?imageView2/1/w/200/h/200/q/75|imageslim',
             ],
         ];

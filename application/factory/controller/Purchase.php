@@ -83,6 +83,6 @@ class Purchase extends FactoryForm
     }
     
     private function _thumbToBig($src){
-        return str_replace("imageMogr2/auto-orient/thumbnail/500x500!/blur/1x0/quality/75","imageMogr2/auto-orient/thumbnail/!1000x1000r/gravity/Center/crop/1000x1000/format/jpg/blur/1x0/quality/100",$src);
+        return str_replace("500x500","1000x1000",$src);
     }
 }
