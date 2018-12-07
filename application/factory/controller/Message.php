@@ -46,7 +46,15 @@ class Message extends CommonMessage
         foreach ($to_store_ids as $k => $v) {
             # code...
         }*/
-        
+        return true;
+    }
+
+    //查看已发布的消息
+    function read(){
+        $info = $this->_assignInfo();
+        dump(123);exit;
+        return $this->fetch();
+
     }
 
 }
