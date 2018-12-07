@@ -161,10 +161,14 @@ class Installer extends FormBase
     /**
      * 列表项配置
      */
-    function _tableData(){ 
-        $adminUser = $this->adminUser;
-        $this->assign($adminUser,'adminUser');
-            $check = ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'];
+    function _tableData(){
+        $table = parent::_tableData();
+        $btnArray = [];
+        $btnArray = ['text'  => '审核','action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'];
+        $table['actions']['button'][] = $btnArray;
+        $table['actions']['width']  = '210';
+        return $table;
+            /* $check = ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'];
         $table = [
             ['title'=> '编号',   'width'=>'60','value'=> 'user_id',      'type'=> 'index'],
             ['title'=> '厂商',   'width'=>'*', 'value'=> 'fname',        'type'=> 'text'],
@@ -193,7 +197,7 @@ class Installer extends FormBase
                 ]
             ]
         ];
-        return array_filter($table);
+        return array_filter($table); */
     }
     /**
      * 详情字段配置

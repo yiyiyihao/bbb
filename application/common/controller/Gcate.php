@@ -148,7 +148,7 @@ class Gcate extends FormBase
     /**
      * 列表项配置
      */
-    function _tableData(){
+    /* function _tableData(){
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'cate_id','type'      => 'index'],
             ['title'     => '厂商名称','width'  => '*','value'   => 'sname','type'      => 'text'],
@@ -163,7 +163,7 @@ class Gcate extends FormBase
             ]
         ];
         return array_filter($table);
-    }
+    } */
     /**
      * 详情字段配置
      */

@@ -100,7 +100,7 @@ class Gspec extends FormBase
     /**
      * 列表项配置
      */
-    function _tableData(){
+    /* function _tableData(){
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'spec_id','type'      => 'index'],
             ['title'     => '厂商名称','width'  => '*','value'   => 'sname','type'      => 'text'],
@@ -116,5 +116,5 @@ class Gspec extends FormBase
             ]
         ];
         return array_filter($table);
-    }
+    } */
 }

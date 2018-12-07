@@ -6,7 +6,7 @@ class Servicer extends Store
 {
     public function __construct()
     {
-        $this->modelName = 'servicer';
+        $this->modelName = 'store_servicer';
         $this->model = model('store');
         parent::__construct();
     }

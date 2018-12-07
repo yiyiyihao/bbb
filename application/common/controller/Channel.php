@@ -6,7 +6,7 @@ class Channel extends Store
 {
     public function __construct()
     {
-        $this->modelName = 'channel';
+        $this->modelName = 'store_channel';
         $this->model = model('store');
         parent::__construct();
     }

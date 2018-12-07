@@ -299,69 +299,7 @@ class Store extends FormBase
         ];
         return $search;
     }
-    /**
-     * 列表项配置
-     */
-    function _tableData(){
-        $table = parent::_tableData();
-        //组合表格
-        $array = [];
-        switch ($this->storeType){
-            case STORE_FACTORY:         //厂商
-                $array[] = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text','sort'  => '12'];
-                break;
-            case STORE_CHANNEL:         //渠道
-                $array[] = ['title'     => '负责区域',  'width'   => '*','value'     => 'region_name', 'type'      => 'text','sort'  => '13'];
-                $array[] = ['title'     => '保证金金额', 'width'  => '100','value'      => 'caution_money', 'type'    => 'text','sort'  => '14'];
-                break;
-            case STORE_DEALER:          //经销商
-                $array[] = ['title'     => '所属渠道', 'width'   => '*','value'     => 'cname', 'type'      => 'text','sort'  => '13'];
-                break;
-            case STORE_SERVICE:         //服务商
-                break;
-        }
-        /*if ($this->storeType == STORE_FACTORY) {
-            $array = ['title'     => '二级域名','width'  => '100','value'     => 'domain','type'      => 'text'];
-        }else{
-            $array = ['title'     => '所属厂商','width'  => '100','value'     => 'sname','type'      => 'text'];
-        }
-        if ($this->storeType == STORE_CHANNEL) {
-            $array1 = ['title'     => '负责区域', 'width'   => '100','value'     => 'region_name', 'type'      => 'text'];
-            $array2 = ['title'     => '保证金金额', 'width'   => '100','value'     => 'caution_money', 'type'      => 'text'];
-            $btnArray = ['text'  => '佣金比例设置','action'=> 'config', 'icon'  => 'setting','bgClass'=> 'bg-green'];
-        }elseif ($this->storeType == STORE_DEALER){
-            $array1 = ['title'     => '所属渠道', 'width'   => '100','value'     => 'cname', 'type'      => 'text'];
-        }
-        //判断是否有编辑删除的权限
-//         if(isset($this->adminUser['tempRule'][$tempAction.'edit'])){
-//             $edit=['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'];
-//         }
-//         if(isset($this->adminUser['tempRule'][$tempAction.'del'])){
-//             $del=['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'];
-//         }
-        $table = [
-            ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
-            $array,
-            ['title'     => lang($this->modelName).'名称','width'  => '*','value'   => 'name','type'      => 'text'],
-            $array1,
-            $array2,
-            ['title'     => '联系人姓名', 'width'   => '100','value'     => 'user_name', 'type'      => 'text'],
-            ['title'     => '联系电话', 'width'   => '160','value'     => 'mobile', 'type'      => 'text'],
-            ['title'     => '管理员账号','width' => '120','value'     => 'username','type'      => 'text'],
-            ['title'     => '状态','width'    => '60','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
-            ['title'     => '排序','width'    => '60','value'      => 'sort_order','type'      => 'text'],
-            ['title'     => '操作','width'    => '*','value'   => 'store_id','type'      => 'button','button'    =>
-                [
-                    ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-yellow'],
-                    $btnArray,
-                    $edit??'',
-                    $del??''
-                ]
-            ]
-        ]; */        
-        $table = array_merge($table,$array);
-        return $table;
-    }
+    
     /**
      * 详情字段配置
      */

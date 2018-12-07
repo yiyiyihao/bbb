@@ -6,7 +6,7 @@ class Dealer extends Store
 {
     public function __construct()
     {
-        $this->modelName = 'dealer';
+        $this->modelName = 'store_dealer';
         $this->model = model('store');
         parent::__construct();
     }
