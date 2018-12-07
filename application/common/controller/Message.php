@@ -19,6 +19,7 @@ class Message extends FormBase
     function _getField(){
         $field = 'SM.*';
         $field .= ', S.name as sname';
+        $field .= ', U.username as uname';
         return $field;
     }
     function _getAlias(){
@@ -26,6 +27,7 @@ class Message extends FormBase
     }
     function _getJoin(){
         $join[] = ['store S', 'S.store_id = SM.store_id', 'INNER'];
+        $join[] = ['user U', 'U.user_id = SM.post_user_id', 'INNER'];
         return $join;
     }
     function _getWhere(){
@@ -72,12 +74,14 @@ class Message extends FormBase
     
     function _tableData(){
         $table = parent::_tableData();
-        $table['actions']['button'][]=["text"=> "发布","action"=> "publish","icon"=> "edit","bgClass"=> "bg-yellow"  , 
-        ];
+        $table['actions']['button'][]=["text"=> "发布","action"=> "publish","icon"=> "edit","bgClass"=> "bg-yellow"];
+        
         $table['status']=["title"=>"公告进度","width"=>"80", "sort"=> 60,"type"=>"status", "value"=>"status","status"=>
                 [['text'  => '禁用',     'value'   => 0],
                  ['text'  => '待发布', 'value'   => 1],
                  ['text'  => '已发布','value' => 2]]];
+        $table['actions']['width']  = '210';
+        //dump($table);
         return $table;
     }
 }
