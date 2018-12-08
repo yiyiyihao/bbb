@@ -20,7 +20,7 @@ class Table extends Model
 	//取得模型列表字段
 	function getTableList($model,$pk = 'id'){
 	    $cacheName = $model.'tableList';
-	    cache($cacheName, null);
+// 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
 	    $tableList = cache($cacheName);
 	    if(!$tableList){

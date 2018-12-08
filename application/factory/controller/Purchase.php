@@ -31,7 +31,7 @@ class Purchase extends FactoryForm
         //pre($info);
         $this->assign('info', $info);
         $this->import_resource(array(
-            'script'=> 'cart.js,jquery.jqzoom-core.js',
+            'script'=> 'jquery.jqzoom-core.js',
             'style' => 'goods.css,jquery.jqzoom.css',
         ));
         return $this->fetch();
@@ -63,6 +63,41 @@ class Purchase extends FactoryForm
             return $this->fetch();
         }
     }
+    
+    /**
+     * ajax获取商品属性值
+     */
+    public function getspec(){
+        $params = $this->request->param();
+        $id = isset($params['id']) ? intval($params['id']) : 0;
+        if($id){
+            if(IS_POST){
+                $post = $this->request->post();
+                $specs = isset($post['specs']) ? trim($post['specs']) : '';
+                if(!empty($specs)){
+                    $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1")->find();
+                    if($skuInfo){
+                        $return = array(
+                            'status'    => 1,
+                            'data'      => array(
+                                'skuid' => $skuInfo['sku_id'],
+                                'price' => $skuInfo['price'],
+                                'sku'   => $skuInfo['sku_stock'],
+                            )
+                        );
+                    }else{
+                        $return['status']   = 0;
+                    }
+                }else{
+                    $return['status']   = 0;
+                }
+            }
+        }else{
+            $return['status']   = 0;
+        }
+        $this->ajaxJsonReturn($return);
+    }
+    
     function  _getOrder()
     {
         return 'add_time DESC';

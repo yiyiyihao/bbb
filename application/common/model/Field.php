@@ -20,7 +20,7 @@ class Field extends Model
 	//取得模型字段列表
 	function getFieldList($model){
 	    $cacheName = $model.'fieldList';
-	    cache($cacheName, null);
+// 	    cache($cacheName, null);
 	    //检查缓存中是否有菜单配置
 	    $fieldList = cache($cacheName);
 	    if(!$fieldList){
