@@ -26,6 +26,7 @@
                             </div>
                             <div class="specBox">
                                 <p><b>库存</b><span>{$info.goods_stock}</span></p>
+                                {volist name="info.specs" id="vo"} <p class="spec"><b>{$vo.specname}</b> {volist name="vo.list" id="val"}<span>{$val}</span>{/volist} </p> {/volist}
                                 <p class="clearfix"><b>数量</b>
                                     <span class="nums_item">
                                         <span class="nums_btn float-left icon-minus bg-main" type="del"></span><input  class="nums float-left border-main" type="number" value="1" /><span class="nums_btn float-left icon-plus bg-main" type="add"></span>
@@ -34,59 +35,6 @@
                             </div>
                         </div>
                     </div>
-                	<!--
-                    <div class="form-group">
-                        <div class="label">
-                            <label>产品价格</label>
-                        </div>
-                        <div class="field">
-                        	<div class="field-text">
-                            	<p>{$info['min_price'] + $info['install_price']} 元</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>产品类型</label>
-                        </div>
-                        <div class="field">
-                        	<div class="field-text">
-                            	<p>{$info.goods_type == 1 ? '普通商品' : '样品'}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label></label>
-                        </div>
-                        <div class="field">                        
-                        {notempty name="skus"}
-                        <div class="table-responsive" style="padding:0;">
-                            <table id="table" class="table table-hover ">
-                              <tbody>
-                                <tr>
-                                  <th width="*">属性名称</th>
-                                  <th width="*">属性货号</th>
-                                  <th width="*">库存</th>
-                                  <th width="*">价格</th>
-                                  <th width="*"></th>
-                                </tr>
-                                  {volist name="skus" id="vo"}
-                                    <tr>
-                                      <td>{$vo.sku_name}</td>
-                                      <td>{$vo.sku_sn}</td>
-                                      <td>{$vo.sku_stock}</td>
-                                      <td>{$vo['install_price'] + $vo['price']}元</td>
-                                      <td><a href="{:url('confirm', ['sku_id' => $vo['sku_id'], 'num' => 1])}" class="button button-small bg-yellow">立即购买</a></td>
-                                    </tr>
-                                  {/volist}
-                              </tbody>
-                            </table>
-                          </div>
-                          {/notempty}
-                        </div>
-                    </div>
-                    -->
                 </div>
             </div>
             <div class="panel-foot">
@@ -119,31 +67,77 @@ $(function(){
 		zoomWidth:450,
 		zoomHeight:450
 	});
+	//选择属性
+	$(".spec span").click(function(){
+		$(this).parent().find(".active").removeClass("active");
+		$(this).addClass("active");
+		//检查属性是否选择完整
+		if(checkSpec()){
+			updatePrice();
+		};
+	})
+	function checkSpec(){
+		var len = $(".spec").length;
+		if($(".spec").length == $(".spec .active").length){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	function updatePrice(){
+		//取得选择属性
+		var specs = {};
+		$(".spec").each(function(i, e) {
+			var specName = $(e).find("b").text();
+			var val = $(e).find(".active").text();
+			specs[specName] = val;
+		});
+		specs = JSON.stringify(specs);
+		//更新价格和库存
+		var url = "/mall/getspec/id/"+goods_id;
+		$.post(url,{specs:specs},function(data){
+			if(data.status){
+				$("#salePrice").text(data.data.price);
+				$("#skuid").val(data.data.skuid);
+				$("#saleSku").text(data.data.sku);
+				goods_total = data.data.sku;
+				if(data.data.sku <= 0){
+					$("#skuText").text("库存不足");
+					$(".goodsButton .button").attr('disabled',"true");
+				}else{
+					$(".goodsButton .button").removeAttr("disabled");
+					if(data.data.sku <= 10){
+						$("#skuText").text("库存紧张");
+					}else{
+						$("#skuText").text("");
+					}
+				}
+			}
+		})
+	}
 	//加入购物车
 	$(".cart_btn").on("click",function(){
-		if($.trim(_UID_)==''){
-			window.location.href = "/login?url_forward=/goods/info/id/"+goods_id;
-			return;
-		}
-		action = "cart";
-		var nums = $(".nums").val();
-		if($.trim(goods_id)==0){
-	     	layer.alert("购买商品不存在");
-			return;
-		}
-		if($.trim(nums)<=0){
-	     	layer.alert("购买商品数量不能小于1");
-			return;
-		}
-		cart.add(goods_id,nums,action,add_cart_callback);
+		addCart("cart");
 	});
 	//立即购买
 	$(".buy_btn").on("click",function(){
-		if($.trim(_UID_)==''){
-			window.location.href = "/login?url_forward=/goods/info/id/"+goods_id;
+		addCart("buy");
+	});
+	
+	function addCart(action){
+		if(!checkSpec()){
+			layer.msg("请选择商品规格");
 			return;
 		}
-		action = "buy";
+		var skuid = $("#skuid").val();
+		var str = goods_id;
+		if(skuid){
+			str += "/skuid/"+skuid;
+		}
+		if($.trim(_UID_)==''){
+			window.location.href = "/login?url_forward=/mall/info/id/"+str;
+			return;
+		}
 		var nums = $(".nums").val();
 		if($.trim(goods_id)==0){
 	     	layer.alert("购买商品不存在");
@@ -153,22 +147,39 @@ $(function(){
 	     	layer.alert("购买商品数量不能小于1");
 			return;
 		}
-		layer.msg("加入购物车成功,正在下单……",{icon:6,time:4000});
-		cart.add(goods_id,nums,action,add_cart_callback);
-	});
-	//加入购物车回调
-	var add_cart_callback = function(res){
-		get_total();
-		if(action=='buy'){ 	//buy:立即购买，cart:加入购物车
-			setTimeout(function(){
-				window.location.href = '/settlement/index?goods_id='+goods_id;
-			},3000);
-		}else {
-			layer.msg(res.message);
+		if($.trim(nums)>goods_total){
+	     	layer.alert("剩余库存不足");
+			return;
 		}
+		if(action == 'buy'){
+			layer.msg("加入购物车成功,正在下单……",{icon:16,time:4000});
+		}		
+		//加入购物车回调
+		var add_cart_callback = function(res){
+			if(res.status){
+				updateCart(goods_id,skuid,nums,res);
+				get_total();
+				if(action=='buy'){ 	//buy:立即购买，cart:加入购物车
+					setTimeout(function(){
+						window.location.href = '/confirm/index/id/'+res.cart_id;
+					},3000);
+				}else {
+					layer.confirm(res.message,{
+						btn: ['继续逛逛','<span class="icon-shopping-cart"> 去购物车结算</span>'] //按钮
+					}, function(){
+						layer.closeAll('dialog');
+					}, function(){
+						window.location.href = "/cart";
+					});
+				}
+			}else{
+				layer.alert(res.message);
+			}			
+		}
+		
+		cart.add(goods_id,skuid,nums,action,add_cart_callback);
 	}
-
-
+	
 	//修改数量
 	$(".nums_btn").on("click",function(){
 		var nums = $(".nums").val();
@@ -179,14 +190,69 @@ $(function(){
 		else if(nums > goods_total) nums = goods_total;
 		$(".nums").val(nums);
 	});
-
-	//get_total();
+	initSpec();
 });
-
+function initSpec(){
+	{present name="skuspec"}
+	var skuspec = {$skuspec};
+	skuspec = eval(skuspec);
+	for(var data in skuspec){
+		$(".spec b").each(function(i, e) {
+			if($(this).text() == data){
+				$(this).parent().find("span").each(function(index, element) {
+					if($(this).text() == skuspec[data]){
+						$(this).addClass("test");
+						$(this).trigger("click");
+					}
+				});
+			}
+		});
+	}
+	{/present}
+}
 function get_total(){
 	cart.total(function(res){
+		$(".header-cart .cart-amount").html("￥"+res.total_amount);
+		$(".header-cart .cart-nums").html(res.total_nums);
 		$(".to_cart em").html(res.total_nums);
 	}); 
+}
+
+function updateCart(goods_id,skuid,nums,res){
+	var goodsNum = $(".header-cart .goods_list li").length;
+	if(goodsNum == 0){
+		$(".cart-info").html('<ul class="goods_list"></ul><div class="cart-total clearfix"><div class="left"><p>共<i class="cart-nums"></i>件商品</p><p>合计:<i class="cart-amount"></i></p></div>'+
+                '<a class="button bg-main right" href="/cart">去购物车结算</a></div>');
+		appendGoods(goods_id,skuid,nums,res);
+	}else{
+		var tis = $(".header-cart .goods_list li[data-id="+goods_id+"][skuid="+skuid+"]");
+		var len = tis.length;
+		if(len > 0){
+			var old = tis.find(".p_num").text();
+			nums = parseInt(old) + parseInt(nums);
+			tis.find(".p_num").text(nums);
+		}else{
+			appendGoods(goods_id,skuid,nums,res);
+		}
+	}
+}
+
+function appendGoods(goods_id,skuid,nums,res){
+	var price = '{$info.min_price}';
+	var p = '';
+	if(res.price) {price = res.price}
+	if(res.skuspec) {p = "<p>"+res.skuspec+"</p>"}
+	var html = '<li class="clearfix" data-id="'+goods_id+'" skuid="'+skuid+'">'+
+                	'<div class="cart-left left">'+
+                            '<img src="{$info.thumb}" width="60" class="left">'+
+                            '<span>{$info.name}</span>'+p+
+                    '</div>'+
+                    '<div class="cart-right right">'+
+                    	'<p style="margin-bottom:10px;">￥'+price+' × <span class="p_num">'+nums+'</span></p>'+
+                    	'<span class="button button-small bg-main icon-trash-o right"></span>'+
+                    '</div>'+
+                '</li>';
+	$(".cart-info .goods_list").append(html);
 }
 
 </script>

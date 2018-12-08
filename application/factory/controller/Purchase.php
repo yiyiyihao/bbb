@@ -27,7 +27,8 @@ class Purchase extends FactoryForm
             $imgs[$k]["thumb_big"] = $this->_thumbToBig($v);
         }
         $info['imgs'] = $imgs;
-//         pre($info);
+		$info['specs'] = json_decode($info['specs_json'],true);
+        //pre($info);
         $this->assign('info', $info);
         $this->import_resource(array(
             'script'=> 'cart.js,jquery.jqzoom-core.js',
