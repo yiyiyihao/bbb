@@ -65,17 +65,38 @@ function get_commission_status($status = FALSE){
     }
 }
 /**
+ * 商品类别名称
+ */
+function get_goods_cate($cate = FALSE){
+    $cates = [
+        1 => '标准产品',
+        2 => '产品配件',
+    ];
+    if ($cate === FALSE) {
+        return $cates;
+    }
+    if (isset($cates[$cate])) {
+        return $cates[$cate];
+    }else{
+        return '';
+    }
+}
+/**
  * 商品类型名称
  */
-function goodstype($type = 0){
-    $name = '';
-    switch ($type){
-        case 1:
-            $name = '标准产品';break;
-        case 2:
-            $name = '产品配件';break;
+function goodstype($type = FALSE){
+    $types = [
+        1 => '普通产品',
+        2 => '样品',
+    ];
+    if ($type === FALSE) {
+        return $types;
     }
-    return $name;
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
 }
 
 /**

@@ -24,8 +24,8 @@ class Goods extends FormBase
             1 => '买家下单时减少库存',
             2 => '买家付款成功后减少库存',
         ];
-        $this->assign('goodsCates', $this->goodsCates);
-        $this->assign('goodsTypes', $this->goodsTypes);
+        $this->assign('goodsCates', get_goods_cate());
+        $this->assign('goodsTypes', goodstype());
         $this->assign('stockReduces', $this->stockReduces);
     }
     //产品属性管理
@@ -177,7 +177,6 @@ class Goods extends FormBase
     }
     function _getField(){
         $field = 'G.*, C.name as cate_name';
-        $field .= ', S.name as sname';
         return $field;
     }
     function _getAlias(){
@@ -185,7 +184,6 @@ class Goods extends FormBase
     }
     function _getJoin(){
         $join[] = ['goods_cate C', 'C.cate_id = G.cate_id', 'INNER'];
-        $join[] = ['store S', 'S.store_id = G.store_id', 'INNER'];
         return $join;
     }
     function _getWhere(){
@@ -202,10 +200,6 @@ class Goods extends FormBase
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
             if($sn){
                 $where['G.goods_sn'] = ['like','%'.$sn.'%'];
-            }
-            $sname = isset($params['sname']) ? trim($params['sname']) : '';
-            if($sname){
-                $where['S.name'] = ['like','%'.$sname.'%'];
             }
             $goodsType = isset($params['goods_type']) ? intval($params['goods_type']) : '';
             if($goodsType){
