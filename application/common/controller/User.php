@@ -93,7 +93,14 @@ class User extends FormBase
     }
     function _getUgroup()
     {
-        $groups = db('user_group')->where(['is_del' => 0, 'status' =>1,  'store_id' => ['IN', [0, $this->adminUser['store_id']]]])->select();
+        $where = [
+            'is_del' => 0, 
+            'status' =>1,
+        ];
+        if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
+            $where['group_type'] = 1;
+        }
+        $groups = db('user_group')->where($where)->select();
         $this->assign('groups', $groups);
         return $groups;
     }
