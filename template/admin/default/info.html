@@ -10,15 +10,15 @@
                 <div class="tab-panel active" id="tab-1">
                 {notempty name="field"}
                 {volist name="field" key="k" id="vo"}
-                {if condition="$vo['type'] == 'region'"}
-                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
-                {else/}
                 <div class="form-group">
                     <div class="label">
                         <label>{$vo.title}</label>
                     </div>
                     <div class="field">
                     	{switch vo.type}
+                        	{case region}
+                            <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" formlength="{$vo['length'] ?? 0}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                            {/case}
                         	{case text}
                         		<input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
                         	{/case}
@@ -59,7 +59,6 @@
                         <div class="input-note">{$vo['notetext'] ?? ''}</div>
                     </div>
                 </div>
-                {/if}
                 {/volist}
                 {/notempty}
                 </div>

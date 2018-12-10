@@ -311,6 +311,7 @@ $.ajaxSetup({
 				value:$(this).attr("formvalue"),
 				datatype:$(this).attr("validtype"),
 				notmsg:$(this).attr("notmsg"),
+				length:$(this).attr("formlength"),
 			}
 			var options = $.extend(defaults, opt);
             var id = this;

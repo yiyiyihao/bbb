@@ -331,7 +331,7 @@ class Store extends FormBase
         }
         if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
             $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
-            $array3 = ['title'=>'负责区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'];
+            $array3 = ['title'=>'负责区域','type'=>'region','length'=>2,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'];
         }
         $field = [
             $array, $array1,

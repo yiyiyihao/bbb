@@ -151,7 +151,7 @@ td,th{padding:0;}
 .input-group .addon:last-child, .input-group .addbtn:last-child .button{border-left:0 none;}
 .input-group .addon:last-child, .input-group .addbtn:last-child .button, .input-group .input:last-child{border-top-left-radius:0;border-bottom-left-radius:0;}
 .input-group .addon:not(:first-child):not(:last-child),.input-group .addbtn:not(:first-child):not(:last-child) .button,.input-group .input:not(:first-child):not(:last-child){border-radius:0;}
-.input{font-size:14px;padding:8px 10px;border:solid 1px #ddd;width:100%;height:42px;line-height:20px;display:block;border-radius:4px;/*-webkit-appearance:none;box-shadow:0 1px 1px rgba(0, 0, 0, 0.075) inset;*//*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
+.input{font-size:14px;padding:8px 10px;border:solid 1px #ddd;width:100%;height:38px;line-height:20px;display:block;border-radius:4px;/*-webkit-appearance:none;box-shadow:0 1px 1px rgba(0, 0, 0, 0.075) inset;*//*transition:all 1s cubic-bezier(0.175, 0.885, 0.32, 1) 0s;*/}
 .label{padding-bottom:7px;display:block;line-height:20px;}
 .label label{font-weight:bold;}
 .input-file{display:inline-block;position:relative;overflow:hidden;text-align:center;width:auto;color:#333;}

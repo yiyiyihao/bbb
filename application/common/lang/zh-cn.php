@@ -34,7 +34,7 @@ return [
     'USER_GROUP'            =>  '账户角色',
     'USER_GROUP_PURVIEW'    =>  '角色授权',
     'USER_INSTALLER'        =>  '售后工程师',
-    'WORK_ORDER'            =>  '售后工单',
+    'WORK_ORDER'            =>  '工单',
     'SYS_MESSAGE'           =>  '系统消息',
     'FINANCE'               =>  '财务管理',
     

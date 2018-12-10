@@ -2,6 +2,7 @@
 	//区域单选
 	$.fn.region = function( opt ) {
 		var dataType = '';
+		var length = opt.length;
 		if(opt.datatype){
 			dataType = 'datatype="'+opt.datatype+'"';
 		}
@@ -9,11 +10,9 @@
 		if(opt.notmsg != undefined){
 			notmsg = opt.notmsg;
 		}
-		var html = '<div class="label"><label class="labelName">'+opt.str+'</label></div>'
-				  +'<div class="field"><input type="hidden" id="region_id" name="'+opt.name+'" '+dataType+' value="'+opt.value+'"><input type="hidden" id="region_name" name="region_name" value="'+opt.formstr+'">'
+		var html = '<input type="hidden" id="region_id" name="'+opt.name+'" '+dataType+' value="'+opt.value+'"><input type="hidden" id="region_name" name="region_name" value="'+opt.formstr+'">'
 				  +'<div id="regiondata"></div>'
-				  +'<div class="input-note">'+notmsg+'</div>'
-   				  +'</div>';
+   				  +'';
 		$(this).html(html);
 		var tis = $(this);
 		if(opt.value != '' && opt.value != '0'){
@@ -28,19 +27,20 @@
 			$(this).nextAll().remove();
 			if(region_id != ''){
 				tis.region_id = region_id;
-				getRegionList(opt.postUrl, {parent_id:region_id}, tis);
+				getRegionList(opt.postUrl, {parent_id:region_id}, tis,length);
 			}
 		})
 		$(".form-group").on('click','.changeRegion',function(){
 			$("#regiondata").html("");
-			getRegionList(opt.postUrl, false,tis);
+			getRegionList(opt.postUrl, false,tis,length);
 		})
 	}
-	function getRegionList(url,postParam,tis){
+	function getRegionList(url,postParam,tis,length){
 		if(!url){
 			layer.alert('ajax post 地址不存在，请检查错误！');
 			return false;
 		}
+		if(length == 0 || length == undefined) length = 10;//理论上为零应该不限制节点,这里定义10是自信联级菜单不会超过十级
     	var postData = {};
     	if(postParam){
     		postData = postParam;
@@ -50,7 +50,8 @@
 		var load = layer.msg("加载中...",{icon: 16,time:10000});
 		$.post(url, postData,function(data){
 			var data = data.data;
-			if(data && data.length > 0){
+			var nowLen = $("#regiondata select").length;
+			if(data && data.length > 0 && nowLen < (length)){
 				var option = '<select class="input">';
 					option +='<option value="">--请选择--</option>';
 				$.each(data,function(i,e){
