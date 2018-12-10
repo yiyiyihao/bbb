@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-10 09:56:24
+Date: 2018-12-10 10:07:33
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -285,7 +285,7 @@ INSERT INTO `wja_form_table` VALUES ('33', '7', '', '编号', '60', '3', null, '
 INSERT INTO `wja_form_table` VALUES ('34', '7', 'sname', '厂商名称', '*', '1', null, '', '20', '1', '0', '0', '0', '1544147539', '1544147539');
 INSERT INTO `wja_form_table` VALUES ('35', '7', 'name', '规格名称', '100', '1', null, '', '30', '1', '0', '0', '0', '1544147583', '1544147660');
 INSERT INTO `wja_form_table` VALUES ('36', '7', 'value', '规格属性', '*', '1', null, '', '40', '1', '0', '0', '0', '1544147605', '1544147605');
-INSERT INTO `wja_form_table` VALUES ('37', '6', 'add_time', '交易时间', '120', '2', null, 'time_to_date', '70', '1', '0', '0', '0', '1544147775', '1544151635');
+INSERT INTO `wja_form_table` VALUES ('37', '6', 'add_time', '新增时间', '*', '2', null, 'time_to_date', '70', '1', '0', '0', '0', '1544147775', '1544407610');
 INSERT INTO `wja_form_table` VALUES ('38', '8', 'region_name', '负责区域', '*', '1', null, '', '50', '1', '0', '0', '0', '1544147856', '1544148085');
 INSERT INTO `wja_form_table` VALUES ('39', '8', 'security_money', '保证金金额', '100', '1', null, '', '60', '1', '0', '0', '0', '1544147888', '1544148090');
 INSERT INTO `wja_form_table` VALUES ('40', '2', 'domain', '二级域名', '100', '1', null, '', '15', '1', '0', '0', '0', '1544147968', '1544147968');

@@ -58,7 +58,7 @@ class Gcate extends FormBase
         return $where;
     }
     function _getField(){
-        $field = 'C.cate_id, C.name, C.parent_id, C.sort_order, C.name as cname, C.status';
+        $field = 'C.*';
         $field .= ', S.name as sname';
         return $field;
     }
