@@ -36,6 +36,10 @@ class System extends AdminForm
             if ($data['workorder_auto_assess_day'] < 0) {
                 $this->error('工单自动评价天数必须大于0');
             }
+            $data['withdraw_min_amount'] = isset($params['withdraw_min_amount']) ? intval($params['withdraw_min_amount']) : 0;
+            if ($data['withdraw_min_amount'] <= 0) {
+                $this->error('单笔提现最小金额必须大于0');
+            }
             $data['monthly_withdraw_start_date'] = isset($params['monthly_withdraw_start_date']) ? intval($params['monthly_withdraw_start_date']) : 0;
             if ($data['monthly_withdraw_start_date'] < 1 || $params['monthly_withdraw_start_date'] > 28) {
                 $this->error('每月提现开始日期必须大于1号小于28号');
@@ -43,6 +47,10 @@ class System extends AdminForm
             $data['monthly_withdraw_end_date'] = isset($params['monthly_withdraw_end_date']) ? intval($params['monthly_withdraw_end_date']) : 0;
             if ($data['monthly_withdraw_start_date'] >= $params['monthly_withdraw_end_date'] || $params['monthly_withdraw_end_date'] < 1 || $params['monthly_withdraw_end_date'] > 28) {
                 $this->error('每月提现结束日期必须大于1号小于28号(且必须大于开始日期)');
+            }
+            $data['withdrawal_work_day'] = isset($params['withdrawal_work_day']) ? intval($params['withdrawal_work_day']) : 0;
+            if ($data['withdrawal_work_day'] <= 0){
+                $this->error('提现到账工作日必须大于0');
             }
             if ($data) {
                 foreach ($data as $key => $value) {

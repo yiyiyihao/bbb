@@ -358,7 +358,13 @@ class Order extends Model
                             $result = db('store_commission')->insertAll($dataSet);
                             if ($result) {
                                 //修改商户账户收益信息
-                                $result = db('store_account')->where(['store_id' => $store['ostore_id']])->inc('pending_amount', $totalAmount)->inc('total_amount', $totalAmount)->update();
+//                                 $result = db('store_finance')->where(['store_id' => $store['ostore_id']])->inc('pending_amount', $totalAmount)->inc('total_amount', $totalAmount)->update();
+                                $financeModel = new \app\common\model\StoreFinance();
+                                $params = [
+                                    'pending_amount' => $totalAmount,
+                                    'total_amount' => $totalAmount,
+                                ];
+                                $result = $financeModel->financeChange($store['ostore_id'], $params, '订单收益记录', $order['order_sn']);
                             }
                         }
                     }
@@ -598,7 +604,7 @@ class Order extends Model
         
         $result = $this->orderSkuModel->where(['osku_id' => ['IN', $oskuIds]])->update(['return_status' => -1, 'update_time' => time()]);
         if ($result > 0) {
-            if ($list && $oskuIds && $order['order_type'] == 1 && $order['osku_id'] > 0) {
+            if ($list && $oskuIds && $order['order_type'] == 1) {
                 //订单关闭退款退货功能后,订单入账处理
                 $where = [
                     'order_id' => $order['order_id'],
@@ -609,13 +615,20 @@ class Order extends Model
                 if ($datas) {
                     $result = $commissionModel->where($where)->update(['commission_status' => 1, 'update_time' => time()]);
                     if ($result > 0) {
-                        $storeAccount = db('store_account');
+                        $storeAccount = db('store_finance');
                         $amount = 0;
                         foreach ($datas as $key => $value) {
                             $amount += $value['income_amount'];
+                            $storeId = $value['store_id'];
                         }
                         //可提现金额增加 待结算金额减少 总收益不变
-                        $result = $storeAccount->where(['store_id' => $value['store_id']])->inc('amount', $amount)->dec('pending_amount', $amount)->update();
+//                         $result = $storeAccount->where(['store_id' => $order['store_id']])->inc('amount', $amount)->dec('pending_amount', $amount)->update();
+                        $financeModel = new \app\common\model\StoreFinance();
+                        $params = [
+                            'amount' => $amount,
+                            'pending_amount' => -$amount,
+                        ];
+                        $result = $financeModel->financeChange($storeId, $params, '订单收益入账', $order['order_sn']);
                     }
                 }
             }

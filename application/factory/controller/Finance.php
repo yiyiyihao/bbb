@@ -3,159 +3,289 @@ namespace app\factory\controller;
 //财务管理
 class Finance extends FactoryForm
 {
-    var $orderTypes;
+    public $config;
+    public $finance;
+    public $apply = 0;
     public function __construct()
     {
-        $this->modelName = 'work_order';
-        $this->model = model($this->modelName);
+        $this->modelName = 'finance';
+        $this->model = db('store_withdraw');
         parent::__construct();
-        if ($this->adminUser['admin_type'] != ADMIN_SERVICE && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $this->error(lang('NO ACCESS'));
+        unset($this->subMenu['add']);
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+            $this->error('NO ACCESS');
         }
-        $this->orderTypes = [
-            1 => '安装工单',
-            2 => '售后维修单'
-        ];
-        $this->assign('orderTypes', $this->orderTypes);
+        if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+            $this->config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
+            $this->assign('config', $this->config);
+            //判断商户是否可提现
+            if ($this->config && isset($this->config['monthly_withdraw_start_date']) && isset($this->config['monthly_withdraw_end_date'])) {
+                $min = intval($this->config['monthly_withdraw_start_date']);
+                $max = intval($this->config['monthly_withdraw_end_date']);
+                $day = intval(date('d'));
+                if ($day >= $min && $day <= $max) {
+                    $this->apply = 1;
+                }
+            }
+            $this->_getStoreFinanceData();
+            $this->indextempfile = 'index_withdraw';
+            $this->assign('apply', $this->apply);
+        }
+        $this->assign('wstatusList', get_withdraw_status());
     }
-    //指派售后工程师
-    public function dispatch()
+    /**
+     * 厂商财务保证金列表
+     */
+    public function cautions()
     {
+        
+    }
+    /**
+     * 厂商审核操作
+     */
+    public function check()
+    {
+        //提现审核
         $info = $this->_assignInfo();
-        #TODO 判断是否可以重新指派售后工程师
+        if ($info['withdraw_status'] != 0) {
+            $this->error('审核已处理');
+        }
         if (IS_POST) {
             $params = $this->request->param();
-            $installerId = isset($params['installer_id']) ? intval($params['installer_id']) : 0;
-            if (!$installerId) {
-                $this->error('请选择售后工程师');
+            $checkStatus = isset($params['check_status']) && intval($params['check_status']) ? 1 : 0;
+            $transferNo = isset($params['transfer_no']) ? trim($params['transfer_no']) : '';
+            $remark = isset($params['remark']) ? trim($params['remark']) : '';
+            if (!$checkStatus && !$remark) {
+                $this->error('拒绝操作备注不能为空');
             }
-            $params['status'] = 1;//已指派售后工程师
-            $result = $this->model->save($params,['worder_id' => $info['worder_id']]);
+            if ($checkStatus && !$transferNo) {
+                $this->error('第三方流水号不能为空');
+            }
+            $withdrawStatus = $checkStatus ? 2 : -1;
+            $data = [
+                'update_time' => time(), 
+                'remark' => $remark, 
+                'check_time' => time(), 
+                'withdraw_status' => $withdrawStatus,
+                'transfer_no' => $checkStatus ? $transferNo : '',
+                'remark' => $remark,
+            ];
+            $result = $this->model->update($data);
             if ($result) {
-                $this->success('售后工程师指派成功', url('index'));
+                //审核不通过退还提现金额
+                $financeModel = new \app\common\model\StoreFinance();
+                if ($checkStatus) {
+                    $params = ['withdraw_amount' => $info['amount']];
+                    $action = '提现审核成功';
+                    $remark = '转账流水号 : '.$transferNo.'<br>'.$remark;
+                }else{
+                    $params = ['amount' => $info['amount']];
+                    $action = '提现被拒绝';
+                }
+                $result = $financeModel->financeChange($info['from_store_id'], $params, $action, $remark);
+                if ($result === FALSE) {
+                    $this->model->where(['log_id' => $info['log_id']])->update(['withdraw_status' => 0]);
+                    $this->error('操作失败');
+                }
+                $this->success('操作成功', url('index'));
             }else{
                 $this->error('操作失败');
+            }
+        }else{
+            //获取提现商户名称
+            $info['name'] = db('store')->where(['store_id' => $info['from_store_id']])->value('name');
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+    }
+    private function _getStoreFinanceData()
+    {
+        $financeModel = new \app\common\model\StoreFinance();
+        $this->finance = $financeModel->financeDetail($this->adminUser['store_id']);
+        $this->assign('info', $this->finance);
+    }
+    /**
+     * 商户申请提现功能
+     */
+    public function apply()
+    {
+        if ($this->adminUser['admin_type'] != ADMIN_CHANNEL) {
+            $this->error('NO ACCESS');
+        }
+        if (!$this->apply) {
+            $min = intval($this->config['monthly_withdraw_start_date']);
+            $max = intval($this->config['monthly_withdraw_end_date']);
+            $this->error('每月提现时间：'.$min.'日-'.$max.'日');
+        }
+        //获取当前商户提现信息
+        $bankModel = db('store_bank');
+        $bankType = 1;//银行卡
+        $bank = $bankModel->where(['is_del' => 0, 'bank_type' => $bankType, 'store_id' => $this->adminUser['store_id']])->find();
+        if (!$bank) {
+            $this->error('请先绑定银行卡号', url('setting'));
+        }
+        if ($this->finance['amount'] <= 0) {
+            $this->error('可提现金额为0');
+        }
+        $minAmount = isset($this->config['withdraw_min_amount']) && $this->config['withdraw_min_amount'] ? $this->config['withdraw_min_amount'] : 100;
+        if ($this->finance['amount'] < $minAmount) {
+            $this->error('单笔最低提现金额为'.$minAmount.'元，暂不允许提现');
+        }
+        if (IS_POST) {
+            $params = $this->request->param();
+            $amount = isset($params['amount']) && $params['amount'] ? floatval($params['amount']) : 0;
+            if (!$amount) {
+                $this->error('请填写提现金额');
+            }
+            if ($amount < $minAmount) {
+                $this->error('单笔最低提现金额为'.$minAmount.'元');
+            }
+            $data = [
+                'store_id'  => $this->adminFactory['store_id'],
+                'user_id'   => ADMIN_ID,
+                'amount'    => $amount,
+                'add_time'  => time(),
+                
+                'bank_id'   => $bank['bank_id'],
+                'realname'  => $bank['realname'],
+                'bank_name' => $bank['bank_name'],
+                'bank_no'   => $bank['bank_no'],
+                'bank_detail'       => json_encode($bank),
+                
+                'update_time'       => time(),
+                'from_store_id'     => $this->adminUser['store_id'],
+                'from_store_type'   => $this->adminStore['store_type'],
+                'withdraw_status'   => 0,
+            ];
+            $logId = $this->model->insertGetId($data);
+            if ($logId) {
+                //记录成功后减少可提现金额
+//                 $result = db('store_finance')->where(['store_id' => $this->finance['store_id']])->dec('amount', $amount)->update();
+                $financeModel = new \app\common\model\StoreFinance();
+                $result = $financeModel->financeChange($this->finance['store_id'], ['amount' => -$amount], '申请提现', '');
+                if (!$result) {
+                    $this->model->where(['log_id' => $logId])->update(['status' => 0, 'is_del' => 1]);
+                }
+                $this->success('提现申请提交,请耐心等待审核通过', url('index'));
+            }else{
+                $this->error('申请提交异常');
+            }
+        }else{
+            $this->assign('bank', $bank);
+            return $this->fetch();
+        }
+    }
+    /**
+     * 配置提现银行卡
+     */
+    public function setting()
+    {
+        $bankModel = db('store_bank');
+        $bankType = 1;//银行卡
+        $info = $bankModel->where(['is_del' => 0, 'bank_type' => $bankType, 'store_id' => $this->adminUser['store_id']])->find();
+        if (IS_POST) {
+            $params = $this->request->param();
+            $realname = isset($params['realname']) ? trim($params['realname']) : '';
+            $idCard = isset($params['id_card']) ? trim($params['id_card']) : '';
+            $bankName = isset($params['bank_name']) ? trim($params['bank_name']) : '';
+            $bankBranch = isset($params['bank_branch']) ? trim($params['bank_branch']) : '';
+            $bankNo = isset($params['bank_no']) ? trim($params['bank_no']) : '';
+            if (!$realname) {
+                $this->error('请填写持卡人姓名');
+            }
+            if (!$idCard) {
+                $this->error('请填写持卡人身份证号');
+            }
+            if (!$bankName) {
+                $this->error('请填写银行卡名称');
+            }
+            if (!$bankBranch) {
+                $this->error('请填写开户行支行信息');
+            }
+            if (!$bankNo) {
+                $this->error('请填写银行卡号');
+            }
+            $data = [
+                'realname'  => $realname,
+                'id_card'   => $idCard,
+                'bank_name' => $bankName,
+                'bank_no'   => $bankNo,
+                'bank_branch' => $bankBranch,
+                'update_time' => time(),
+            ];
+            if ($info) {
+                $result = $bankModel->where(['bank_id' => $info['bank_id']])->update($data);
+            }else{
+                $data['bank_type']  = $bankType;
+                $data['store_id']   = $this->adminUser['store_id'];
+                $data['add_time']   = time();
+                $data['post_user_id'] = ADMIN_ID;
+                $result = $bankModel->insertGetId($data);
+            }
+            if ($result !== FALSE) {
+                $this->success('提现银行卡设置成功');
+            }else{
+                $this->error('操作错误');
             }
         }else{
             $this->assign('info', $info);
             return $this->fetch();
         }
     }
-    public function getAjaxList($where = [], $field = '')
-    {
-        $this->model = db('user_installer');
-        parent::getAjaxList([], 'installer_id as id,  CONCAT(realname, " | ", phone) as name');
-    }
     
     function _getAlias()
     {
-        return 'WO';
+        return 'SW';
     }
     function _getField(){
-        $field = 'I.*, WO.*';
+        $field = 'SW.*, U.username, U.nickname';
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $field .= ',S.name';
+            $field .= ',S.name as sname';
         }
         return $field;
     }
     function _getJoin()
     {
-        $join[] = ['user_installer I', 'I.installer_id = WO.installer_id', 'LEFT'];
+        $join[] = ['user U', 'U.user_id = SW.user_id', 'LEFT'];;
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $join[] = ['store S', 'S.store_id = WO.store_id', 'LEFT'];
+            $join[] = ['store S', 'S.store_id = SW.store_id', 'LEFT'];
         }
         return $join;
     }
     function  _getOrder()
     {
-        return 'WO.add_time DESC';
+        return 'SW.add_time DESC';
     }
     function _getWhere(){
         $where = [
-            'WO.is_del'      => 0,
+            'SW.is_del' => 0,
         ];
-        if ($this->adminUser['admin_type'] == 2) {
-            $where['WO.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == 3 && $this->storeType == 3){
-            $where['WO.ostore_id'] = $this->adminUser['store_id'];
+        if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+            $where['SW.from_store_id'] = $this->adminUser['store_id'];
+        }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+            $where['SW.store_id'] = $this->adminUser['store_id'];
         }
         $params = $this->request->param();
         if ($params) {
-            $name = isset($params['name']) ? trim($params['name']) : '';
-            if($name){
-                $where['WO.user_name|WO.phone'] = ['like','%'.$name.'%'];
-            }
-            if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-                $sname = isset($params['sname']) ? trim($params['sname']) : '';
+            if ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+                $name = isset($params['sname']) ? trim($params['sname']) : '';
                 if($name){
-                    $where['S.name'] = ['like','%'.$sname.'%'];
+                    $where['S.name'] = ['like','%'.$name.'%'];
+                }
+                $sType = isset($params['stype']) ? intval($params['stype']) : '';
+                if($sType){
+                    $where['from_store_type'] = $sType;
                 }
             }
-            $orderType = isset($params['order_type']) ? intval($params['order_type']) : '';
-            if($orderType){
-                $where['order_type'] = $orderType;
+            $wstatus = isset($params['wstatus']) ? intval($params['wstatus']) : -5;
+            if($wstatus > -5){
+                $where['withdraw_status'] = $wstatus;
             }
         }
         return $where;
     }
     function _getData()
     {
-        $data = parent::_getData();
-        $info = parent::_assignInfo();
-        $storeId = isset($data['store_id']) ? intval($data['store_id']) : '';
-        $orderType = isset($data['order_type']) ? intval($data['order_type']) : '';
-        $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
-        $phone = isset($data['phone']) ? trim($data['phone']) : '';
-        $address = isset($data['address']) ? trim($data['address']) : '';
-        $faultDesc = isset($data['fault_desc']) ? trim($data['fault_desc']) : '';
-        $regionId = isset($data['region_id']) ? intval($data['region_id']) : '';
-        
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){
-            $this->error('请选择服务商');
-        }
-        if (!$orderType) {
-            $this->error('请选择工单类型');
-        }
-        if (!isset($this->orderTypes[$orderType])) {
-            $this->error('工单类型错误');
-        }
-        if (!$userName) {
-            $this->error('请填写客户姓名');
-        }
-        if (!$phone) {
-            $this->error('请填写客户联系电话');
-        }
-        if (!$regionId) {
-            $this->error('请选择客户所在区域');
-        }
-        if (!$address) {
-            $this->error('请填写客户地址');
-        }
-        if ($orderType == 2 && !$faultDesc) {
-            $this->error('请简要描述故障信息');
-        }
-        if ($orderType == 1) {
-            $data['fault_desc'] = '';
-        }
-        $data['images'] = '';
-        if (!$info) {
-            if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
-                $data['store_id'] = $this->adminStore['store_id'];
-                $data['factory_id'] = $this->adminStore['factory_id'];
-            }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
-                $data['store_id'] = $storeId;
-                $data['factory_id'] = $this->adminStore['store_id'];
-            }
-        }
-        return $data;
-    }
-    function _assignInfo($pkId = 0){
-        $info = parent::_assignInfo();
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            //获取厂商下的服务商列表
-            $stores = db('store')->field('store_id, name')->where(['is_del' => 0, 'status' => 1, 'factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_SERVICE])->select();
-            $this->assign('stores', $stores);
-        }
-        return $info;
+        $this->error('NO ACCESS');
     }
 }

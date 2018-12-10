@@ -36,6 +36,7 @@ return [
     'USER_INSTALLER'        =>  '售后工程师',
     'WORK_ORDER'            =>  '售后工单',
     'SYS_MESSAGE'           =>  '系统消息',
+    'FINANCE'               =>  '财务管理',
     
     'ORDER'                 =>  '订单',
     'MYORDER'               =>  '我的订单',

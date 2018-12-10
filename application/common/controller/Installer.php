@@ -25,6 +25,55 @@ class Installer extends FormBase
         $this->field = self::_fieldData();
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
+    public function check()
+    {
+        $info = $this->_assignInfo();
+        if (!$info || $info['is_del']) {
+            $this->error('安装工程师不存在或已删除');
+        }
+        $checkStatus = $info['check_status'];
+        if (!in_array($checkStatus, [-1, -3])) {
+            $this->error('操作已审核');
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $checkStatus != -1) {
+            $this->error('无操作权限');
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $checkStatus != -3) {
+            $this->error('无操作权限');
+        }
+        $params = $this->request->param();
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            ;
+        }
+        if (IS_POST) {
+            $remark = isset($params['remark']) ? trim($params['remark']) : '';
+            $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
+            if (!$checkStatus && !$remark) {
+                $this->error('清填写拒绝理由');
+            }
+            //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
+            if ($checkStatus > 0) {
+                $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? 1: $this->getConfigStatus(0, $this->adminStore['factory_id']);
+            }else{
+                $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? -2: -4;
+            }
+            $data = [
+                'update_time' => time(),
+                'check_status' => $status,
+            ];
+            $result = $this->model->where(['installer_id' => $info['installer_id']])->update($data);
+            if ($result !== FALSE) {
+                $this->success('操作成功', url('index'));
+            }else{
+                $this->error('操作失败');
+            }
+        }else{
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+        pre($checkStatus);
+    }
+    
     /**
      * 工程师绑定小程序二维码
      */
@@ -57,7 +106,6 @@ class Installer extends FormBase
         }
         echo '<img src="'.$domain.$filename.'">';
     }
-    
     function _getData()
     {
         $info = $this->_assignInfo();
@@ -65,8 +113,6 @@ class Installer extends FormBase
         $storeId = isset($params['store_id']) ? intval($params['store_id']) : '';
         $realname = isset($params['realname']) ? trim($params['realname']) : '';
         $phone = isset($params['phone']) ? trim($params['phone']) : '';
-        $regionId = isset($params['region_id']) ? intval($params['region_id']) : '';
-        $regionName = isset($params['region_name']) ? trim($params['region_name']) : '';
         $avatar = isset($params['avatar']) ? trim($params['avatar']) : '';
         $fontimg = isset($params['idcard_font_img']) ? trim($params['idcard_font_img']) : '';
         $backimg = isset($params['idcard_back_img']) ? trim($params['idcard_back_img']) : '';
@@ -78,9 +124,6 @@ class Installer extends FormBase
         }
         if (!$phone) {
             $this->error('联系电话不能为空');
-        }
-        if (!$regionId || !$regionName) {
-            $this->error('请选择服务区域');
         }
 //         if (!$avatar) {
 //             $this->error('请上传工程师头像');
@@ -100,7 +143,33 @@ class Installer extends FormBase
                 $params['factory_id'] = $this->adminStore['store_id'];
             }
         }
+        $params['check_status'] = $this->getConfigStatus($params['store_id'], $params['factory_id']);
         return $params;
+    }
+    private function getConfigStatus($storeId = 0, $factoryId = 0)
+    {
+        $flag = TRUE; //默认需要厂商审核
+        //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
+        if ($storeId > 0) {
+            $config = $this->initStoreConfig($storeId);
+            //默认需要服务商审核
+            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                $checkStatus = -3;
+                $flag = FALSE;
+            }
+        }
+        if ($flag && $factoryId) {
+            //不需要服务商审核,判断是否需要厂商审核
+            $config = $this->initStoreConfig($factoryId);
+            //默认需要厂商审核
+            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                $checkStatus = -1;
+            }else {
+                //服务商和厂商都不审核,直接通过
+                $checkStatus = 1;
+            }
+        }
+        return $checkStatus;
     }
     function _getAlias()
     {
@@ -164,40 +233,10 @@ class Installer extends FormBase
     function _tableData(){
         $table = parent::_tableData();
         $btnArray = [];
-        $btnArray = ['text'  => '审核','action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'];
+        $btnArray = ['text'  => '审核', 'action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'];
         $table['actions']['button'][] = $btnArray;
         $table['actions']['width']  = '210';
         return $table;
-            /* $check = ['text'  => '审核','action'=> 'check','icon'  => 'edit','bgClass'=> 'bg-yellow'];
-        $table = [
-            ['title'=> '编号',   'width'=>'60','value'=> 'user_id',      'type'=> 'index'],
-            ['title'=> '厂商',   'width'=>'*', 'value'=> 'fname',        'type'=> 'text'],
-            ['title'=> '服务商', 'width'=>'*', 'value'=> 'sname',        'type'=> 'text'],
-            ['title'=> '服务区域','width'=>'*','value' => 'region_name', 'type'=> 'text'],
-            ['title'=> '真实姓名','width'=>'*','value' => 'realname',    'type'=> 'text'],
-            ['title'=> '联系电话','width'=>'*','value' => 'phone',       'type'=> 'text'],
-            ['title'=> '是否绑定小程序','width'=> '*','value'   => 'udata_id','type'=> 'yesOrNo', 'yes'      => '是','no'       => '否'],
-            ['title'=> '状态',   'width'=>'180','value'=> 'status',       'type'=> 'status','status'=>
-                [
-                    ['text'  => '审核通过', 'value'   => 1,'bgClass'=> ''],
-                    ['text'  => '禁用',     'value'   => 0,'bgClass'=> ''],
-                    ['text'  => '待服务商审核','value' => -3,'bgClass'=> ''],
-                    ['text'  => '服务商拒绝','value' => -4,'bgClass'=> ''],
-                    ['text'  => '待厂商审核','value'   => -1,'bgClass'=> ''],
-                    ['text'  => '厂商拒绝','value'   => -2,'bgClass'=> ''],
-                ]
-        ],
-            ['title'=> '排序',   'width'=>'80','value'=> 'sort_order',   'type'=> 'text'],
-            ['title'=> '操作',   'width'=>'*', 'value'=> 'installer_id', 'type'=> 'button','button'    =>
-                [
-//                     ['text'  => '工程师小程序二维码','action'=> 'wxacode', 'target' =>1, 'icon'  => 'bind','bgClass'=> 'bg-green'],   
-                    ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
-                    ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red'],
-                    $check??''
-                ]
-            ]
-        ];
-        return array_filter($table); */
     }
     /**
      * 详情字段配置
@@ -232,9 +271,8 @@ class Installer extends FormBase
             ['title'=>'厂商名称','type'=>'text','name'=>' ','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'],
             $array,
             ['title'=>'真实姓名','type'=>'text','name'=>'realname','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'真实姓名'],
-            ['title'=>'公安机关备案号','type'=>'text','name'=>'security_record_num', 'size'=>'40', 'datatype'=>'*','default'=>'','notetext'=>'请填写公安机关备案号'],
+            ['title'=>'公安机关备案号','type'=>'text','name'=>'security_record_num', 'size'=>'40', 'datatype'=>'','default'=>'','notetext'=>'请填写公安机关备案号'],
             ['title'=>'联系电话','type'=>'text','name'=>'phone','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'联系电话'],
-            ['title'=>'服务区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'],
             ['title'=>'从业时间','type'=>'datetime', 'class' => 'js-date', 'name'=>'work_time','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'工程师从业时间'],
             ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],

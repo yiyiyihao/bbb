@@ -66,7 +66,7 @@ class User extends Model
             if (isset($user['store'])&& $user['store']) {
                 $adminStore = $user['store'];
             }else{
-                $adminStore = db('store')->field('store_id, name, factory_id')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+                $adminStore = db('store')->field('store_id, name, factory_id, store_type')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             }
             session('admin_store',$adminStore);
         }

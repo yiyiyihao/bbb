@@ -1,0 +1,83 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">提现银行卡设置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>持卡人姓名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20" class="input" name="realname" datatype="*" value="{$info['realname'] ?? ''}">
+                            <div class="input-note">请填写持卡人姓名</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>持卡人身份证号码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="30" class="input" name="id_card" datatype="*" value="{$info['id_card'] ?? ''}">
+                            <div class="input-note">请填写持卡人身份证号码</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>开户行名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20" class="input" name="bank_name" datatype="*" value="{$info['bank_name'] ?? ''}">
+                            <div class="input-note">请填写银行卡开户行名称(如工商银行)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>开户行支行</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" name="bank_branch" datatype="*" value="{$info['bank_branch'] ?? ''}">
+                            <div class="input-note">请填写开户行支行名称(如广东省深圳市南山支行)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>银行卡号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" name="bank_no" datatype="*" value="{$info['bank_no'] ?? ''}">
+                            <div class="input-note">请填写银行卡号</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label></label>
+                        </div>
+                        <div class="field">
+                            <div class="alert alert-red button-toolbar"><strong>注意：</strong>请务必保证以上信息真实有效</div>
+                        </div>
+                    </div>
+                    
+                </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>

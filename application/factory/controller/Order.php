@@ -8,4 +8,8 @@ class Order extends commonOrder
     {
         parent::__construct();
     }
+    public function finance()
+    {
+        return $this->index();
+    }
 }

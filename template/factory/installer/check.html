@@ -1,0 +1,100 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">工程师审核</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>工程师姓名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20"  disabled="disabled" class="input" value="{$info['realname']}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>公安机关备案号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40"  disabled="disabled" class="input" value="{$info['security_record_num']}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系电话</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40"  disabled="disabled" class="input" value="{$info['phone']}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>从业时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40"  disabled="disabled" class="input" value="{$info['work_time']}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>身份证正反面</label>
+                        </div>
+                        <div class="field">
+                        	<img src="{$info['idcard_font_img'] ?: '/static/base/images/default.png'}" width="120">
+                        	<img src="{$info['idcard_back_img'] ?: '/static/base/images/default.png'}" width="120">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>审核结果</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <label class="button active"><input name="check_status" value="1" checked="checked" type="radio">通过</label>
+                                <label class="button"><input name="check_status" value="0" type="radio">不通过</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>备注</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <textarea class="input" name="remark" cols="40" rows="6"></textarea>
+                                <div class="input-note">请输入操作备注</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        $('input[name="check_status"]').click(function(){
+        	var status = $(this).val();
+        	if(status <= 0){
+        		$('.allowed').hide();
+        	}else{
+        		$('.allowed').show();
+        	}
+        });
+    }); 
+</script>

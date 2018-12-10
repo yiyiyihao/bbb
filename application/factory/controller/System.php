@@ -76,18 +76,9 @@ class System extends adminSystem
     
     private function _storeConfig($params = [])
     {
-        //获取系统默认配置
-        $default = $this->getSystemConfig('system_default');
-        $defaultConfig = $default['config_value'];
-        
         $storeModel = model('store');
-        $store = $storeModel->where(['store_id' => $this->adminStore['store_id'], 'is_del' => 0])->find();
-        if (!$store) {
-            $this->error(lang('NO ACCESS'));
-        }
-        $storeType = $store['store_type'];
-        $config = $store['config_json'] ? json_decode($store['config_json'], 1) : [];
         if (IS_POST) {
+            $config = $this->initStoreConfig($this->adminStore['store_id']);
             $params = $params ? $params : $this->request->param();
             if ($params) {
                 foreach ($params as $key => $value) {
@@ -101,13 +92,7 @@ class System extends adminSystem
             }
             $this->success('配置成功');
         }else{
-            if ($defaultConfig) {
-                foreach ($defaultConfig as $key => $value) {
-                    if (!isset($config[$key])) {
-                        $config[$key] = $value;
-                    }
-                }
-            }
+            $config = $this->initStoreConfig($this->adminStore['store_id'], TRUE);
             $this->assign('config', $config);
             return $this->fetch();
         }

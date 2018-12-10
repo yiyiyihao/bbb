@@ -299,7 +299,17 @@ class Store extends FormBase
         ];
         return $search;
     }
-    
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        $btnArray = [];
+        $btnArray = ['text'  => '管理员','action'=> 'manager', 'icon'  => '','bgClass'=> 'bg-green'];
+        $table['actions']['button'][] = $btnArray;
+        $table['actions']['width']  = '210';
+        return $table;
+    }
     /**
      * 详情字段配置
      */
@@ -319,8 +329,8 @@ class Store extends FormBase
             $this->assign('channels', $channels);
             $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
         }
-        if ($this->storeType == STORE_CHANNEL) {
-            $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'caution_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
+        if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
+            $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
             $array3 = ['title'=>'负责区域','type'=>'region','name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择工程师服务区域'];
         }
         $field = [

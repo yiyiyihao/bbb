@@ -25,9 +25,8 @@ class WorkOrder extends Model
             $sn = $this->_getWorderSn();
             $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
             //工单创建成功后填写工单号
-            $result = $this->checkWorder($worderId, $data['post_user_id']);
-            $worder = $result['worder'];
-            $user = $result['user'];
+            $worder = $this->checkWorder($sn, $data['post_user_id']);
+            $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
             $this->worderLog($worder, $user, '创建工单');
         }
         return $result;

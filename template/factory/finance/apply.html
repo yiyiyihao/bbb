@@ -1,0 +1,73 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">申请提现</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>可提现金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20" disabled="disabled" id="total" class="input" value="{$info['amount'] ?? 0}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>提现金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20"  name="amount" class="input" value=""><a href="javascript:;" id="all" class="button" style="margin-left: 10px;">全部提现</a>
+                        </div>
+                    </div>
+                	<div class="form-group">
+                        <div class="label">
+                            <label>收款人姓名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20" disabled="disabled" class="input" value="{$bank['realname'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>到账银行名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="20" disabled="disabled" class="input" value="{$bank['bank_name'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>到账银行卡号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" disabled="disabled"  class="input" value="{$bank['bank_no'] ?? ''}">
+                        </div>
+                    </div>
+                </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        $('#all').click(function(){
+        	var total = $('#total').val();
+        	$('input[name="amount"]').val(total);
+        });
+    }); 
+</script>

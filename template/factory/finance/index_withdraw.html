@@ -1,0 +1,102 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="">
+        	<div class="panel-block flex-container">
+           		 <div class="flex-item num-item-box">
+                	<h4>可提现</h4>
+                    <div class="item-num">{$info['amount'] ?? 0}
+                    	{if condition="$apply && $config['withdraw_min_amount'] > 0"} 
+                    	<a href="{:url('apply')}" class="button">申请提现</a>
+                    	{/if}
+                   	</div>
+                 </div>                            
+                 <div class="flex-item num-item-box">
+                 	<h4>已提现</h4>
+                     <div class="item-num">{$info['withdraw_amount'] ?? 0}</div>
+                 </div>
+                 <div class="flex-item num-item-box">
+                 	<h4>待结算</h4>
+                     <div class="item-num">{$info['pending_amount'] ?? 0}</div>
+                 </div>
+                 <div class="flex-item num-item-box">
+                 	<h4>总收益</h4>
+                     <div class="item-num">{$info['total_amount'] ?? 0}</div>
+                 </div>
+            </div>
+            <div class="alert mt5">
+            	<p>NOTICE：</p>
+            	<p class="ml5">1. <a href="{:url('setting')}">绑定提现银行卡</a></p>
+            	<p class="ml5">2. 单笔提现最小金额：{$config['withdraw_min_amount'] ?? 100} 元</p>
+            	{if condition="$config['monthly_withdraw_start_date'] && $config['monthly_withdraw_end_date']"}
+            	<p class="ml5">3. 提现时间：每月{$config['monthly_withdraw_start_date'] ?? 0}日-{$config['monthly_withdraw_end_date'] ?? 0}日</p>
+            	<p class="ml5">4. 到账时间：提现后{$config['withdrawal_work_day'] ?? 1}个工作日内到账；</p>
+            	{/if}
+            </div>
+        </div>
+    </div>
+    <div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <select class="input" name="wstatus" id="wstatus">
+                            	<option value="-5">==提现状态==</option>
+                            	{foreach name="$wstatusList" item="status" key="key"}
+									<option value="{$key}" {if (isset($_GET['wstatus']) && $_GET['wstatus'] == $key)}selected="selected"{/if} >{$status}</option> 
+								{/foreach}
+							</select>
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+  	<div class="panel-head"><span>提现记录</span></div>
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="*">操作用户</th>
+          <th width="*">提现时间</th>
+          <th width="*">提现金额</th>
+          <th width="*">提现账户信息</th>
+          <th width="*">提现状态</th>
+          <th width="*">备注</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo" key="key"}
+            <tr>
+              <td>{$vo.nickname ?$vo.nickname: $vo['username']}</td>
+              <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
+              <td>{$vo['amount']}元</td>
+              <td>
+              	收款人姓名:{$vo['realname']} <br>
+              	银行卡号: {$vo['bank_no']}({$vo['bank_name']})
+              </td>
+              <td>
+              	{:get_withdraw_status($vo['withdraw_status'])}
+              </td>
+              <td>
+              	{if condition="isset($vo['transfer_no']) && $vo['transfer_no']"}
+              	转账流水号 :  {$vo['transfer_no']}
+              	{elseif condition="$vo['withdraw_status'] == -1"/}
+              	拒绝理由 :  {$vo['remark']}
+              	{/if}
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

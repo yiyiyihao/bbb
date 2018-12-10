@@ -6,6 +6,46 @@ function time_to_date($time = 0)
     $time = $time ? $time : time();
     return date('Y-m-d H:i:s', $time);
 }
+
+/**
+ * 提现状态
+ */
+function get_store_type($type = FALSE){
+    $types = [
+        STORE_FACTORY   => '厂商',
+        STORE_CHANNEL   => '渠道商',
+        STORE_DEALER    => '零售商',
+        STORE_SERVICE   => '服务商',
+    ];
+    if ($type === FALSE) {
+        return $types;
+    }
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
+}
+/**
+ * 提现状态
+ */
+function get_withdraw_status($status = FALSE){
+    $statusList = [
+        -1 => '已拒绝',
+//         -2 => '提现失败',
+        0  => '申请中',
+//         1  => '提现中',
+        2  => '提现成功',
+    ];
+    if ($status === FALSE) {
+        return $statusList;
+    }
+    if (isset($statusList[$status])) {
+        return $statusList[$status];
+    }else{
+        return '';
+    }
+}
 /**
  * 佣金状态
  */
@@ -244,13 +284,13 @@ function get_installer_status($status = FALSE)
         -3 => '等待服务商审核',
         -2 => '厂商拒绝申请',
         -1 => '等待厂商审核',
-        0  => '禁用',
+        0  => '待审核',
         1  => '正常',
     ];
     if ($status === FALSE) {
         return $list;
     }
-    if ($status && isset($list[$status])) {
+    if (isset($list[$status])) {
         return $list[$status];
     }else{
         return '';

@@ -159,7 +159,7 @@ INSERT INTO `wja_form_table` VALUES (35, '7', 'name', '规格名称', '100', 1, 
 INSERT INTO `wja_form_table` VALUES (36, '7', 'value', '规格属性', '*', 1, NULL, '', 40, 1, 0, 0, 0, 1544147605, 1544147605);
 INSERT INTO `wja_form_table` VALUES (37, '8', '', '编号', '60', 3, NULL, '', 10, 1, 0, 0, 0, 1544147775, 1544147775);
 INSERT INTO `wja_form_table` VALUES (38, '8', 'region_name', '负责区域', '*', 1, NULL, '', 50, 1, 0, 0, 0, 1544147856, 1544148085);
-INSERT INTO `wja_form_table` VALUES (39, '8', 'caution_money', '保证金金额', '100', 1, NULL, '', 60, 1, 0, 0, 0, 1544147888, 1544148090);
+INSERT INTO `wja_form_table` VALUES (39, '8', 'security_money', '保证金金额', '100', 1, NULL, '', 60, 1, 0, 0, 0, 1544147888, 1544148090);
 INSERT INTO `wja_form_table` VALUES (40, '2', 'domain', '二级域名', '100', 1, NULL, '', 15, 1, 0, 0, 0, 1544147968, 1544147968);
 INSERT INTO `wja_form_table` VALUES (41, '8', 'name', '渠道名称', '*', 1, NULL, '', 20, 1, 0, 0, 0, 1544148133, 1544148133);
 INSERT INTO `wja_form_table` VALUES (42, '8', 'user_name', '联系人姓名', '100', 1, NULL, '', 70, 1, 0, 0, 0, 1544148175, 1544148175);

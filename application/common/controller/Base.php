@@ -10,6 +10,25 @@ class Base extends Controller
     	parent::__construct();
     	$this->initBase();
     }
+    protected function initStoreConfig($storeId = 0, $merge = FALSE)
+    {
+        $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
+        $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+        if ($merge) {
+            //获取系统默认配置
+            $default = $this->getSystemConfig('system_default');
+            $sysConfig = $default['config_value'];
+            
+            if ($sysConfig) {
+                foreach ($sysConfig as $key => $value) {
+                    if (!isset($config[$key])) {
+                        $config[$key] = $value;
+                    }
+                }
+            }
+        }
+        return $config;
+    }
     protected function getSystemConfig($key = '')
     {
         //获取系统默认配置
