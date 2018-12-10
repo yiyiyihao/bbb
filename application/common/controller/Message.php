@@ -76,10 +76,11 @@ class Message extends FormBase
         $table = parent::_tableData();
         $table['actions']['button'][]=["text"=> "发布","action"=> "publish","icon"=> "edit","bgClass"=> "bg-yellow"];
         
-        $table['status']=["title"=>"公告进度","width"=>"80", "sort"=> 60,"type"=>"status", "value"=>"status","status"=>
-                [['text'  => '禁用',     'value'   => 0],
-                 ['text'  => '待发布', 'value'   => 1],
+        $table['schedule']=["title"=>"公告进度","width"=>"80", "sort"=> 60,"type"=>"status", "value"=>"status","status"=>
+                [['text'  => '禁用', 'value'   => 0],
+                 ['text'  => '待发布','value'   => 1],
                  ['text'  => '已发布','value' => 2]]];
+        $table['status']=['title'=> '状态','width'=> '80','value'=> 'status','type'=> 'yesOrNo', 'yes'=> '可用','no'=> '禁用', "sort"=> 260];
         $table['actions']['width']  = '210';
         //dump($table);
         return $table;
