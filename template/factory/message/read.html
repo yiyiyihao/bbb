@@ -1,0 +1,83 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>查看公告</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                {notempty name="field"}
+                {volist name="field" key="k" id="vo"}
+                {if condition="$vo['type'] == 'region'"}
+                <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="{$vo.title}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
+                {else/}
+                <div class="form-group">
+                    <div class="label">
+                        <label>{$vo.title}</label>
+                    </div>
+                    <div class="field">
+                        {switch vo.type}
+                            {case text}
+                                <label type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}"disabled="disabled"value="">{$info[$vo.name]|default=$vo.default}</label>
+                            {/case}
+                            {case textarea}
+                                <p class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}" rows="20">
+                                    {$info.content? stripslashes($info.content) : '' }
+                                </p>                        
+                            {/case}
+
+                            {case radio}
+                                {notempty name="vo.radioList"}
+                                <div class="button-group radio">
+                                {volist name="vo.radioList" id="radio"}
+                                {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)}
+                                    <label class='button {if ($info && $radio.value == $info[$vo.name]) || (!$info && $radio.value == $vo.default)}active{/if}'>
+                                    {$radio.text}</label>
+                                
+                                {/if}
+                                {/volist}
+                                {if condition=" $info[$vo.name]==2"}
+                                    <label class='button active'>已发布</label>
+                                {/if}
+                                </div>
+                                {/notempty}
+                            {/case}
+                            
+                        {/switch}
+                        
+                    </div>
+                </div>
+                {/if}
+                {/volist}
+                {/notempty}
+                </div>
+            </div>
+
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit" onclick="javascript:history.back(-1);">确定</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+	var Config = {
+		'editorUploadUrl' : "{:url('admin/Upload/editorupload', ['prex' => 'goods_'])}",
+	};
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('admin/Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
+            {present name="info['goods_id']"}
+            cookie: 'editgoods{$info.goods_id}',
+            num: {$info.imgnum}
+            {else /}
+            cookie: 'goodsUpload',
+            {/present}
+        });
+    }); 
+</script>

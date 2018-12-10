@@ -52,7 +52,6 @@ class Message extends CommonMessage
     //查看已发布的消息
     function read(){
         $info = $this->_assignInfo();
-        dump(123);exit;
         return $this->fetch();
 
     }
