@@ -20,9 +20,9 @@
 					        </tr>
 					          {volist name="list.skus" id="vo"}
 					            <tr>
-					              <td>{$vo.name} {$vo.sku_name}</td>
+					              <td>{$vo.name}<br>{$vo.sku_name}</td>
 					              <td>{$vo['install_price']+$vo['price']}元</td>
-					              <td><input name="num" value="{$vo.num}" class="input" size="5" datetype="n"></td>
+					              <td>{$vo.num}<input type="hidden" name="num" value="{$vo.num}"></td>
 					              <td>{$vo.num * ($vo['install_price']+$vo['price'])}元</td>
 					            </tr>
 					          {/volist}
@@ -32,7 +32,7 @@
 					  {/notempty}
 					 <div class="form-group">
                         <div class="label">
-                            <label>收货人姓名</label>
+                            <label>客户姓名</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="address_name" name="address_name" size="40" datatype="*" value="">
@@ -40,7 +40,7 @@
                     </div>
 					<div class="form-group">
                         <div class="label">
-                            <label>收货人联系电话</label>
+                            <label>客户联系电话</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="address_phone" name="address_phone" size="40" datatype="*" value="">
@@ -49,7 +49,7 @@
                     <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='请选择行政区域'></div>
                     <div class="form-group">
                         <div class="label">
-                            <label>收货人地址</label>
+                            <label>安装地址</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="address" name="address" size="60" datatype="*" value="">
