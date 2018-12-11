@@ -20,9 +20,6 @@ class Installer extends FormBase
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY){
             $this->_getFactorys();
         }
-        $this->search= self::_searchData();
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     public function check()

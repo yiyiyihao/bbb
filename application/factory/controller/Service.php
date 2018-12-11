@@ -12,9 +12,33 @@ class Service extends FactoryForm
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER])) {
             $this->error(lang('NO ACCESS'));
         }
-        unset($this->subMenu['add']);
         $this->serviceModel = new \app\common\model\OrderService();
-        $this->search= self::_searchData();
+        $action = $this->adminUser['admin_type'] == ADMIN_FACTORY ? 'seller' : 'index';
+        unset($this->subMenu['add']);
+        //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功 4已取消)
+        $this->subMenu['menu'] = [
+            [
+                'name' => lang($this->modelName).lang('LIST'),
+                'url' => url($action),
+            ],
+            [
+                'name' => '待审核',
+                'url' => url($action, ['status' => 0]),
+            ],
+            [
+                'name' => '已拒绝',
+                'url' => url($action, ['status' => -1]),
+            ],
+            [
+                'name' => '已完成',
+                'url' => url($action, ['status' => 3]),
+            ],
+            [
+                'name' => '已取消',
+                'url' => url($action, ['status' => 4]),
+            ]
+        ];
+        $this->subMenu['showmenu'] = true;
     }
     /**
      * 售后订单列表
@@ -41,6 +65,9 @@ class Service extends FactoryForm
     {
         $params = $this->request->param();
         $service = $this->_assignInfo();
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $this->error('NO ACCESS');
+        }
         $result = $this->serviceModel->serviceCancel($service, $this->adminUser);
         if ($result === FALSE) {
             $this->error($this->serviceModel->error);
@@ -82,6 +109,7 @@ class Service extends FactoryForm
             if ($result === FALSE) {
                 $this->error($this->serviceModel->error);
             }else {
+                #TODO 根据来源返回页面
                 $this->success('退货信息填写成功', url('myorder/detail', ['order_sn' => $service['order_sn']]));
             }
         }else{
@@ -144,6 +172,13 @@ class Service extends FactoryForm
             $where['S.user_store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {
+            $type = isset($params['type']) ? intval($params['type']) : '';
+            if($type){
+                $where['S.service_type'] = $type;
+            }
+            if(isset($params['status'])){
+                $where['S.service_status'] = intval($params['status']);
+            }
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
             if($sn){
                 $where['S.order_sn'] = ['like','%'.$sn.'%'];
@@ -163,9 +198,12 @@ class Service extends FactoryForm
      * 列表搜索配置
      */
     function _searchData(){
+        $types = get_service_type();
+        $this->assign('types', $types);
         $search = [
             ['type' => 'input', 'name' =>  'sn', 'value' => '订单编号', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'gname', 'value' => '商品名称', 'width' => '30'],
+            ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==售后服务类型=='],
+            ['type' => 'input', 'name' =>  'gname', 'value' => '产品名称', 'width' => '30'],
             ['type' => 'input', 'name' =>  'name', 'value' => '买家商户名称/账号/联系电话', 'width' => '30'],
         ];
         return $search;
@@ -175,11 +213,13 @@ class Service extends FactoryForm
      */
     function _tableData(){
         $table = parent::_tableData();
-        $table['actions']['button'][] = ['text'  => '取消', 'action'=> 'cancel', 'icon'  => 'setting','bgClass'=> 'bg-gray'];
         $table['actions']['button'][] = ['text'  => '详情查看', 'action'=> 'detail', 'icon'  => 'setting','bgClass'=> 'bg-main'];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $table['actions']['button'][] = ['text'  => '审核', 'action'=> 'check', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
             $table['actions']['button'][] = ['text'  => '退款', 'action'=> 'refund', 'icon'  => '','bgClass'=> 'bg-red'];
+        }else{
+            $table['actions']['button'][] = ['text'  => '取消', 'action'=> 'cancel', 'icon'  => 'setting','bgClass'=> 'bg-gray'];
+            $table['actions']['button'][] = ['text'  => '退货', 'action'=> 'delivery', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
         }
         $table['actions']['width']  = '*';
         return $table;

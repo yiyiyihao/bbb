@@ -5,27 +5,40 @@ class Commission extends FactoryForm
 {
     public function __construct()
     {
-        $this->modelName = 'store_commission';
-        $this->model = db($this->modelName);
         parent::__construct();
-        //渠道
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL])) {
+        //渠道/服务商
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE])) {
             $this->error(lang('NO ACCESS'));
         }
+        if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {
+            $this->modelName = 'store_commission';
+        }else{
+            $this->modelName = 'store_service_income';
+        }
+        $this->model = db($this->modelName);
         unset($this->subMenu['add']);
-        $this->search= self::_searchData();
     }
     function _getAlias()
     {
         return 'C';
     }
     function _getField(){
-        $field = 'C.*, S.name as sname, G.name as gname';
+        $field = 'C.*, G.name as gname';
+        if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {
+            $field .= ', S.name as sname';
+        }else{
+            $join[] = ['user_installer UI', 'UI.installer_id = C.installer_id', 'LEFT'];
+            $field .= ', UI.realname';
+        }
         return $field;
     }
     function _getJoin()
     {
-        $join[] = ['store S', 'S.store_id = C.from_store_id', 'LEFT'];
+        if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {
+            $join[] = ['store S', 'S.store_id = C.from_store_id', 'LEFT'];
+        }else{
+            $join[] = ['user_installer UI', 'UI.installer_id = C.installer_id', 'LEFT'];
+        }
         $join[] = ['goods G', 'G.goods_id = C.goods_id', 'LEFT'];
         return $join;
     }
@@ -41,17 +54,28 @@ class Commission extends FactoryForm
         ];
         if ($params) {
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
-            if($sn){
-                $where['order_sn'] = ['like','%'.$sn.'%'];
+            if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {
+                if($sn){
+                    $where['order_sn'] = ['like','%'.$sn.'%'];
+                }
+                $sname = isset($params['sname']) ? trim($params['sname']) : '';
+                if($sname){
+                    $where['S.name'] = ['like','%'.$sname.'%'];
+                }
+            }else{
+                if($sn){
+                    $where['worder_sn'] = ['like','%'.$sn.'%'];
+                }
+                $realname = isset($params['realname']) ? trim($params['realname']) : '';
+                if($realname){
+                    $where['UI.realname'] = ['like','%'.$realname.'%'];
+                }
             }
             $gname = isset($params['gname']) ? trim($params['gname']) : '';
             if($gname){
                 $where['G.name'] = ['like','%'.$gname.'%'];
             }
-            $sname = isset($params['sname']) ? trim($params['sname']) : '';
-            if($sname){
-                $where['S.name'] = ['like','%'.$sname.'%'];
-            }
+            
         }
         return $where;
     }
@@ -59,11 +83,19 @@ class Commission extends FactoryForm
      * 列表搜索配置
      */
     function _searchData(){
-        $search = [
-            ['type' => 'input', 'name' =>  'sn', 'value' => '订单编号', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'gname', 'value' => '商品名称', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'sname', 'value' => '零售商名称', 'width' => '30'],
-        ];
+        if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {
+            $search = [
+                ['type' => 'input', 'name' =>  'sn', 'value' => '订单编号', 'width' => '30'],
+                ['type' => 'input', 'name' =>  'gname', 'value' => '产品名称', 'width' => '30'],
+                ['type' => 'input', 'name' =>  'sname', 'value' => '零售商名称', 'width' => '30'],
+            ];
+        }else{
+            $search = [
+                ['type' => 'input', 'name' =>  'sn', 'value' => '工单编号', 'width' => '30'],
+                ['type' => 'input', 'name' =>  'realname', 'value' => '工程师名称', 'width' => '30'],
+                ['type' => 'input', 'name' =>  'gname', 'value' => '产品名称', 'width' => '30'],
+            ];
+        }
         return $search;
     }
 }

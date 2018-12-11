@@ -14,7 +14,7 @@ var cart = {
 		   }
 		});
 	},
-	del:function(goods_id,skuid,cart_callback){ //从购物车删除商品
+	del:function(goods_id,skuid,cart_callback){ //从购物车删除产品
         $.ajax({
 		   type: "GET",
 		   async: false,
@@ -26,7 +26,7 @@ var cart = {
 		   }
 		});
     },
-	nums:function(goods_id,skuid,nums,type,cart_callback){ //从购物车删除商品
+	nums:function(goods_id,skuid,nums,type,cart_callback){ //从购物车删除产品
         $.ajax({
 		   type: "GET",
 		   async: false,
@@ -37,7 +37,7 @@ var cart = {
 		   }
 		});
     },
-	total:function(cart_callback){ //从购物车删除商品
+	total:function(cart_callback){ //从购物车删除产品
         $.ajax({
 		   type: "GET",
 		   async: false,

@@ -27,6 +27,10 @@ class UserInstaller extends Model
         }
         return $result;
     }
+    /**
+     * 生成安装工程师工号
+     * @return string
+     */
     private function _getJobNo()
     {
         $no = get_nonce_str(8, 2);

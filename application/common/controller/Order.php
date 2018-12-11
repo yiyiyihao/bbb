@@ -3,11 +3,11 @@ namespace app\common\controller;
 //厂商订单管理
 class Order extends FormBase
 {
-    var $model;
+    public $config;
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'order';
-        $this->model = db($this->modelName);
+//         $this->model = db($this->modelName);
         $this->model = new \app\common\model\Order();
         parent::__construct();
         $this->subMenu['showmenu'] = true;
@@ -32,6 +32,19 @@ class Order extends FormBase
             'name' => '已取消',
             'url' => url('index', ['order_status' => 2]),
         ];
+        $this->subMenu['menu'][] = [
+            'name' => '已关闭',
+            'url' => url('index', ['order_status' => 3]),
+        ];
+        
+        $config = $this->config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
+        //判断商户是否可提现
+        if ($config && isset($config['order_return_day']) && $config['order_return_day'] > 0) {
+            $this->config['returnTime'] = $config['order_return_day'] * 24 * 60 * 60;
+        }
+        if ($config && isset($config['ordersku_return_limit']) && $config['ordersku_return_limit'] > 0) {
+            $this->config['returnCount'] = $config['ordersku_return_limit'];
+        }
     }
     public function detail()
     {
@@ -41,7 +54,7 @@ class Order extends FormBase
             'name' => '订单查看',
             'url' => url('detail', ['order_sn' => $orderSn]),
         ];
-        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser);
+        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, $this->config);
         if ($detail === false) {
             $this->error($this->model->error);
         }
@@ -111,7 +124,7 @@ class Order extends FormBase
             return $this->fetch('updateprice');
         }
     }
-    //商品发货
+    //产品发货
     public function delivery()
     {
         $params = $this->request->param();
@@ -120,7 +133,7 @@ class Order extends FormBase
         if (IS_POST) {
             $oskuIds = input('post.osku_id/a');
             if (!$oskuIds) {
-                $this->error('请选择发货商品');
+                $this->error('请选择发货产品');
             }
             $params['osku_id'] = $oskuIds;
             $result = $this->model->orderDelivery($orderSn, $this->adminUser, $params);
@@ -136,7 +149,7 @@ class Order extends FormBase
                 'url' => url('detail', ['order_sn' => $orderSn]),
             ];
             $this->subMenu['menu'][] = [
-                'name' => '订单商品发货',
+                'name' => '订单产品发货',
                 'url' => url('delivery', $routes),
             ];
             $order = $this->model->checkOrder($orderSn, $this->adminUser);
@@ -160,7 +173,7 @@ class Order extends FormBase
             $this->success('订单确认完成操作成功', url('detail', ['order_sn' => $orderSn]));
         }
     }
-    //商品物流信息
+    //产品物流信息
     public function deliveryLogs(){
         $params = $this->request->param();
         $odeliveryId = isset($params['odelivery_id']) ? intval($params['odelivery_id']) : 0;
@@ -177,7 +190,7 @@ class Order extends FormBase
         if ($result === FALSE) {
             $this->error('物流配送信息查看失败：'.$this->model->error);
         }
-        //获取物流配送商品列表
+        //获取物流配送产品列表
         $skus = db('order_sku')->where(['osku_id' => ['IN', $delivery['osku_ids']]])->select();
         //获取物流跟踪日志
         $logs = db('order_track')->where(['odelivery_id' => $delivery['odelivery_id']])->order('track_id DESC')->select();
@@ -213,7 +226,7 @@ class Order extends FormBase
     }
     function _getWhere(){
         $params = $this->request->param();
-        $where = $this->buildmap($params);
+        $where = $this->_buildmap($params);
         if ($params && !isset($where['O.order_status'])) {
             $where['O.order_status'] = ['neq','4'];
         }
@@ -237,7 +250,7 @@ class Order extends FormBase
         }
         return $where;
     }
-    private function buildmap($param = []){
+    private function _buildmap($param = []){
         $params = $this->request->param();
         $map = [];
         $map['O.store_id'] = $this->adminUser['store_id'];
@@ -252,8 +265,10 @@ class Order extends FormBase
             }
             $map['O.pay_status'] = 1;
             $map['O.finish_status'] = 0;
+            $map['O.order_status'] = 1;
         }elseif(isset($param['finish_status'])){
             $map['O.finish_status'] = 2;
+            $map['O.order_status'] = 1;
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }

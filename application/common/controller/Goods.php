@@ -17,7 +17,7 @@ class Goods extends FormBase
             2 => '产品零配件',
         ];
         $this->goodsTypes = [
-            1 => '普通商品',
+            1 => '普通产品',
             2 => '样品',
         ];
         $this->stockReduces = [
@@ -347,6 +347,19 @@ class Goods extends FormBase
             $result = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['eq', ""]])->update($update);
         }
         return TRUE;
+    }
+    /**
+     * 列表搜索配置
+     */
+    function _searchData(){
+        $types = goodstype();
+        $this->assign('types', $types);
+        $search = [
+            ['type' => 'input', 'name' =>  'name', 'value' => '产品名称', 'width' => '30'],
+            ['type' => 'select', 'name' => 'goods_type', 'options'=>'types', 'default_option' => '==产品类型=='],
+            ['type' => 'input', 'name' =>  'sn', 'value' => '产品编号', 'width' => '30'],
+        ];
+        return $search;
     }
     /**
      * 列表项配置

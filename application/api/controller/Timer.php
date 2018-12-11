@@ -46,12 +46,13 @@ class Timer extends ApiBase
                 if ($orderCancelMinute > 0) {
                     $cancelMap[] = '(store_id = '.$factoryId.' AND add_time <= '. ($thisTime - ($orderCancelMinute * 60)).')';
                 }
-                pre($config, 1);
                 //退货退款时间(天数),支付成功后超过配置时间则不允许退货退款
                 $orderReturnDay = $config && isset($config['order_return_day']) ? $config['order_return_day'] : 0;
                 if ($orderReturnDay > 0) {
-                    $orderReturnDay = 0;
-                    $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - ($orderReturnDay * 24 * 60 * 60)).')';
+                    $orderReturnDayTime = $orderReturnDay * 24 * 60 * 60;
+//                     #TODO 测试后删除
+//                     $orderReturnDayTime = 0;
+                    $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - $orderReturnDayTime).')';
                 }
             }
             if ($cancelMap) {
@@ -71,6 +72,8 @@ class Timer extends ApiBase
                             ];
                         }
                     }
+                    echo 'CANCEL:';
+                    pre($orders, 1);
                 }
             }
             if ($finishMap) {
@@ -90,6 +93,8 @@ class Timer extends ApiBase
                             ];
                         }
                     }
+                    echo 'FINISH:';
+                    pre($orders);
                 }
             }
         }

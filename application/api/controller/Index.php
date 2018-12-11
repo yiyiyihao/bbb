@@ -646,7 +646,7 @@ class Index extends ApiBase
         if (!$worderSn) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
-        $field = 'worder_id, worder_sn, installer_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
+        $field = 'worder_id, worder_sn, order_sn, osku_id, installer_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
         $info = db('work_order')->field($field)->where(['worder_sn' => $worderSn, 'is_del' => 0])->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
@@ -727,6 +727,8 @@ class Index extends ApiBase
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
+        $result = $worderModel->TEST($detail, 2, $user);
+        pre(1);
         $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单完成操作成功']);

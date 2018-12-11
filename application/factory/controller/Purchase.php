@@ -65,7 +65,7 @@ class Purchase extends FactoryForm
     }
     
     /**
-     * ajax获取商品属性值
+     * ajax获取产品属性值
      */
     public function getspec(){
         $params = $this->request->param();

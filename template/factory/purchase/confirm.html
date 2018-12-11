@@ -46,7 +46,14 @@
                             <input type="text" class="input" id="address_phone" name="address_phone" size="40" datatype="*" value="">
                         </div>
                     </div>
-                    <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='请选择行政区域'></div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>安装地址</label>
+                        </div>
+                        <div class="field">
+                        	<div class="js-select-child" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='请选择行政区域'></div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <div class="label">
                             <label>安装地址</label>

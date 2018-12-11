@@ -11,9 +11,6 @@ class FormBase extends CommonBase
     var $infotempfile;
     var $indextempfile;
     var $perPage;
-    var $table;
-    var $field;
-    var $search;
     var $uploadUrl;
     public function __construct()
     {
@@ -36,7 +33,7 @@ class FormBase extends CommonBase
         $this->infotempfile = 'info';
         $this->indextempfile = '';
         $this->perPage = 10;
-        $this->uploadUrl = url('admin/Upload/upload');
+        $this->uploadUrl = url('Upload/upload');
     }
     /**
      * 内容列表
@@ -256,7 +253,11 @@ class FormBase extends CommonBase
         }
         }
         $this->assign('table', $tableList);
-        $this->assign('search', $this->search);
+        $this->assign('search', $this->_searchData());
+    }
+    //获取列表序列化数据
+    function _searchData(){
+        return [];
     }
     //获取列表序列化数据
     function _tableData(){

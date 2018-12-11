@@ -12,10 +12,10 @@ class Finance extends FactoryForm
         $this->model = db('store_withdraw');
         parent::__construct();
         unset($this->subMenu['add']);
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_SERVICE])) {
             $this->error('NO ACCESS');
         }
-        if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
             $this->config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
             $this->assign('config', $this->config);
             //判断商户是否可提现
@@ -102,7 +102,7 @@ class Finance extends FactoryForm
      */
     public function apply()
     {
-        if ($this->adminUser['admin_type'] != ADMIN_CHANNEL) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE])) {
             $this->error('NO ACCESS');
         }
         if (!$this->apply) {

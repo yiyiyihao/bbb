@@ -16,9 +16,9 @@ class Goods extends Model
         //TODO:自定义的初始化
     }
     /**
-     * 更新商品库存
-     * @param array $sku 商品属性信息
-     * @param int $num 修改商品库存数量(大于0为增加,小于0为减少)
+     * 更新产品库存
+     * @param array $sku 产品属性信息
+     * @param int $num 修改产品库存数量(大于0为增加,小于0为减少)
      * @return boolean
      */
     public function setGoodsStock($sku, $num)
@@ -66,8 +66,12 @@ class Goods extends Model
         }
         return $goods;
     }
-    //获取商品规格属性
-    public function getGoodsSkus($goodsId = false)
+    /**
+     * 获取产品规格列表
+     * @param int $goodsId
+     * @return array
+     */
+    public function getGoodsSkus($goodsId = 0)
     {
         if ($goodsId <= 0) {
             $this->error = '参数错误';

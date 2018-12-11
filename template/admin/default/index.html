@@ -7,9 +7,24 @@
                 	{volist name="search" key="k" id="vo"}
                     <div class="form-group">
                         <div class="field">
-                        	{if condition="$vo['type'] == 'input'"}
+                        	{switch vo.type}
+                        	{case input}
                             <input type="text" class="input" id="{$vo['name']}" name="{$vo['name']}" size="{$vo['width'] ?? 40}" value="{$_GET[$vo['name']] ?? ''}" placeholder="{$vo['value'] ?? ''}">
-                            {/if}
+                            {/case}
+							{case select}
+	                            <select class="input" name="{$vo['name'] ?? ''}" id="{$vo['name'] ?? ''}" >
+	                              <option value="{$vo.default|default=''}">{$vo.default_option}</option>                                   
+                                   {php}$vars = (get_defined_vars());$options = $vars[$vo['options']];{/php}
+	                               {foreach name="options" item="option" key="key"}
+	                               {if condition="!isset($option['id'])"}
+	                               	<option value="{$key}" {if (isset($_GET[$vo.name]) && $_GET[$vo.name] == $key)}selected="selected"{/if} >{$option}</option>
+	                               {else/}
+	                               	<option value="{$option.id}" {if isset($option['id']) && isset($_GET[$vo.name]) && ($_GET[$vo.name] == $option['id'])}selected="selected"{/if} >{$option.cname}</option>
+	                               {/if}
+	                               {/foreach}
+	                            </select>
+                            {/case}
+                            {/switch}
                         </div>
                     </div>
                     {/volist}

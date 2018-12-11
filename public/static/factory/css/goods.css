@@ -1,6 +1,6 @@
 @charset "utf-8";
 .goodsInfo{ padding:20px;}
-/* 商品详情 */
+/* 产品详情 */
 .goodsPicBox{ width:350px;}
 .goodsPicBox .jqzoom{ position:relative; z-index:100;}
 .goodsPicBox .zoomImg{ width:100%;}

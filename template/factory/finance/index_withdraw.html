@@ -5,8 +5,11 @@
            		 <div class="flex-item num-item-box">
                 	<h4>可提现</h4>
                     <div class="item-num">{$info['amount'] ?? 0}
+                    	
                     	{if condition="$apply && $config['withdraw_min_amount'] > 0"} 
                     	<a href="{:url('apply')}" class="button">申请提现</a>
+                    	{else/}
+                    	<button style="color: #fff;" disabled="disabled" class="button button_main">申请提现</button>
                     	{/if}
                    	</div>
                  </div>                            

@@ -6,7 +6,40 @@ function time_to_date($time = 0)
     $time = $time ? $time : time();
     return date('Y-m-d H:i:s', $time);
 }
-
+/**
+ * 发布状态
+ */
+function get_publish_status($status = FALSE){
+    $list = [
+        0   => '未发布',
+        1   => '已发布',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if (isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
+/**
+ * 显示是/否
+ */
+function get_status($status = FALSE){
+    $list = [
+        0   => '否',
+        1   => '是',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if (isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
 /**
  * 提现状态
  */
@@ -51,8 +84,8 @@ function get_withdraw_status($status = FALSE){
  */
 function get_commission_status($status = FALSE){
     $statusList = [
-        0 => '未入账',
-        1 => '已入账',
+        0 => '待结算',
+        1 => '已结算',
         2 => '已退还',
     ];
     if ($status === FALSE) {
@@ -65,7 +98,7 @@ function get_commission_status($status = FALSE){
     }
 }
 /**
- * 商品类别名称
+ * 产品类别名称
  */
 function get_goods_cate($cate = FALSE){
     $cates = [
@@ -82,7 +115,7 @@ function get_goods_cate($cate = FALSE){
     }
 }
 /**
- * 商品类型名称
+ * 产品类型名称
  */
 function goodstype($type = FALSE){
     $types = [
@@ -240,7 +273,7 @@ function get_order_status($order = array()) {
             $arr['wait'] = 'cancel';
             $arr['status_text'] = ch_order_status($arr['wait']);
             break;
-        case 3: // 已回收
+        case 3: // 已关闭
             $arr['now'] = 'recycle';
             $arr['wait'] = 'recycle';
             $arr['status_text'] = ch_order_status($arr['wait']);
@@ -295,7 +328,7 @@ function get_order_status($order = array()) {
 function ch_order_status($ident) {
     $arr = array(
         'cancel'        => '已取消',
-        'recycle'       => '已回收',
+        'recycle'       => '已关闭',
         'delete'        => '已删除',
         'create'        => '创建订单',
         'load_pay'      => '待付款',
@@ -313,7 +346,7 @@ function ch_order_status($ident) {
         'time_recycle'  => '回收订单',
         'time_create'   => '提交订单',
         'time_pay'      => '确认付款',
-        'time_delivery' => '商品发货',
+        'time_delivery' => '产品发货',
         'time_finish'   => '确认收货',
     );
     return isset($arr[$ident]) ? $arr[$ident] : '';

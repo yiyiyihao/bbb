@@ -17,11 +17,28 @@ class OrderService extends Model
         parent::initialize();
         $this->orderSkuModel = db('order_sku');
     }
-    public function createService($order, $osku, $user, $params, $service = [])
+    /**
+     * 申请订单售后服务
+     * @param array $order
+     * @param array $osku
+     * @param array $user
+     * @param array $params
+     * @param array $service
+     * @param array $storeConfig
+     * @return boolean
+     */
+    public function createService($order, $osku, $user, $params, $service = [], $storeConfig = [])
     {
+        if (!$order || !$osku || !$user || !$params) {
+            $this->error = lang('PARAM_ERROR');
+            return FALSE;
+        }
         $serviceType = isset($params['service_type']) ? intval($params['service_type']) : 0;
-        $num = isset($params['num']) ? intval($params['num']) : 0;
-        $refundAmount = isset($params['amount']) ? floatval($params['amount']) : 0;
+//         $num = isset($params['num']) ? intval($params['num']) : 0;
+//         $refundAmount = isset($params['amount']) ? floatval($params['amount']) : 0;
+        $num = $osku['num'];
+        $refundAmount = $osku['real_amount'];
+        
         $remark = isset($params['remark']) ? trim($params['remark']) : '';
         $imgs = isset($params['imgs']) ? $params['imgs'] : [];
         
@@ -50,10 +67,32 @@ class OrderService extends Model
             $this->error = '订单未付款';
             return FALSE;
         }
-        //判断当前商品是否已申请退货/退款
+        $returnTime = $returnCount = 0;
+        //判断商户是否可提现(超时不允许提现)
+        if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
+            $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
+        }
+        if ($osku['return_status'] == -1 || ($order['pay_time'] + $returnTime) <= time()) {
+            $this->error = '超时,不允许操作';
+            return FALSE;
+        }
+        if ($osku['return_status'] == 1) {
+            $this->error = '产品已退款,不允许操作';
+            return FALSE;
+        }
+        if ($storeConfig && isset($storeConfig['ordersku_return_limit']) && $storeConfig['ordersku_return_limit'] > 0) {
+            $returnCount = $storeConfig['ordersku_return_limit'];
+        }
+        //计算当前产品售后申请次数
+        $count = $this->where(['osku_id' => $osku['osku_id']])->count();
+        if ($returnCount && $count && $count >= $returnCount) {
+            $this->error = '售后申请已达最大次数';
+            return FALSE;
+        }
+        //判断当前产品是否已申请退货/退款
         $exist = $this->where(['osku_id' => $osku['osku_id'], 'service_status' => ['NOT IN', [-1, 4]]])->find();
         if ($exist) {
-            $this->error = '当前商品退货申请已存在';
+            $this->error = '当前产品退货申请已存在';
             return FALSE;
         }
         $data = [
@@ -84,12 +123,18 @@ class OrderService extends Model
         }
         $this->orderSkuModel->where(['osku_id' => $osku['osku_id']])->update(['service_id' => $serviceId, 'service_status' => 0, 'update_time' => time()]);
         //记录日志
-        $action = $serviceType ? '申请退款' : '申请退货退款';
+        $action = $serviceType == 1 ? '申请退款' : '申请退货退款';
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, $action, $remark, $serviceId);
         return TRUE;
     }
-    
+    /**
+     * 售后订单审核(卖家)
+     * @param array $service
+     * @param array $user
+     * @param array $params
+     * @return boolean
+     */
     public function serviceCheck($service, $user, $params)
     {
         $service = $this->getServiceDetail($service['service_sn'], $user);
@@ -143,6 +188,13 @@ class OrderService extends Model
         $orderModel->orderLog($order, $user, $action.$types[$type], $remark, $service['service_id']);
         return TRUE;
     }
+    /**
+     * 售后订单退货信息录入(买家)
+     * @param array $service
+     * @param array $user
+     * @param array $extra
+     * @return boolean
+     */
     public function serviceDelivery($service, $user = [], $extra = [])
     {
         $service = $this->getServiceDetail($service['service_sn'], $user);
@@ -206,6 +258,13 @@ class OrderService extends Model
         return TRUE;
     }
     
+    /**
+     * 售后订单退款(卖家)
+     * @param array $service
+     * @param array $user
+     * @param array $params
+     * @return boolean
+     */
     public function serviceRefund($service, $user, $params)
     {
         $service = $this->getServiceDetail($service['service_sn'], $user);
@@ -214,13 +273,18 @@ class OrderService extends Model
         }
         $type = $service['service_type'];
         $transferNo = isset($params['transfer_no']) ? trim($params['transfer_no'])  : '';
-        $remark = isset($params['admin_remark']) ? trim($params['admin_remark'])  : '';
+        $remark = isset($params['remark']) ? trim($params['remark'])  : '';
         if (!$transferNo) {
             $this->error = '请填写退款转账流水号';
             return FALSE;
         }
         $order = db('order')->where(['order_id' => $service['order_id']])->find();
         if (!$order) {
+            $this->error = 'param_error';
+            return FALSE;
+        }
+        $osku = $this->orderSkuModel->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id']])->find();
+        if (!$osku) {
             $this->error = 'param_error';
             return FALSE;
         }
@@ -231,7 +295,9 @@ class OrderService extends Model
         }
         $serviceStatus = 3;//已完成
         $data = [
+            'refund_time' => time(),
             'service_status' => $serviceStatus,
+            'transfer_no' => $transferNo,
             'admin_remark' => $remark,
         ];
         $result = $this->save($data, ['service_id' => $service['service_id']]);
@@ -239,14 +305,56 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'update_time' => time()]);
+        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'return_status' => 1, 'update_time' => time()]);
+        
+        //退货退款完成时,库存还原
+        if ($service['service_type'] == 2) {
+            $goodsModel = new \app\common\model\Goods();
+            $goodsModel->setGoodsStock($osku, $service['num']);
+        }
+        //退款成功后判断当前产品是否存在佣金返利存在则改为已退还状态
+        $commissionModel = db('store_commission');
+        $where = [
+            'order_id'  => $service['order_id'],
+            'osku_id'   => $service['osku_id'],
+            'commission_status' => 0,//收益状态(0待结算 1已结算 2已退还)
+            'is_del'    => 0,
+            'status'    => 1,
+        ];
+        $exist = $commissionModel->where($where)->find();
+        if ($exist) {
+            $amount = $exist['income_amount'];
+            $result = $commissionModel->where($where)->update(['commission_status' => 2, 'update_time' => time()]);
+            //可提现金额不变 待结算金额减少 总收益减少
+            $financeModel = new \app\common\model\StoreFinance();
+            $params = [
+                'pending_amount'=> -$amount,
+                'total_amount'  => -$amount,
+            ];
+            $result = $financeModel->financeChange($exist['store_id'], $params, '买家退款,收益退还', $order['order_sn']);
+        }
+        
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, '卖家退款', $remark, $service['service_id']);
+        //当订单下所有产品都已经完成退款时,当前订单改为已关闭状态
+        $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->count();
+        $returnCount = $this->orderSkuModel->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
+        if ($returnCount >= $totalCount) {
+            //3为订单关闭状态
+            $result = $orderModel->save(['order_status' => 3], ['order_id' => $service['order_id']]);
+            $orderModel->orderLog($order, $user, '订单关闭', '订单产品全部退款，系统自动关闭订单');
+        }
         return TRUE;
     }
     
-    
-    public function serviceCancel($service = '', $user = [], $remark = ''){
+    /**
+     * 售后订单取消(买家)
+     * @param array $service
+     * @param array $user
+     * @param string $remark
+     * @return boolean
+     */
+    public function serviceCancel($service = [], $user = [], $remark = ''){
         $service = $this->getServiceDetail($service['service_sn'], $user);
         if (!$service){
             return FALSE;
@@ -281,6 +389,14 @@ class OrderService extends Model
         return TRUE;
     }
     
+    /**
+     * 售后订单查询(买家/卖家)
+     * @param string $serviceSn
+     * @param array $user
+     * @param int $serviceId
+     * @param boolean $log
+     * @return array
+     */
     public function getServiceDetail($serviceSn, $user = [], $serviceId = 0, $log = FALSE)
     {
         if (!$serviceSn && !$serviceId) {
@@ -321,6 +437,11 @@ class OrderService extends Model
         $service['imgs'] = $service['imgs'] ? json_decode($service['imgs'], 1) : [];
         return $service;
     }
+    /**
+     * 生成售后订单号
+     * @param string $sn
+     * @return string
+     */
     private function _getServiceSn($sn = '')
     {
         $sn = get_nonce_str(12, 2). substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 6);

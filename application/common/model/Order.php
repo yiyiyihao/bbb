@@ -22,7 +22,7 @@ class Order extends Model
      * @param number $userId    用户ID
      * @return array
      */
-    public function getOrderDetail($orderSn = '', $user = [])
+    public function getOrderDetail($orderSn = '', $user = [], $storeConfig = [])
     {
         if (!$orderSn) {
             return FALSE;
@@ -34,12 +34,41 @@ class Order extends Model
         $order['_status'] = get_order_status($order);
         $detail['order'] = $order;
         $field = 'osku_id, OS.order_sn, OS.goods_id, OS.sku_id, OS.sku_name, OS.sku_thumb, OS.sku_spec, OS.num, OS.price, OS.install_price, OS.pay_price, OS.real_amount';
-        $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn, OS.service_id, OS.service_status';
+        $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn, OS.service_id, OS.service_status, OS.return_status';
         $where = [
             'OS.order_sn' => $orderSn,
         ];
-        $detail['skus'] = db('order_sku')->field($field)->alias('OS')->join([['order_sku_delivery OSD', 'OS.osku_id IN (OSD.osku_ids) AND OSD.order_sn = '.$orderSn, 'LEFT']])->where($where)->select();
-        $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC')->select();
+        $oskus = db('order_sku')->field($field)->alias('OS')->join([['order_sku_delivery OSD', 'OS.osku_id IN (OSD.osku_ids) AND OSD.order_sn = '.$orderSn, 'LEFT']])->where($where)->select();
+        if ($oskus && $storeConfig) {
+            $returnStatus = 0;
+            //判断商户是否可提现
+            if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
+                $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
+            }
+            if ($storeConfig && isset($storeConfig['ordersku_return_limit']) && $storeConfig['ordersku_return_limit'] > 0) {
+                $returnCount = $storeConfig['ordersku_return_limit'];
+            }
+            if ($returnTime > 0 && $order['pay_status'] > 0 && ($order['pay_time'] + $returnTime) <= time()) {
+                $returnStatus = -1;
+            }
+            $serviceModel = db('order_sku_service');
+            foreach ($oskus as $key => $value) {
+                if ($value['return_status'] == 0) {
+                    //判断是否可退还
+                    if ($returnStatus == 0 && $returnCount) {
+                        //计算售后申请次数
+                        $count = $serviceModel->where(['osku_id' => $value['osku_id']])->count();
+                        if ($count && $count >= $returnCount) {
+                            $oskus[$key]['return_status'] = -1;
+                        }
+                    }else{
+                        $oskus[$key]['return_status'] =$returnStatus;
+                    }
+                }
+            }
+        }
+        $detail['skus'] = $oskus;
+        $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
         $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
         return $detail;
     }
@@ -84,9 +113,9 @@ class Order extends Model
             return FALSE;
         }
         if ($order['order_type'] != 1) {
-            //修改订单商品表 已发货状态改为已收货
+            //修改订单产品表 已发货状态改为已收货
             $result = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => 1])->update(['delivery_status' => 2]);
-            //修改订单商品物流表 收货状态改为1
+            //修改订单产品物流表 收货状态改为1
             $result = db('order_sku_delivery')->where(['order_sn' => $orderSn])->update(['isreceive' => 1, 'receive_time' => time()]);
         }
         
@@ -122,19 +151,19 @@ class Order extends Model
             return FALSE;
         }
         if ($order['order_type'] != 1 && ($order['delivery_status'] == 2 || $order['finish_status'])) {
-            $this->error = '订单所有商品已发货, 不能执行当前操作';
+            $this->error = '订单所有产品已发货, 不能执行当前操作';
             return FALSE;
         }
         $oskuIds = isset($extra['osku_id']) && $extra['osku_id'] ? $extra['osku_id'] : [];
         $oskuIds = $oskuIds ? array_filter($oskuIds) :[];
         $oskuIds = $oskuIds ? array_unique($oskuIds) :[];
         if (!$oskuIds) {
-            $this->error = '请选择发货商品';
+            $this->error = '请选择发货产品';
             return FALSE;
         }
         $skus = $this->orderSkuModel->where(['osku_id' => ['IN', $oskuIds], 'order_id' => $order['order_id'] , 'delivery_status' => 0])->select();
         if (!$skus || ($skus && count($skus) != count($oskuIds))) {
-            $this->error = '选择商品已发货';
+            $this->error = '选择产品已发货';
             return FALSE;
         }
         $isDelivery = isset($extra['is_delivery']) && intval($extra['is_delivery']) ? intval($extra['is_delivery']) : 0;
@@ -190,9 +219,9 @@ class Order extends Model
         $orderData = [
             'update_time'   => time(),
         ];
-        //获取订单商品总数
+        //获取订单产品总数
         $orderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
-        //获取订单发货商品总数
+        //获取订单发货产品总数
         $deliveryOrderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
         if ($orderCounts > $deliveryOrderCounts) {
             $orderData['delivery_status'] = 1;
@@ -208,7 +237,7 @@ class Order extends Model
         //订单日志
         $this->orderLog($order, $user, '订单发货', $remark);
         // 订单跟踪
-        $msg = $odeliveryId ? ',等待商品揽收' : '';
+        $msg = $odeliveryId ? ',等待产品揽收' : '';
         $this->orderTrack($order, $odeliveryId, '商家已发货'.$msg);
         return TRUE;
     }
@@ -309,19 +338,30 @@ class Order extends Model
         if ($payCode) {
             $data['pay_code'] = $payCode;
         }
+        $skus = $this->getOrderSkus($order['order_id']);
         //将订单设置为已支付状态
         $result = $this->where(['order_id' => $order['order_id'], 'pay_status' => ['<>', 1]])->update($data);
         if ($result === FALSE) {
             $this->error = '订单操作异常';
             return FALSE;
         }
+        if ($skus) {
+            //处理订单产品中 库存计数为支付成功后减少库存的产品库存
+            $goodsModel = new \app\common\model\Goods();
+            foreach ($skus as $key => $value) {
+                if ($value['stock_reduce_time'] == 2) {//支付成功后减少库存
+                    $result = $goodsModel->setGoodsStock($value, -$value['num']);
+                }
+            }
+        }
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
+        
         if ($order['order_type'] == 1) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
         //订单支付成功后,订单入账处理
-        if ($order['order_type'] == 1 && $order['user_store_id'] > 0 && $paidAmount > 0) {
+        if ($skus && $order['order_type'] == 1 && $order['user_store_id'] > 0 && $paidAmount > 0) {
             $where = [
                 'is_del' => 0,
                 'S.store_id' => $order['user_store_id'],
@@ -334,38 +374,34 @@ class Order extends Model
                     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
                     $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
                     if ($ratio > 0) {
-                        $skus = $this->orderSkuModel->where(['order_id' => $order['order_id']])->select();
-                        if ($skus) {
-                            $dataSet = [];
-                            //计算当前订单总收益
-                            $totalAmount = round($order['real_amount'] * $ratio/100, 2);
-                            foreach ($skus as $key => $value) {
-                                $incomeAmount = round($value['real_amount'] * $ratio/100, 2);//四舍五入保留小数点后两位
-                                $dataSet[] = [
-                                    'store_id'          => $store['ostore_id'],
-                                    'from_store_id'     => $store['store_id'],
-                                    'order_id'          => $order['order_id'],
-                                    'order_sn'          => $order['order_sn'],
-                                    'osku_id'           => $value['osku_id'],
-                                    'goods_id'          => $value['goods_id'],
-                                    'sku_id'            => $value['sku_id'],
-                                    'order_amount'      => $value['real_amount'],
-                                    'commission_ratio'  => $ratio,
-                                    'income_amount'     => $incomeAmount,
-                                    'add_time'          => time(),
-                                ];
-                            }
-                            $result = db('store_commission')->insertAll($dataSet);
-                            if ($result) {
-                                //修改商户账户收益信息
-//                                 $result = db('store_finance')->where(['store_id' => $store['ostore_id']])->inc('pending_amount', $totalAmount)->inc('total_amount', $totalAmount)->update();
-                                $financeModel = new \app\common\model\StoreFinance();
-                                $params = [
-                                    'pending_amount' => $totalAmount,
-                                    'total_amount' => $totalAmount,
-                                ];
-                                $result = $financeModel->financeChange($store['ostore_id'], $params, '订单收益记录', $order['order_sn']);
-                            }
+                        $dataSet = [];
+                        //计算当前订单总收益
+                        $totalAmount = round($order['real_amount'] * $ratio/100, 2);
+                        foreach ($skus as $key => $value) {
+                            $incomeAmount = round($value['real_amount'] * $ratio/100, 2);//四舍五入保留小数点后两位
+                            $dataSet[] = [
+                                'store_id'          => $store['ostore_id'],
+                                'from_store_id'     => $store['store_id'],
+                                'order_id'          => $order['order_id'],
+                                'order_sn'          => $order['order_sn'],
+                                'osku_id'           => $value['osku_id'],
+                                'goods_id'          => $value['goods_id'],
+                                'sku_id'            => $value['sku_id'],
+                                'order_amount'      => $value['real_amount'],
+                                'commission_ratio'  => $ratio,
+                                'income_amount'     => $incomeAmount,
+                                'add_time'          => time(),
+                            ];
+                        }
+                        $result = db('store_commission')->insertAll($dataSet);
+                        if ($result) {
+                            //修改商户账户收益信息
+                            $financeModel = new \app\common\model\StoreFinance();
+                            $params = [
+                                'pending_amount' => $totalAmount,
+                                'total_amount' => $totalAmount,
+                            ];
+                            $result = $financeModel->financeChange($store['ostore_id'], $params, '订单支付,计算收益', $order['order_sn']);
                         }
                     }
                 }
@@ -407,8 +443,8 @@ class Order extends Model
             $this->error = $this->error;
             return FALSE;
         }
-        //取消订单，商品库存增加
-        $skus = $this->getOrderSkus($orderSn);
+        //取消订单，产品库存增加
+        $skus = $this->getOrderSkus($order['order_id']);
         if ($skus) {
             $goodsModel = new \app\common\model\Goods();
             foreach ($skus as $key => $value) {
@@ -555,9 +591,9 @@ class Order extends Model
                         $result = $goodsModel->setGoodsStock($value, -$value['num']);
                     }
                 }
-                #TODO 清理购物车商品
+                #TODO 清理购物车产品
                 /* if ($from == 'cart' && $cartIds) {
-                    //清理购物车商品
+                    //清理购物车产品
                     $cartIds = implode(',', $cartIds);
                     $result = $this->delCartSku($cartIds, true);
                 } */
@@ -605,7 +641,7 @@ class Order extends Model
         $result = $this->orderSkuModel->where(['osku_id' => ['IN', $oskuIds]])->update(['return_status' => -1, 'update_time' => time()]);
         if ($result > 0) {
             if ($list && $oskuIds && $order['order_type'] == 1) {
-                //订单关闭退款退货功能后,订单入账处理
+                //订单关闭退款退货功能后,订单结算处理
                 $where = [
                     'order_id' => $order['order_id'],
                     'osku_id' => ['IN', $oskuIds],
@@ -622,7 +658,6 @@ class Order extends Model
                             $storeId = $value['store_id'];
                         }
                         //可提现金额增加 待结算金额减少 总收益不变
-//                         $result = $storeAccount->where(['store_id' => $order['store_id']])->inc('amount', $amount)->dec('pending_amount', $amount)->update();
                         $financeModel = new \app\common\model\StoreFinance();
                         $params = [
                             'amount' => $amount,
@@ -632,12 +667,12 @@ class Order extends Model
                     }
                 }
             }
-            //订单对应商品数量
+            //订单对应产品数量
             $totalCount = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
-            //已退款/已关闭退款商品数量
-            $lastCount = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'return_status' => ['IN', [2, -1]]])->count();
+            //已退款/已关闭退款产品数量
+            $lastCount = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'return_status' => ['IN', [1, -1]]])->count();
             if ($totalCount <= $lastCount) {
-                //若订单下商品全部退还 则关闭当前订单
+                //若订单下产品全部退还 则关闭当前订单
                 $result = $this->save(['order_status' => 3], ['order_id' => $order['order_id']]);
                 if (!$result) {
                     $this->error = $this->error;
@@ -738,9 +773,14 @@ class Order extends Model
     {
         return $payments = db('payment')->order('sort_order ASC, add_time DESC')->where(['store_id' => $storeId, 'is_del' => 0, 'status' => 1, 'display_type' => $displayType])->select();
     }
-    public function getOrderSkus($orderSn = '')
+    public function getOrderSkus($orderId = 0, $orderSn = '')
     {
-        return $oskus = db('order_sku')->where(['order_sn' => $orderSn])->select();
+        if ($orderId) {
+            $where['order_id'] = $orderId;
+        }else{
+            $where['order_sn'] = $orderSn;
+        }
+        return $oskus = db('order_sku')->where($where)->select();
     }
     /**
      * 更新快递100数据
@@ -905,7 +945,7 @@ class Order extends Model
                 $storeIds[$value['store_id']] = $storeId = $value['store_id'];
                 $skuList[] = $skuId = $value['sku_id'];
                 $num = intval($value['num']);
-                //商品库存为0/已删除/已禁用 则为 已失效
+                //产品库存为0/已删除/已禁用 则为 已失效
                 $amount = 0;
                 $disable = $unsale = 0;
                 //判断购买数量是否大于库存数量
@@ -945,19 +985,24 @@ class Order extends Model
         }
         $payAmount = $allAmount = $skuAmount + $installAmount + $deliveryAmount;
         $return = [
-            'skus'      => $skus,                  //商品列表
-            'sku_total' => intval($skuTotal),       //商品总数量
-            'sku_count' => intval($skuCount),       //商品种类数量(不重复)
-            'all_amount'        => sprintf("%.2f",$allAmount),      //商品总金额
+            'skus'      => $skus,                  //产品列表
+            'sku_total' => intval($skuTotal),       //产品总数量
+            'sku_count' => intval($skuCount),       //产品种类数量(不重复)
+            'all_amount'        => sprintf("%.2f",$allAmount),      //产品总金额
             'delivery_amount'   => sprintf("%.2f",$deliveryAmount), //物流费用
             'install_amount'    => sprintf("%.2f",$installAmount),  //安装费用
-            'sku_amount'        => sprintf("%.2f",$skuAmount),      //商品总金额
+            'sku_amount'        => sprintf("%.2f",$skuAmount),      //产品总金额
             'pay_amount'        => sprintf("%.2f",$payAmount),      //需支付金额
             'sku_ids'           => $skuIds,
             'store_id'          => $storeId,
         ];
         return $return;
     }
+    /**
+     * 生成订单编号
+     * @param string $sn
+     * @return string
+     */
     private function _getOrderSn($sn = '')
     {
         $sn = date('YmdHis').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 6).get_nonce_str(9, 2);

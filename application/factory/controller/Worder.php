@@ -221,6 +221,7 @@ class Worder extends FactoryForm
             $data['fault_desc'] = '';
         }
         $data['images'] = '';
+        $data['appointment'] = strtotime($appointment);
         return $data;
     }
     function _assignInfo($pkId = 0){

@@ -35,12 +35,13 @@ return [
     'USER_GROUP_PURVIEW'    =>  '角色授权',
     'USER_INSTALLER'        =>  '售后工程师',
     'WORK_ORDER'            =>  '工单',
-    'SYS_MESSAGE'           =>  '系统消息',
+    'BULLETIN'              =>  '公告',
     'FINANCE'               =>  '财务管理',
     
     'ORDER'                 =>  '订单',
     'MYORDER'               =>  '我的订单',
     'SUBORDER'              =>  '零售商订单',
+    'order_sku_service'     =>  '售后订单',
 
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',

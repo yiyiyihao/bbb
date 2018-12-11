@@ -105,7 +105,7 @@ class CommonBase extends Base
     
     //页面初始化赋值
     protected function initAssign() {
-        $server = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : $_SERVER['REQUEST_URI'];
+        $server = isset($_SERVER['REDIRECT_URL']) ? $_SERVER['REDIRECT_URL'] : $_SERVER['REQUEST_URI'];
         $self = strip_tags($server);
         $this->assign('self', $self);
         $this->assign('title',config('setting.title').lang('home_manager'));

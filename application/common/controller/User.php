@@ -10,9 +10,6 @@ class User extends FormBase
         $this->modelName = 'user';
         $this->model = db($this->modelName);
         parent::__construct();
-        $this->search= self::_searchData();
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
         $this->adminType = $this->adminUser['admin_type'];
     }
     function _getAlias()

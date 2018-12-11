@@ -164,7 +164,7 @@ class PaymentApi
     public function wechatUnifiedOrder($order = [], $tradeType = 'JSAPI') {
         $params = [
             'appid'     => trim($this->config['app_id']),
-            'body'      => isset($order['subject']) ? trim($order['subject']) : '商品购买',
+            'body'      => isset($order['subject']) ? trim($order['subject']) : '产品购买',
             'mch_id'    => trim($this->config['mch_id']),
             'nonce_str' => get_nonce_str(32),
             'notify_url'=> trim($this->config['notify_url']),
@@ -182,7 +182,7 @@ class PaymentApi
         }elseif ($tradeType == 'NATIVE'){
             $params['product_id'] = isset($order['product_id']) ? intval($order['product_id']): 0;
             if (!$params['product_id']) {
-                $this->error = '商品ID(product_id)缺失';
+                $this->error = '产品ID(product_id)缺失';
                 return FALSE;
             }
         }

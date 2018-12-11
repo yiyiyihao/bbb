@@ -8,7 +8,8 @@
                             <select class="input" name="stype" id="stype">
                             	<option value="">==商户类型==</option>
 								<option value="{$Think.const.STORE_CHANNEL}" {if (isset($_GET['stype']) && $_GET['stype'] == $Think.const.STORE_CHANNEL)}selected="selected"{/if} >渠道商</option>
-								<option value="{$Think.const.STORE_DEALER}" {if (isset($_GET['stype']) && $_GET['stype'] == $Think.const.STORE_DEALER)}selected="selected"{/if} >服务商</option> 
+								<option value="{$Think.const.STORE_DEALER}" {if (isset($_GET['stype']) && $_GET['stype'] == $Think.const.STORE_DEALER)}selected="selected"{/if} >零售商</option>
+								<option value="{$Think.const.STORE_SERVICE}" {if (isset($_GET['stype']) && $_GET['stype'] == $Think.const.STORE_SERVICE)}selected="selected"{/if} >服务商</option> 
 							</select>
                         </div>
                     </div>

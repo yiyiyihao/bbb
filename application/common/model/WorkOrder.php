@@ -25,7 +25,7 @@ class WorkOrder extends Model
             $sn = $this->_getWorderSn();
             $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
             //工单创建成功后填写工单号
-            $worder = $this->checkWorder($sn, $data['post_user_id']);
+            $worder = $this->getWorderDetail($sn, $data['post_user_id']);
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
             $this->worderLog($worder, $user, '创建工单');
         }
@@ -37,13 +37,17 @@ class WorkOrder extends Model
      * @param array $user
      * @return boolean|unknown
      */
-    public function checkWorder($worderSn = '', $user = [])
+    public function getWorderDetail($worderSn = '', $user = [])
     {
         if (!$worderSn) {
             $this->error = '参数错误';
             return FALSE;
         }
-        $info = $this->where(['worder_sn' => $worderSn, 'is_del' => 0])->find();
+        $where = [
+            'worder_sn' => $worderSn, 
+            'is_del' => 0,
+        ];
+        $info = $this->where($where)->find();
         if (!$info) {
             $this->error = lang('NO ACCESS');
             return FALSE;
@@ -222,8 +226,8 @@ class WorkOrder extends Model
      */
     public function worderFinish($worder, $user)
     {
+        $worder = $this->getWorderDetail($worder['worder_sn'], $user);
         if (!$worder) {
-            $this->error = '参数错误';
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
@@ -246,6 +250,42 @@ class WorkOrder extends Model
         }
         $result = $this->save(['status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
+            //确认完成，服务商服务费入账
+            $where = [
+                'is_del'    => 0,
+                'worder_id' => $worder['worder_id'],
+                'order_sn'  => $worder['order_sn'],
+                'osku_id'   => $worder['osku_id'],
+            ];
+            $incomeModel = db('store_service_income');
+            $exist = $incomeModel->where($where)->find();
+            if (!$exist) {
+                $amount = $worder['install_price'];
+                $data = [
+                    'store_id'      => $worder['store_id'],
+                    'worder_id'     => $worder['worder_id'],
+                    'worder_sn'     => $worder['worder_sn'],
+                    'order_sn'      => $worder['order_sn'],
+                    'osku_id'       => $worder['osku_id'],
+                    'goods_id'      => $worder['goods_id'],
+                    'sku_id'        => $worder['sku_id'],
+                    'installer_id'  => $worder['installer_id'],
+                    'install_amount'=> $amount,
+                    'income_status' => 0,
+                    'add_time'      => time(),
+                    'update_time'   => time(),
+                ];
+                $logId = $incomeModel->insertGetId($data);
+                if ($logId) {
+                    //修改商户账户收益信息
+                    $financeModel = new \app\common\model\StoreFinance();
+                    $params = [
+                        'pending_amount'=> $amount,
+                        'total_amount'  => $amount,
+                    ];
+                    $result = $financeModel->financeChange($worder['store_id'], $params, '工单完成,计算收益', $worder['worder_sn']);
+                }
+            }
             //操作日志记录
             $this->worderLog($worder, $user, '确认完成');
             return TRUE;
@@ -254,6 +294,48 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
+    public function TEST($worder, $assessId, $user)
+    {
+        //评论后，服务商安装服务费结算
+        $where = [
+            'is_del'    => 0,
+            'worder_id' => $worder['worder_id'],
+            'order_sn'  => $worder['order_sn'],
+            'osku_id'   => $worder['osku_id'],
+            'income_status' => 0,
+        ];
+        $incomeModel = db('store_service_income');
+        $exist = $incomeModel->where($where)->find();
+        if ($exist) {
+            $assessId = 1;
+            #TODO 根据评价数据计算得分
+            $installAmount = $exist['install_amount'];
+            $score = 70;
+            $amount = $installAmount * $score/100;
+            $data = [
+                'assess_id'     => $assessId,
+                'score'         => $score,
+                'income_amount' => $amount,
+                'income_status' => 1,
+                'update_time'   => time(),
+            ];
+            $logId = $incomeModel->where(['log_id' => $exist['log_id']])->update($data);
+            if ($logId) {
+                //修改商户账户收益信息
+                $financeModel = new \app\common\model\StoreFinance();
+                $params = [
+                    'amount'        => $amount,//可提现金额
+                    'pending_amount'=> -$installAmount,//待结算金额(减去预安装金额)
+                    'total_amount'  => $amount,
+                ];
+                if ($amount < $installAmount) {
+                    $params['total_amount'] = - ($installAmount - $amount);
+                }
+                $result = $financeModel->financeChange($exist['store_id'], $params, '工单完成评价,结算收益', $worder['worder_sn']);
+            }
+        }
+    }
+    
     /**
      * 取消工单操作
      * @param int $worderId

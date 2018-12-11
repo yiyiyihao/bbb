@@ -10,7 +10,6 @@ class Security extends Store
         $this->modelName = 'Security';
         $this->model = model('store');
         parent::__construct();
-        $this->search= self::_searchData();
         unset($this->subMenu['add']);
     }
     function _assignInfo($pkId = 0)
@@ -46,6 +45,10 @@ class Security extends Store
             if($name){
                 $where['S.name'] = ['like','%'.$name.'%'];
             }
+            $type = isset($params['type']) ? intval($params['type']) : '';
+            if($type){
+                $where['S.store_type'] = $type;
+            }
             $uname = isset($params['uname']) ? trim($params['uname']) : '';
             if($uname){
                 $where['S.user_name|S.mobile'] = ['like','%'.$uname.'%'];
@@ -57,7 +60,13 @@ class Security extends Store
      * 列表搜索配置
      */
     function _searchData(){
+        $types = [
+            STORE_CHANNEL =>'渠道商',
+            STORE_DEALER =>'零售商',
+        ];
+        $this->assign('types', $types);
         $search = [
+            ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==商户类型=='],
             ['type' => 'input', 'name' =>  'name', 'value' => '商户名称', 'width' => '30'],
             ['type' => 'input', 'name' =>  'uname', 'value' => '联系人姓名/电话', 'width' => '30'],
         ];

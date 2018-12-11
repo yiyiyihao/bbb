@@ -1,7 +1,7 @@
 <?php
 namespace app\common\controller;
 use think\Request;
-//商品规格管理
+//产品规格管理
 class Gspec extends FormBase
 {
     public function __construct()
@@ -9,8 +9,6 @@ class Gspec extends FormBase
         $this->modelName = 'goods_spec';
         $this->model = db($this->modelName);
         parent::__construct();
-        $this->search= self::_searchData();
-        $this->table = self::_tableData();
     }
     function _getField(){
         $field = 'GS.*';

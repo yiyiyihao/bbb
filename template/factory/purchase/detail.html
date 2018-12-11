@@ -120,7 +120,7 @@ $(function(){
 	
 	function addCart(action){
 		if(!checkSpec()){
-			layer.msg("请选择商品规格");
+			layer.msg("请选择产品规格");
 			return;
 		}
 		var skuid = $("#skuid").val();
@@ -130,11 +130,11 @@ $(function(){
 		}
 		var nums = $(".nums").val();
 		if($.trim(goods_id)==0){
-	     	layer.alert("购买商品不存在");
+	     	layer.alert("购买产品不存在");
 			return;
 		}
 		if($.trim(nums) <= 0){
-	     	layer.alert("购买商品数量不能小于1");
+	     	layer.alert("购买产品数量不能小于1");
 			return;
 		}
 		if($.trim(nums) > goods_total){

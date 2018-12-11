@@ -20,12 +20,12 @@
                     </div>
                     <div class="form-group">
 						<div class="label">
-							<label>售后类型{$service['service_type']}</label>
+							<label>售后类型</label>
 						</div>
 						<div class="field">
 							<select class="input" name="service_type" id="service_type" datatype="*" nullmsg="请选择售后类型！">
 								{volist name="types" id="type"}
-									<option value="{$key}" {if condition="$service && $service['service_type'] == $key" }selected="selected"{/if} >{$type}</option> 
+									<option value="{$key}" {if condition="isset($service) && $service && $service['service_type'] == $key" }selected="selected"{/if} >{$type}</option> 
 								{/volist}
 							</select>
 							<div class="input-note">请选择售后类型</div>
@@ -44,7 +44,7 @@
                             <label>产品数量</label>
                         </div>
                         <div class="field">
-                            <input type="number" class="input" id="num" name="num" min="1" max="{$osku['num']}" size="20" value="{$service.num ? $service.num: $osku['num']}">
+                            <input type="number" disabled="disabled" class="input" id="num" name="num" min="1" max="{$osku['num']}" size="20" value="{$service.num ? $service.num: $osku['num']}">
                             <div class="input-note"></div>
                         </div>
                     </div>  
@@ -53,7 +53,7 @@
                             <label>退款金额</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="amount" name="amount" size="12" value="{$service.refund_amount ? $service.refund_amount: $osku['real_amount']}">元
+                            <input type="text" disabled="disabled" class="input" id="amount" name="amount" size="12" value="{$service.refund_amount ? $service.refund_amount: $osku['real_amount']}">元
                             <div class="input-note"></div>
                         </div>
                     </div>     
@@ -62,7 +62,7 @@
 			              <label>退款说明</label>
 			            </div>
 			            <div class="field">
-			              <textarea class="input" id="remark" datatype="*" name="remark" rows="5" cols="60">{$service.remark}</textarea>
+			              <textarea class="input" id="remark" datatype="*" name="remark" rows="5" cols="60">{$service.remark ?? ''}</textarea>
 			            </div>
 			        </div>
 			        <div class="form-group">
@@ -102,7 +102,7 @@
 			              <label>拒绝理由</label>
 			            </div>
 			            <div class="field">
-			              <textarea class="input" disabled="disabled" rows="5" cols="60">{$service.admin_remark}</textarea>
+			              <textarea class="input" disabled="disabled" rows="5" cols="60">{$service.admin_remark ?? ''}</textarea>
 			            </div>
 			        </div>
 		            {/if}

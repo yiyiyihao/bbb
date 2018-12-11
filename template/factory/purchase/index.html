@@ -19,17 +19,17 @@
     <table id="table" class="table table-hover ">
       <tbody>
         <tr>
-          <th width="*">商品名称</th>
-          <th width="100">商品类型</th>
-          <th width="*">商品金额</th>
-          <th width="*">商品图片</th>
+          <th width="*">产品名称</th>
+          <th width="100">产品类型</th>
+          <th width="*">产品金额</th>
+          <th width="*">产品图片</th>
           <th width="130">操作</th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo"}
             <tr>
               <td>{$vo['name']}</td>
-              <td>{$vo.goods_type == 1 ? '普通商品' : '样品'}</td>
+              <td>{$vo.goods_type == 1 ? '普通产品' : '样品'}</td>
               <td>
               	{$vo.min_price + $vo.install_price}
               	{if condition="$vo.min_price != $vo.max_price"}

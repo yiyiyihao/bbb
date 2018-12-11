@@ -14,9 +14,6 @@ class Assess extends AdminForm
             $this->error(lang('NO ACCESS'));
         }
         $this->configKey = CONFIG_WORKORDER_ASSESS;
-        $this->search= self::_searchData();
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
     }
     function _getData()
     {

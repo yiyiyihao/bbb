@@ -9,9 +9,6 @@ class Gcate extends FormBase
         $this->modelName = 'goods_cate';
         $this->model = db($this->modelName);
         parent::__construct();
-        $this->search= self::_searchData();
-        $this->table = self::_tableData();
-        $this->field = self::_fieldData();
     }
     function _afterList($list)
     {
@@ -76,10 +73,10 @@ class Gcate extends FormBase
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);
-        //判断当前分类下是否存在商品
+        //判断当前分类下是否存在产品
         $block = db('goods')->where(['cate_id' => $pkId, 'is_del' => 0, 'store_id' => $info['store_id']])->find();
         if ($block) {
-            $this->error('分类下存在商品，不允许删除');
+            $this->error('分类下存在产品，不允许删除');
         }
         parent::del();
     }

@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-10 19:58:40
+Date: 2018-12-11 18:49:32
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -99,7 +99,7 @@ CREATE TABLE `wja_auth_rule` (
   `update_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=113 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
+) ENGINE=MyISAM AUTO_INCREMENT=115 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='权限节点';
 
 -- ----------------------------
 -- Records of wja_auth_rule
@@ -186,11 +186,11 @@ INSERT INTO `wja_auth_rule` VALUES ('79', '1', 'factory', 'channel', 'manager', 
 INSERT INTO `wja_auth_rule` VALUES ('80', '1', 'factory', 'dealer', 'manager', '零售商管理员设置', '', '14', '1', '24', '0', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('81', '1', 'factory', 'servicer', 'manager', '服务商管理员设置', '', '14', '1', '34', '0', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('82', '1', 'factory', 'suborder', 'index', '零售商订单', '', '60', '1', '30', '1', '1', '1543974007', '1543974007', '0');
-INSERT INTO `wja_auth_rule` VALUES ('83', '1', 'factory', 'message', 'index', '系统消息管理', '', '7', '1', '10', '1', '1', '1543974007', '1543974007', '0');
-INSERT INTO `wja_auth_rule` VALUES ('84', '1', 'factory', 'message', 'add', '新增系统消息', '', '7', '1', '11', '0', '1', '1543974007', '1543974007', '0');
-INSERT INTO `wja_auth_rule` VALUES ('85', '1', 'factory', 'message', 'edit', '编辑系统消息', '', '7', '1', '12', '0', '1', '1543974007', '1543974007', '0');
-INSERT INTO `wja_auth_rule` VALUES ('86', '1', 'factory', 'message', 'publish', '发布系统消息', '', '7', '1', '13', '0', '1', '1543974007', '1543974007', '0');
-INSERT INTO `wja_auth_rule` VALUES ('87', '1', 'factory', 'message', 'del', '删除系统消息', '', '7', '1', '14', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('83', '1', 'factory', 'bulletin', 'index', '公告管理', '', '7', '1', '10', '1', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('84', '1', 'factory', 'bulletin', 'add', '新增公告', '', '7', '1', '11', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('85', '1', 'factory', 'bulletin', 'edit', '编辑公告', '', '7', '1', '12', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('86', '1', 'factory', 'bulletin', 'publish', '发布公告', '', '7', '1', '13', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('87', '1', 'factory', 'bulletin', 'del', '删除公告', '', '7', '1', '14', '0', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('88', '1', 'factory', 'commission', 'index', '收益明细', '', '15', '1', '20', '1', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('89', '1', 'admin', 'assess', 'index', '评价系统配置', '', '33', '1', '20', '1', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('90', '1', 'factory', 'suborder', 'detail', '零售商订单查看', '', '60', '1', '40', '0', '1', '1543974007', '1543974007', '0');
@@ -216,6 +216,40 @@ INSERT INTO `wja_auth_rule` VALUES ('109', '1', 'factory', 'service', 'detail', 
 INSERT INTO `wja_auth_rule` VALUES ('110', '1', 'factory', 'service', 'cancel', '取消售后', '', '60', '1', '60', '0', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('111', '1', 'factory', 'service', 'cancel', '取消售后', '', '70', '1', '60', '0', '1', '1543974007', '1543974007', '0');
 INSERT INTO `wja_auth_rule` VALUES ('112', '1', 'factory', 'service', 'delivery', '填写退货物流', '', '60', '1', '70', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('113', '1', 'factory', 'service', 'refund', '售后退款', '', '70', '1', '70', '0', '1', '1543974007', '1543974007', '0');
+INSERT INTO `wja_auth_rule` VALUES ('114', '1', 'factory', 'bulletin', 'detail', '公告详情', '', '7', '1', '15', '0', '1', '1543974007', '1543974007', '0');
+
+-- ----------------------------
+-- Table structure for wja_bulletin
+-- ----------------------------
+DROP TABLE IF EXISTS `wja_bulletin`;
+CREATE TABLE `wja_bulletin` (
+  `bulletin_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID',
+  `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '新增用户账户ID',
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT '公告标题',
+  `special_display` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '特殊展示场景:1登录后弹窗显示',
+  `description` varchar(1000) NOT NULL DEFAULT '' COMMENT '公告描述',
+  `content` text NOT NULL COMMENT '公告内容',
+  `store_type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '接收公告商户类型(1厂商 2渠道商 3零售商/零售商 4服务商)',
+  `region_ids` varchar(255) NOT NULL DEFAULT '' COMMENT '指定区域接收通知(多个区域id用英文逗号分隔)',
+  `region_json` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定区域信息(区域id,区域名称),json格式保存',
+  `to_store_ids` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定接收公告的商户ID(多个用英文逗号分隔)',
+  `is_top` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否置顶',
+  `publish_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '发布时间',
+  `publish_status` tinyint(1) unsigned DEFAULT '0' COMMENT '发布状态(1已发布0未发布)',
+  `sort_order` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '排序',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0禁用 1正常)',
+  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`bulletin_id`) USING BTREE,
+  KEY `store_id` (`store_id`) USING BTREE
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='公告数据表';
+
+-- ----------------------------
+-- Records of wja_bulletin
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for wja_channel_grade
@@ -265,7 +299,7 @@ CREATE TABLE `wja_config` (
 -- ----------------------------
 INSERT INTO `wja_config` VALUES ('1', '1', 'config_workorder_assess', '服务态度', '5', '1544079691', '1544079691', '1', '1', '0');
 INSERT INTO `wja_config` VALUES ('2', '1', 'config_workorder_assess', '专业技能', '5', '1544079783', '1544079933', '1', '1', '0');
-INSERT INTO `wja_config` VALUES ('3', '1', 'system_default', '系统默认配置', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"8\",\"withdraw_min_amount\":\"50\",\"withdrawal_work_day\":\"7\"}', '1544155010', '1544237572', '1', '1', '0');
+INSERT INTO `wja_config` VALUES ('3', '1', 'system_default', '系统默认配置', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"8\",\"withdraw_min_amount\":\"50\",\"withdrawal_work_day\":\"7\",\"ordersku_return_limit\":\"2\"}', '1544155010', '1544497054', '1', '1', '0');
 
 -- ----------------------------
 -- Table structure for wja_file
@@ -353,7 +387,7 @@ CREATE TABLE `wja_form_model` (
   `add_time` int(13) unsigned DEFAULT NULL,
   `update_time` int(13) unsigned DEFAULT NULL,
   PRIMARY KEY (`model_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_form_model
@@ -371,6 +405,8 @@ INSERT INTO `wja_form_model` VALUES ('10', '服务商管理', 'store_servicer', 
 INSERT INTO `wja_form_model` VALUES ('11', '安装员管理', 'user_installer', '', '1', '0', null, '1544149645', '1544149645');
 INSERT INTO `wja_form_model` VALUES ('12', '返佣明细表', 'store_commission', '', '1', '0', null, '1544100306', '1544100306');
 INSERT INTO `wja_form_model` VALUES ('13', '售后订单', 'order_sku_service', '', '1', '0', null, '1544424419', '1544424428');
+INSERT INTO `wja_form_model` VALUES ('14', '服务商收益表', 'store_service_income', '', '1', '0', null, '1544511261', '1544511261');
+INSERT INTO `wja_form_model` VALUES ('15', '公告管理', 'bulletin', '', '1', '0', null, '1544522778', '1544522787');
 
 -- ----------------------------
 -- Table structure for wja_form_table
@@ -393,7 +429,7 @@ CREATE TABLE `wja_form_table` (
   `add_time` int(13) unsigned DEFAULT NULL,
   `update_time` int(13) unsigned DEFAULT NULL,
   PRIMARY KEY (`table_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=87 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=101 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_form_table
@@ -440,7 +476,7 @@ INSERT INTO `wja_form_table` VALUES ('39', '8', 'security_money', '保证金金�
 INSERT INTO `wja_form_table` VALUES ('40', '2', 'domain', '二级域名', '100', '1', null, '', '15', '1', '0', '0', '0', '1544147968', '1544147968');
 INSERT INTO `wja_form_table` VALUES ('41', '8', 'name', '渠道名称', '*', '1', null, '', '20', '1', '0', '0', '0', '1544148133', '1544148133');
 INSERT INTO `wja_form_table` VALUES ('42', '8', 'user_name', '联系人姓名', '100', '1', null, '', '30', '1', '0', '0', '0', '1544148175', '1544257165');
-INSERT INTO `wja_form_table` VALUES ('43', '8', 'phone', '联系电话', '150', '1', null, '', '40', '1', '0', '0', '0', '1544148200', '1544257170');
+INSERT INTO `wja_form_table` VALUES ('43', '8', 'mobile', '联系电话', '150', '1', null, '', '40', '1', '0', '0', '0', '1544148200', '1544521721');
 INSERT INTO `wja_form_table` VALUES ('44', '8', 'username', '管理员账号', '100', '1', null, '', '90', '1', '0', '0', '0', '1544148223', '1544148223');
 INSERT INTO `wja_form_table` VALUES ('45', '9', '', '编号', '60', '3', null, '', '10', '1', '0', '0', '0', '1544148337', '1544148337');
 INSERT INTO `wja_form_table` VALUES ('46', '9', 'name', '零售商名称', '*', '1', null, '', '20', '1', '0', '0', '0', '1544148370', '1544148370');
@@ -448,13 +484,13 @@ INSERT INTO `wja_form_table` VALUES ('47', '9', 'cname', '所属渠道', '*', '1
 INSERT INTO `wja_form_table` VALUES ('48', '8', 'sname', '所属厂商', '*', '1', null, '', '15', '1', '0', '0', '0', '1544148510', '1544148510');
 INSERT INTO `wja_form_table` VALUES ('49', '9', 'sname', '所属厂商', '*', '1', null, '', '25', '1', '0', '0', '0', '1544148663', '1544148663');
 INSERT INTO `wja_form_table` VALUES ('50', '9', 'user_name', '联系人姓名', '100', '1', null, '', '50', '1', '0', '0', '0', '1544148759', '1544148759');
-INSERT INTO `wja_form_table` VALUES ('51', '9', 'phone', '联系电话', '150', '1', null, '', '60', '1', '0', '0', '0', '1544148785', '1544148785');
+INSERT INTO `wja_form_table` VALUES ('51', '9', 'mobile', '联系电话', '150', '1', null, '', '60', '1', '0', '0', '0', '1544148785', '1544521888');
 INSERT INTO `wja_form_table` VALUES ('52', '9', 'username', '管理员账号', '100', '1', null, '', '70', '1', '0', '0', '0', '1544148823', '1544148823');
 INSERT INTO `wja_form_table` VALUES ('53', '10', '', '编号', '60', '3', null, '', '10', '1', '0', '0', '0', '1544148997', '1544148997');
 INSERT INTO `wja_form_table` VALUES ('54', '10', 'name', '服务商名称', '*', '1', null, '', '20', '1', '0', '0', '0', '1544149017', '1544149017');
 INSERT INTO `wja_form_table` VALUES ('55', '10', 'sname', '所属厂商', '*', '1', null, '', '30', '1', '0', '0', '0', '1544149033', '1544149033');
 INSERT INTO `wja_form_table` VALUES ('56', '10', 'user_name', '联系人姓名', '100', '1', null, '', '40', '1', '0', '0', '0', '1544149061', '1544149061');
-INSERT INTO `wja_form_table` VALUES ('57', '10', 'phone', '联系电话', '150', '1', null, '', '50', '1', '0', '0', '0', '1544149082', '1544149082');
+INSERT INTO `wja_form_table` VALUES ('57', '10', 'mobile', '联系电话', '150', '1', null, '', '50', '1', '0', '0', '0', '1544149082', '1544521777');
 INSERT INTO `wja_form_table` VALUES ('58', '10', 'username', '管理员账号', '100', '1', null, '', '80', '1', '0', '0', '0', '1544149108', '1544257073');
 INSERT INTO `wja_form_table` VALUES ('59', '11', '', '编号', '60', '3', null, '', '10', '1', '0', '0', '0', '1544149679', '1544149679');
 INSERT INTO `wja_form_table` VALUES ('60', '11', 'fname', '所属厂商', '*', '1', null, '', '20', '1', '0', '0', '0', '1544149723', '1544149723');
@@ -484,6 +520,20 @@ INSERT INTO `wja_form_table` VALUES ('83', '13', 'sname', '商户名称', '*', '
 INSERT INTO `wja_form_table` VALUES ('84', '13', 'mobile', '联系电话', '140', '1', null, '', '90', '1', '0', '0', '0', '1544425914', '1544425914');
 INSERT INTO `wja_form_table` VALUES ('85', '13', 'username', '操作用户', '130', '1', null, '', '70', '1', '0', '0', '0', '1544425939', '1544427506');
 INSERT INTO `wja_form_table` VALUES ('86', '13', 'service_status', '售后状态', '140', '2', null, 'get_service_status', '100', '1', '0', '0', '0', '1544426496', '1544426810');
+INSERT INTO `wja_form_table` VALUES ('87', '14', 'worder_sn', '工单编号', '*', '1', null, '', '10', '1', '0', '0', '0', '1544511284', '1544511284');
+INSERT INTO `wja_form_table` VALUES ('88', '14', 'realname', '安装工程师', '*', '1', null, '', '20', '1', '0', '0', '0', '1544511306', '1544511306');
+INSERT INTO `wja_form_table` VALUES ('89', '14', 'gname', '安装产品名称', '*', '1', null, '', '30', '1', '0', '0', '0', '1544511331', '1544511331');
+INSERT INTO `wja_form_table` VALUES ('90', '14', 'install_amount', '预安装费', '100', '1', null, '', '40', '1', '0', '0', '0', '1544511366', '1544511366');
+INSERT INTO `wja_form_table` VALUES ('91', '14', 'income_amount', '实得安装费', '120', '1', null, '', '50', '1', '0', '0', '0', '1544511408', '1544511408');
+INSERT INTO `wja_form_table` VALUES ('92', '14', 'income_status', '收益状态', '120', '2', null, 'get_commission_status', '60', '1', '0', '0', '0', '1544511449', '1544511449');
+INSERT INTO `wja_form_table` VALUES ('93', '14', 'add_time', '工单完成时间', '130', '2', null, 'time_to_date', '70', '1', '0', '0', '0', '1544511474', '1544511474');
+INSERT INTO `wja_form_table` VALUES ('94', '15', 'name', '公告标题', '*', '1', null, '', '10', '1', '0', '0', '0', '1544522813', '1544522813');
+INSERT INTO `wja_form_table` VALUES ('95', '15', 'publish_time', '发布时间', '140', '2', null, 'time_to_date', '60', '1', '0', '0', '0', '1544522856', '1544524926');
+INSERT INTO `wja_form_table` VALUES ('96', '15', 'store_type', '可见用户', '*', '2', null, 'get_store_type', '30', '1', '0', '0', '0', '1544522896', '1544522896');
+INSERT INTO `wja_form_table` VALUES ('97', '15', 'is_top', '是否置顶', '100', '2', null, 'get_status', '40', '1', '0', '0', '0', '1544523287', '1544524998');
+INSERT INTO `wja_form_table` VALUES ('98', '15', 'publish_status', '发布状态', '100', '2', null, 'get_publish_status', '50', '1', '0', '0', '0', '1544523514', '1544523520');
+INSERT INTO `wja_form_table` VALUES ('99', '15', '', '编号', '60', '3', null, '', '1', '1', '0', '0', '0', '1544523549', '1544523549');
+INSERT INTO `wja_form_table` VALUES ('100', '15', 'description', '公告描述', '*', '1', null, '', '20', '1', '0', '0', '0', '1544524911', '1544524918');
 
 -- ----------------------------
 -- Table structure for wja_goods
@@ -523,7 +573,7 @@ CREATE TABLE `wja_goods` (
 INSERT INTO `wja_goods` VALUES ('1', '1', '2', '1', '2', '无规格样品测试', '11111111', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"]', '19.90', '19.90', '0.00', '9', '', '		                  			                  			                  			                  			                  			                  		                  		                  		                  		                  ', '2', '1', '1', '0', '1544089567', '1544091375', null, '1', '5');
 INSERT INTO `wja_goods` VALUES ('2', '1', '2', '1', '2', '有规格样品测试', '22222222', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"]', '9.90', '15.00', '0.00', '20', '', '		                  			                  			                  			                  		                  		                  ', '0', '1', '1', '0', '1544089826', '1544090046', '[{\"specid\":\"1\",\"specname\":\"容量\",\"list\":[\"32G\"]},{\"specid\":\"2\",\"specname\":\"颜色\",\"list\":[\"黑色\",\"灰色\"]}]', '1', '1');
 INSERT INTO `wja_goods` VALUES ('3', '1', '2', '1', '1', '无规格普通商品', '33333333', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"]', '12.20', '12.20', '120.00', '10', '', '		                  			                  			                  			                  		                  		                  ', '0', '1', '1', '0', '1544089910', '1544091532', null, '1', '0');
-INSERT INTO `wja_goods` VALUES ('4', '1', '2', '1', '1', '有规格普通商品测试', '44444444', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"]', '10.00', '12.50', '100.00', '40', '', '', '3', '1', '1', '0', '1544089950', '1544406788', '[{\"specid\":\"1\",\"specname\":\"容量\",\"list\":[\"32G\",\"64G\"]},{\"specid\":\"2\",\"specname\":\"颜色\",\"list\":[\"黑色\",\"灰色\"]}]', '1', '0');
+INSERT INTO `wja_goods` VALUES ('4', '1', '2', '1', '1', '有规格普通商品测试', '44444444', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"]', '10.00', '12.50', '100.00', '40', '', '		                  			                  ', '3', '1', '1', '0', '1544089950', '1544491485', '[{\"specid\":\"1\",\"specname\":\"容量\",\"list\":[\"32G\",\"64G\"]},{\"specid\":\"2\",\"specname\":\"颜色\",\"list\":[\"黑色\",\"灰色\"]}]', '2', '0');
 
 -- ----------------------------
 -- Table structure for wja_goods_cate
@@ -584,10 +634,10 @@ INSERT INTO `wja_goods_sku` VALUES ('1', '1', '1', '1', '2', '', '11111111', '',
 INSERT INTO `wja_goods_sku` VALUES ('2', '1', '2', '1', '2', '', '2222222222', '', '10', '', '', '18.80', '0.00', '0', '255', '1', '1', '0', '1544089836', '1', '1');
 INSERT INTO `wja_goods_sku` VALUES ('3', '1', '3', '1', '1', '', '33333333', '', '10', '', '', '12.20', '120.00', '0', '255', '1', '0', '0', '0', '1', '0');
 INSERT INTO `wja_goods_sku` VALUES ('4', '1', '4', '1', '1', '', '44444444', '', '10', '', '', '16.78', '20.00', '0', '255', '1', '1', '0', '1544090025', '1', '0');
-INSERT INTO `wja_goods_sku` VALUES ('5', '1', '4', '1', '1', '容量:32G 颜色:黑色 ', '44444444-1', '', '10', '32G;黑色', '{\"容量\":\"32G\",\"颜色\":\"黑色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '1', '0');
-INSERT INTO `wja_goods_sku` VALUES ('6', '1', '4', '1', '1', '容量:32G 颜色:灰色 ', '44444444-2', '', '10', '32G;灰色', '{\"容量\":\"32G\",\"颜色\":\"灰色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '1', '0');
-INSERT INTO `wja_goods_sku` VALUES ('7', '1', '4', '1', '1', '容量:64G 颜色:黑色 ', '44444444-3', '', '10', '64G;黑色', '{\"容量\":\"64G\",\"颜色\":\"黑色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '1', '0');
-INSERT INTO `wja_goods_sku` VALUES ('8', '1', '4', '1', '1', '容量:64G 颜色:灰色 ', '44444444-4', '', '10', '64G;灰色', '{\"容量\":\"64G\",\"颜色\":\"灰色\"}', '10.00', '100.00', '0', '255', '1', '0', '0', '0', '1', '0');
+INSERT INTO `wja_goods_sku` VALUES ('5', '1', '4', '1', '1', '容量:32G 颜色:黑色 ', '44444444-1', '', '10', '32G;黑色', '{\"容量\":\"32G\",\"颜色\":\"黑色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '2', '0');
+INSERT INTO `wja_goods_sku` VALUES ('6', '1', '4', '1', '1', '容量:32G 颜色:灰色 ', '44444444-2', '', '10', '32G;灰色', '{\"容量\":\"32G\",\"颜色\":\"灰色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '2', '0');
+INSERT INTO `wja_goods_sku` VALUES ('7', '1', '4', '1', '1', '容量:64G 颜色:黑色 ', '44444444-3', '', '10', '64G;黑色', '{\"容量\":\"64G\",\"颜色\":\"黑色\"}', '12.50', '100.00', '0', '255', '1', '0', '0', '0', '2', '0');
+INSERT INTO `wja_goods_sku` VALUES ('8', '1', '4', '1', '1', '容量:64G 颜色:灰色 ', '44444444-4', '', '10', '64G;灰色', '{\"容量\":\"64G\",\"颜色\":\"灰色\"}', '10.00', '100.00', '0', '255', '1', '0', '0', '0', '2', '0');
 INSERT INTO `wja_goods_sku` VALUES ('9', '1', '2', '1', '2', '容量:32G 颜色:黑色 ', '22222222-1', '', '10', '32G;黑色', '{\"容量\":\"32G\",\"颜色\":\"黑色\"}', '9.90', '0.00', '0', '255', '1', '0', '0', '0', '1', '1');
 INSERT INTO `wja_goods_sku` VALUES ('10', '1', '2', '1', '2', '容量:32G 颜色:灰色 ', '22222222-2', '', '10', '32G;灰色', '{\"容量\":\"32G\",\"颜色\":\"灰色\"}', '15.00', '0.00', '0', '255', '1', '0', '0', '0', '1', '1');
 
@@ -713,12 +763,11 @@ CREATE TABLE `wja_order` (
   PRIMARY KEY (`order_id`) USING BTREE,
   UNIQUE KEY `order_sn` (`order_sn`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order
 -- ----------------------------
-INSERT INTO `wja_order` VALUES ('1', '1', '20181210173805100100211729740', '1', '4', '3', '19.90', '0.00', '19.90', '0.00', '19.90', '1', '', '122121', '1', '2', '88', '河北省 邯郸市 峰峰矿区 3', '1', '1', '0', '2', '1544434685', '0', '1544434698', '1544434698', '1544434698', '', '4', '0', '0');
 
 -- ----------------------------
 -- Table structure for wja_order_log
@@ -737,23 +786,11 @@ CREATE TABLE `wja_order_log` (
   PRIMARY KEY (`log_id`) USING BTREE,
   KEY `order_id` (`order_id`) USING BTREE,
   KEY `order_sn` (`order_sn`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order_log
 -- ----------------------------
-INSERT INTO `wja_order_log` VALUES ('1', '1', '20181210173805100100211729740', '4', 'qudao', '0', '创建订单', '提交购买产品并生成订单', '1544434685');
-INSERT INTO `wja_order_log` VALUES ('2', '1', '20181210173805100100211729740', '2', 'wanjiaan', '0', '支付订单', '', '1544434698');
-INSERT INTO `wja_order_log` VALUES ('3', '1', '20181210173805100100211729740', '2', 'wanjiaan', '0', '确认完成', '支付成功,订单完成', '1544434698');
-INSERT INTO `wja_order_log` VALUES ('4', '1', '20181210173805100100211729740', '4', 'qudao', '1', '申请退款', '111', '1544435185');
-INSERT INTO `wja_order_log` VALUES ('5', '1', '20181210173805100100211729740', '2', 'wanjiaan', '1', '取消申请', '', '1544435205');
-INSERT INTO `wja_order_log` VALUES ('6', '1', '20181210173805100100211729740', '4', 'qudao', '2', '申请退款', '11', '1544435343');
-INSERT INTO `wja_order_log` VALUES ('7', '1', '20181210173805100100211729740', '2', 'wanjiaan', '2', '拒绝退货退款', '拒绝申请', '1544435601');
-INSERT INTO `wja_order_log` VALUES ('8', '1', '20181210173805100100211729740', '4', 'qudao', '2', '申请退款', 'fasdfasdfa', '1544441012');
-INSERT INTO `wja_order_log` VALUES ('9', '1', '20181210173805100100211729740', '2', 'wanjiaan', '2', '同意退货退款', 'sss', '1544441073');
-INSERT INTO `wja_order_log` VALUES ('10', '1', '20181210173805100100211729740', '2', 'wanjiaan', '2', '取消申请', '', '1544441078');
-INSERT INTO `wja_order_log` VALUES ('11', '1', '20181210173805100100211729740', '4', 'qudao', '2', '申请退款', '1dfadsfasdfadsfadf', '1544441416');
-INSERT INTO `wja_order_log` VALUES ('12', '1', '20181210173805100100211729740', '2', 'wanjiaan', '2', '同意退货退款', '同意', '1544441446');
 
 -- ----------------------------
 -- Table structure for wja_order_sku
@@ -784,15 +821,15 @@ CREATE TABLE `wja_order_sku` (
   `add_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
   `stock_reduce_time` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '库存减少时间:1买家拍下减少库存 2买家付款成功减少库存',
+  `return_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否退货退款状态(0可退还 -1已关闭 1已退还)',
   `service_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '售后ID',
   `service_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功 4已取消)',
   PRIMARY KEY (`osku_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order_sku
 -- ----------------------------
-INSERT INTO `wja_order_sku` VALUES ('1', '1', '20181210173805100100211729740', '1', '4', '3', '1', '1', '无规格样品测试', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '', '{\"goods_id\":1,\"store_id\":1,\"cate_id\":2,\"goods_cate\":1,\"goods_type\":2,\"name\":\"\\u65e0\\u89c4\\u683c\\u6837\\u54c1\\u6d4b\\u8bd5\",\"goods_sn\":\"11111111\",\"thumb\":\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\",\"imgs\":[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"],\"min_price\":\"19.90\",\"max_price\":\"19.90\",\"install_price\":\"0.00\",\"goods_stock\":10,\"description\":\"\",\"content\":\"\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t                  \\t\\t                  \\t\\t                  \\t\\t                  \",\"sales\":1,\"sort_order\":1,\"status\":1,\"is_del\":0,\"add_time\":\"2018-12-06 17:46:07\",\"update_time\":\"2018-12-06 18:16:15\",\"specs_json\":[],\"stock_reduce_time\":1,\"sample_purchase_limit\":5,\"sku_id\":1,\"skus\":[]}', '1', '19.90', '0.00', '19.90', '0.00', '19.90', '0', '0', '0', '1544434685', '1544441446', '1', '2', '1');
 
 -- ----------------------------
 -- Table structure for wja_order_sku_delivery
@@ -840,6 +877,7 @@ CREATE TABLE `wja_order_sku_service` (
   `imgs` varchar(2000) NOT NULL DEFAULT '' COMMENT '申请凭证(json格式)',
   `service_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功 4已取消)',
   `refund_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '退款时间',
+  `transfer_no` varchar(255) NOT NULL DEFAULT '' COMMENT '退款转账流水号',
   `is_delivery` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否物流配送',
   `delivery_identif` varchar(25) NOT NULL DEFAULT '',
   `delivery_name` varchar(20) NOT NULL DEFAULT '' COMMENT '退货物流公司',
@@ -852,13 +890,11 @@ CREATE TABLE `wja_order_sku_service` (
   `status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '申请状态(0：禁用 1：正常)',
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`service_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品售后表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品售后表';
 
 -- ----------------------------
 -- Records of wja_order_sku_service
 -- ----------------------------
-INSERT INTO `wja_order_sku_service` VALUES ('1', '345287760049495649', '2', '1', '4', '3', '1', '20181210173805100100211729740', '1', '1', '10.00', '111', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/order_service_20181210174623_basicprofile.jpg\"]', '4', '0', '0', '', '', '', '0', '', '1', '1544435185', '1544435205', '0', '0');
-INSERT INTO `wja_order_sku_service` VALUES ('2', '846887281339102565', '2', '1', '4', '3', '1', '20181210173805100100211729740', '1', '1', '0.56', '1dfadsfasdfadsfadf', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/order_service_20181210174623_basicprofile.jpg\"]', '1', '0', '0', '', '', '', '0', '同意', '1', '1544435343', '1544441446', '0', '0');
 
 -- ----------------------------
 -- Table structure for wja_order_track
@@ -873,14 +909,11 @@ CREATE TABLE `wja_order_track` (
   `time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '操作时间',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '添加时间',
   PRIMARY KEY (`track_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order_track
 -- ----------------------------
-INSERT INTO `wja_order_track` VALUES ('1', '0', '1', '20181210173805100100211729740', '订单已提交, 系统正在等待付款', '1544434685', '1544434685');
-INSERT INTO `wja_order_track` VALUES ('2', '0', '1', '20181210173805100100211729740', '订单已付款, 等待商家发货', '1544434698', '1544434698');
-INSERT INTO `wja_order_track` VALUES ('3', '0', '1', '20181210173805100100211729740', '支付成功,订单完成', '1544434698', '1544434698');
 
 -- ----------------------------
 -- Table structure for wja_payment
@@ -926,7 +959,7 @@ CREATE TABLE `wja_region` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`region_id`) USING BTREE,
   KEY `parent_id` (`parent_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=3228 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=3263 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_region
@@ -4158,6 +4191,41 @@ INSERT INTO `wja_region` VALUES ('3224', '铁门关市', '3219', '255', '0', '1'
 INSERT INTO `wja_region` VALUES ('3225', '台湾省', '1', '255', '0', '1', '0', '0', '0');
 INSERT INTO `wja_region` VALUES ('3226', '香港特别行政区', '1', '255', '0', '1', '0', '0', '0');
 INSERT INTO `wja_region` VALUES ('3227', '澳门特别行政区', '1', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3228', '东城街道', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3229', '南城街道', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3230', '万江街道', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3231', '莞城街道', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3232', '石碣镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3233', '石龙镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3234', '茶山镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3235', '石排镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3236', '企石镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3237', '横沥镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3238', '桥头镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3239', '谢岗镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3240', '东坑镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3241', '常平镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3242', '寮步镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3243', '樟木头镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3244', '大朗镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3245', '黄江镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3246', '清溪镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3247', '塘厦镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3248', '凤岗镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3249', '大岭山镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3250', '长安镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3251', '虎门镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3252', '厚街镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3253', '沙田镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3254', '道滘镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3255', '洪梅镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3256', '麻涌镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3257', '望牛墩镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3258', '中堂镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3259', '高埗镇', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3260', '松山湖管委会', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3261', '虎门港管委会', '2064', '255', '0', '1', '0', '0', '0');
+INSERT INTO `wja_region` VALUES ('3262', '东莞生态园', '2064', '255', '0', '1', '0', '0', '0');
 
 -- ----------------------------
 -- Table structure for wja_store
@@ -4189,11 +4257,11 @@ CREATE TABLE `wja_store` (
 -- ----------------------------
 -- Records of wja_store
 -- ----------------------------
-INSERT INTO `wja_store` VALUES ('1', '0', '1', '万佳安', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg', '', '', '', '1', '1', '1543287954', '1544237216', '0', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"channel_commission_ratio\":\"10\",\"installer_return_ratio\":\"0\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"8\",\"consumer_hotline\":\"400-2569-5252\",\"installer_check\":\"0\"}', '', '', '', '', '0.00');
+INSERT INTO `wja_store` VALUES ('1', '0', '1', '万佳安', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg', '', '', '', '1', '1', '1543287954', '1544519705', '0', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"channel_commission_ratio\":\"10\",\"installer_return_ratio\":\"0\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"15\",\"consumer_hotline\":\"400-2569-5252\",\"installer_check\":\"0\"}', '', '', '', '', '0.00');
 INSERT INTO `wja_store` VALUES ('2', '0', '1', '测试厂商', 'http://pimvhcf3v.bkt.clouddn.com/store_logo_20181127181255_logo1.jpg', '', '', '', '1', '1', '1543288024', '1543313576', '0', '', '', '', '', '', '0.00');
-INSERT INTO `wja_store` VALUES ('3', '1', '2', '万佳安渠道', '', '', '', '', '1', '1', '1543302062', '1543302346', '0', '', '', '', '', '', '0.00');
+INSERT INTO `wja_store` VALUES ('3', '1', '2', '万佳安渠道', '', '111', '222', '', '1', '1', '1543302062', '1544521685', '0', '', '', '', '', '', '0.00');
 INSERT INTO `wja_store` VALUES ('4', '1', '3', '万佳安零售商', '', '', '', '', '1', '1', '1543302246', '1543562065', '0', '', '', '', '', '', '0.00');
-INSERT INTO `wja_store` VALUES ('5', '1', '4', '测试服务商', '', 'AAA', '023-56874582', '', '1', '1', '1543302262', '1544408851', '0', '', '', '', '', '', '0.00');
+INSERT INTO `wja_store` VALUES ('5', '1', '4', '测试服务商', '', 'AAA', '023-56874582', '', '1', '1', '1543302262', '1544521796', '0', '', '', '', '', '', '100.00');
 INSERT INTO `wja_store` VALUES ('6', '1', '3', '测试零售1', '', '测试', '13452147854', '', '1', '1', '1544092565', '1544092565', '0', '', '', '', '', '', '0.00');
 
 -- ----------------------------
@@ -4218,12 +4286,13 @@ CREATE TABLE `wja_store_bank` (
   PRIMARY KEY (`bank_id`),
   KEY `bank_type` (`bank_type`),
   KEY `store_id` (`store_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='商户提现账户数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='商户提现账户数据表';
 
 -- ----------------------------
 -- Records of wja_store_bank
 -- ----------------------------
 INSERT INTO `wja_store_bank` VALUES ('1', '1', '111222198906125469', '小明', '工商银行', '广东省深圳市南山支行', '6222 9800 1357 6125', '3', '4', '1544234228', '1544234256', '1', '1', '0');
+INSERT INTO `wja_store_bank` VALUES ('2', '1', '22', '11', '33', '44', '55', '5', '9', '1544509186', '1544509186', '1', '1', '0');
 
 -- ----------------------------
 -- Table structure for wja_store_channel
@@ -4240,7 +4309,7 @@ CREATE TABLE `wja_store_channel` (
 -- ----------------------------
 -- Records of wja_store_channel
 -- ----------------------------
-INSERT INTO `wja_store_channel` VALUES ('3', '0', '0', '');
+INSERT INTO `wja_store_channel` VALUES ('3', '0', '1717', '湖北省 宜昌市');
 
 -- ----------------------------
 -- Table structure for wja_store_commission
@@ -4254,11 +4323,11 @@ CREATE TABLE `wja_store_commission` (
   `order_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '订单编号',
   `osku_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '订单商品表ID',
   `goods_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `sku_id` int(10) NOT NULL,
+  `sku_id` int(10) unsigned NOT NULL DEFAULT '0',
   `order_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '订单金额',
   `commission_ratio` decimal(5,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '返佣比例(百分比)',
   `income_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '收益金额(返佣金额)',
-  `commission_status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '收益状态(0未入账 1已入账 2已退还)',
+  `commission_status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '收益状态(0待结算 1已结算 2已退还)',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '交易时间',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '到账时间',
   `sort_order` int(1) unsigned NOT NULL DEFAULT '1',
@@ -4266,12 +4335,11 @@ CREATE TABLE `wja_store_commission` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '逻辑删除',
   PRIMARY KEY (`log_id`),
   KEY `store_id` (`store_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='返佣明细表';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='返佣明细表';
 
 -- ----------------------------
 -- Records of wja_store_commission
 -- ----------------------------
-INSERT INTO `wja_store_commission` VALUES ('1', '3', '4', '1', '20181210103624565154719417199', '1', '4', '5', '112.50', '10.00', '11.25', '0', '1544410066', '0', '1', '1', '0');
 
 -- ----------------------------
 -- Table structure for wja_store_dealer
@@ -4323,7 +4391,7 @@ CREATE TABLE `wja_store_finance` (
 -- ----------------------------
 INSERT INTO `wja_store_finance` VALUES ('1', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('2', '0.00', '0.00', '0.00', '0.00');
-INSERT INTO `wja_store_finance` VALUES ('3', '0.00', '0.00', '11.25', '11.25');
+INSERT INTO `wja_store_finance` VALUES ('3', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('4', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('5', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('6', '0.00', '0.00', '0.00', '0.00');
@@ -4342,7 +4410,39 @@ CREATE TABLE `wja_store_servicer` (
 -- ----------------------------
 -- Records of wja_store_servicer
 -- ----------------------------
-INSERT INTO `wja_store_servicer` VALUES ('5', '1338', '江西省 抚州市 东乡县');
+INSERT INTO `wja_store_servicer` VALUES ('5', '1662', '河南省 周口市');
+
+-- ----------------------------
+-- Table structure for wja_store_service_income
+-- ----------------------------
+DROP TABLE IF EXISTS `wja_store_service_income`;
+CREATE TABLE `wja_store_service_income` (
+  `log_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID(收到安装费的商户ID)',
+  `worder_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '工单ID',
+  `worder_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '工单编号',
+  `installer_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '安装工程师',
+  `order_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '安装工单对应订单号',
+  `osku_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '订单商品表ID',
+  `goods_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `sku_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `install_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '预安装费',
+  `assess_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '关联评论ID',
+  `score` decimal(5,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '评价得分',
+  `income_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '收益金额(实际得到安装费金额)',
+  `income_status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '收益状态(0待结算 1已结算 2已退还)',
+  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '交易时间',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '到账时间',
+  `sort_order` int(1) unsigned NOT NULL DEFAULT '1',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0禁用 1启用)',
+  `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`log_id`),
+  KEY `store_id` (`store_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='服务商安装费数据表';
+
+-- ----------------------------
+-- Records of wja_store_service_income
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for wja_store_withdraw
@@ -4379,36 +4479,6 @@ CREATE TABLE `wja_store_withdraw` (
 -- ----------------------------
 
 -- ----------------------------
--- Table structure for wja_sys_message
--- ----------------------------
-DROP TABLE IF EXISTS `wja_sys_message`;
-CREATE TABLE `wja_sys_message` (
-  `msg_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '新增用户账户ID',
-  `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '商户ID',
-  `name` varchar(255) NOT NULL DEFAULT '' COMMENT '公告标题',
-  `special_display` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '特殊展示场景:1登录后弹窗显示',
-  `description` varchar(1000) NOT NULL DEFAULT '' COMMENT '公告描述',
-  `content` text NOT NULL COMMENT '公告内容',
-  `to_store_types` varchar(255) NOT NULL DEFAULT '' COMMENT '接收公告商户类型(1厂商 2渠道商 3零售商/零售商 4服务商),多个用英文逗号分隔',
-  `region_ids` varchar(255) NOT NULL DEFAULT '' COMMENT '指定区域接收通知(多个区域id用英文逗号分隔)',
-  `region_json` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定区域信息(区域id,区域名称),json格式保存',
-  `to_store_ids` varchar(2000) NOT NULL DEFAULT '' COMMENT '指定接收公告的商户ID(多个用英文逗号分隔)',
-  `is_top` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否置顶',
-  `sort_order` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '排序',
-  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0禁用 1正常 2发布)',
-  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-  `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
-  PRIMARY KEY (`msg_id`) USING BTREE,
-  KEY `store_id` (`store_id`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='公告数据表';
-
--- ----------------------------
--- Records of wja_sys_message
--- ----------------------------
-
--- ----------------------------
 -- Table structure for wja_user
 -- ----------------------------
 DROP TABLE IF EXISTS `wja_user`;
@@ -4435,19 +4505,20 @@ CREATE TABLE `wja_user` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`user_id`) USING BTREE,
   KEY `username` (`username`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='前台会员表';
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='前台会员表';
 
 -- ----------------------------
 -- Records of wja_user
 -- ----------------------------
-INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1544231450', '1544231450', '0');
-INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1544433376', '1544433376', '0');
+INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1544521703', '1544521703', '0');
+INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1544522344', '1544522344', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '1', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1544428622', '1544428622', '0');
-INSERT INTO `wja_user` VALUES ('4', '3', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1544441826', '1544441826', '0');
+INSERT INTO `wja_user` VALUES ('4', '3', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1544511726', '1544511726', '0');
 INSERT INTO `wja_user` VALUES ('5', '0', '0', '0', '0', 'xytPju4XCqS6wsoWsVYZiy28H4k0vM', '', '小君', '', '', '', '0.00', '', '2', '1', '1', '1543396294', '1543818381', '1543818381', '0');
 INSERT INTO `wja_user` VALUES ('6', '0', '0', '0', '0', 'lZ1UGtD9JpQ7RxTWxkk14WDUUOotWX', '', '微信昵称', '', '', '', '0.00', '', '1', '1', '1', '1543818409', '1544080134', '1544080134', '0');
-INSERT INTO `wja_user` VALUES ('7', '4', '4', '3', '0', 'lingshou', '8ba8f868ba577b107b8908c11e5c3758', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1544430139', '1544430139', '0');
+INSERT INTO `wja_user` VALUES ('7', '4', '4', '3', '0', 'lingshou', '8ba8f868ba577b107b8908c11e5c3758', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1544502171', '1544502171', '0');
 INSERT INTO `wja_user` VALUES ('8', '4', '6', '3', '0', 'lingshou1', 'ddb26f505418ec290e9fe09953530090', '', '', '', '', '0.00', '', '', '1', '1', '1544092577', '1544092577', '0', '0');
+INSERT INTO `wja_user` VALUES ('9', '5', '5', '4', '0', 'fuwu0', '71b5ae2224384de48378da23c00ce187', '', '', '', '', '0.00', '', '', '1', '1', '1544501785', '1544509125', '1544509125', '0');
 
 -- ----------------------------
 -- Table structure for wja_user_address
@@ -4548,10 +4619,10 @@ CREATE TABLE `wja_user_group` (
 -- ----------------------------
 -- Records of wja_user_group
 -- ----------------------------
-INSERT INTO `wja_user_group` VALUES ('1', '2', '0', '厂商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":83,\"module\":\"factory\",\"controller\":\"message\",\"action\":\"index\"},{\"id\":84,\"module\":\"factory\",\"controller\":\"message\",\"action\":\"add\"},{\"id\":85,\"module\":\"factory\",\"controller\":\"message\",\"action\":\"edit\"},{\"id\":86,\"module\":\"factory\",\"controller\":\"message\",\"action\":\"publish\"},{\"id\":87,\"module\":\"factory\",\"controller\":\"message\",\"action\":\"del\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":10,\"module\":\"factory\",\"controller\":\"system\",\"action\":\"factory\"},{\"id\":96,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"add\"},{\"id\":97,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"edit\"},{\"id\":98,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"del\"},{\"id\":12,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"\"},{\"id\":13,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"index\"},{\"id\":18,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"add\"},{\"id\":19,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"edit\"},{\"id\":20,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"del\"},{\"id\":21,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"spec\"},{\"id\":22,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"index\"},{\"id\":23,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"add\"},{\"id\":24,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"edit\"},{\"id\":25,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"del\"},{\"id\":55,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"index\"},{\"id\":56,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"add\"},{\"id\":57,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"edit\"},{\"id\":58,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"del\"},{\"id\":14,\"module\":\"factory\",\"controller\":\"merchant\",\"action\":\"\"},{\"id\":35,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"index\"},{\"id\":36,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"add\"},{\"id\":37,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"edit\"},{\"id\":38,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"del\"},{\"id\":79,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"manager\"},{\"id\":39,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"index\"},{\"id\":40,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"add\"},{\"id\":41,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"edit\"},{\"id\":42,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"del\"},{\"id\":80,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"manager\"},{\"id\":43,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"index\"},{\"id\":44,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"add\"},{\"id\":45,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"edit\"},{\"id\":46,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"del\"},{\"id\":81,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"manager\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":94,\"module\":\"factory\",\"controller\":\"security\",\"action\":\"index\"},{\"id\":95,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"finance\"},{\"id\":99,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"check\"},{\"id\":16,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"\"},{\"id\":47,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"index\"},{\"id\":48,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"add\"},{\"id\":49,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"edit\"},{\"id\":50,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"del\"},{\"id\":100,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"check\"},{\"id\":17,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"\"},{\"id\":51,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"index\"},{\"id\":52,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"add\"},{\"id\":53,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"edit\"},{\"id\":54,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"del\"},{\"id\":101,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"dispatch\"},{\"id\":102,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"detail\"},{\"id\":103,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"cancel\"},{\"id\":70,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"\"},{\"id\":71,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"index\"},{\"id\":72,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"detail\"},{\"id\":73,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"pay\"},{\"id\":74,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"cancel\"},{\"id\":76,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"delivery\"},{\"id\":77,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"deliverylogs\"},{\"id\":78,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"finish\"},{\"id\":106,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"seller\"},{\"id\":107,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"detail\"},{\"id\":108,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"check\"},{\"id\":111,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"cancel\"}]');
+INSERT INTO `wja_user_group` VALUES ('1', '2', '0', '厂商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":83,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"index\"},{\"id\":84,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"add\"},{\"id\":85,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"edit\"},{\"id\":86,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"publish\"},{\"id\":87,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"del\"},{\"id\":114,\"module\":\"factory\",\"controller\":\"bulletin\",\"action\":\"detail\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":10,\"module\":\"factory\",\"controller\":\"system\",\"action\":\"factory\"},{\"id\":96,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"add\"},{\"id\":97,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"edit\"},{\"id\":98,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"del\"},{\"id\":12,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"\"},{\"id\":13,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"index\"},{\"id\":18,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"add\"},{\"id\":19,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"edit\"},{\"id\":20,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"del\"},{\"id\":21,\"module\":\"factory\",\"controller\":\"goods\",\"action\":\"spec\"},{\"id\":22,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"index\"},{\"id\":23,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"add\"},{\"id\":24,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"edit\"},{\"id\":25,\"module\":\"factory\",\"controller\":\"gcate\",\"action\":\"del\"},{\"id\":55,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"index\"},{\"id\":56,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"add\"},{\"id\":57,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"edit\"},{\"id\":58,\"module\":\"factory\",\"controller\":\"gspec\",\"action\":\"del\"},{\"id\":14,\"module\":\"factory\",\"controller\":\"merchant\",\"action\":\"\"},{\"id\":35,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"index\"},{\"id\":36,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"add\"},{\"id\":37,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"edit\"},{\"id\":38,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"del\"},{\"id\":79,\"module\":\"factory\",\"controller\":\"channel\",\"action\":\"manager\"},{\"id\":39,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"index\"},{\"id\":40,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"add\"},{\"id\":41,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"edit\"},{\"id\":42,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"del\"},{\"id\":80,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"manager\"},{\"id\":43,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"index\"},{\"id\":44,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"add\"},{\"id\":45,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"edit\"},{\"id\":46,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"del\"},{\"id\":81,\"module\":\"factory\",\"controller\":\"servicer\",\"action\":\"manager\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":94,\"module\":\"factory\",\"controller\":\"security\",\"action\":\"index\"},{\"id\":95,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"finance\"},{\"id\":99,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"check\"},{\"id\":16,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"\"},{\"id\":47,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"index\"},{\"id\":48,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"add\"},{\"id\":49,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"edit\"},{\"id\":50,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"del\"},{\"id\":100,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"check\"},{\"id\":17,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"\"},{\"id\":51,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"index\"},{\"id\":52,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"add\"},{\"id\":53,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"edit\"},{\"id\":54,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"del\"},{\"id\":101,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"dispatch\"},{\"id\":102,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"detail\"},{\"id\":103,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"cancel\"},{\"id\":70,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"\"},{\"id\":71,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"index\"},{\"id\":72,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"detail\"},{\"id\":73,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"pay\"},{\"id\":74,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"cancel\"},{\"id\":76,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"delivery\"},{\"id\":77,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"deliverylogs\"},{\"id\":78,\"module\":\"factory\",\"controller\":\"order\",\"action\":\"finish\"},{\"id\":107,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"detail\"},{\"id\":108,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"check\"},{\"id\":106,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"seller\"},{\"id\":111,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"cancel\"},{\"id\":113,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"refund\"}]');
 INSERT INTO `wja_user_group` VALUES ('2', '2', '0', '渠道商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":98,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"del\"},{\"id\":97,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"edit\"},{\"id\":96,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"add\"},{\"id\":14,\"module\":\"factory\",\"controller\":\"merchant\",\"action\":\"\"},{\"id\":39,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"index\"},{\"id\":40,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"add\"},{\"id\":41,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"edit\"},{\"id\":80,\"module\":\"factory\",\"controller\":\"dealer\",\"action\":\"manager\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":88,\"module\":\"factory\",\"controller\":\"commission\",\"action\":\"index\"},{\"id\":92,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"setting\"},{\"id\":93,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"apply\"},{\"id\":60,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"\"},{\"id\":61,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"index\"},{\"id\":62,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"detail\"},{\"id\":63,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"confirm\"},{\"id\":64,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"index\"},{\"id\":69,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"pay\"},{\"id\":65,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"detail\"},{\"id\":66,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"cancel\"},{\"id\":67,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"deliverylogs\"},{\"id\":68,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"finish\"},{\"id\":104,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"return\"},{\"id\":82,\"module\":\"factory\",\"controller\":\"suborder\",\"action\":\"index\"},{\"id\":90,\"module\":\"factory\",\"controller\":\"suborder\",\"action\":\"detail\"},{\"id\":105,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"index\"},{\"id\":109,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"detail\"},{\"id\":110,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"cancel\"},{\"id\":112,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"delivery\"}]');
-INSERT INTO `wja_user_group` VALUES ('3', '2', '0', '零售商/经销商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":98,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"del\"},{\"id\":97,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"edit\"},{\"id\":96,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"add\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":60,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"\"},{\"id\":61,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"index\"},{\"id\":62,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"detail\"},{\"id\":63,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"confirm\"},{\"id\":64,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"index\"},{\"id\":69,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"pay\"},{\"id\":65,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"detail\"},{\"id\":66,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"cancel\"},{\"id\":67,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"deliverylogs\"},{\"id\":68,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"finish\"},{\"id\":104,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"return\"},{\"id\":105,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"index\"},{\"id\":109,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"detail\"},{\"id\":110,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"cancel\"},{\"id\":112,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"delivery\"}]');
-INSERT INTO `wja_user_group` VALUES ('4', '2', '0', '服务商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":11,\"module\":\"factory\",\"controller\":\"system\",\"action\":\"servicer\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":16,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"\"},{\"id\":47,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"index\"},{\"id\":48,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"add\"},{\"id\":49,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"edit\"},{\"id\":50,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"del\"},{\"id\":100,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"check\"},{\"id\":17,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"\"},{\"id\":51,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"index\"},{\"id\":52,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"add\"},{\"id\":53,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"edit\"},{\"id\":54,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"del\"},{\"id\":101,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"dispatch\"},{\"id\":102,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"detail\"},{\"id\":103,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"cancel\"}]');
+INSERT INTO `wja_user_group` VALUES ('3', '2', '0', '零售商/经销商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":96,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"add\"},{\"id\":97,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"edit\"},{\"id\":98,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"del\"},{\"id\":60,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"\"},{\"id\":61,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"index\"},{\"id\":62,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"detail\"},{\"id\":63,\"module\":\"factory\",\"controller\":\"purchase\",\"action\":\"confirm\"},{\"id\":64,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"index\"},{\"id\":69,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"pay\"},{\"id\":66,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"cancel\"},{\"id\":65,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"detail\"},{\"id\":67,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"deliverylogs\"},{\"id\":68,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"finish\"},{\"id\":104,\"module\":\"factory\",\"controller\":\"myorder\",\"action\":\"return\"},{\"id\":105,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"index\"},{\"id\":109,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"detail\"},{\"id\":110,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"cancel\"},{\"id\":112,\"module\":\"factory\",\"controller\":\"service\",\"action\":\"delivery\"}]');
+INSERT INTO `wja_user_group` VALUES ('4', '2', '0', '服务商', '1', '1', '1', '0', '1535715012', '1535715012', '[{\"id\":5,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"\"},{\"id\":6,\"module\":\"factory\",\"controller\":\"index\",\"action\":\"home\"},{\"id\":7,\"module\":\"factory\",\"controller\":\"\",\"action\":\"\"},{\"id\":9,\"module\":\"factory\",\"controller\":\"user\",\"action\":\"index\"},{\"id\":11,\"module\":\"factory\",\"controller\":\"system\",\"action\":\"servicer\"},{\"id\":15,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"\"},{\"id\":59,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"index\"},{\"id\":88,\"module\":\"factory\",\"controller\":\"commission\",\"action\":\"index\"},{\"id\":92,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"setting\"},{\"id\":93,\"module\":\"factory\",\"controller\":\"finance\",\"action\":\"apply\"},{\"id\":16,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"\"},{\"id\":47,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"index\"},{\"id\":48,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"add\"},{\"id\":49,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"edit\"},{\"id\":50,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"del\"},{\"id\":100,\"module\":\"factory\",\"controller\":\"installer\",\"action\":\"check\"},{\"id\":17,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"\"},{\"id\":51,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"index\"},{\"id\":52,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"add\"},{\"id\":53,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"edit\"},{\"id\":54,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"del\"},{\"id\":101,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"dispatch\"},{\"id\":102,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"detail\"},{\"id\":103,\"module\":\"factory\",\"controller\":\"worder\",\"action\":\"cancel\"}]');
 INSERT INTO `wja_user_group` VALUES ('5', '1', '0', '财务', '0', '1', '1', '0', '1535715012', '1535715012', '');
 INSERT INTO `wja_user_group` VALUES ('6', '1', '0', '运营', '0', '1', '1', '0', '1535715012', '1535715012', '');
 INSERT INTO `wja_user_group` VALUES ('7', '1', '0', '客服', '0', '1', '1', '0', '1535715012', '1535715012', '');
@@ -4601,6 +4672,8 @@ CREATE TABLE `wja_work_order` (
   `factory_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '厂商ID',
   `store_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '工单服务商ID',
   `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '工单提交用户ID',
+  `order_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '安装工单关联订单编号',
+  `osku_id` int(10) unsigned NOT NULL DEFAULT '0',
   `goods_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '产品表ID',
   `sku_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '产品属性规格表ID',
   `user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '客户ID',
@@ -4610,7 +4683,7 @@ CREATE TABLE `wja_work_order` (
   `region_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '客户地址所属区域ID',
   `region_name` varchar(255) NOT NULL DEFAULT '' COMMENT '区域名称',
   `address` varchar(255) NOT NULL DEFAULT '' COMMENT '客户地址',
-  `appointment` varchar(50) NOT NULL DEFAULT '' COMMENT '预约服务时间',
+  `appointment` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '预约服务时间',
   `images` text NOT NULL COMMENT '故障图片',
   `fault_desc` text NOT NULL COMMENT '故障报修单:故障描述',
   `sort_order` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '排序',
@@ -4625,7 +4698,10 @@ CREATE TABLE `wja_work_order` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   `install_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '工单预安装费',
   `real_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '实得安装费',
-  PRIMARY KEY (`worder_id`) USING BTREE
+  PRIMARY KEY (`worder_id`) USING BTREE,
+  KEY `worder_sn` (`worder_sn`),
+  KEY `factory_id` (`factory_id`),
+  KEY `store_id` (`store_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单数据表';
 
 -- ----------------------------
@@ -4653,35 +4729,6 @@ CREATE TABLE `wja_work_order_assess` (
 -- ----------------------------
 -- Records of wja_work_order_assess
 -- ----------------------------
-
--- ----------------------------
--- Table structure for wja_work_order_evaluation
--- ----------------------------
-DROP TABLE IF EXISTS `wja_work_order_evaluation`;
-CREATE TABLE `wja_work_order_evaluation` (
-  `eval_id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '工单评价ID',
-  `worder_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '工单ID',
-  `worder_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '工单号',
-  `user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '评价客户ID',
-  `nickname` varchar(255) NOT NULL DEFAULT '' COMMENT '用户昵称',
-  `type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '评价类型: 1首次评价 2追加评价',
-  `msg` varchar(500) NOT NULL DEFAULT '' COMMENT '用户评价内容',
-  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '客户评价时间',
-  PRIMARY KEY (`eval_id`) USING BTREE,
-  KEY `worder_id` (`worder_id`) USING BTREE,
-  KEY `worder_sn` (`worder_sn`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单评价数据表';
-
--- ----------------------------
--- Records of wja_work_order_evaluation
--- ----------------------------
-INSERT INTO `wja_work_order_evaluation` VALUES ('1', '1', '20181205142156268765', '6', 'wanjiaan_fuwu', '1', '', '1543990916');
-INSERT INTO `wja_work_order_evaluation` VALUES ('2', '1', '20181205142156268765', '6', 'wanjiaan_fuwu', '1', '', '1543990985');
-INSERT INTO `wja_work_order_evaluation` VALUES ('3', '1', '20181205142156268765', '6', 'wanjiaan_fuwu', '1', '工程师姓名:13458745870<br>工程师电话:13458745870', '1543991942');
-INSERT INTO `wja_work_order_evaluation` VALUES ('4', '2', '20181205144148914482', '6', 'wanjiaan_fuwu', '1', '', '1543992108');
-INSERT INTO `wja_work_order_evaluation` VALUES ('5', '1', '20181205142156268765', '7', '小君', '1', '', '1543993634');
-INSERT INTO `wja_work_order_evaluation` VALUES ('6', '1', '20181205142156268765', '7', '小君', '1', '', '1543993739');
-INSERT INTO `wja_work_order_evaluation` VALUES ('7', '1', '20181205142156268765', '7', '小君', '1', '', '1543993784');
 
 -- ----------------------------
 -- Table structure for wja_work_order_log

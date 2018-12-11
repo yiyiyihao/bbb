@@ -52,6 +52,10 @@ class System extends AdminForm
             if ($data['withdrawal_work_day'] <= 0){
                 $this->error('提现到账工作日必须大于0');
             }
+            $data['ordersku_return_limit'] = isset($params['ordersku_return_limit']) ? intval($params['ordersku_return_limit']) : 0;
+            if ($data['ordersku_return_limit'] < 0){
+                $this->error('单个产品售后申请次数必须大于等于0');
+            }
             if ($data) {
                 foreach ($data as $key => $value) {
                     $config[$key] = trim($value);

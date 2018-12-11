@@ -6,7 +6,6 @@ class Myorder extends commonOrder
 {
     public $orderSkuModel;
     public $serviceModel;
-    public $returnTime = 0;
     
     public function __construct()
     {
@@ -19,13 +18,6 @@ class Myorder extends commonOrder
         unset($this->subMenu['add']);
         $this->orderSkuModel = db('order_sku');
         $this->serviceModel = new \app\common\model\OrderService();
-        
-        $config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
-        //判断商户是否可提现
-        if ($config && isset($config['order_return_day']) && $config['order_return_day'] > 0) {
-            $this->returnTime = $config['order_return_day'] * 24 * 60 * 60;
-        }
-        $this->assign('returnTime', $this->returnTime);
     }
     public function return()
     {
@@ -53,19 +45,25 @@ class Myorder extends commonOrder
                 $this->error('申请已存在不能重复操作');
             }
         }
-        
         //判断是否在退货退款时间内
-        if ($order['pay_time'] && ($order['pay_time'] + $this->returnTime) <= time()) {
+        if (isset($this->config['returnTime']) && $order['pay_time'] && ($order['pay_time'] + $this->config['returnTime']) <= time()) {
             $this->error('超时不允许退货退款');
         }
-        $osku = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'osku_id' => $oskuId])->find();
+        $osku = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'osku_id' => $oskuId, 'return_status' => 0])->find();
         if (!$osku) {
             $this->error(lang('param_error'));
+        }
+        if (isset($this->config['returnCount']) && $this->config['returnCount']) {
+            //判断售后申请次数
+            $count = $serviceModel->where(['osku_id' => $osku['osku_id']])->count();
+            if ($count && $count >= $this->config['returnCount']) {
+                $this->error(lang('售后申请已达最大次数'));
+            }
         }
         $types = get_service_type();
         if (IS_POST) {
             $params = $this->request->param();
-            $result = $this->serviceModel->createService($order, $osku, $this->adminUser, $params, $service);
+            $result = $this->serviceModel->createService($order, $osku, $this->adminUser, $params, $service, $this->config);
             if ($result === FALSE) {
                 $this->error($this->serviceModel->error);
             }else{
@@ -103,12 +101,12 @@ class Myorder extends commonOrder
         $factoryConfig = $factoryConfig ? json_decode($factoryConfig, 1) : [];
         $factoryConfig['pending_order_cancel_time'] = isset($factoryConfig['pending_order_cancel_time']) ? $factoryConfig['pending_order_cancel_time'] : 30;//未设置默认30分钟
         $detail['cancel_countdown'] = $factoryConfig['pending_order_cancel_time'];
-        //获取订单商品列表
-        $oSkus = $this->model->getOrderSkus($detail['order_sn']);
+        //获取订单产品列表
+        $oSkus = $this->model->getOrderSkus($detail['order_id']);
         if (!$oSkus) {
             $this->error('订单数据异常');
         }
-        $sku = $oSkus[0];//单次仅购买一个商品
+        $sku = $oSkus[0];//单次仅购买一个产品
         $payments = $this->model->getOrderPayments($detail['store_id'], 1);
         $this->assign('order', $detail);
         if ($step == 1) {
@@ -137,7 +135,7 @@ class Myorder extends commonOrder
     }
     function _getWhere(){
         $params = $this->request->param();
-        $where = $this->buildmap($params);
+        $where = $this->_buildmap($params);
         if ($params && !isset($where['O.order_status'])) {
             $where['O.order_status'] = ['neq','4'];
         }
@@ -161,7 +159,7 @@ class Myorder extends commonOrder
         }
         return $where;
     }
-    private function buildmap($param = []){
+    private function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
             'O.user_id' => ADMIN_ID,
@@ -169,6 +167,7 @@ class Myorder extends commonOrder
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;
             $map['O.pay_status'] = $param['pay_status'];
+            $map['O.order_status'] = 1;
         }elseif(isset($param['delivery_status'])){
             if ($param['delivery_status']) {
                 $map['O.delivery_status'] = 2;
@@ -177,8 +176,10 @@ class Myorder extends commonOrder
             }
             $map['O.pay_status'] = 1;
             $map['O.finish_status'] = 0;
+            $map['O.order_status'] = 1;
         }elseif(isset($param['finish_status'])){
             $map['O.finish_status'] = 2;
+            $map['O.order_status'] = 1;
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }
