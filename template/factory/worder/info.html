@@ -76,7 +76,7 @@
                             <label>预约服务时间</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input js-time" datatype="*" id="appointment" name="appointment" size="40" value="{$info['appointment']|date='Y/m/d H:i'}">
+                            <input type="text" class="input js-time" datatype="*" id="appointment" name="appointment" size="20" value="{if isset($info.appointment)}{$info.appointment|date='Y/m/d H:i'}{else}{:date('Y/m/d H:i')}{/if}">
                             <div class="input-note">请填写预约服务时间</div>
                         </div>
                     </div>
