@@ -2,6 +2,11 @@
 namespace app\common\model;
 use think\Model;
 
+/**
+ * 工程师数据模型相关业务处理
+ * @author chany
+ * 
+ */
 class UserInstaller extends Model
 {
     public $error;
@@ -13,6 +18,40 @@ class UserInstaller extends Model
     {
         parent::initialize();
     }
+    //添加工程师评价
+    public function assessAdd($installerId,$configId = '',$value = ''){
+        $scoreModel = db('user_installer_score');
+        $where = [
+            'installer_id'  => $installerId,
+            'config_id'     => $configId,
+        ];
+        //判断该工程师 对应服务项是否有评分
+        $info = $scoreModel->where($where)->find();
+        if($info){
+            //原有总分加本次得分,取平均值,更新数据
+            $value = ($info['value'] + $value)/2;
+            $data = [
+                'value'         => $value,
+                'update_time'   => time(),
+            ];
+            $scoreModel->where($where)->update($data);
+        }else{
+            //新增记录
+            $data = [
+                'installer_id'  => $installerId,
+                'config_id'     => $configId,
+                'value'         => $value,
+                'add_time'      => time(),
+                'update_time'   => time(),
+            ];
+            $scoreModel->insert($data);
+        }
+    }
+    //获取工程师评价
+    public function assessGet($installerId,$configId = ''){
+        #TODO 如果configId 为空 代表取所有评分 如果有 取该服务项评分
+    }
+    //添加工程师
     public function save($data = [], $where = [], $sequence = null)
     {
         parent::checkBeforeSave($data, $where);

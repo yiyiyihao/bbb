@@ -373,6 +373,63 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
+    
+    /**
+     * 工单评价操作
+     * @param array $worder
+     * @param array $user
+     * @param array $assessData 用户提交评价信息
+     */
+    public function worderAssess($worder = [], $user = [], $assessData = []){
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $data = [
+            'worder_id'     =>  $worder['worder_id'],
+            'worder_sn'     =>  $worder['worder_sn'],
+            'installer_id'  =>  $worder['installer_id'],
+            'post_user_id'  =>  $user['user_id'],
+            'nickname'      =>  $nickname,
+            'type'          =>  $assessData['type'],//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'           =>  $assessData['msg'],
+            'add_time'      =>  time(),
+        ];
+        $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
+        if($assessId){
+            //操作日志记录
+            $this->worderLog($worder, $user, '工单评价', $assessData['msg']);
+            switch ($assessData['type']){
+                case 1://首次评价带评分,记录评分信息
+                    $scoreData = $assessData['score'];
+                    if(!$scoreData && !is_array($scoreData)){
+                        foreach ($scoreData as $k=>$v){
+                            //记录单次评分日志
+                            $data = [
+                                'assess_id'     => $assessId,
+                                'installer_id'  => $worder['installer_id'],
+                                'config_id'     => $k,
+                                'value'         => $v,
+                            ];
+                            db('work_order_assess_log')->insert($data);//添加评分日志记录
+                            model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
+                        }
+                        return $assessId;
+                    }else{
+                        return false;
+                    }
+                    break;
+                case 2:
+                    return $assessId;
+                    break;
+                default:
+                    return $assessId;
+            }
+        }else{
+            return false;
+        }
+    }
     /**
      * 工单日志记录操作
      * @param array $worder
