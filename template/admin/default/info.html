@@ -20,7 +20,11 @@
                             <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" formlength="{$vo['length'] ?? 0}" formname="{$vo['name'] ?? ''}" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='{$vo.notetext ?? ""}'></div>
                             {/case}
                         	{case text}
+                            	{if empty(trim($vo.name)) && !empty($vo.disabled)}
+                                <span class="field-text">{$info[$vo.name]|default=$vo.default}</span>
+                                {else}
                         		<input type="text" class="input" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
+                                {/if}
                         	{/case}
                         	{case datetime}
                         		<input type="text" class="input {$vo['class'] ?? ''}" id="{$vo['name'] ?? ''}" name="{$vo['name'] ?? ''}" size="{$vo['size'] ?? ''}" {notempty name="vo.datatype"}datatype="{$vo.datatype}"{/notempty} {notempty name="vo.disabled"} disabled="disabled"{/notempty} value="{$info[$vo.name]|default=$vo.default}">
