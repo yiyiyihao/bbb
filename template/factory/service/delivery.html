@@ -1,0 +1,84 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">退货信息填写</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>配送方式</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            	<label class="button active"><input name="is_delivery" value="1" checked="checked"type="radio">选择第三方配送方式</label>
+                                <label class="button "><input name="is_delivery" value="0" type="radio">无需物流配送</label>
+                            </div>
+                            <div class="input-note">商品发货是否需要物流配送</div>
+                        </div>
+                    </div>
+                    <div class="form-group delivery1">
+                        <div class="label">
+                            <label>物流公司</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="delivery_identif" id="delivery_identif" nullmsg="请选择物流公司！">
+                              <option value="">==请选择物流公司==</option>
+                               {foreach name="deliverys" item="vo"}
+                               <option value="{$vo.identif}" 
+                               {if condition="isset($vo['store_id']) && isset($info['store_id']) && $info['store_id'] == $vo['identif']"}selected="selected"{/if} >{$vo.name}</option>
+                               {/foreach}
+                            </select>
+                            <div class="input-note">请选择物流公司</div>
+                        </div>
+                    </div>
+                    <div class="form-group delivery1">
+                        <div class="label">
+                            <label>物流单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="delivery_sn" name="delivery_sn" size="60" value="">
+                            <div class="input-note">请填写物流单号</div>
+                        </div>
+                    </div>    
+                    <div class="form-group">
+			            <div class="label">
+			              <label>退货信息备注</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="remark" name="remark" rows="5" cols="60"></textarea>
+			              <div class="input-note">请输入退货信息操作备注</div>
+			            </div>
+			          </div>                 
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <div id="tips"></div>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		$("input[name='is_delivery']").change(function(){
+			var is_delivery = $(this).val();
+			if(is_delivery > 0){
+				$('.delivery1').show();
+			}else{
+				$('.delivery1').hide();
+			}
+		});
+    }); 
+</script>

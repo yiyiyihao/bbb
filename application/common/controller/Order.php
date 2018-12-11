@@ -88,6 +88,7 @@ class Order extends FormBase
     }
     public function updatePrice()
     {
+        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
         if (IS_POST) {

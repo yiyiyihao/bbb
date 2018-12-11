@@ -40,7 +40,7 @@
           <th width="100">订单金额</th>
           <th width="100">收货人姓名</th>
           <th width="100">收货人电话</th>
-          <th width="*">收货地址</th>
+          <th width="160">收货地址</th>
           <th width="100">下单时间</th>
           <th width="80">订单状态</th>
           <th width="*">操作</th>
@@ -61,7 +61,7 @@
               	<span class="button-group">
 	              	<a href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-eye">订单查看</a>
 	              	{if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1"}
-	              	<a href="{:url('updatePrice', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-green">调整订单金额</a>
+	              	<!-- <a href="{:url('updatePrice', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-green">调整订单金额</a> -->
 	              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-main icon-edit js-open" title="确认收款">确认收款</a>
 	              	{/if}
 	              	{if condition="$vo['pay_status'] == 0 AND $vo['order_status'] == 1"}

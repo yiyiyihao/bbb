@@ -1,0 +1,128 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">售后申请</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order_sn'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>售后类型{$service['service_type']}</label>
+						</div>
+						<div class="field">
+							<select class="input" name="service_type" id="service_type" datatype="*" nullmsg="请选择售后类型！">
+								{volist name="types" id="type"}
+									<option value="{$key}" {if condition="$service && $service['service_type'] == $key" }selected="selected"{/if} >{$type}</option> 
+								{/volist}
+							</select>
+							<div class="input-note">请选择售后类型</div>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$osku['sku_name'] ?? ''}  {$osku['sku_spec'] ?? ''} ">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品数量</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="num" name="num" min="1" max="{$osku['num']}" size="20" value="{$service.num ? $service.num: $osku['num']}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <div class="label">
+                            <label>退款金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="amount" name="amount" size="12" value="{$service.refund_amount ? $service.refund_amount: $osku['real_amount']}">元
+                            <div class="input-note"></div>
+                        </div>
+                    </div>     
+                    <div class="form-group">
+			            <div class="label">
+			              <label>退款说明</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="remark" datatype="*" name="remark" rows="5" cols="60">{$service.remark}</textarea>
+			            </div>
+			        </div>
+			        <div class="form-group">
+		                <div class="label">
+		                  <label>上传凭证</label>
+		                </div>
+		                <div class="field"> 
+		                	<a class="button bg-main button-small js-multi-upload" data="imgs" id="image_upload" href="javascript:;" >
+		                	<span class="icon-upload"> 批量上传</span></a>
+		                  <div class="input-note note">请上传不大于2M的图片,支持多图上传(仅上传3张)</div>
+		                </div>
+		            </div>
+		            <div class="imagesBox form-group clearfix" id="imgs">
+		            	{if condition="$service && isset($service['imgs'])"}
+		                  {volist name="service.imgs" id="vo" mod="10"}
+		                	<div class="media radius clearfix">
+		                      <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
+		                      <img src="{$vo ?? ''}" >
+		                      <div class="media-body">
+		                      <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
+		                      </div>
+		                  </div>
+		                  {/volist}
+		                  {/if}
+		            </div>
+		            {if condition="$service"}
+		            <div class="form-group">
+                        <div class="label">
+                            <label>处理时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$service['add_time']|date='Y-m-d H:i:s'} ">
+                        </div>
+                    </div>
+		            <div class="form-group">
+			            <div class="label">
+			              <label>拒绝理由</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" disabled="disabled" rows="5" cols="60">{$service.admin_remark}</textarea>
+			            </div>
+			        </div>
+		            {/if}
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'order_service_', 'thumb_type' => 'order_thumb_500'])}",
+        });
+    }); 
+</script>

@@ -1,0 +1,118 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">{:get_service_type($info['service_type'])}审核操作</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order_sn'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>售后类型</label>
+						</div>
+						<div class="field">
+							<input type="text" disabled="disabled" class="input" size="40" value="{:get_service_type($info['service_type'])}">
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sku_name'] ?? ''}  {$info['sku_spec'] ?? ''} ">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品数量</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" disabled="disabled" class="input" id="num" name="num" min="1" max="{$info['num']}" size="60" value="{$info['num']}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <div class="label">
+                            <label>退款金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" id="amount" name="amount" size="12" value="{$info['refund_amount']}">元
+                            <div class="input-note"></div>
+                        </div>
+                    </div>     
+                    <div class="form-group">
+			            <div class="label">
+			              <label>退款说明</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="remark" disabled="disabled"  name="remark" rows="5" cols="60">{$info['remark']}</textarea>
+			            </div>
+			        </div>
+			        <div class="form-group">
+		                <div class="label">
+		                  <label>上传凭证</label>
+		                </div>
+		                <div class="field"> 
+		                	<div class="imagesBox form-group clearfix" id="imgs">
+		                		{if condition="$info && isset($info['imgs'])"}
+				                  {volist name="info.imgs" id="vo" mod="10"}
+				                	<div class="media radius clearfix">
+				                      <img src="{$vo ?? ''}" >
+				                  </div>
+				                  {/volist}
+				                  {/if}
+		            		</div>
+		                </div>
+		            </div>
+		            <div class="form-group">
+                        <div class="label">
+                            <label>审核结果</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <label class="button active"><input name="check_status" value="1" checked="checked" type="radio">同意</label>
+                                <label class="button"><input name="check_status" value="0" type="radio">拒绝</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>备注</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <textarea class="input" name="admin_remark" cols="40" rows="6"></textarea>
+                                <div class="input-note">请输入操作备注</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>

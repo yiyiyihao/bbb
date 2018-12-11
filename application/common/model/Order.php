@@ -33,8 +33,8 @@ class Order extends Model
         }
         $order['_status'] = get_order_status($order);
         $detail['order'] = $order;
-        $field = 'OS.order_sn, OS.goods_id, OS.sku_id, OS.sku_name, OS.sku_thumb, OS.sku_spec, OS.num, OS.price, OS.install_price, OS.pay_price, OS.real_amount';
-        $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn';
+        $field = 'osku_id, OS.order_sn, OS.goods_id, OS.sku_id, OS.sku_name, OS.sku_thumb, OS.sku_spec, OS.num, OS.price, OS.install_price, OS.pay_price, OS.real_amount';
+        $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn, OS.service_id, OS.service_status';
         $where = [
             'OS.order_sn' => $orderSn,
         ];
@@ -45,7 +45,7 @@ class Order extends Model
     }
     /**
      * 订单完成/确认收货操作
-     * @param string $orderSn     子订单号
+     * @param string $orderSn     订单号
      * @param number $storeId   门店ID
      * @param number $userId    操作用户ID
      * @param array $extra      其它参数信息
@@ -101,7 +101,7 @@ class Order extends Model
     }
     /**
      * 订单发货操作
-     * @param string $orderSn     子订单号
+     * @param string $orderSn     订单号
      * @param number $storeId   门店ID
      * @param number $userId    操作用户ID
      * @param array $extra      其它参数信息
@@ -190,9 +190,9 @@ class Order extends Model
         $orderData = [
             'update_time'   => time(),
         ];
-        //获取主订单商品总数
+        //获取订单商品总数
         $orderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
-        //获取主订单发货商品总数
+        //获取订单发货商品总数
         $deliveryOrderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
         if ($orderCounts > $deliveryOrderCounts) {
             $orderData['delivery_status'] = 1;
@@ -259,7 +259,7 @@ class Order extends Model
     }
     /**
      * 订单支付操作
-     * @param string $orderSn   主订单号
+     * @param string $orderSn   订单号
      * @param number $storeId   门店ID
      * @param number $userId    操作用户ID
      * @param array $extra      其它参数信息
@@ -652,7 +652,7 @@ class Order extends Model
     }
     /**
      * 订单跟踪信息入库
-     * @param array $sub            子订单信息
+     * @param array $sub            订单信息
      * @param number $odeliveryId   订单交易物流ID(order_sku_delivery表自增长ID)
      * @param string $remark        备注信息
      * @param string $time          信息跟踪时间
@@ -688,12 +688,13 @@ class Order extends Model
      * @param string $msg
      * @return number|string
      */
-    public function orderLog($order, $user, $action = '', $msg = '')
+    public function orderLog($order, $user, $action = '', $msg = '', $serviceId = 0)
     {
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
             'order_id'  => $order['order_id'],
             'order_sn'  => $order['order_sn'],
+            'service_id'=> $serviceId,
             'user_id'   => $user['user_id'],
             'nickname'  => $nickname,
             'action'    => $action,
@@ -743,7 +744,7 @@ class Order extends Model
     }
     /**
      * 更新快递100数据
-     * @param  string 	$order_sn  子订单号 (必传)
+     * @param  string 	$order_sn  订单号 (必传)
      * @param  string 	$o_d_id  订单物流主键id (必传)
      * @return [boolean]
      */

@@ -187,6 +187,47 @@ function get_delivery($identif = FALSE)
 }
 
 /**
+ * 售后订单类型
+ */
+function get_service_type($type = FALSE){
+    $types = [
+        1 => '仅退款',
+        2 => '退货退款',
+    ];
+    if ($type === FALSE) {
+        return $types;
+    }
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
+}
+/**
+ * 售后订单状态
+ */
+function get_service_status($status = FALSE)
+{
+    //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功 4已取消)
+    $list = [
+        -1 => '已拒绝',
+        0 => '申请中',
+        1 => '待退货',
+        2 => '待退款',
+        3 => '已完成',
+        4 => '已取消',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if (isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
+
+/**
  * 获取订单状态
  * @param  $order    : 订单信息
  * @return [string]

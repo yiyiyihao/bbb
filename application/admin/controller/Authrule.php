@@ -12,7 +12,7 @@ class Authrule extends AdminForm
         if ($this->adminUser['user_id'] != 1) {
             $this->error(lang('NO ACCESS'));
         }
-        $this->perPage = 100;
+        $this->perPage = 150;
     }
         
     public function grant()

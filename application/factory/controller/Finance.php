@@ -34,13 +34,6 @@ class Finance extends FactoryForm
         $this->assign('wstatusList', get_withdraw_status());
     }
     /**
-     * 厂商财务保证金列表
-     */
-    public function cautions()
-    {
-        
-    }
-    /**
      * 厂商审核操作
      */
     public function check()
