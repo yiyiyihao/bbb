@@ -154,13 +154,18 @@ class Worder extends FactoryForm
         $phone = isset($data['phone']) ? trim($data['phone']) : '';
         $address = isset($data['address']) ? trim($data['address']) : '';
         $appointment = isset($data['appointment']) ? trim($data['appointment']) : '';
+        $data['appointment'] = strtotime($appointment);
         $faultDesc = isset($data['fault_desc']) ? trim($data['fault_desc']) : '';
         $regionId = isset($data['region_id']) ? intval($data['region_id']) : '';
         if ($info && in_array($info['status'], [-1, 3, 4])) {
             $this->error('工单当前状态不允许编辑');
         }
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){
-            $this->error('请选择服务商');
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && !$storeId){//如果是厂商,且未选择服务商,根据安装地址分配服务商
+            $storeID = model('servicer')->getStoreFromRegion($regionId);
+            if(!$storeID){
+                $this->error('该区域暂无服务商');
+            }
+            $data['store_id'] = $storeID;
         }
         if (!$orderType) {
             $this->error('请选择工单类型');

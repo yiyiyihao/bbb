@@ -9,22 +9,6 @@
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
                 	{include file="common/factory" /}
-                	{if condition="$adminUser['admin_type'] == $Think.const.admin_factory"}
-                	<div class="form-group">
-						<div class="label">
-							<label>选择服务商</label>
-						</div>
-						<div class="field">
-							<select class="input" name="store_id" id="store_id" datatype="*" nullmsg="请选择服务商！">
-								<option value="">==服务商==</option>
-								{foreach name="stores" item="store" key="key"}
-									<option value="{$store.store_id}" {if condition="isset($info['store_id']) && $info['store_id'] == $store.store_id" }selected="selected"{/if} >{$store.name}</option> 
-								{/foreach}
-							</select>
-							<div class="input-note">请选择服务商</div>
-						</div>
-					</div>
-                	{/if}
                 	<div class="form-group">
 						<div class="label">
 							<label>工单类型</label>
@@ -73,7 +57,7 @@
                             <label>选择区域</label>
                         </div>
                         <div class="field">
-                            <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg=''></div>
+                            <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" formlength="2" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*'></div>
                             <div class="input-note">请选择行政区域</div>
                         </div>
                     </div>
@@ -92,7 +76,7 @@
                             <label>预约服务时间</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input js-time" datatype="*" id="appointment" name="appointment" size="40" value="{$info['appointment'] ?? ''}">
+                            <input type="text" class="input js-time" datatype="*" id="appointment" name="appointment" size="40" value="{$info['appointment']|date='Y/m/d H:i'}">
                             <div class="input-note">请填写预约服务时间</div>
                         </div>
                     </div>

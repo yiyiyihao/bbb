@@ -13,8 +13,7 @@
                             <label>客户名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="40" disabled="disabled" value="{$info['user_name'] ?? ''}">
-                            <div class="input-note">请填写客户名称</div>
+                        	<span class="field-text">{$info['user_name'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -22,8 +21,7 @@
                             <label>客户联系电话</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="40" disabled="disabled"value="{$info['phone'] ?? ''}">
-                            <div class="input-note">请填写联系电话</div>
+                        	<span class="field-text">{$info['phone'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -31,8 +29,7 @@
                             <label>客户联系地址</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="60" disabled="disabled"value="{$info['address'] ?? ''}">
-                            <div class="input-note">请填写客户联系地址</div>
+                        	<span class="field-text">{$info['address'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group js-select" posturl="{:url('Worder/getAjaxList', ['store_id' => $info && $info['store_id'] ? $info['store_id']: 0])}" str="选择售后工程师" searchName="请输入售后工程师名称" formname="installer_id" formvalue='{$info.installer_id ?? 0}'></div>

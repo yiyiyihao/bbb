@@ -305,12 +305,10 @@ $.ajaxSetup({
         this.each(function () {			
 			var defaults = {
 				postUrl: $(this).attr("posturl"),
-				str    : $(this).attr("str"),
 				formstr: $(this).attr("formstr"),
 				name:$(this).attr("formname"),
 				value:$(this).attr("formvalue"),
 				datatype:$(this).attr("validtype"),
-				notmsg:$(this).attr("notmsg"),
 				length:$(this).attr("formlength"),
 			}
 			var options = $.extend(defaults, opt);

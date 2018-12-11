@@ -15,4 +15,16 @@ class Servicer extends Model
 	    $this->table = $this->config['prefix'].'store_servicer';
 	    parent::initialize();
 	}
+	
+	//根据region_id获取店铺id
+	public function getStoreFromRegion($regionId = FALSE){
+	    if(!empty($regionId)){
+	        $where = [
+	            'region_id'=>$regionId,
+	        ];
+	        $info = $this->where($where)->find();
+	        if($info) return $info['store_id'];
+	        return false;
+	    }
+	}
 }
