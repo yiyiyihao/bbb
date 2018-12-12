@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-11 18:49:32
+Date: 2018-12-12 09:49:48
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -245,11 +245,12 @@ CREATE TABLE `wja_bulletin` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
   PRIMARY KEY (`bulletin_id`) USING BTREE,
   KEY `store_id` (`store_id`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='公告数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='公告数据表';
 
 -- ----------------------------
 -- Records of wja_bulletin
 -- ----------------------------
+INSERT INTO `wja_bulletin` VALUES ('1', '2', '2', '11', '1', '22', '		                  	33		                  ', '2', '[\"undefined\"]', '', '', '0', '1544525725', '1', '1', '1', '0', '1544525725', '0');
 
 -- ----------------------------
 -- Table structure for wja_channel_grade
@@ -4510,8 +4511,8 @@ CREATE TABLE `wja_user` (
 -- ----------------------------
 -- Records of wja_user
 -- ----------------------------
-INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1544521703', '1544521703', '0');
-INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1544522344', '1544522344', '0');
+INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1544579036', '1544579036', '0');
+INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1544579059', '1544579059', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '1', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1544428622', '1544428622', '0');
 INSERT INTO `wja_user` VALUES ('4', '3', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1544511726', '1544511726', '0');
 INSERT INTO `wja_user` VALUES ('5', '0', '0', '0', '0', 'xytPju4XCqS6wsoWsVYZiy28H4k0vM', '', '小君', '', '', '', '0.00', '', '2', '1', '1', '1543396294', '1543818381', '1543818381', '0');
@@ -4662,6 +4663,24 @@ CREATE TABLE `wja_user_installer` (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for wja_user_installer_score
+-- ----------------------------
+DROP TABLE IF EXISTS `wja_user_installer_score`;
+CREATE TABLE `wja_user_installer_score` (
+  `score_id` int(10) NOT NULL AUTO_INCREMENT,
+  `installer_id` int(10) NOT NULL COMMENT '工程师ID',
+  `config_id` int(10) NOT NULL COMMENT '对应配置服务评分项ID',
+  `value` float(10,2) NOT NULL COMMENT '对应工程师单项服务项总平均得分',
+  `add_time` int(10) unsigned NOT NULL COMMENT '分值初创时间',
+  `update_time` int(10) NOT NULL COMMENT '分值最后更新时间',
+  PRIMARY KEY (`score_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+
+-- ----------------------------
+-- Records of wja_user_installer_score
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for wja_work_order
 -- ----------------------------
 DROP TABLE IF EXISTS `wja_work_order`;
@@ -4683,7 +4702,7 @@ CREATE TABLE `wja_work_order` (
   `region_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '客户地址所属区域ID',
   `region_name` varchar(255) NOT NULL DEFAULT '' COMMENT '区域名称',
   `address` varchar(255) NOT NULL DEFAULT '' COMMENT '客户地址',
-  `appointment` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '预约服务时间',
+  `appointment` int(10) NOT NULL DEFAULT '0' COMMENT '预约服务时间',
   `images` text NOT NULL COMMENT '故障图片',
   `fault_desc` text NOT NULL COMMENT '故障报修单:故障描述',
   `sort_order` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '排序',
@@ -4716,11 +4735,13 @@ CREATE TABLE `wja_work_order_assess` (
   `assess_id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '工单评价ID',
   `worder_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '工单ID',
   `worder_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '工单号',
+  `installer_id` int(10) NOT NULL COMMENT '工程师ID',
   `post_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '评价客户ID',
   `nickname` varchar(255) NOT NULL DEFAULT '' COMMENT '用户昵称',
   `type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '评价类型: 1首次评价 2追加评价',
   `msg` varchar(500) NOT NULL DEFAULT '' COMMENT '用户评价内容',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '客户评价时间',
+  `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`assess_id`) USING BTREE,
   KEY `worder_id` (`worder_id`) USING BTREE,
   KEY `worder_sn` (`worder_sn`) USING BTREE
@@ -4728,6 +4749,23 @@ CREATE TABLE `wja_work_order_assess` (
 
 -- ----------------------------
 -- Records of wja_work_order_assess
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wja_work_order_assess_log
+-- ----------------------------
+DROP TABLE IF EXISTS `wja_work_order_assess_log`;
+CREATE TABLE `wja_work_order_assess_log` (
+  `log_id` int(10) NOT NULL AUTO_INCREMENT,
+  `assess_id` int(10) NOT NULL COMMENT '工单评价记录ID',
+  `installer_id` int(10) NOT NULL COMMENT '工程师ID',
+  `config_id` int(10) NOT NULL COMMENT '对应配置服务评分项ID',
+  `value` float(10,2) unsigned NOT NULL COMMENT '服务项分数',
+  PRIMARY KEY (`log_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+
+-- ----------------------------
+-- Records of wja_work_order_assess_log
 -- ----------------------------
 
 -- ----------------------------
