@@ -727,14 +727,23 @@ class Index extends ApiBase
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->TEST($detail, 2, $user);
-        pre(1);
+//         $result = $worderModel->TEST($detail, 2, $user);
+//         pre(1);
         $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单完成操作成功']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
+    }
+    //TODO用户绑定到工单
+    //工单完成后客户评价
+    protected function assessWorkOrder()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $detail = $this->getWorkOrderDetail(TRUE);
+        #TODO 验证用户是否已绑定工单
+        
     }
     /****************************************************************====================================================================*************************************************************/
     private function _checkInstaller($userId = 0)

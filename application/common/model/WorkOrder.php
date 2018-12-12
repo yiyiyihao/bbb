@@ -403,7 +403,7 @@ class WorkOrder extends Model
             switch ($assessData['type']){
                 case 1://首次评价带评分,记录评分信息
                     $scoreData = $assessData['score'];
-                    if(!$scoreData && !is_array($scoreData)){
+                    if($scoreData && is_array($scoreData)){
                         foreach ($scoreData as $k=>$v){
                             //记录单次评分日志
                             $data = [
@@ -417,6 +417,7 @@ class WorkOrder extends Model
                         }
                         return $assessId;
                     }else{
+                        $this->error = '没有评分项';
                         return false;
                     }
                     break;

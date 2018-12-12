@@ -46,6 +46,50 @@ class Worder extends FactoryForm
         }
     }
     /**
+     * 评价工单
+     */
+    public function assess(){
+        $info = $this->_assignInfo();
+        if (IS_POST) {
+            $params = $this->request->param();
+            $data = [
+                'type'      =>  $params['type'],//1 首次评论 2 追加评论
+                'msg'       =>  $params['msg'],
+            ];
+            if(isset($params['score'])){
+                $data['score'] = $params['score'];
+            }
+            $assessId = $this->model->worderAssess($info,$this->adminUser,$data);
+            if ($assessId === FALSE) {
+                $this->error($this->model->error);
+            }else{
+                $this->success('工单评价成功');
+            }
+        }else{
+            //检查工单是否评论过
+            $where = [
+                'worder_id'     => $info['worder_id'],
+                'is_del'        => 0,
+            ];
+            $assessInfo = db('work_order_assess')->where($where)->find();
+            if($assessInfo){
+                $type = 2;
+            }else{
+                $type = 1;
+                //取得系统配置评价项
+                $where = [
+                    'is_del' => 0,
+                    'config_key'      =>  CONFIG_WORKORDER_ASSESS,
+                ];
+                $configList = db('config')->where($where)->select();
+                $this->assign('config',$configList);
+            }
+            $this->assign('type', $type);
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+    }
+    /**
      * 工单详情
      */
     public function detail()

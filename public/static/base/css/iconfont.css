@@ -6,6 +6,7 @@
   url('../iconfont/iconfont.svg?t=1541736145269#iconfont') format('svg'); /* iOS 4.1- */
 }
 [class*='icon-']:before{display:inline-block;font-family:"iconfont" !important;font-weight:normal;font-style:normal;vertical-align:baseline;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+.icon-star-full:before { content: "\e80f"; }
 .icon-check:before { content: "\e639"; }
 .icon-plus:before { content: "\e60d"; }
 .icon-star:before { content: "\e733"; }

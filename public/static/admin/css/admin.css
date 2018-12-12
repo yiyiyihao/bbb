@@ -175,6 +175,15 @@ body{ background:#f5f5f5;}
 .lineBox{ margin-right:10px;}
 .lastXm .lineBox{ margin-right:0px;}
 }
+@media (max-width:1200px){
+body .admin-sidebar{ width:55px; overflow-x:hidden;}
+body .admin-sidebar .head-name{ display:none;}
+body .admin-sidebar .nav-box ul{ display:none;}
+body .admin-sidebar .nav-box i{ display:none;}
+body .admin-content{ left:55px;}
+body .nav-inline.nav-left{ left:65px;}
+body .admin-logo img{ display:none;}
+}
 .col-space15{ margin:-7.5px;}
 .col-space15 > *{ padding:7.5px;}
 .admin-dashboard { border-radius:5px;}
