@@ -1,0 +1,103 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                	{if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="sname" name="sname" size="30" value="{$_GET['sname'] ?? ''}" placeholder="服务商名称">
+                        </div>
+                    </div>
+                    {/if}
+                    <div class="form-group">
+						<div class="field">
+							<select class="input" name="order_type" id="order_type" datatype="*" nullmsg="请选择工单类型！">
+								<option value="">==工单类型==</option>
+								{foreach name="orderTypes" item="orderType" key="key"}
+									<option value="{$key}" {if condition="isset($_GET['order_type']) && $_GET['order_type'] == $key" }selected="selected"{/if} >{$orderType}</option> 
+								{/foreach}
+							</select>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="30" value="{$_GET['name'] ?? ''}" placeholder="客户姓名/电话">
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="60">工单编号</th>
+          {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+          <th width="*">服务商</th>
+          {/if}
+          <th width="80">工单类型</th>
+          <th width="*">订单编号</th>
+          <th width="*">售后产品</th>
+          <th width="80">预安装费</th>
+          <th width="*">客户信息</th>
+          <th width="*">客户地址</th>
+          <th width="100">预约时间</th>
+          <th width="120">工程师信息</th>
+          <th width="100">申请时间</th>
+          <th width="70">状态</th>
+          <th width="190">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo['worder_sn']}</td>
+              {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+              <td>{$vo.name}</td>
+              {/if}
+              <td>{:get_worder_type($vo.order_type)}</td>
+              <td>{$vo.order_sn}</td>
+              <td>{$vo.gname}<br>{$vo.sku_name}</td>
+              <td>{$vo.install_price}元</td>
+              <td>{$vo.user_name}<br>{$vo.phone}</td>
+              <td>{$vo.region_name}<br>{$vo.address}</td>
+              <td>{$vo.appointment|date="Y-m-d H:i"}</td>
+              <td>{$vo.realname ?? '-'}</td>
+              <td>{$vo.add_time|date="Y-m-d H:i:s"}</td>
+              <td><span class="tag bg-green">{:get_worder_status($vo['status'])}</span></td>
+              <td>
+              	<span class="button-group">
+              		{if condition="$vo.status == 0 || $vo.status == 1 || $vo.status == 2"}
+	              	<a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">派单</a>
+	              	{/if}
+	              	{if condition="!in_array($vo['status'], [-1, 3, 4])"}
+	              	<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
+	              	{/if}
+                    {if $vo.status==4 && $adminUser.admin_type == $Think.const.ADMIN_FACTORY}
+	              	<a href="{:url('assess', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-message">评价工单</a>
+	              	<a href="{:url('add', ['osku_id' => $vo['osku_id'], 'type' => 2, 'wid' => $vo['worder_id']])}" class="button button-small bg-black">申请维修</a>
+	              	{/if}
+	              	{if condition="!in_array($vo.status, [-1, 3, 4])"}
+	              	<a href="javascript:;" url="{:url('cancel', ['id' => $vo['worder_id']])}" class="button button-small bg-gray js-action" refresh="true" title="确定取消当前工单">取消</a>
+	              	{/if}
+	              	<a href="{:url('detail', ['id' => $vo['worder_id']])}" class="button button-small bg-green icon-edit">查看详情</a>
+	              	<!-- <a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.worder_id}">删除</a> -->
+              	</span>
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

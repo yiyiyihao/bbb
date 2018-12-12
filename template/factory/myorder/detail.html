@@ -172,8 +172,9 @@
 						                {/if}
 					                {/if}
 					                {if condition="$info['order']['pay_status'] == 1"}
+					                	<a href="{:url('workorder/add', ['osku_id' => $vo['osku_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
 						                {if condition="(!$vo.service_id || $vo['service_status'] == 4|| $vo['service_status'] == -1) && $vo['return_status'] == 0"}
-						              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'id' => $vo['osku_id'], 'sid' => $vo['service_id']])}" class="button bg-main bg-gray icon-trash js-action" title="退货退款">退货退款</a>
+						              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'id' => $vo['osku_id'], 'sid' => $vo['service_id']])}" class="button button-small bg-main bg-gray icon-trash js-action" title="退货退款">退货退款</a>
 						              	{else/}
 						              		{if condition="$vo.service_id"}
 							              		{if condition="$vo['service_status'] == 1"}

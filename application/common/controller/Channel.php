@@ -16,4 +16,15 @@ class Channel extends Store
         $this->adminType = ADMIN_CHANNEL;
         $this->groupId = GROUP_CHANNEL;
     }
+    public function getAjaxList($where = [], $field = '')
+    {
+        $params = $this->request->param();
+        $storeType = isset($params['store_type']) ? intval($params['store_type']) : 0;
+        $where = ['is_del' => 0, 'status' => 1];
+        if ($storeType) {
+            $where['store_type'] = $storeType;
+        }
+        $this->model = db('store');
+        parent::getAjaxList($where, 'store_id as id,  name');
+    }
 }

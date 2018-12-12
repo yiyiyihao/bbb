@@ -36,6 +36,92 @@
 			});	
 		}
 	}
+	$.fn.ajaxmul = function( opt ) {
+		var dataType = '';
+		if(opt.datatype){
+			dataType = 'datatype="'+opt.datatype+'"';
+		}
+		if(opt.hide != undefined && opt.hide){
+			$(this).html('');	
+			return false;
+		}
+		var html = '<div class="label"><label class="labelName">'+opt.str+'</label></div>'
+				+'<div class="field" id="data"><div class="margin-bottom form-search-box"><input type="text" class="input" name="keyword" size="40" value="" placeholder="'+opt.searchName+'"><a class="button bg-green icon-search" id="search"> 搜索</a></div>'
+   		+'<div class="margin-bottom float-left select-lists"><select class="select-list from-list input overflow-hidden" multiple="multiple"></select><div class="panel-foot table-foot clearfix pages"></div></div>'
+    	+'<div class="float-left margin-left button-toolbar vertical-top"><p class="toTop button bg select-move icon-toright"></p><p class="toRight button bg select-move icon-right"></p><p class="toLeft button bg select-move icon-left"></p><p class="toBottom button bg select-move icon-toleft"></p><div class="list_top"></div></div>'
+    	+'<div class="margin-bottom float-left margin-left overflow-hidden"><select class="choose-list to-list input" multiple="multiple"></select><select '+dataType+' multiple="multiple" name="'+opt.name+'[]" class="hide sub-list"></select></div></div>';
+		
+		$(this).html(html);		
+		var tis = $(this);
+		var postParam = opt.postData ? opt.postData: true;
+		var initData = opt.initData ? opt.initData: null;
+		if(initData){
+			getInitData(initData,tis);
+		}
+		getSearchData(opt.ajaxUrl, postParam, tis);
+		tis.off('click','p.toRight');
+		$(this).on('click','p.toRight', function(){
+			var value = text = '';
+			var htmlStr=htmlSubStr='';
+        	tis.find("select.from-list option:selected").each(function(){
+        		value = $(this).val();
+				text  = $(this).text();
+        		var length = tis.find("select.to-list option[value='"+value+"']").length;
+        		if(length >= 1){
+        			layer.msg( $(this).html()+'已选择');
+        			//return false;
+        		}else{
+        			htmlStr += '<option value="'+value+'">'+ $(this).html()+'</option>';	
+					htmlSubStr += '<option value="'+value+'" selected="selected">'+text+'</option>';				
+				}
+        		//$(this).remove();
+        	});
+        	tis.find("select.to-list").append(htmlStr);
+			tis.find("select.sub-list").append(htmlSubStr);
+		})
+		tis.off('click','p.toLeft');
+		$(this).on('click','p.toLeft', function(){
+        	var value = '';
+			var htmlStr='';
+        	tis.find("select.to-list option:selected").each(function(){
+        		value = $(this).val();
+				tis.find("select.sub-list option[value='"+value+"']").remove();
+        		$(this).remove();
+        	});
+        	//tis.find("select.from-list").append(htmlStr);
+        });		
+        tis.off('click','p.toTop');
+        $(this).on('click','p.toTop',function(){
+        	var toLeftVal = tis.find("select.from-list").html();
+        	tis.find("select.to-list").html(toLeftVal);
+        	tis.find(".list_top").html(toLeftVal);
+        	var toleftVal3 = tis.find(".list_top").find('option').attr('selected','selected');
+        	tis.find("select.sub-list").html(toleftVal3);
+        });
+        tis.off('click','p.toBottom');
+        $(this).on('click','p.toBottom',function(){
+        	tis.find("select.to-list").html(null);
+        	tis.find("select.sub-list").html(null);
+        });
+		tis.off('click','a#search');
+		$(this).on('click','a#search', function(){					
+    		var keyword = tis.find("input[name='keyword']").val().trim();
+    		if(!keyword){
+    			layer.alert(opt.searchName);
+				return false;
+    		}
+			var postParam = opt.postData ? opt.postData: true;
+    		getSearchData(opt.postUrl, postParam,tis);
+    	});
+		tis.off('click','.pagination a');
+    	$(this).on('click','.pagination a', function(){
+        	var url = $(this).attr('url').trim();
+        	if(url){
+				var postParam = opt.postData ? opt.postData: true;
+        		getSearchData(url, postParam,tis);
+        	}
+        });
+	}
 	//区域单选
 	$.fn.selectsin = function( opt ) {
 		var dataType = '';
@@ -70,24 +156,34 @@
 	}
 	//区域多选
 	$.fn.selectmul = function( opt ) {
+		var tis = $(this);
 		var dataType = '';
 		if(opt.datatype){
 			dataType = 'datatype="'+opt.datatype+'"';
 		}
+		var disableData = '';
+		if(tis.attr('disableData')){
+			disableData = ' disabled="'+tis.attr('disableData')+' "';
+		}
+		if(tis.attr('hide') != undefined){
+			return false;
+		}
 		var html = '<div class="label"><label class="labelName">'+opt.str+'</label></div>'
 				+'<div class="field" id="data"><div class="margin-bottom form-search-box"><input type="text" class="input" name="keyword" size="40" value="" placeholder="'+opt.searchName+'"><a class="button bg-green icon-search" id="search"> 搜索</a></div>'
    		+'<div class="margin-bottom float-left select-lists"><select class="select-list from-list input overflow-hidden" multiple="multiple"></select><div class="panel-foot table-foot clearfix pages"></div></div>'
-    	+'<div class="float-left margin-left button-toolbar vertical-top"><p class="toTop button bg select-move icon-angle-double-right"></p><p class="toRight button bg select-move icon-angle-right"></p><p class="toLeft button bg select-move icon-angle-left"></p><p class="toBottom button bg select-move icon-angle-double-left"></p><div class="list_top"></div></div>'
-    	+'<div class="margin-bottom float-left margin-left overflow-hidden"><select class="choose-list to-list input" multiple="multiple"></select><select '+dataType+' multiple="multiple" name="'+opt.name+'[]" class="hide sub-list"></select></div></div>';
+    	+'<div class="float-left margin-left button-toolbar vertical-top"><p class="toTop button bg select-move icon-toright"></p><p class="toRight button bg select-move icon-right"></p><p class="toLeft button bg select-move icon-left"></p><p class="toBottom button bg select-move icon-toleft"></p><div class="list_top"></div></div>'
+    	+'<div class="margin-bottom float-left margin-left overflow-hidden"><select '+disableData+' class="choose-list to-list input" multiple="multiple"></select><select '+dataType+' multiple="multiple" name="'+opt.name+'[]" class="hide sub-list"></select></div></div>';
 		
-		$(this).html(html);		
-		var tis = $(this);
+		$(this).html(html);
 		var postParam = opt.postData ? opt.postData: true;
 		var initData = opt.initData ? opt.initData: null;
 		if(initData){
 			getInitData(initData,tis);
 		}
 		getSearchData(opt.postUrl, postParam, tis);
+		if(tis.attr('disableData')){
+			return false;
+		}
 		tis.off('click','p.toRight');
 		$(this).on('click','p.toRight', function(){
 			var value = text = '';

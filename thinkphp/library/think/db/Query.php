@@ -1605,7 +1605,11 @@ class Query
                     #TODO  UPDATE xiaojun
 //                     $where[] = [$key, is_array($val) ? 'IN' : '=', $val];
                     if (!is_array($val)) {
-                        $where[] = [$key, '=', $val];
+                        if (is_int($key)) {
+                            $where[] = $val;
+                        }else{
+                            $where[] = [$key, '=', $val];
+                        }
                     }else{
                         if (!is_int($key)) {
                             $where[] = [$key, $val[0], $val[1]];

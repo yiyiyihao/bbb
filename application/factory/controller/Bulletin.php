@@ -8,15 +8,55 @@ class Bulletin extends FactoryForm
         $this->modelName = 'bulletin';
         $this->model = db($this->modelName);
         parent::__construct();
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])){
+            $this->error(lang('NO ACCESS'));
+        }
     }
     public function detail()
     {
         $info = $this->_assignInfo();
-        $this->assign('info',$info);
-        return $this->detail();
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            //判断公告是否已读 未读添加已读日志
+            $logModel = new \app\common\model\BulletinLog();
+            $logModel->read($info, $this->adminUser);
+        }
+        $this->assign('info', $info);
+        return $this->fetch();
+    }
+    public function edit()
+    {
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $info = $this->_assignInfo();
+        if ($info['publish_status'] != 0) {
+            $this->error('公告已发布，不允许编辑');
+        }
+        return parent::edit();
+    }
+    public function del()
+    {
+        $info = $this->_assignInfo();
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $logModel = new \app\common\model\BulletinLog();
+            $result = $logModel->drop($info, $this->adminUser);
+            if ($result === FALSE) {
+                $this->error($logModel->error);
+            }else{
+                $this->success('删除成功', url('index'));
+            }
+        }else{
+            if ($info['publish_status'] != 0) {
+                $this->error('公告已发布，不允许删除');
+            }
+            return parent::del();
+        }
     }
     //发布
     public function publish(){
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY){
+            $this->error(lang('NO ACCESS'));
+        }
     	$info = $this->_assignInfo();
     	//判断是否已经发布
     	if ($info['publish_status'] > 0) {
@@ -24,19 +64,42 @@ class Bulletin extends FactoryForm
     	}
         $result = $this->model->where(['bulletin_id' => $info['bulletin_id']])->update(['publish_status' => 1, 'publish_time' => time(), 'update_time' => time()]);
         if($result){
+            #TODO 接口推送
             $this->success('公告发布成功','index');
         }else{
             $this->error('发布失败');
         }
     }
+    function _assignInfo($pkId = 0)
+    {
+        $info = parent::_assignInfo($pkId);
+        $storeTypes = get_store_type();
+        unset($storeTypes[STORE_FACTORY]);
+        $this->assign('types', $storeTypes);
+        if ($info) {
+            if ($info['to_store_ids']) {
+                $stores = db('store')->field('store_id as id, name')->where(['store_id' => ['IN', $info['to_store_ids']]])->select();
+                $info['stores'] = $stores ? json_encode($stores) : '';
+            }else{
+                $info['stores'] = '';
+            }
+        }
+        $this->assign('info', $info);
+        return $info;
+    }
     function _getData()
     {
-        $params = $this->request->param();
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $params = parent::_getData();
         $info = $this->_assignInfo();
-        $params['region_ids'] = isset($params['region_id']) && $params['region_id'] ? json_encode($params['region_id'], 1): '';
-        unset($params['region_id']);
-        unset($params['region_name']);
-        unset($params['id']);
+        $visibleRange = isset($params['visible_range'])  ? intval($params['visible_range']): 1;
+        $storeIds = isset($params['store_id'])  ? $params['store_id']: [];
+        if ($visibleRange == 0 && !$storeIds) {
+            $this->error('请选择公告可见商户');
+        }
+        $params['to_store_ids'] = $visibleRange ? '' : implode(',', $storeIds);
         if (!$info) {
             $params['post_user_id'] = ADMIN_ID;
             $params['store_id'] = $this->adminUser['admin_type'];
@@ -45,28 +108,51 @@ class Bulletin extends FactoryForm
     }
     function _getOrder()
     {
-        return 'is_top DESC, sort_order ASC, add_time DESC';
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            return 'is_top DESC, is_read ASC, sort_order ASC, add_time DESC';
+        }else{
+            return 'is_top DESC, sort_order ASC, add_time DESC';
+        }
     }
-    function _assignInfo($pkId = 0)
+    function _getField()
     {
-        $info = parent::_assignInfo($pkId);
-        $storeTypes = get_store_type();
-        unset($storeTypes[STORE_FACTORY]);
-        $this->assign('types', $storeTypes);
-        return $info;
+        $field = 'B.*';
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $field .= ', ifnull(BR.bulletin_id, 0) is_read';
+        }
+        return $field;
+    }
+    function _getJoin()
+    {
+        $join = [];
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $join[] = ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id ', 'LEFT'];
+        }
+        return $join;
+    }
+    function _getAlias()
+    {
+        return 'B';
     }
     function _getWhere(){
         $params = $this->request->param();
         $where = [
-            'is_del' => 0,
+            'B.is_del' => 0,
         ];
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $where['B.publish_status'] = 1;
+            $where['B.store_type'] = $this->adminUser['store_type'];
+            $where[] = 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))';
+            $where[] = 'BR.is_del IS NULL OR BR.is_del = 0';
+        }
         if ($params) {
-            if(isset($params['status'])){
-                $where['publish_status'] = intval($params['status']);
+            $status = isset($params['status']) ? intval($params['status']) : -1;
+            if($status > -1){
+                $where['B.publish_status'] = $status;
             }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['name'] = ['like','%'.$name.'%'];
+                $where['B.name'] = ['like','%'.$name.'%'];
             }
         }
         return $where;
@@ -79,8 +165,10 @@ class Bulletin extends FactoryForm
         $this->assign('status', $status);
         $search = [
             ['type' => 'input', 'name' =>  'name', 'value' => '公告标题', 'width' => '30'],
-            ['type' => 'select', 'name' => 'status', 'options'=>'status', 'default_option' => '==发布状态=='],
         ];
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $search[] = ['type' => 'select', 'name' => 'status', 'options'=>'status', 'default'=>'-1', 'default_option' => '==发布状态=='];
+        }
         return $search;
     }
     /**
@@ -88,6 +176,14 @@ class Bulletin extends FactoryForm
      */
     function _tableData(){
         $table = parent::_tableData();
+        if ($table && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            foreach ($table as $key => $value) {
+                if (isset($value['value']) && $value['value'] == 'is_top') {
+                    $table[$key]['value'] = 'is_read';
+                    $table[$key]['title'] = '是否已读';
+                }
+            }
+        }
         $table['actions']['button'][] = ['text'  => '公告查看', 'action'=> 'detail', 'icon'  => '','bgClass'=> 'bg-main'];
         $table['actions']['button'][] = ['text'  => '公告发布', 'class' => 'js-action', 'action'=> 'publish', 'icon'  => 'bell','bgClass'=> 'bg-yellow'];
         $table['actions']['width']  = '*';

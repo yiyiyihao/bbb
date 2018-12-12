@@ -15,6 +15,29 @@ class Order extends Model
         parent::initialize();
         $this->orderSkuModel = db('order_sku');
     }
+    public function getOrderList($list)
+    {
+        if ($list) {
+            $orderSkuModel = db('order_sku');
+            $workOrderModel = db('work_order');
+            foreach ($list as $key => $value) {
+                $list[$key]['_status'] = get_order_status($value);
+                //判断订单申请安装状态
+                $applyStatus = '未申请';
+                $worderCount = $workOrderModel->where(['order_sn' => $value['order_sn'], 'status' => ['<>', -1]])->count();
+                if ($worderCount > 0) {
+                    $orderCount = $orderSkuModel->where(['order_id' => $value['order_id']])->sum('num');
+                    if ($orderCount > $worderCount) {
+                        $applyStatus = '部分申请'.' *'.$worderCount;
+                    }else{
+                        $applyStatus = '已申请';
+                    }
+                }
+                $list[$key]['apply_status'] = $applyStatus;
+            }
+        }
+        return $list;
+    }
     /**
      * 获取字订单详情信息
      * @param string $orderSn   订单号

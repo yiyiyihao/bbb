@@ -1,0 +1,53 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>[{$orderTypes[$info.order_type]}] 指派售后工程师</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户名称</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['user_name'] ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户联系电话</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['phone'] ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户联系地址</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['region_name'] ?? ''} {$info['address'] ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="form-group js-select" posturl="{:url('workorder/getAjaxList', ['store_id' => $info && $info['store_id'] ? $info['store_id']: 0])}" str="选择售后工程师" searchName="请输入售后工程师名称" formname="installer_id" formvalue='{$info.installer_id ?? 0}'></div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();  
+    }); 
+</script>

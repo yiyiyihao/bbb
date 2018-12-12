@@ -82,7 +82,7 @@ td,th{padding:0;}
 .button-group, .button-group-y{display:inline-block;position:relative;vertical-align:middle;}
 .button-group .button, .button-group .button-group{float:left;position:relative;font-weight:normal;}
 .button-group :not(:first-child):not(:last-child):not(.dropdown-toggle).button,.button-group .button-group .button{border-radius:0;}
-.button-group .button, .button-group .button-group .button{margin-left:-1px;}
+.button-group .button, .button-group .button-group .button{margin-left:-1px; margin-top: 5px;}
 .button-group :first-child:not(:last-child).button:not(.dropdown-toggle){border-top-right-radius:0px;border-bottom-right-radius:0px;}
 .button-group :last-child:not(:first-child).button:not(.dropdown-toggle){border-bottom-left-radius:0px;border-top-left-radius:0px;}
 .button-group .button-group:first-child .button:last-child,

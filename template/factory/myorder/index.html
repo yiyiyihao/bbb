@@ -46,6 +46,7 @@
           <th width="160">收货地址</th>
           <th width="100">下单时间</th>
           <th width="80">订单状态</th>
+          <th width="80">安装状态</th>
           <th width="*">操作</th>
         </tr>
         {notempty name="list"}
@@ -63,6 +64,7 @@
               <td>{$vo.address_detail}</td>
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
               <td>{:get_order_status($vo)['status_text']}</td>
+              <td>{$vo['apply_status']|raw}</td>
               <td>
               	<span class="button-group">
 	              	<a href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-eye">订单查看</a>

@@ -86,7 +86,7 @@ class FormBase extends CommonBase
         $pk = $this->model->getPk();
         
         $where = $where ? $where : ['is_del' => 0, 'status' => 1];
-        if (!$where && $keyword) {
+        if ($keyword) {
             $where['name'] = ['like', '%'.$keyword.'%'];
         }
         if (isset($params['neq'])) {

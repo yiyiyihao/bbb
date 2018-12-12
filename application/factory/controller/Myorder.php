@@ -33,10 +33,10 @@ class Myorder extends commonOrder
         if ($order === FALSE) {
             return FALSE;
         }
+        $serviceModel = new \app\common\model\OrderService();
         $service = [];
         if ($serviceId) {
             //只有取消的售后可以重新申请
-            $serviceModel = new \app\common\model\OrderService();
             $service = $serviceModel->getServiceDetail(FALSE, $this->adminUser, $serviceId);
             if (!$service) {
                 $this->error($serviceModel->error);

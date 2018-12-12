@@ -147,7 +147,7 @@ class Finance extends FactoryForm
                 
                 'update_time'       => time(),
                 'from_store_id'     => $this->adminUser['store_id'],
-                'from_store_type'   => $this->adminStore['store_type'],
+                'from_store_type'   => $this->adminUser['store_type'],
                 'withdraw_status'   => 0,
             ];
             $logId = $this->model->insertGetId($data);

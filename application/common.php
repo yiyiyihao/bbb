@@ -351,7 +351,21 @@ function ch_order_status($ident) {
     );
     return isset($arr[$ident]) ? $arr[$ident] : '';
 }
-
+function get_worder_type($type = FALSE)
+{
+    $list = [
+        1 => '安装工单',
+        2 => '维修工单',
+    ];
+    if ($type === FALSE) {
+        return $list;
+    }
+    if (isset($list[$type])) {
+        return $list[$type];
+    }else{
+        return '';
+    }
+}
 function get_worder_status($status = FALSE)
 {
     $list = [

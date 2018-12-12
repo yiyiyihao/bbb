@@ -57,7 +57,7 @@ class User extends Model
             #TODO 获取系统设置权限
             $groupPurview = [];
         }
-        
+        $storeType = 0;
         if ($user['admin_type'] != ADMIN_SYSTEM) {
             if ($user['store_id'] <= 0) {
                 $this->error = lang('PERMISSION_DENIED');
@@ -68,6 +68,7 @@ class User extends Model
             }else{
                 $adminStore = db('store')->field('store_id, name, factory_id, store_type')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             }
+            $storeType = $adminStore['store_type'];
             session('admin_store',$adminStore);
         }
         //设置session
@@ -76,6 +77,7 @@ class User extends Model
 		    'admin_type'      => $user['admin_type'],
 		    'factory_id'      => $user['admin_type'] == 2 ? $user['store_id'] : 0,
 		    'store_id'        => $user['store_id'],
+		    'store_type'      => $storeType,
 		    'group_id'        => $user['group_id'],
 		    'username'        => $user['username'],
 		    'phone'           => $user['phone'],

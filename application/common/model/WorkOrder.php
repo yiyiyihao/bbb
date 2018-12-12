@@ -85,6 +85,8 @@ class WorkOrder extends Model
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['status']) {
             case -1://已取消可另外分派
+                $this->error = '已取消不能重新派单';
+                return FALSE;
                 $action = '重新分派工程师';
                 break;
             case 1://已分派工程师 可另外分派

@@ -203,9 +203,7 @@ class Order extends FormBase
     function _afterList($list)
     {
         if ($list) {
-            foreach ($list as $key => $value) {
-                $list[$key]['_status'] = get_order_status($value);
-            }
+            $list = $this->model->getOrderList($list);
         }
         return $list;
     }
