@@ -49,7 +49,29 @@ class Installer extends FormBase
         $this->assign("scorelist",$scoreList);
         $this->assign("info",$info);
         //取得工程师服务工单列表
-        
+        $workModel = model("work_order");
+        $alias = 'WO';
+        $join[] = ['user U', 'U.user_id = WO.post_user_id', 'LEFT'];
+        $join[] = ['goods G', 'WO.goods_id = G.goods_id', 'LEFT'];
+        $join[] = ['goods_sku GS', 'WO.sku_id = GS.sku_id', 'LEFT'];
+        $field  = 'U.username,WO.*, G.name as gname, GS.sku_name';
+        $where = [
+            'WO.is_del'         =>  0,
+            'WO.installer_id'   =>  $info['installer_id'],
+        ];
+        $order = 'WO.add_time DESC';
+        $count = $workModel->alias($alias)->join($join)->field($field)->where($where)->count();
+        $list  = $workModel->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate($this->perPage,$count);
+        // 获取分页显示
+        $page   = $list->render();
+        $list   = $list->toArray()['data'];
+        $this->assign('list',$list);// 赋值数据集
+        $this->assign('page', $page);
+        $orderTypes = [
+            1 => '安装',
+            2 => '维修'
+        ];
+        $this->assign('orderTypes', $orderTypes);
         return $this->fetch();
     }
     
