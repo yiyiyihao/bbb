@@ -27,12 +27,29 @@ class Installer extends FormBase
      * 售后工程师详情
      */
     public function detail(){
-        if(IS_POST){
-            $post = input('post.');
-            pre($post);
-        }
         $info = $this->_assignInfo();
         //取得工程师所属服务商
+        $storeInfo = model('store')->where(['store_id'=>$info['store_id']])->find();
+        $info['store_name'] =   $storeInfo['name'];
+        //取得评分项分数
+        $scoreModel = db('user_installer_score');
+        $where = [
+            'S.installer_id'    => $info['installer_id'],
+        ];
+        $scoreList  = $scoreModel->alias("S")->field("C.name,S.value")->join("config C","S.config_id = C.config_id")->where($where)->select();
+        $len = count($scoreList);
+        $totalScore = 0;
+        foreach ($scoreList as $k=>$v){
+            $totalScore += $v['value'];
+        }
+        $scoreList[] = [
+            'name'  =>  '综合评分',
+            'value' =>  round($totalScore/$len,1)
+        ];
+        $this->assign("scorelist",$scoreList);
+        $this->assign("info",$info);
+        //取得工程师服务工单列表
+        
         return $this->fetch();
     }
     

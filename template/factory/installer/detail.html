@@ -44,18 +44,47 @@
                     </div>
                     <div class="form-group">
                         <div class="label">
+                            <label>服务次数</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['service_count'] ?? '0'}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>所属服务商</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['store_name'] ?? ''}</span>
+                        </div>
+                    </div>
+                    {present name="scorelist"}
+                        {volist name="scorelist" id="vo"}
+                        <div class="form-group">
+                            <div class="label">
+                                <label>{$vo.name}</label>
+                            </div>
+                            <div class="field">
+                                <div class="field-text">
+                                    <span class="starBox icon-star-full"> {$vo.value}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/volist}
+                    {/present} 
+                    <div class="form-group">
+                        <div class="label">
                             <label>身份证正反面</label>
                         </div>
                         <div class="field">
                         	<img src="{$info['idcard_font_img'] ?: '/static/base/images/default.png'}" width="120">
                         	<img src="{$info['idcard_back_img'] ?: '/static/base/images/default.png'}" width="120">
                         </div>
-                    </div>                    
+                    </div>    
                 </div>
             <div class="panel-foot">
                 <div class="form-button">
-                    <button class="button bg-main" type="submit">保存</button>
-                    <button class="button bg" type="reset">重置</button>
+                    <a href="{:url('index')}" class="button bg-main">返回列表</a>
                     <div id="tips"></div>
                 </div>
             </div>

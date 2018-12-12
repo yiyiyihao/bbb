@@ -286,6 +286,8 @@ class WorkOrder extends Model
                     $result = $financeModel->financeChange($worder['store_id'], $params, '工单完成,计算收益', $worder['worder_sn']);
                 }
             }
+            //增加工程师服务次数
+            model('user_installer')->where(['installer_id'=>$worder['installer_id']])->setInc('service_count');
             //操作日志记录
             $this->worderLog($worder, $user, '确认完成');
             return TRUE;
