@@ -298,7 +298,7 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
-    public function TEST($worder, $assessId, $user)
+    public function TEST($worder, $assessId, $user, $score = 0)
     {
         //评论后，服务商安装服务费结算
         $where = [
@@ -408,7 +408,10 @@ class WorkOrder extends Model
                 case 1://首次评价带评分,记录评分信息
                     $scoreData = $assessData['score'];
                     if($scoreData && is_array($scoreData)){
+                        $score = 0;
+                        $len = count($scoreData);
                         foreach ($scoreData as $k=>$v){
+                            $score += $v;
                             //记录单次评分日志
                             $data = [
                                 'assess_id'     => $assessId,
@@ -419,6 +422,11 @@ class WorkOrder extends Model
                             db('work_order_assess_log')->insert($data);//添加评分日志记录
                             model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
                         }
+                        $score = round($score/$len,1);
+                        //更新工程师综合得分
+                        model('user_installer')->scoreUpdate($worder['installer_id'],$score);
+                        //首次评价,处理安装服务费发放结算
+                        $this->TEST($worder, $assessId, $user, $score);
                         return $assessId;
                     }else{
                         $this->error = '没有评分项';

@@ -18,6 +18,25 @@ class UserInstaller extends Model
     {
         parent::initialize();
     }
+    
+    /**
+     * 更新指定工程师综合得分
+     */
+    public function scoreUpdate($installerId,$score = 0){
+        $where = [
+            'installer_id'  => $installerId,
+//             'is_del'        => 0,
+        ];
+        $info  = $this->where($where)->find();
+        if($info['score'] && $info['score'] > 0){
+            $score = ($score + $info['score'])/2;
+        }
+        $data = [
+            'score' => $score,
+        ];
+        $this->update($data,$where);
+    }
+    
     //添加工程师评价
     public function assessAdd($installerId,$configId = '',$value = ''){
         $scoreModel = db('user_installer_score');

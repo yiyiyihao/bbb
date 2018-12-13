@@ -37,7 +37,7 @@ class Installer extends FormBase
             'S.installer_id'    => $info['installer_id'],
         ];
         $scoreList  = $scoreModel->alias("S")->field("C.name,S.value")->join("config C","S.config_id = C.config_id")->where($where)->select();
-        $len = count($scoreList);
+        /* $len = count($scoreList);
         $totalScore = 0;
         foreach ($scoreList as $k=>$v){
             $totalScore += $v['value'];
@@ -45,7 +45,7 @@ class Installer extends FormBase
         $scoreList[] = [
             'name'  =>  '综合评分',
             'value' =>  round($totalScore/$len,1)
-        ];
+        ]; */
         $this->assign("scorelist",$scoreList);
         $this->assign("info",$info);
         //取得工程师服务工单列表
