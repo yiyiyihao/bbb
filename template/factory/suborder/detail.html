@@ -33,7 +33,7 @@
                             <label>支付方式</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['pay_method'] ?? ''}">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['_pay_status']['name'] ?? ''}">
                         </div>
                     </div>
                     <div class="form-group">

@@ -25,10 +25,8 @@ class Myorder extends commonOrder
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
         $oskuId = isset($params['id']) ? intval($params['id']) : 0 ;
         $serviceId = isset($params['sid']) ? intval($params['sid']) : 0 ;
-        $this->subMenu['menu'][] = [
-            'name' => '退货退款',
-            'url' => url('return', ['order_sn' => $orderSn, 'id' => $oskuId, 'sid' => $serviceId]),
-        ];
+        $type = isset($params['type']) ? intval($params['type']) : 0 ;
+        
         $order = $this->model->checkOrder($orderSn, $this->adminUser);
         if ($order === FALSE) {
             return FALSE;
@@ -44,7 +42,22 @@ class Myorder extends commonOrder
             if (!in_array($service['service_status'], [-1, 4])) {
                 $this->error('申请已存在不能重复操作');
             }
+            $type = $service['service_type'];
         }
+        if (!$type) {
+            $this->error('请选择售后类型');
+        }
+        $types = get_service_type();
+        if (!isset($types[$type])) {
+            $this->error('售后类型错误');
+        }
+        $name = $types[$type];
+        
+        $this->subMenu['menu'][] = [
+            'name' => '申请售后: '.$name,
+            'url' => url('return', ['order_sn' => $orderSn, 'id' => $oskuId, 'sid' => $serviceId, 'type' => $type]),
+        ];
+        
         //判断是否在退货退款时间内
         if (isset($this->config['returnTime']) && $order['pay_time'] && ($order['pay_time'] + $this->config['returnTime']) <= time()) {
             $this->error('超时不允许退货退款');
@@ -60,9 +73,9 @@ class Myorder extends commonOrder
                 $this->error(lang('售后申请已达最大次数'));
             }
         }
-        $types = get_service_type();
         if (IS_POST) {
             $params = $this->request->param();
+            $params['service_type'] = $type;
             $result = $this->serviceModel->createService($order, $osku, $this->adminUser, $params, $service, $this->config);
             if ($result === FALSE) {
                 $this->error($this->serviceModel->error);
@@ -73,7 +86,7 @@ class Myorder extends commonOrder
             $this->assign('service', $service);
             $this->assign('info', $order);
             $this->assign('osku', $osku);
-            $this->assign('types', $types);
+            $this->assign('name', $name);
             return $this->fetch();
         }
     }

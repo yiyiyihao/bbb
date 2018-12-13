@@ -4,7 +4,7 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">{:get_service_type($info['service_type'])}审核操作</a></li>
+                        <li class="active"><a href="#tab-1">审核操作</a></li>
                     </ul>
                 </div>
             </div>
@@ -31,18 +31,92 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sku_name'] ?? ''}  {$info['sku_spec'] ?? ''} ">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sku']['sku_name'] ?? ''}  {$info['sku']['sku_spec'] ?? ''} ">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>产品数量</label>
+                            <label>产品购买数量</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sku']['num'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>支付金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sku']['real_amount'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>买家姓名</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['address_name'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系方式</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['address_phone'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>支付时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['pay_time']|date='Y-m-d H:i:s'}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单状态</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{:get_order_status($info['order'])['status_text']}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>安装状态</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['_apply_status']['status_text'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>申请时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['add_time']|date='Y-m-d H:i:s'}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>售后状态</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            	<input type="text" disabled="disabled" class="input" size="12" value="{:get_service_status($info['service_status'])}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>退款产品数量</label>
                         </div>
                         <div class="field">
                             <input type="number" disabled="disabled" class="input" id="num" name="num" min="1" max="{$info['num']}" size="60" value="{$info['num']}">
                             <div class="input-note"></div>
                         </div>
-                    </div>  
+                    </div> 
                     <div class="form-group">
                         <div class="label">
                             <label>退款金额</label>
@@ -62,7 +136,7 @@
 			        </div>
 			        <div class="form-group">
 		                <div class="label">
-		                  <label>上传凭证</label>
+		                  <label>退款凭证</label>
 		                </div>
 		                <div class="field"> 
 		                	<div class="imagesBox form-group clearfix" id="imgs">

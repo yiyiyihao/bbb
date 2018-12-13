@@ -59,7 +59,7 @@ class Workorder extends FactoryForm
             if ($assessId === FALSE) {
                 $this->error($this->model->error);
             }else{
-                $this->success('工单评价成功');
+                $this->success('工单评价成功', url('index'));
             }
         }else{
             //检查工单是否评论过
@@ -91,9 +91,10 @@ class Workorder extends FactoryForm
     public function detail()
     {
         $info = $this->_assignInfo();
-        //查询售后产品
-        $info['goods'] = db('goods_sku')->alias('GS')->join([['goods G', 'G.goods_id = GS.goods_id', 'INNER']])->where(['sku_id' => $info['sku_id'], 'G.goods_id' => $info['goods_id']])->find();
-        $info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
+        $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
+        if ($info === FALSE) {
+            $this->error($this->model->error);
+        }
         $this->assign('info', $info);
         return $this->fetch();
     }

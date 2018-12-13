@@ -23,17 +23,21 @@ class Order extends Model
             foreach ($list as $key => $value) {
                 $list[$key]['_status'] = get_order_status($value);
                 //判断订单申请安装状态
-                $applyStatus = '未申请';
+                $applyStatus = 0;
                 $worderCount = $workOrderModel->where(['order_sn' => $value['order_sn'], 'status' => ['<>', -1]])->count();
                 if ($worderCount > 0) {
                     $orderCount = $orderSkuModel->where(['order_id' => $value['order_id']])->sum('num');
                     if ($orderCount > $worderCount) {
-                        $applyStatus = '部分申请'.' *'.$worderCount;
+                        $applyStatus = 1;
                     }else{
-                        $applyStatus = '已申请';
+                        $applyStatus = 2;
                     }
                 }
-                $list[$key]['apply_status'] = $applyStatus;
+                $list[$key]['_apply_status'] = [
+                    'status' => $applyStatus,
+                    'status_text' => get_order_apply_status($applyStatus),
+                    'count' => $worderCount,
+                ];
             }
         }
         return $list;
@@ -45,7 +49,7 @@ class Order extends Model
      * @param number $userId    用户ID
      * @return array
      */
-    public function getOrderDetail($orderSn = '', $user = [], $storeConfig = [])
+    public function getOrderDetail($orderSn = '', $user = [], $storeConfig = [], $flag = TRUE)
     {
         if (!$orderSn) {
             return FALSE;
@@ -55,44 +59,89 @@ class Order extends Model
             return FALSE;
         }
         $order['_status'] = get_order_status($order);
-        $detail['order'] = $order;
+        $payName = '';
+        if ($order['pay_code']) {
+            $payName = db('payment')->where(['pay_code' => $order['pay_code'], 'is_del' => 0, 'store_id' => $order['store_id']])->value('name');
+        }
+        $order['_pay_status'] = ['pay_code' => $order['pay_code'], 'name' => $payName, 'time' => $order['pay_time']];
+        
         $field = 'osku_id, OS.order_sn, OS.goods_id, OS.sku_id, OS.sku_name, OS.sku_thumb, OS.sku_spec, OS.num, OS.price, OS.install_price, OS.pay_price, OS.real_amount';
         $field .= ', OSD.odelivery_id, OSD.delivery_status, OSD.delivery_time, OSD.delivery_name, OSD.delivery_sn, OS.service_id, OS.service_status, OS.return_status';
         $where = [
             'OS.order_sn' => $orderSn,
         ];
         $oskus = db('order_sku')->field($field)->alias('OS')->join([['order_sku_delivery OSD', 'OS.osku_id IN (OSD.osku_ids) AND OSD.order_sn = '.$orderSn, 'LEFT']])->where($where)->select();
-        if ($oskus && $storeConfig) {
+        $orderApplyStatus = 0;
+        if ($oskus) {
             $returnStatus = 0;
-            //判断商户是否可提现
-            if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
-                $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
+            if ($storeConfig) {
+                //判断商户是否可提现
+                if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
+                    $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
+                }
+                if ($storeConfig && isset($storeConfig['ordersku_return_limit']) && $storeConfig['ordersku_return_limit'] > 0) {
+                    $returnCount = $storeConfig['ordersku_return_limit'];
+                }
+                if ($returnTime > 0 && $order['pay_status'] > 0 && ($order['pay_time'] + $returnTime) <= time()) {
+                    $returnStatus = -1;
+                }
             }
-            if ($storeConfig && isset($storeConfig['ordersku_return_limit']) && $storeConfig['ordersku_return_limit'] > 0) {
-                $returnCount = $storeConfig['ordersku_return_limit'];
-            }
-            if ($returnTime > 0 && $order['pay_status'] > 0 && ($order['pay_time'] + $returnTime) <= time()) {
-                $returnStatus = -1;
-            }
-            $serviceModel = db('order_sku_service');
+            $serviceModel   = db('order_sku_service');
+            $workOrderModel = db('work_order');
+            $orderSkuModel  = db('order_sku');
+            $orderCount = $skuApplyCount = 0;
             foreach ($oskus as $key => $value) {
+                $worderCount = $workOrderModel->where(['order_sn' => $value['order_sn'], 'status' => ['<>', -1]])->count();
+                $orderCount += $value['num'];
+                $skuApplyCount += $worderCount;
                 if ($value['return_status'] == 0) {
                     //判断是否可退还
-                    if ($returnStatus == 0 && $returnCount) {
+                    if ($returnStatus == 0 && $storeConfig && $returnCount) {
                         //计算售后申请次数
                         $count = $serviceModel->where(['osku_id' => $value['osku_id']])->count();
                         if ($count && $count >= $returnCount) {
                             $oskus[$key]['return_status'] = -1;
                         }
                     }else{
-                        $oskus[$key]['return_status'] =$returnStatus;
+                        $oskus[$key]['return_status'] = $returnStatus;
                     }
+                    //判断订单对应产品申请安装状态
+                    $applyStatus = 0;
+                    if ($worderCount > 0) {
+                        $orderCount = $orderSkuModel->where(['order_id' => $value['order_id']])->sum('num');
+                        if ($orderCount > $worderCount) {
+                            $applyStatus = 1;
+                        }else{
+                            $applyStatus = 2;
+                        }
+                    }
+                    $oskus[$key]['_apply_status'] = [
+                        'status' => $applyStatus,
+                        'status_text' => get_order_apply_status($applyStatus),
+                        'count' => $worderCount,
+                    ];
                 }
             }
         }
-        $detail['skus'] = $oskus;
-        $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
-        $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
+        //判断订单申请安装状态
+        if ($skuApplyCount > 0) {
+            if ($orderCount > $skuApplyCount) {
+                $orderApplyStatus = 1;
+            }else{
+                $orderApplyStatus = 2;
+            }
+        }
+        $order['_apply_status'] = [
+            'status' => $applyStatus,
+            'status_text' => get_order_apply_status($applyStatus),
+            'count' => $skuApplyCount,
+        ];
+        $detail['order'] = $order;
+        if ($flag) {
+            $detail['skus'] = $oskus;
+            $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
+            $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
+        }
         return $detail;
     }
     /**
@@ -792,9 +841,13 @@ class Order extends Model
         }
         return $order;
     }
-    public function getOrderPayments($storeId = 0, $displayType = 1)
+    public function getOrderPayments($storeId = 0, $displayType = 0)
     {
-        return $payments = db('payment')->order('sort_order ASC, add_time DESC')->where(['store_id' => $storeId, 'is_del' => 0, 'status' => 1, 'display_type' => $displayType])->select();
+        $where = ['store_id' => $storeId, 'is_del' => 0, 'status' => 1];
+        if ($displayType) {
+            $where['display_type'] = $displayType;
+        }
+        return $payments = db('payment')->order('sort_order ASC, add_time DESC')->where($where)->select();
     }
     public function getOrderSkus($orderId = 0, $orderSn = '')
     {
@@ -952,7 +1005,7 @@ class Order extends Model
                 'sku_id' => intval($skuIds),
             ];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
-            $field = 'S.store_id, S.sku_id, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
+            $field = 'S.store_id, S.sku_id, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
             $list = db('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
@@ -965,9 +1018,19 @@ class Order extends Model
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
             foreach ($list as $key => $value) {
-                $storeIds[$value['store_id']] = $storeId = $value['store_id'];
                 $skuList[] = $skuId = $value['sku_id'];
                 $num = intval($value['num']);
+                //样品限制单个用户购买数量
+                if ($value['goods_type'] == 2 && $value['sample_purchase_limit'] > 0) {
+                    $count = db('order')->alias('O')->join('order_sku OS', 'O.order_id = OS.order_id', 'INNER')->where(['sku_id' => $skuId, 'order_status' => 1])->count();
+                    $total = $count + $num;
+                    if ($total > $value['sample_purchase_limit']) {
+                        $this->error = '单个用户样品限购数量为('.$value['sample_purchase_limit'].')';
+                        return FALSE;
+                    }
+                }
+                $storeIds[$value['store_id']] = $storeId = $value['store_id'];
+                
                 //产品库存为0/已删除/已禁用 则为 已失效
                 $amount = 0;
                 $disable = $unsale = 0;

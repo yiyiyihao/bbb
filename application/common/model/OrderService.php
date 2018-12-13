@@ -34,10 +34,10 @@ class OrderService extends Model
             return FALSE;
         }
         $serviceType = isset($params['service_type']) ? intval($params['service_type']) : 0;
-//         $num = isset($params['num']) ? intval($params['num']) : 0;
-//         $refundAmount = isset($params['amount']) ? floatval($params['amount']) : 0;
-        $num = $osku['num'];
-        $refundAmount = $osku['real_amount'];
+        $num = isset($params['num']) ? intval($params['num']) : 0;
+        $refundAmount = isset($params['amount']) ? floatval($params['amount']) : 0;
+//         $num = $osku['num'];
+//         $refundAmount = $osku['real_amount'];
         
         $remark = isset($params['remark']) ? trim($params['remark']) : '';
         $imgs = isset($params['imgs']) ? $params['imgs'] : [];
@@ -59,8 +59,9 @@ class OrderService extends Model
             $this->error = '退款金额必须大于0';
             return FALSE;
         }
-        if ($refundAmount * $num > $osku['real_amount']) {
-            $this->error = '退款金额不能超过('.$osku['real_amount'].')';
+        $payAmount = $osku['real_amount']/$osku['num'] * $num;
+        if ($refundAmount * $num > $payAmount) {
+            $this->error = '退款金额不能超过('.$payAmount.')';
             return FALSE;
         }
         if ($order['pay_status'] != 1) {
@@ -72,11 +73,12 @@ class OrderService extends Model
         if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
             $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
         }
+        //return_status -1为关闭退货退款 0为可退货退款 1为已退款 2为已退货退款
         if ($osku['return_status'] == -1 || ($order['pay_time'] + $returnTime) <= time()) {
             $this->error = '超时,不允许操作';
             return FALSE;
         }
-        if ($osku['return_status'] == 1) {
+        if ($osku['return_status'] == 1 || $osku['return_status'] == 2) {
             $this->error = '产品已退款,不允许操作';
             return FALSE;
         }
@@ -157,7 +159,7 @@ class OrderService extends Model
         //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功 4已取消)
         switch ($type) {
             case 1://退款
-                $serviceStatus = $checkStatus ? 3: -1;
+                $serviceStatus = $checkStatus ? 2: -1;
             break;
             case 2://退货退款
                 $serviceStatus = $checkStatus ? 1: -1;
@@ -434,6 +436,10 @@ class OrderService extends Model
         if ($log) {
             $service['logs'] = db('order_log')->where(['service_id' => $service['service_id']])->select();
         }
+        $service['sku'] = db('order_sku')->where(['osku_id' => $service['osku_id']])->find();
+        $orderModel = new \app\common\model\Order();
+        $result = $orderModel->getOrderDetail($service['order_sn'], $user, [], FALSE);
+        $service['order'] = $result['order'];
         $service['imgs'] = $service['imgs'] ? json_decode($service['imgs'], 1) : [];
         return $service;
     }

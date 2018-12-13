@@ -14,6 +14,9 @@
                         </div>
                         <div class="field">
                         	<div class="button-group radio">
+                        		{if condition="!isset($config['installer_check'])"}
+                        		{assign name="config.installer_check" value="1" /}
+                        		{/if}
                             	<label class="button {if (isset($config['installer_check']) && $config['installer_check'] == 1)}active{/if}">
                             	<input name="installer_check" value="1" type="radio" {if (isset($config['installer_check']) && $config['installer_check'] == 1)}checked="checked"{/if}>是</label>
                             	<label class="button {if (!isset($config['installer_check']) || !$config['installer_check'] == 1)}active{/if}">

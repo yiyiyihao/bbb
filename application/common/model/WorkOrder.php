@@ -52,8 +52,28 @@ class WorkOrder extends Model
             $this->error = lang('NO ACCESS');
             return FALSE;
         }
+        //获取工单日志
+        $info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
+        //获取工单评价记录
+        $info['assess_list'] = $this->getWorderAssess($info);
         return $info;
     }
+    
+    public function getWorderAssess($worder)
+    {
+        $assessModel = db('work_order_assess');
+        $list = $assessModel->where(['worder_id' => $worder['worder_id']])->select();
+        if ($list) {
+            foreach ($list as $key => $value) {
+                if ($value['type'] == 1) {
+                    $config = db('work_order_assess_log')->alias("WOAL")->join("config C","C.config_id = WOAL.config_id")->field('C.name, WOAL.value as score')->where(['WOAL.assess_id' => $value['assess_id']])->select();
+                }
+                $list[$key]['configs'] = isset($config) && $config ? $config : [];
+            }
+        }
+        return $list;
+    }
+    
     /**
      * 分配安装员操作
      * @param array $worder
@@ -298,7 +318,7 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
-    public function TEST($worder, $assessId, $user, $score = 0)
+    public function serviceSettlement($worder, $assessId, $user, $score = 0)
     {
         //评论后，服务商安装服务费结算
         $where = [
@@ -312,10 +332,10 @@ class WorkOrder extends Model
         $exist = $incomeModel->where($where)->find();
         if ($exist) {
             $assessId = 1;
-            #TODO 根据评价数据计算得分
+            //根据评价数据计算得分
             $installAmount = $exist['install_amount'];
-            $score = 70;
-            $amount = $installAmount * $score/100;
+            $totalScore = 5;
+            $amount = round($installAmount * $score/$totalScore, 2);
             $data = [
                 'assess_id'     => $assessId,
                 'score'         => $score,
@@ -402,8 +422,9 @@ class WorkOrder extends Model
         ];
         $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
         if($assessId){
+            $action = $assessData['type'] ? '首次评价': '追加评价';
             //操作日志记录
-            $this->worderLog($worder, $user, '工单评价', $assessData['msg']);
+            $this->worderLog($worder, $user, $action, $assessData['msg']);
             switch ($assessData['type']){
                 case 1://首次评价带评分,记录评分信息
                     $scoreData = $assessData['score'];
@@ -426,7 +447,7 @@ class WorkOrder extends Model
                         //更新工程师综合得分
                         model('user_installer')->scoreUpdate($worder['installer_id'],$score);
                         //首次评价,处理安装服务费发放结算
-                        $this->TEST($worder, $assessId, $user, $score);
+                        $this->serviceSettlement($worder, $assessId, $user, $score);
                         return $assessId;
                     }else{
                         $this->error = '没有评分项';

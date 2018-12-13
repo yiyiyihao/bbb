@@ -6,6 +6,9 @@
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">基本信息</a></li>
                         <li><a href="#tab-2">日志信息</a></li>
+                        {if condition="$info['assess_list']"}
+                        <li><a href="#tab-3">评价记录</a></li>
+                        {/if}
                     </ul>
                 </div>
             </div>
@@ -19,14 +22,6 @@
 							<input type="text" class="input" disabled="disabled" id="user_name" name="user_name" size="40" datatype="*" value="{$orderTypes[$info['order_type']] ?? ''}">
 						</div>
 					</div>
-					<div class="form-group">
-                        <div class="label">
-                            <label>售后产品</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" disabled="disabled" size="60" value="{$info['goods']['name'] ?? ''} {$info['goods']['sku_name'] ?? ''}">
-                        </div>
-                    </div>
                     <div class="form-group">
                         <div class="label">
                             <label>客户名称</label>
@@ -93,6 +88,41 @@
 					    </table>
 					  </div>
             	</div>
+            	{if condition="$info['assess_list']"}
+            	<div class="tab-panel" id="tab-3">
+            		<div class="table-responsive">
+					    <table id="table" class="table table-hover ">
+					      <tbody>
+					        <tr>
+					          <th width="*">评价用户</th>
+					          <th width="*">评价类型</th>
+					          <th width="*">评价内容</th>
+					          <th width="*">评价时间</th>
+					        </tr>
+					        {notempty name="info.assess_list"}
+					          {volist name="info.assess_list" id="vo"}
+					            <tr>
+					              <td>{$vo.nickname}</td>
+					              <td>{$vo.type == 1 ? '首次评价' : '追加评价'}</td>
+					              <td>
+					              	{if ($vo['type'] == 1)}
+					              		{volist name="vo.configs" id="v"}
+			                                <div class="field-text">
+			                                    {$v['name']}:<span class="ml5 starBox icon-star-full">{$v.score}</span>
+			                                </div>
+					              		{/volist}
+					              	{/if}
+					              	评价内容:<span class="ml5">{$vo.msg|raw}</span>
+					              </td>
+					              <td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
+					            </tr>
+					          {/volist}
+					        {/notempty}
+					      </tbody>
+					    </table>
+					  </div>
+            	</div>
+            	{/if}
             </div>
             <div class="panel-foot">
                 <div class="form-button">

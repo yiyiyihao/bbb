@@ -56,8 +56,6 @@ class Service extends FactoryForm
         if (!$service) {
             $this->error($this->serviceModel->error);
         }
-        $sku = db('order_sku')->where(['osku_id' => $service['osku_id']])->find();
-        $this->assign('sku', $sku);
         $this->assign('info', $service);
         return $this->fetch();
     }

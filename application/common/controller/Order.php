@@ -58,7 +58,6 @@ class Order extends FormBase
         if ($detail === false) {
             $this->error($this->model->error);
         }
-        $detail['order']['pay_code'] = $detail['order']['pay_code'] ? $detail['order']['pay_code'] : (!$detail['order']['pay_status'] ? '' : '管理员确认收款');
         $this->assign('info', $detail);
         return $this->fetch('detail');
     }
@@ -95,6 +94,14 @@ class Order extends FormBase
             if ($order === FALSE) {
                 $this->error($this->model->error);
             }
+            if ($order['order_status'] == 2) {
+                $this->error('订单已取消不能支付');
+            }
+            if ($order['pay_status'] > 0) {
+                $this->error('订单已支付不能重复支付');
+            }
+            $payments = $this->model->getOrderPayments($this->adminUser['store_id']);
+            $this->assign('payments', $payments);
             $this->assign('info', $order);
             return $this->fetch('pay');
         }

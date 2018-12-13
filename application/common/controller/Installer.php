@@ -92,9 +92,6 @@ class Installer extends FormBase
             $this->error('无操作权限');
         }
         $params = $this->request->param();
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            ;
-        }
         if (IS_POST) {
             $remark = isset($params['remark']) ? trim($params['remark']) : '';
             $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
@@ -121,7 +118,6 @@ class Installer extends FormBase
             $this->assign('info', $info);
             return $this->fetch();
         }
-        pre($checkStatus);
     }
     
     /**

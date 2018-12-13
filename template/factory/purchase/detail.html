@@ -128,16 +128,16 @@ $(function(){
 		if(skuid){
 			str += "/skuid/"+skuid;
 		}
-		var nums = $(".nums").val();
+		var nums = parseInt($(".nums").val().trim());
 		if($.trim(goods_id)==0){
 	     	layer.alert("购买产品不存在");
 			return;
 		}
-		if($.trim(nums) <= 0){
+		if(nums <= 0){
 	     	layer.alert("购买产品数量不能小于1");
 			return;
 		}
-		if($.trim(nums) > goods_total){
+		if(nums > goods_total){
 	     	layer.alert("剩余库存不足");
 			return;
 		}

@@ -7,6 +7,24 @@ function time_to_date($time = 0)
     return date('Y-m-d H:i:s', $time);
 }
 /**
+ * 获取订单安装状态
+ */
+function get_order_apply_status($status = FALSE){
+    $list = [
+        0   => '未申请',
+        1   => '部分申请',
+        2   => '已申请',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if (isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
+/**
  * 发布状态
  */
 function get_publish_status($status = FALSE){
