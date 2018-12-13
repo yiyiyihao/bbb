@@ -221,15 +221,29 @@ class CommonBase extends Base
         $module             = strtolower($this->request->module());
         $controller         = strtolower($this->request->controller());
         $action             = strtolower($this->request->action());
-        $authRule       = AuthRule::getRuleList();
+        $domain             = Request::panDomain();
+        $authRule           = AuthRule::getALLRule($domain);
+//         pre($authRule);
+        //检查是否有上级操作节点
+        //检查是否有上一页来源
         $listCrumb      = ['name'  => lang('index'),'url'   => url('index')];
         $activeCrumb    = ['name'  => lang($action),'url'   => ''];
         foreach ($authRule as $k=>$v){
+            if($v['module'] == $module && $v['controller'] == $controller && $v['action'] == 'index'){
+                $listCrumb['name'] = $v['title'];
+            }
             if($v['module'] == $module && $v['controller'] == $controller && empty($v['action'])){
                 $listCrumb['name'] = $v['title'];
             }
             if($v['module'] == $module && $v['controller'] == $controller && $v['action'] == $action){
                 $activeCrumb['name'] = $v['title'];
+                if($v['parent_id'] > 0){
+                    $parentInfo = $authRule[$v['parent_id']];
+                    $listCrumb['name']  = $parentInfo['title'];
+                    if(!$parentInfo['controller']){
+                        $listCrumb['url']   = '';
+                    }
+                }
             }
         }
         $this->breadCrumb[] = $listCrumb;
