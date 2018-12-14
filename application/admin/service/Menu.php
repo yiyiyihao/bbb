@@ -9,8 +9,8 @@ class Menu{
     /**
      * 获取菜单结构
      */
-    public function getAdminMenu($user = [],$domain = config('app.admin_domain')){
-//         $domain = 'admin';
+    public function getAdminMenu($user = [],$domain = ''){
+        $domain = !empty($domain) ? $domain : config('app.admin_domain');
         $authRule = AuthRule::getRuleList($domain);//这里只取出在允许在菜单中显示的数据
         foreach ($authRule as $k=>$v){
 //             $module     = (!empty($v['module']) && $v['module'] != 'admin') ? '/'.$v['module'] : '';

@@ -17,7 +17,8 @@ class AuthRule extends Model
 	}
 	
 	//取得规则列表
-	static function getRuleList($domain = config('app.admin_domain')){
+	static function getRuleList($domain = ''){
+	    $domain = !empty($domain) ? $domain : config('app.admin_domain');
 	    //检查缓存中是否有菜单配置
 	    $authRule = cache($domain.'authRule');
 	    $module = $domain;
@@ -43,7 +44,8 @@ class AuthRule extends Model
 	    return $authRule;
 	}
 	//取得所有权限列表
-	static function getALLRule($domain = config('app.admin_domain')){
+	static function getALLRule($domain = ''){
+	    $domain = !empty($domain) ? $domain : config('app.admin_domain');
 	    $allRules = cache($domain.'allRules');
 	    $module = $domain;
 	    switch ($domain){
