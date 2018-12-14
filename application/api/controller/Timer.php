@@ -19,7 +19,7 @@ class Timer extends ApiBase
     {
         $thisTime = time();
         //获取系统默认配置
-        $default = $this->getSystemConfig('system_default');
+        $default = get_system_config('system_default');
         $defaultConfig = $default['config_value'];
         
         $storeModel = new \app\common\model\Store();

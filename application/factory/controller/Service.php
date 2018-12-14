@@ -200,7 +200,7 @@ class Service extends FactoryForm
         $this->assign('types', $types);
         $search = [
             ['type' => 'input', 'name' =>  'sn', 'value' => '订单编号', 'width' => '30'],
-            ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==售后服务类型=='],
+//             ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==售后服务类型=='],
             ['type' => 'input', 'name' =>  'gname', 'value' => '产品名称', 'width' => '30'],
             ['type' => 'input', 'name' =>  'name', 'value' => '买家商户名称/账号/联系电话', 'width' => '30'],
         ];

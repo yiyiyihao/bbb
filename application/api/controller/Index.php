@@ -131,7 +131,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码(type)缺失']);
         }
         //验证手机号格式
-        $userService = new \app\common\service\User();
+        $userService = new \app\common\model\User();
         $result = $userService->_checkFormat(['phone' => $phone]);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userService->error]);
@@ -451,7 +451,7 @@ class Index extends ApiBase
 //         if ($user['installer']) {
 //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师不允许申请售后服务']);
 //         }
-        $orderType  = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 0;//默认为安装工单
+        $orderType  = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']): 0;//默认为安装工单
         $regionId   = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
         $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
         $userName   = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
@@ -460,7 +460,7 @@ class Index extends ApiBase
         $appointment = isset($this->postParams['appointment']) ? trim($this->postParams['appointment']) : '';
         $faultDesc = isset($this->postParams['fault_desc']) ? trim($this->postParams['fault_desc']) : '';
         if (!$orderType || !in_array($orderType, [1, 2])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(work_order_type)错误']);
         }
         if (!$userName) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户姓名(user_name)缺失']);
@@ -486,13 +486,13 @@ class Index extends ApiBase
         $params = $this->postParams;
         $workOrderModel = model('work_order');
         $params = [
-            'order_type' => $orderType,
+            'work_order_type' => $orderType,
             ''
         ];
         #TODO 报修上传故障图片
         $params['images'] = '';//图片
         $params['fault_desc'] = $faultDesc;
-        $params['order_type'] = $orderType;
+        $params['work_order_type'] = $orderType;
         $params['post_user_id'] = $params['user_id'] = $user['user_id'];
         pre($params);
         $result = $workOrderModel->save($params);
@@ -565,7 +565,7 @@ class Index extends ApiBase
         $exist = $installerModel->where(['store_id' => $store['store_id'], 'is_del' => 0, 'user_id'   => $user['user_id']])->find();
         if ($exist){
             //0禁用 1正常 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝
-            $msg = $exist['status'] <= 0 ? get_installer_status($exist['status']): '已经是售后工程师';
+            $msg = $exist['check_status'] <= 0 ? get_installer_status($exist['check_status']): '已经是售后工程师';
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $msg]);
         }else{
             $status = 1;//默认不需要审核直接通过
@@ -590,7 +590,7 @@ class Index extends ApiBase
                 'user_id'   => $user['user_id'],
                 'realname'  => $realname,
                 'phone'     => $phone,
-                'status'    => $status,
+                'check_status'=> $status,
                 'add_time'  => time(),
                 'update_time'=> time(),
             ];
@@ -610,30 +610,30 @@ class Index extends ApiBase
         if (!$installer) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
         }
-        $orderType = isset($this->postParams['order_type']) ? intval($this->postParams['order_type']): 1;
+        $orderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']): 1;
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']): 0;
-        if (!get_worder_status($status)) {
+        if (!get_work_order_status($status)) {
             $status = 0;
         }
         if (!$orderType || !in_array($orderType, [1, 2])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(order_type)错误']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(work_order_type)错误']);
         }
         $where = [
             'installer_id' => $installer['installer_id'], 
             'is_del' => 0,
         ];
         if ($orderType) {
-            $where['order_type'] = $orderType;
+            $where['work_order_type'] = $orderType;
         }
         if (isset($this->postParams['status'])) {
-            $where['status'] = $status;
+            $where['work_order_status'] = $status;
         }
-        $field = 'worder_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
+        $field = 'worder_id, work_order_type, user_name, phone, region_name, address, appointment, images, fault_desc, work_order_status, add_time, receive_time, finish_time';
         $order = 'add_time ASC';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
         if ($list) {
             foreach ($list as $key => $value) {
-                $list[$key]['status_txt'] = get_worder_status($value['status']);
+                $list[$key]['status_txt'] = get_work_order_status($value['work_order_status']);
                 $list[$key]['images'] = $value['images'] ? json_decode($value['images'], 1) : [];
             }
         }
@@ -646,7 +646,7 @@ class Index extends ApiBase
         if (!$worderSn) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
-        $field = 'worder_id, worder_sn, order_sn, osku_id, installer_id, order_type, user_name, phone, region_name, address, appointment, images, fault_desc, status, add_time, receive_time, finish_time';
+        $field = 'worder_id, worder_sn, order_sn, osku_id, installer_id, work_order_type, user_name, phone, region_name, address, appointment, images, fault_desc, work_order_status, add_time, receive_time, finish_time';
         $info = db('work_order')->field($field)->where(['worder_sn' => $worderSn, 'is_del' => 0])->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
@@ -666,7 +666,6 @@ class Index extends ApiBase
         }
         if (!$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
-            return FALSE;
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
@@ -687,7 +686,6 @@ class Index extends ApiBase
         }
         if (!$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
-            return FALSE;
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
@@ -705,7 +703,10 @@ class Index extends ApiBase
         $installer = $user['installer'];
         if ($installer && !$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
-            return FALSE;
+        }
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        if (!$remark) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作备注(remark)不能为空']);
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
@@ -723,12 +724,9 @@ class Index extends ApiBase
         $installer = $user['installer'];
         if ($installer && !$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
-            return FALSE;
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-//         $result = $worderModel->TEST($detail, 2, $user);
-//         pre(1);
         $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单完成操作成功']);
@@ -752,10 +750,10 @@ class Index extends ApiBase
             ['store S', 'S.store_id = UI.store_id'],
             ['store F', 'F.store_id = UI.factory_id'],
         ];
-        $field = 'UI.installer_id, UI.job_no, UI.realname, UI.phone, UI.status, S.name as store_name, F.name as factory_name';
+        $field = 'UI.installer_id, UI.job_no, UI.realname, UI.phone, UI.check_status, UI.status, S.name as store_name, F.name as factory_name';
         $exist = db('user_installer')->alias('UI')->join($join)->field($field)->where(['UI.user_id' => $userId, 'UI.is_del' => 0])->find();
         if ($exist) {
-            $exist['status_txt'] = get_installer_status($exist['status']);
+            $exist['status_txt'] = get_installer_status($exist['check_status']);
         }
         return $exist;
     }

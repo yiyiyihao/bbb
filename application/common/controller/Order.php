@@ -16,14 +16,6 @@ class Order extends FormBase
             'name' => '待付款',
             'url' => url('index', ['pay_status' => 0]),
         ];
-        /* $this->subMenu['menu'][] = [
-            'name' => '待发货',
-            'url' => url('index', ['delivery_status' => 0]),
-        ];
-        $this->subMenu['menu'][] = [
-            'name' => '待收货',
-            'url' => url('index', ['delivery_status' => 1]),
-        ]; */
         $this->subMenu['menu'][] = [
             'name' => '已完成',
             'url' => url('index', ['finish_status' => 1]),
@@ -37,7 +29,7 @@ class Order extends FormBase
             'url' => url('index', ['order_status' => 3]),
         ];
         
-        $config = $this->config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
+        $config = $this->config = get_store_config($this->adminFactory['store_id'], TRUE);
         //判断商户是否可提现
         if ($config && isset($config['order_return_day']) && $config['order_return_day'] > 0) {
             $this->config['returnTime'] = $config['order_return_day'] * 24 * 60 * 60;
@@ -54,7 +46,7 @@ class Order extends FormBase
             'name' => '订单查看',
             'url' => url('detail', ['order_sn' => $orderSn]),
         ];
-        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, $this->config);
+        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, $this->config, TRUE, TRUE);
         if ($detail === false) {
             $this->error($this->model->error);
         }

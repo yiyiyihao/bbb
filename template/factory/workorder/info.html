@@ -3,7 +3,10 @@
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
-                    <strong>{$name ?? '工单信息'}</strong>
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">{$name ?? '工单信息'}</a></li>
+                        <li><a href="#tab-2">产品信息</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="tab-body">
@@ -47,7 +50,7 @@
                             <div class="input-note">请填写预约服务时间</div>
                         </div>
                     </div>
-	                <div class="form-group fault_desc {if condition='!$info || $info.order_type != 2'}hide{/if}">
+	                <div class="form-group fault_desc {if condition='!$info || $info.work_order_type != 2'}hide{/if}">
                         <div class="label">
                             <label>故障详情</label>
                         </div>
@@ -57,6 +60,32 @@
                         </div>
                     </div>
                 </div>
+           		<div class="tab-panel" id="tab-2">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$ossub['order_sn'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$ossub['sku_name'] ?? ''}  {$ossub['sku_spec'] ?? ''} ">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="image_preview" style="margin-bottom:10px;">
+		                    <img src="{$ossub['sku_name']['sku_thumb']|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
+                        </div>
+                    </div> 
             </div>
             <div class="panel-foot">
                 <div class="form-button">

@@ -5,88 +5,65 @@ use app\common\controller\Order as commonOrder;
 class Myorder extends commonOrder
 {
     public $orderSkuModel;
-    public $serviceModel;
+    public $orderSkuServiceModel;
     
     public function __construct()
     {
         $this->modelName = 'myorder';
-        $this->model = model('order');
+        $this->model = new \app\common\model\Order();
         parent::__construct();
         if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
             $this->error('NO ACCESS');
         }
         unset($this->subMenu['add']);
         $this->orderSkuModel = db('order_sku');
-        $this->serviceModel = new \app\common\model\OrderService();
+        $this->orderSkuServiceModel = new \app\common\model\OrderService();
     }
     public function return()
     {
         $params = $this->request->param();
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
-        $oskuId = isset($params['id']) ? intval($params['id']) : 0 ;
+        $ossubId = isset($params['ossub_id']) ? intval($params['ossub_id']) : 0 ;
         $serviceId = isset($params['sid']) ? intval($params['sid']) : 0 ;
-        $type = isset($params['type']) ? intval($params['type']) : 0 ;
-        
         $order = $this->model->checkOrder($orderSn, $this->adminUser);
         if ($order === FALSE) {
-            return FALSE;
+            $this->error($this->model->error);
         }
-        $serviceModel = new \app\common\model\OrderService();
+        if ($order['close_refund_status'] != 0) {
+            $this->error('不允许退货退款');
+        }
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $ossub = $orderSkuModel->getSubDetail($ossubId, FALSE, FALSE, TRUE);
+        if (!$ossub) {
+            $this->error(lang('param_error'));
+        }
+        if ($ossub['work_order'] && $ossub['work_order'] != -1) {
+            $this->error(lang('当前产品存在安装工单，不允许申请售后'));
+        }
         $service = [];
         if ($serviceId) {
             //只有取消的售后可以重新申请
-            $service = $serviceModel->getServiceDetail(FALSE, $this->adminUser, $serviceId);
+            $service = $this->orderSkuServiceModel->getServiceDetail(FALSE, $this->adminUser, $serviceId);
             if (!$service) {
-                $this->error($serviceModel->error);
+                $this->error($this->orderSkuServiceModel->error);
             }
             if (!in_array($service['service_status'], [-1, 4])) {
                 $this->error('申请已存在不能重复操作');
             }
-            $type = $service['service_type'];
-        }
-        if (!$type) {
-            $this->error('请选择售后类型');
-        }
-        $types = get_service_type();
-        if (!isset($types[$type])) {
-            $this->error('售后类型错误');
-        }
-        $name = $types[$type];
-        
-        $this->subMenu['menu'][] = [
-            'name' => '申请售后: '.$name,
-            'url' => url('return', ['order_sn' => $orderSn, 'id' => $oskuId, 'sid' => $serviceId, 'type' => $type]),
-        ];
-        
-        //判断是否在退货退款时间内
-        if (isset($this->config['returnTime']) && $order['pay_time'] && ($order['pay_time'] + $this->config['returnTime']) <= time()) {
-            $this->error('超时不允许退货退款');
-        }
-        $osku = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'osku_id' => $oskuId, 'return_status' => 0])->find();
-        if (!$osku) {
-            $this->error(lang('param_error'));
-        }
-        if (isset($this->config['returnCount']) && $this->config['returnCount']) {
-            //判断售后申请次数
-            $count = $serviceModel->where(['osku_id' => $osku['osku_id']])->count();
-            if ($count && $count >= $this->config['returnCount']) {
-                $this->error(lang('售后申请已达最大次数'));
-            }
         }
         if (IS_POST) {
             $params = $this->request->param();
-            $params['service_type'] = $type;
-            $result = $this->serviceModel->createService($order, $osku, $this->adminUser, $params, $service, $this->config);
+            $result = $this->orderSkuServiceModel->createService($order, $ossub, $this->adminUser, $params, $service);
             if ($result === FALSE) {
-                $this->error($this->serviceModel->error);
+                $this->error($this->orderSkuServiceModel->error);
             }else{
                 $this->success('售后申请成功,请耐心等待商家审核', url('detail', ['order_sn' => $orderSn]));
             }
         }else{
+            $order = $this->model->getOrderDetail($orderSn, $this->adminUser);
             $this->assign('service', $service);
             $this->assign('info', $order);
-            $this->assign('osku', $osku);
-            $this->assign('name', $name);
+            $this->assign('ossub', $ossub);
             return $this->fetch();
         }
     }
@@ -115,7 +92,7 @@ class Myorder extends commonOrder
         $factoryConfig['pending_order_cancel_time'] = isset($factoryConfig['pending_order_cancel_time']) ? $factoryConfig['pending_order_cancel_time'] : 30;//未设置默认30分钟
         $detail['cancel_countdown'] = $factoryConfig['pending_order_cancel_time'];
         //获取订单产品列表
-        $oSkus = $this->model->getOrderSkus($detail['order_id']);
+        $oSkus = $this->model->getOrderSkus($detail);
         if (!$oSkus) {
             $this->error('订单数据异常');
         }

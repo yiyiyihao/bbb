@@ -52,6 +52,8 @@ class WorkOrder extends Model
             $this->error = lang('NO ACCESS');
             return FALSE;
         }
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $info['sub'] = $orderSkuModel->getSubDetail($info['ossub_id'], FALSE, TRUE);
         //获取工单日志
         $info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
@@ -103,7 +105,7 @@ class WorkOrder extends Model
         }
         $action = '分派工程师';
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        switch ($worder['status']) {
+        switch ($worder['work_order_status']) {
             case -1://已取消可另外分派
                 $this->error = '已取消不能重新派单';
                 return FALSE;
@@ -133,7 +135,7 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['status' => 1, 'installer_id' => $installerId, 'dispatch_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save(['work_order_status' => 1, 'installer_id' => $installerId, 'dispatch_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
             $msg = '工程师姓名:'.$installer['realname'].'<br>工程师电话:'.$installer['phone'];
@@ -162,7 +164,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        switch ($worder['status']) {
+        switch ($worder['work_order_status']) {
             case -1:
                 $this->error = '工单已取消,无操作权限';
                 return FALSE;
@@ -182,7 +184,7 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save(['work_order_status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
             $this->worderLog($worder, $user, '工程师接单');
@@ -210,7 +212,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        switch ($worder['status']) {
+        switch ($worder['work_order_status']) {
             case -1:
                 $this->error = '工单已取消,无操作权限';
                 return FALSE;
@@ -230,7 +232,7 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save(['work_order_status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
             $this->worderLog($worder, $user, '工程师签到,服务开始');
@@ -253,7 +255,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        switch ($worder['status']) {
+        switch ($worder['work_order_status']) {
             case -1:
                 $this->error = '工单已取消,无操作权限';
                 return FALSE;
@@ -270,7 +272,7 @@ class WorkOrder extends Model
                 $this->error = '服务已完成,无操作权限';
                 return FALSE;
         }
-        $result = $this->save(['status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save(['work_order_status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //确认完成，服务商服务费入账
             $where = [
@@ -373,7 +375,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        switch ($worder['status']) {
+        switch ($worder['work_order_status']) {
             case -1:
                 $this->error = '工单已取消,无操作权限';
                 return FALSE;
@@ -387,8 +389,7 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        #TODO 判断用户是否有取消权限
-        $result = $this->save(['status' => -1, 'cancel_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save(['work_order_status' => -1, 'cancel_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
             $this->worderLog($worder, $user, '取消工单', '');

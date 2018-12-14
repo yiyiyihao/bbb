@@ -9,11 +9,11 @@ class Workorder extends FactoryForm
     public function __construct()
     {
         $this->modelName = 'work_order';
-        $this->model = model($this->modelName);
-        $this->orderTypes = get_worder_type();
+        $this->model = new \app\common\model\WorkOrder();
+        $this->orderTypes = get_work_order_type();
         parent::__construct();
         $this->subMenu['showmenu'] = true;
-        $this->statusList = get_worder_status();
+        $this->statusList = get_work_order_status();
         foreach ($this->statusList as $key => $value) {
             $this->subMenu['menu'][] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];
         }
@@ -156,7 +156,7 @@ class Workorder extends FactoryForm
             'WO.is_del' => 0,
         ];
         if (isset($params['status'])) {
-            $where['WO.status'] = $status;
+            $where['WO.work_order_status'] = $status;
         }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['WO.factory_id'] = $this->adminUser['store_id'];
@@ -184,7 +184,7 @@ class Workorder extends FactoryForm
         return $where;
     }
     
-    private function _getOsku($info = [])
+    private function _getSkuSub($info = [])
     {
         //判断是否有新增权限
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER]))
@@ -199,35 +199,43 @@ class Workorder extends FactoryForm
         }elseif ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])){
             $this->error(lang('NO ACCESS'));
         }
-        $oskuId = isset($params['osku_id']) ? intval($params['osku_id']) : 0;
+        $ossubId = isset($params['ossub_id']) ? intval($params['ossub_id']) : 0;
         if (!isset($this->orderTypes[$type])) {
             $this->error('工单类型错误');
         }
         $name = $this->modelName = $this->orderTypes[$type];
-        if (!$oskuId) {
+        if (!$ossubId) {
             $this->error(lang('param_error'));
         }
-        $orderSkuModel = db('order_sku');
-        $osku = $orderSkuModel->alias('OS')->join('order O', 'O.order_id = OS.order_id', 'INNER')->where(['osku_id' => $oskuId])->find();
-        if (!$osku) {
+        $orderSkuSubModel = db('order_sku_sub');
+        $join = [];
+        $skuModel = new \app\common\model\OrderSku();
+        $ossub = $skuModel->getSubDetail($ossubId, FALSE, TRUE);
+        if (!$ossub) {
             $this->error('参数错误');
         }
-        if (!$osku['pay_status']) {
+        if ($ossub['goods_type']) {
+            $this->error('样品不允许安装/维修');
+        }
+        if ($ossub['order_status'] != 1) {
+            $this->error('订单已取消或关闭，不允许添加工单');
+        }
+        if (!$ossub['pay_status']) {
             $this->error('订单未支付，不允许添加工单');
         }
-        if ($osku['service_status'] == 3) {//售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功 4已取消)
-            $this->error('当前产品已退款，不允许添加工单');
+        if($ossub['service'] && ($ossub['service']['service_status'] != -1 || $ossub['service']['service_status'] != -2)){
+            $this->error('产品存在退款申请，不允许提交工单');
         }
         if ($type == 1) {
             //判断当前产品对应工单数量
-            $count = $this->model->where(['osku_id' => $osku['osku_id'], 'status' => ['<>', -1]])->count();
-            if ($count >= $osku['num']) {
-                $this->error('当前产品安装工单限制数量('.$osku['num'].')', url('workorder/index'));
+            $exist = $this->model->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 1, 'work_order_status' => ['<>', -1]])->find();
+            if ($exist) {
+                $this->error('当前产品已申请安装工单', url('workorder/index'));
             }
         }
         if ($type == 2) {
             //判断当前是否存在正在进行中的维修工单
-            $exist = $this->model->where(['osku_id' => $osku['osku_id'], 'status' => 3])->find();
+            $exist = $this->model->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
             if ($exist) {
                 $this->error('当前产品存在维修中的工单，不允许添加');
             }
@@ -237,18 +245,19 @@ class Workorder extends FactoryForm
             $exist = $this->model->find($wid);//安装工单
             if ($exist) {
                 $exist['appointment'] = date('Y-m-d H:i', time());
-                $exist['order_type'] = 2;
+                $exist['work_order_type'] = 2;
                 $this->assign('info', $exist);
             }
         }
-        return $osku;
+        $this->assign('ossub', $ossub);
+        return $ossub;
     }
-    function _getData($osku = [])
+    function _getData($ossub = [])
     {
         $data = parent::_getData();
         $params = $this->request->param();
         $info = parent::_assignInfo();
-        $osku = $this->_getOsku($info);
+        $ossub = $this->_getSkuSub($info);
         $type = isset($params['type']) ? intval($params['type']) : '';
         $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
         $phone = isset($data['phone']) ? trim($data['phone']) : '';
@@ -257,8 +266,7 @@ class Workorder extends FactoryForm
         $address = isset($data['address']) ? trim($data['address']) : '';
         $appointment = isset($data['appointment']) ? trim($data['appointment']) : '';
         $faultDesc = isset($data['fault_desc']) ? trim($data['fault_desc']) : '';
-        
-        if ($info && in_array($info['status'], [-1, 3, 4])) {
+        if ($info && in_array($info['work_order_status'], [-1, 3, 4])) {
             $this->error('工单当前状态不允许编辑');
         }
         if (!$info || $info['region_id'] != $regionId) {
@@ -278,14 +286,15 @@ class Workorder extends FactoryForm
         if (!$info) {
             $data['factory_id']     = $this->adminFactory['store_id'];
             $data['post_user_id']   = ADMIN_ID;
-            $data['order_type']     = $type;
-            $data['osku_id']        = $osku['osku_id'];
-            $data['order_sn']       = $osku['order_sn'];
-            $data['goods_id']       = $osku['goods_id'];
-            $data['sku_id']         = $osku['sku_id'];
+            $data['work_order_type']= $type;
+            $data['osku_id']        = $ossub['osku_id'];
+            $data['ossub_id']       = $ossub['ossub_id'];
+            $data['order_sn']       = $ossub['order_sn'];
+            $data['goods_id']       = $ossub['goods_id'];
+            $data['sku_id']         = $ossub['sku_id'];
             $data['post_store_id']  = $this->adminUser['store_id'];
         }
-        $data['install_price'] = $osku['install_amount'];
+        $data['install_price'] = $ossub['install_amount'];
         if (!$userName || !$phone || !$regionId || !$regionName) {
             $this->error('请完善客户信息');
         }
@@ -295,18 +304,28 @@ class Workorder extends FactoryForm
         if (!$appointment) {
             $this->error('请填写客户预约服务时间');
         }
-        if ($type == 2 && !$faultDesc) {
-            $this->error('请简要描述故障信息');
+        if ($type == 2) {
+            $parentId = isset($params['wid']) ? intval($params['wid']) : '';
+            if ($parentId <= 0) {
+                $this->error(lang('PARAM_ERROR'));
+            }
+            if (!$faultDesc) {
+                $this->error('请简要描述故障信息');
+            }
+            $data['parent_id'] = $parentId;
         }
         if ($type == 1) {
             $data['fault_desc'] = '';
         }
         $data['images'] = '';
         $data['appointment'] = $appointment ? strtotime($appointment) : 0;
+        if ($data['appointment'] <= time()) {
+            $this->error('预约服务时间必须大于当前时间');
+        }
         return $data;
     }
     function _assignAdd(){
         parent::_assignAdd();
-        $this->_getOsku();
+        $this->_getSkuSub();
     }
 }

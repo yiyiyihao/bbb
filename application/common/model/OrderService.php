@@ -27,84 +27,63 @@ class OrderService extends Model
      * @param array $storeConfig
      * @return boolean
      */
-    public function createService($order, $osku, $user, $params, $service = [], $storeConfig = [])
+    public function createService($order, $ossub, $user, $params, $service = [])
     {
-        if (!$order || !$osku || !$user || !$params) {
+        if (!$order || !$ossub || !$user || !$params) {
             $this->error = lang('PARAM_ERROR');
             return FALSE;
         }
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $ossub = $orderSkuModel->getSubDetail($ossub['ossub_id'], FALSE, FALSE, TRUE);
+        if (!$ossub) {
+            $this->error(lang('param_error'));
+        }
+        if ($ossub['work_order'] && $ossub['work_order'] != -1) {
+            $this->error(lang('当前产品存在安装工单，不允许申请售后'));
+        }
         $serviceType = isset($params['service_type']) ? intval($params['service_type']) : 0;
-        $num = isset($params['num']) ? intval($params['num']) : 0;
-        $refundAmount = isset($params['amount']) ? floatval($params['amount']) : 0;
-//         $num = $osku['num'];
-//         $refundAmount = $osku['real_amount'];
+        $num = 1;
+        $refundAmount = $ossub['real_price'];
         
         $remark = isset($params['remark']) ? trim($params['remark']) : '';
         $imgs = isset($params['imgs']) ? $params['imgs'] : [];
-        
-        $types = get_service_type();
-        if (!$serviceType || !isset($types[$serviceType])) {
-            $this->error = '售后类型错误';
-            return FALSE;
-        }
-        if ($num <= 0) {
-            $this->error = '产品数量必须大于0';
-            return FALSE;
-        }
-        if ($num > $osku['num']) {
-            $this->error = '产品数量不能超过('.$osku['num'].')';
-            return FALSE;
-        }
         if ($refundAmount <= 0) {
             $this->error = '退款金额必须大于0';
             return FALSE;
         }
-        $payAmount = $osku['real_amount']/$osku['num'] * $num;
-        if ($refundAmount * $num > $payAmount) {
-            $this->error = '退款金额不能超过('.$payAmount.')';
-            return FALSE;
-        }
         if ($order['pay_status'] != 1) {
-            $this->error = '订单未付款';
+            $this->error = '订单未完成支付';
             return FALSE;
         }
+        if ($service && $service['service_status'] != -1) {
+            $this->error = '申请已存在不能重复申请';
+            return FALSE;
+        }
+        $storeConfig = get_store_config($order['store_id'], TRUE);
         $returnTime = $returnCount = 0;
         //判断商户是否可提现(超时不允许提现)
         if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
             $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;
         }
         //return_status -1为关闭退货退款 0为可退货退款 1为已退款 2为已退货退款
-        if ($osku['return_status'] == -1 || ($order['pay_time'] + $returnTime) <= time()) {
-            $this->error = '超时,不允许操作';
-            return FALSE;
-        }
-        if ($osku['return_status'] == 1 || $osku['return_status'] == 2) {
-            $this->error = '产品已退款,不允许操作';
-            return FALSE;
-        }
-        if ($storeConfig && isset($storeConfig['ordersku_return_limit']) && $storeConfig['ordersku_return_limit'] > 0) {
-            $returnCount = $storeConfig['ordersku_return_limit'];
-        }
-        //计算当前产品售后申请次数
-        $count = $this->where(['osku_id' => $osku['osku_id']])->count();
-        if ($returnCount && $count && $count >= $returnCount) {
-            $this->error = '售后申请已达最大次数';
+        if ($order['close_refund_status'] != 0 || ($order['pay_time'] + $returnTime) <= time()) {
+            $this->error = '不允许操作';
             return FALSE;
         }
         //判断当前产品是否已申请退货/退款
-        $exist = $this->where(['osku_id' => $osku['osku_id'], 'service_status' => ['NOT IN', [-1, 4]]])->find();
+        $exist = $this->where(['ossub_id' => $ossub['ossub_id'], 'service_status' => ['NOT IN', [-1, -2]]])->find();
         if ($exist) {
-            $this->error = '当前产品退货申请已存在';
+            $this->error = '当前产品已申请退货退款';
             return FALSE;
         }
         $data = [
-            'service_type'  => $serviceType,
             'store_id'      => $order['store_id'],
             'user_id'       => $user['user_id'],
             'user_store_id' => $order['user_store_id'],
             'order_id'      => $order['order_id'],
             'order_sn'      => $order['order_sn'],
-            'osku_id'       => $osku['osku_id'],
+            'osku_id'       => $ossub['osku_id'],
+            'ossub_id'      => $ossub['ossub_id'],
             'num'           => $num,
             'refund_amount' => $refundAmount,
             'remark'        => $remark,
@@ -123,11 +102,9 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $osku['osku_id']])->update(['service_id' => $serviceId, 'service_status' => 0, 'update_time' => time()]);
         //记录日志
-        $action = $serviceType == 1 ? '申请退款' : '申请退货退款';
         $orderModel = new Order();
-        $orderModel->orderLog($order, $user, $action, $remark, $serviceId);
+        $orderModel->orderLog($order, $user, '申请退货退款', $remark, $serviceId);
         return TRUE;
     }
     /**
@@ -155,13 +132,10 @@ class OrderService extends Model
             $this->error = 'param_error';
             return FALSE;
         }
-        //售后类型(1退款 2退货退款)
-        //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功 4已取消)
+        //售后类型(1退货退款)
+        //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功 -2已取消)
         switch ($type) {
-            case 1://退款
-                $serviceStatus = $checkStatus ? 2: -1;
-            break;
-            case 2://退货退款
+            case 1://退货退款
                 $serviceStatus = $checkStatus ? 1: -1;
             break;
             default:
@@ -183,7 +157,6 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'update_time' => time()]);
         $types = get_service_type();
         $action = $checkStatus ? '同意' : '拒绝';
         $orderModel = new Order();
@@ -204,7 +177,7 @@ class OrderService extends Model
         if (!$service){
             return FALSE;
         }
-        if ($service['service_type'] != 2) {
+        if ($service['service_type'] != 1) {
             $this->error = lang('param_error');
             return FALSE;
         }
@@ -237,11 +210,11 @@ class OrderService extends Model
         }
         $serviceStatus = 2; //退货后等待卖家退款
         $data = [
-            'is_delivery'       => $isDelivery,
             'delivery_identif'  => $isDelivery ? $deliveryIdentif : '',
-            'delivery_name'     => $isDelivery ? $deliveryIdentif && $deliverys[$deliveryIdentif]['name']: '',
+            'delivery_name'     => $isDelivery && $deliveryIdentif ? $deliverys[$deliveryIdentif]['name']: '',
             'delivery_sn'       => $isDelivery ? $deliverySn : '',
             'delivery_time'     => time(),
+            'delivery_status'   => 1,
             
             'service_status'    => $serviceStatus,
         ];
@@ -250,7 +223,6 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'update_time' => time()]);
         $types = get_service_type();
         $orderModel = new Order();
         if ($isDelivery) {
@@ -285,8 +257,9 @@ class OrderService extends Model
             $this->error = 'param_error';
             return FALSE;
         }
-        $osku = $this->orderSkuModel->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id']])->find();
-        if (!$osku) {
+        $subModel = db('order_sku_sub');
+        $osub = $subModel->where(['order_id' => $service['order_id'], 'ossub_id' => $service['ossub_id']])->find();
+        if (!$osub) {
             $this->error = 'param_error';
             return FALSE;
         }
@@ -307,14 +280,13 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'return_status' => 1, 'update_time' => time()]);
         
         //退货退款完成时,库存还原
-        if ($service['service_type'] == 2) {
+        if ($service['service_type'] == 1) {
             $goodsModel = new \app\common\model\Goods();
-            $goodsModel->setGoodsStock($osku, $service['num']);
+            $goodsModel->setGoodsStock($osub, $service['num']);
         }
-        //退款成功后判断当前产品是否存在佣金返利存在则改为已退还状态
+        
         $commissionModel = db('store_commission');
         $where = [
             'order_id'  => $service['order_id'],
@@ -323,28 +295,45 @@ class OrderService extends Model
             'is_del'    => 0,
             'status'    => 1,
         ];
-        $exist = $commissionModel->where($where)->find();
-        if ($exist) {
-            $amount = $exist['income_amount'];
-            $result = $commissionModel->where($where)->update(['commission_status' => 2, 'update_time' => time()]);
+        //退款成功后判断当前产品是否存在佣金返利
+        $commission = $commissionModel->where($where)->find();
+        if ($commission) {
+            $ratio = $commission['commission_ratio'];
+            $skuCount = $subModel->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id']])->count();
+            //计算已退款的产品数量
+            $refundCount = $this->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id'], 'service_status' => $serviceStatus])->count();
+            
+            $refundAmount = round($service['refund_amount'] * $ratio/ 100, 2);
+            $data = [
+                'refund_amount' => ['inc', $service['refund_amount']],
+                'income_amount' => ['dec', $refundAmount],
+                'update_time' => time(),
+            ];
+            //判断当前订单商品是否已全部退款
+            if ($refundCount >= $skuCount) {
+                $data = ['commission_status' => 2];
+            }
+            $result = $commissionModel->where($where)->update($data);
             //可提现金额不变 待结算金额减少 总收益减少
             $financeModel = new \app\common\model\StoreFinance();
             $params = [
-                'pending_amount'=> -$amount,
-                'total_amount'  => -$amount,
+                'pending_amount'=> -$refundAmount,
+                'total_amount'  => -$refundAmount,
             ];
-            $result = $financeModel->financeChange($exist['store_id'], $params, '买家退款,收益退还', $order['order_sn']);
+            $result = $financeModel->financeChange($commission['store_id'], $params, '买家退款,收益退还');
         }
-        
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, '卖家退款', $remark, $service['service_id']);
         //当订单下所有产品都已经完成退款时,当前订单改为已关闭状态
-        $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->count();
-        $returnCount = $this->orderSkuModel->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
-        if ($returnCount >= $totalCount) {
+        $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->sum('num');
+        $refundCount = db('order_sku_service')->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
+        if ($refundCount >= $totalCount) {
             //3为订单关闭状态
-            $result = $orderModel->save(['order_status' => 3], ['order_id' => $service['order_id']]);
+            $result = $orderModel->save(['order_status' => 3, 'close_refund_status' => 2], ['order_id' => $service['order_id']]);
             $orderModel->orderLog($order, $user, '订单关闭', '订单产品全部退款，系统自动关闭订单');
+        }else{
+            //判断订单是否需要关闭退货退款
+            $orderModel->orderCloseRefund($order);
         }
         return TRUE;
     }
@@ -370,22 +359,21 @@ class OrderService extends Model
             $this->error = 'param_error';
             return FALSE;
         }
-        //售后状态(-1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功 4已取消)
+        //售后状态(-2已取消 -1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功)
         if ($service['service_status'] == 3) {
             $this->error = '已退款，不允许取消';
             return FALSE;
         }
-        if ($service['service_status'] == 4) {
+        if ($service['service_status'] == -2) {
             $this->error = '已取消，不能重复操作';
             return FALSE;
         }
-        $serviceStatus = 4;//取消状态
+        $serviceStatus = -2;//取消状态
         $result = $this->save(['service_status' => $serviceStatus], ['service_id' => $service['service_id']]);
         if (!$result) {
             $this->error = $this->error;
             return FALSE;
         }
-        $this->orderSkuModel->where(['osku_id' => $service['osku_id']])->update(['service_status' => $serviceStatus, 'update_time' => time()]);
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, '取消申请', $remark, $service['service_id']);
         return TRUE;
@@ -399,7 +387,7 @@ class OrderService extends Model
      * @param boolean $log
      * @return array
      */
-    public function getServiceDetail($serviceSn, $user = [], $serviceId = 0, $log = FALSE)
+    public function getServiceDetail($serviceSn, $user = [], $serviceId = 0, $getlog = FALSE)
     {
         if (!$serviceSn && !$serviceId) {
             $this->error = '参数错误';
@@ -433,13 +421,11 @@ class OrderService extends Model
             $this->error = lang('NO ACCESS');
             return FALSE;
         }
-        if ($log) {
+        if ($getlog) {
             $service['logs'] = db('order_log')->where(['service_id' => $service['service_id']])->select();
         }
-        $service['sku'] = db('order_sku')->where(['osku_id' => $service['osku_id']])->find();
-        $orderModel = new \app\common\model\Order();
-        $result = $orderModel->getOrderDetail($service['order_sn'], $user, [], FALSE);
-        $service['order'] = $result['order'];
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $service['sub'] = $orderSkuModel->getSubDetail($service['ossub_id'], FALSE, FALSE, TRUE);
         $service['imgs'] = $service['imgs'] ? json_decode($service['imgs'], 1) : [];
         return $service;
     }

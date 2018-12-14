@@ -35,6 +35,7 @@ class Table extends AdminForm
     function _getWhere(){
 //         $where = parent::_getWhere();
         $where['model_id']  = $this->pid;
+        $where['is_del']    = 0;
         return $where;
     }
 }

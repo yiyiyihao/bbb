@@ -16,7 +16,7 @@ class Finance extends FactoryForm
             $this->error('NO ACCESS');
         }
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $this->config = $this->initStoreConfig($this->adminFactory['store_id'], TRUE);
+            $this->config = get_store_config($this->adminFactory['store_id'], TRUE);
             $this->assign('config', $this->config);
             //判断商户是否可提现
             if ($this->config && isset($this->config['monthly_withdraw_start_date']) && isset($this->config['monthly_withdraw_end_date'])) {

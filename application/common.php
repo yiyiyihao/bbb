@@ -242,8 +242,7 @@ function get_delivery($identif = FALSE)
  */
 function get_service_type($type = FALSE){
     $types = [
-        1 => '仅退款',
-        2 => '退货退款',
+        1 => '退货退款',
     ];
     if ($type === FALSE) {
         return $types;
@@ -266,7 +265,7 @@ function get_service_status($status = FALSE)
         1 => '待退货',
         2 => '待退款',
         3 => '已完成',
-        4 => '已取消',
+        -2 => '已取消',
     ];
     if ($status === FALSE) {
         return $list;
@@ -369,7 +368,7 @@ function ch_order_status($ident) {
     );
     return isset($arr[$ident]) ? $arr[$ident] : '';
 }
-function get_worder_type($type = FALSE)
+function get_work_order_type($type = FALSE)
 {
     $list = [
         1 => '安装工单',
@@ -384,7 +383,7 @@ function get_worder_type($type = FALSE)
         return '';
     }
 }
-function get_worder_status($status = FALSE)
+function get_work_order_status($status = FALSE)
 {
     $list = [
         0 => '待分派',
@@ -441,6 +440,41 @@ function get_admin_type($type = FALSE){
         return '-';
     }
 }
+
+function get_store_config($storeId = 0, $merge = FALSE)
+{
+    $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
+    $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+    if ($merge) {
+        //获取系统默认配置
+        $default = get_system_config('system_default');
+        $sysConfig = $default['config_value'];
+        
+        if ($sysConfig) {
+            foreach ($sysConfig as $key => $value) {
+                if (!isset($config[$key])) {
+                    $config[$key] = $value;
+                }
+            }
+        }
+    }
+    return $config;
+}
+function get_system_config($key = '')
+{
+    //获取系统默认配置
+    $where = [
+        'is_del' => 0,
+        'status' => 1,
+    ];
+    if ($key) {
+        $where['config_key'] = trim($key);
+    }
+    $info = db('config')->where($where)->find();
+    $info['config_value'] = $info && $info['config_value'] ? json_decode($info['config_value'], 1) : [];
+    return $info;
+}
+
 /**
  * 删除目录下的所有文件和目录
  * @param string $dir

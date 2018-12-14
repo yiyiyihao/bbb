@@ -39,7 +39,7 @@ class System extends adminSystem
                 $this->error('渠道佣金比例必须大于0');
             }
             
-            $installerReturnRatio = $params['installer_return_ratio'] =  isset($params['installer_return_ratio']) ? round(floatval($params['installer_return_ratio']), 2) : 0;
+            $installerReturnRatio = $params['servicer_return_ratio'] =  isset($params['servicer_return_ratio']) ? round(floatval($params['servicer_return_ratio']), 2) : 0;
             if ($installerReturnRatio < 0) {
                 $this->error('工程师安装服务费百分比必须大于0');
             }
@@ -78,7 +78,7 @@ class System extends adminSystem
     {
         $storeModel = model('store');
         if (IS_POST) {
-            $config = $this->initStoreConfig($this->adminStore['store_id']);
+            $config = get_store_config($this->adminStore['store_id']);
             $params = $params ? $params : $this->request->param();
             if ($params) {
                 foreach ($params as $key => $value) {
@@ -92,7 +92,7 @@ class System extends adminSystem
             }
             $this->success('配置成功');
         }else{
-            $config = $this->initStoreConfig($this->adminStore['store_id'], TRUE);
+            $config = get_store_config($this->adminStore['store_id'], TRUE);
             $this->assign('config', $config);
             return $this->fetch();
         }

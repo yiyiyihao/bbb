@@ -4,7 +4,7 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">{$name}</a></li>
+                        <li class="active"><a href="#tab-1">申请退货退款</a></li>
                     </ul>
                 </div>
             </div>
@@ -15,7 +15,7 @@
                             <label>订单号</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order_sn'] ?? ''}">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['order_sn'] ?? ''}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -23,24 +23,15 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$osku['sku_name'] ?? ''}  {$osku['sku_spec'] ?? ''} ">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$ossub['sku_name'] ?? ''}  {$ossub['sku_spec'] ?? ''} ">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>产品数量</label>
-                        </div>
-                        <div class="field">
-                            <input type="number" class="input" id="num" name="num" min="1" max="{$osku['num']}" size="20" value="{$service.num ? $service.num: $osku['num']}">
-                            <div class="input-note"></div>
-                        </div>
-                    </div>  
                     <div class="form-group">
                         <div class="label">
                             <label>退款金额</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="amount" name="amount" size="12" value="{$service.refund_amount ? $service.refund_amount: $osku['real_amount']}">元
+                            <input type="text" class="input" id="amount" disabled="disabled" size="12" value="{$ossub['real_price']}">元
                             <div class="input-note"></div>
                         </div>
                     </div>     

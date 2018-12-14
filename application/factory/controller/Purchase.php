@@ -52,7 +52,7 @@ class Purchase extends FactoryForm
         if (IS_POST) {
             $num = isset($post['num']) ? intval($post['num']) : 0;
         }
-        $result = $orderModel->createOrder(ADMIN_ID, 'goods', $skuId, $num, IS_POST, $post, $remark);
+        $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, IS_POST, $post, $remark);
         if ($result === FALSE) {
             $this->error($orderModel->error);
         }
