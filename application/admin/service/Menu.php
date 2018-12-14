@@ -9,7 +9,7 @@ class Menu{
     /**
      * 获取菜单结构
      */
-    public function getAdminMenu($user = [],$domain = 'admin'){
+    public function getAdminMenu($user = [],$domain = config('app.admin_domain')){
 //         $domain = 'admin';
         $authRule = AuthRule::getRuleList($domain);//这里只取出在允许在菜单中显示的数据
         foreach ($authRule as $k=>$v){
@@ -33,7 +33,8 @@ class Menu{
                 $this->authRule = $tempRule;
             }
         }
-        $pid = ($domain == 'admin') ? 1 : 2;
+        $adminDomain = config('app.admin_domain');   
+        $pid = ($domain == $adminDomain) ? 1 : 2;
         $adminMenu = self::_menu($pid);
         return $adminMenu;
     }

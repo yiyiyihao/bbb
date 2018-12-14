@@ -12,7 +12,7 @@ class Authrule extends AdminForm
         if ($this->adminUser['user_id'] != 1) {
             $this->error(lang('NO ACCESS'));
         }
-        $this->perPage = 150;
+//         $this->perPage = 150;
     }
         
     public function grant()
@@ -37,10 +37,10 @@ class Authrule extends AdminForm
             $action     = !empty($v['action']) ? '/'.$v['action'] : '';
             $list[$k]['href'] = $module.$controller.$action;
         }
-        if ($list) {
+        /* if ($list) {
             $treeService = new \app\common\service\RuleTree();
             $list = $treeService->getTree($list);
-        }
+        } */
         return $list;
     }
     
@@ -51,9 +51,32 @@ class Authrule extends AdminForm
         }
         return $info;
     }
+    
+    function _getWhere()
+    {
+        $where  = parent::_getWhere();
+        $params = $this->request->param();
+        $pid    = 0;
+        if(isset($params['pid'])) {
+            $pid = $params['pid'];
+        }
+        $where['parent_id'] = $pid;
+        return $where;
+    }
+    
     function _getOrder()
     {
         return 'sort_order ASC, parent_id ASC';
+    }
+    
+    function _tableData(){
+        $table = parent::_tableData();
+        $btnArray = [
+            ['text'  => '下级菜单', 'action'=> 'index','icon'  => 'list','bgClass'=> 'bg-green','param'=> ['pid'=>'id']],
+        ];
+        $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
+        $table['actions']['width']  = '240';
+        return $table;
     }
     
     private function _ruleList(){

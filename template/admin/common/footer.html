@@ -1,13 +1,13 @@
 </body>
 </html>
-{notempty name="bulletin"}
+{notempty name="specialBulletins"}
 <script>
 Do.ready('dialog', function () {
 	layer.open({
 	  type: 1,
-	  title: '{$bulletin.name}',
+	  title: '',
 	  area: ['600px', '400px'], //宽高
-	  content: '<div class="admin-main">{$bulletin.content|raw}</div>',
+	  content: '<div class="admin-main"></div>',
 	  btn: ['已读','关闭'],
 	  yes: function(index, layero){
 		  layer.msg("这里执行下异步调用已读");
