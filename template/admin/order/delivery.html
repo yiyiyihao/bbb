@@ -21,8 +21,8 @@
 				          <th width="100">购买数量</th>
 				          <th width="100">支付金额</th>
 				        </tr>
-				        {notempty name="info.skus"}
-				          {volist name="info.skus" id="vo"}
+				        {notempty name="info.order.skus"}
+				          {volist name="info.order.skus" id="vo"}
 				            <tr>
 				              <td>
 				              	{if condition="$vo['delivery_status'] != 1"}
@@ -35,7 +35,7 @@
 				              <td><img src="{$vo.sku_thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
 				              <td>{$vo.price}</td>
 				              <td>{$vo['num']}</td>
-				              <td>{$vo.real_amount}</td>
+				              <td>{$vo.real_price}</td>
 				            </tr>
 				          {/volist}
 				        {/notempty}

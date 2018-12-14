@@ -235,7 +235,7 @@
 					              <td>{$i}</td>
 					              <td>{$vo.nickname}</td>
 					              <td>{$vo.action}</td>
-					              <td>{$vo.msg}</td>
+					              <td>{$vo.msg|raw}</td>
 					              <td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
 					            </tr>
 					          {/volist}

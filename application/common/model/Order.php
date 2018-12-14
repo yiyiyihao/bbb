@@ -6,6 +6,7 @@ class Order extends Model
 {
 	public $error;
 	public $orderSkuModel;
+	public $orderSkuSubModel;
 	protected $fields;
 	protected $pk = 'order_id';
 
@@ -14,6 +15,7 @@ class Order extends Model
     {
         parent::initialize();
         $this->orderSkuModel = db('order_sku');
+        $this->orderSkuSubModel = db('order_sku_sub');
     }
     public function getOrderList($list)
     {
@@ -170,8 +172,15 @@ class Order extends Model
             $this->error = '选择产品已发货';
             return FALSE;
         }
+        $ossubIds = [];
+        $orderSkuSubModel = db('order_sku_sub');
+        foreach ($skus as $key => $osku) {
+            $subs = $orderSkuSubModel->where(['osku_id' => $osku['osku_id']])->column('ossub_id, ossub_id');
+            $ossubIds = $subs ? $subs + $ossubIds : $ossubIds;
+        }
         $isDelivery = isset($extra['is_delivery']) && intval($extra['is_delivery']) ? intval($extra['is_delivery']) : 0;
         $odeliveryId = 0;
+        $deliveryName = $deliverySn = '';
         if ($isDelivery) {
             $deliveryIdentif = isset($extra['delivery_identif']) && trim($extra['delivery_identif']) ? trim($extra['delivery_identif']) : '';
             if (!$deliveryIdentif) {
@@ -188,29 +197,33 @@ class Order extends Model
                 $this->error = '请输入第三方物流单号';
                 return FALSE;
             }
+            $deliveryName = $deliverys[$deliveryIdentif]['name'];
             $oskuIds = implode(',', $oskuIds);
+            $ossubIds = implode(',', $ossubIds);
             $deliveryData = [
                 'order_id'  => $order['order_id'],
                 'order_sn'  => $order['order_sn'],
                 'user_id'   => $order['user_id'],
                 'osku_ids'  => $oskuIds ? $oskuIds : '',
+                'ossub_ids' => $ossubIds ? $ossubIds : '',
                 'delivery_identif'  => $deliveryIdentif,
-                'delivery_name'     => $deliverys[$deliveryIdentif]['name'],
+                'delivery_name'     => $deliveryName,
                 'delivery_status'   => 1,
                 'delivery_sn'       => $deliverySn,
                 'delivery_time'     => time(),
                 'add_time'          => time(),
             ];
             $deliveryModel = db('order_sku_delivery');
-            $odeliveryId = $deliveryModel->insertGetId($deliveryData);
+//             $odeliveryId = $deliveryModel->insertGetId($deliveryData);
+            $odeliveryId = 1;
             if (!$odeliveryId) {
                 $this->error = '数据异常';
                 return FALSE;
             }
         }
         $data = [
-            'odelivery_id'      => $odeliveryId,
-            'delivery_status'   => 1,
+            'odelivery_ids'     => $odeliveryId,
+            'delivery_status'   => 2, //0未发货 1部分发货 2已发货
             'delivery_time'     => time(),
             'update_time'       => time(),
         ];
@@ -220,14 +233,27 @@ class Order extends Model
             $this->error = '操作异常';
             return FALSE;
         }
+        $data = [
+            'odelivery_id'      => $odeliveryId,
+            'delivery_name'     => $deliveryName,
+            'delivery_sn'       => $deliverySn,
+            'delivery_status'   => 1,
+            'delivery_time'     => time(),
+            'update_time'       => time(),
+        ];
+        $result = $this->orderSkuSubModel->where(['ossub_id' => ['IN', $ossubIds]])->update($data);
+        if ($result === FALSE) {
+            $this->error = '操作异常';
+            return FALSE;
+        }
         $orderData = [
             'update_time'   => time(),
         ];
         //获取订单产品总数
         $orderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
         //获取订单发货产品总数
-        $deliveryOrderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
-        if ($orderCounts > $deliveryOrderCounts) {
+        $deliveryCounts = $this->orderSkuSubModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
+        if ($orderCounts > $deliveryCounts) {
             $orderData['delivery_status'] = 1;
         }else{
             $orderData['delivery_status'] = 2;
@@ -237,7 +263,17 @@ class Order extends Model
             $this->error = $this->error();
             return FALSE;
         }
+        if ($isDelivery) {
+            $msg = '物流单号:'.$deliverySn.'('.$deliveryName.')';
+        }else{
+            $msg = '无需物流配送';
+        }
         $remark = isset($extra['remark']) && trim($extra['remark']) ? trim($extra['remark']) : '';
+        if ($remark) {
+            $remark = $msg.'<br>备注：'.$remark;
+        }else{
+            $remark = $msg;
+        }
         //订单日志
         $this->orderLog($order, $user, '订单发货', $remark);
         // 订单跟踪
@@ -663,6 +699,7 @@ class Order extends Model
             $order = $this->getOrderSkus($order);
             $skus = $order['skus'];
         }
+        $oskuIds = array_column($skus, 'osku_id');
         if ($order['order_status'] != 1) {
             $this->error = '无操作权限';
             return FALSE;
@@ -710,11 +747,11 @@ class Order extends Model
                     foreach ($commissions as $key => $commission) {
                         $ratio = $commission['commission_ratio'];
                         if ($ratio > 0) {
-                            $commissionAmount = $commission['order_amount'];
+                            $commissionAmount = $commission['income_amount'];
                             //计算某个订单商品的退款金额
                             $refundAmount = $orderSkuServiceModel->where(['order_id' => $order['order_id'], 'osku_id' => $commission['order_id'], 'service_status' => 3])->sum('refund_amount');
                             $refundAmount = $refundAmount > 0 ? round($refundAmount * $ratio/100, 2) : 0;
-                            $incomeAmount = $commissionAmount - $refundAmount;
+                            $incomeAmount = round($commissionAmount - $refundAmount, 2);
                             $result = $commissionModel->where($where)->update(['commission_status' => 1, 'refund_amount' => $refundAmount, 'income_amount' => $incomeAmount, 'update_time' => time()]);
                             if ($result > 0) {
                                 //可提现金额增加 待结算金额减少 总收益不变
@@ -733,7 +770,7 @@ class Order extends Model
                 }
                 $remark = $remark ? $remark : '系统自动关闭退货退款功能';
                 $this->orderTrack($order, 0, $remark);
-                $this->orderLog($order, $user, '关闭退货退款功能', $remark);
+                $this->orderLog($order, [], '关闭退货退款功能', $remark);
             }
         }
         return TRUE;

@@ -284,6 +284,8 @@ class WorkOrder extends Model
             $incomeModel = db('store_service_income');
             $exist = $incomeModel->where($where)->find();
             if (!$exist) {
+                $config = get_store_config($worder['factory_id'], TRUE);
+                $returnRatio = isset($config['servicer_return_ratio']) ? floatval($config['servicer_return_ratio']) : 0;
                 $amount = $worder['install_price'];
                 $data = [
                     'store_id'      => $worder['store_id'],
@@ -295,6 +297,7 @@ class WorkOrder extends Model
                     'sku_id'        => $worder['sku_id'],
                     'installer_id'  => $worder['installer_id'],
                     'install_amount'=> $amount,
+                    'return_ratio'  => $returnRatio > 0 ? $returnRatio : 0,
                     'income_status' => 0,
                     'add_time'      => time(),
                     'update_time'   => time(),
@@ -333,11 +336,16 @@ class WorkOrder extends Model
         $incomeModel = db('store_service_income');
         $exist = $incomeModel->where($where)->find();
         if ($exist) {
-            $assessId = 1;
+            $returnRatio = $exist['return_ratio']/100;
             //根据评价数据计算得分
             $installAmount = $exist['install_amount'];
             $totalScore = 5;
-            $amount = round($installAmount * $score/$totalScore, 2);
+            //绩效考核百分比
+            $baseAmount = $installAmount * (1 - $returnRatio);//基本服务金额
+            $otherAmount = $installAmount * $returnRatio;
+            
+            $amount = round($baseAmount + $otherAmount * $score/$totalScore, 2);
+            
             $data = [
                 'assess_id'     => $assessId,
                 'score'         => $score,
@@ -410,6 +418,15 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        if ($assessData['type'] == 1) {
+            //判断当前工单是否存在首次评价
+            $log = db('work_order_assess')->where(['worder_id' => $worder['worder_id'], 'type' => 1])->find();
+            if ($log) {
+                $this->error = '已完成首次评价';
+                return FALSE;
+            }
+        }
+       
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
             'worder_id'     =>  $worder['worder_id'],

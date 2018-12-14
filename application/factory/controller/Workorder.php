@@ -214,7 +214,7 @@ class Workorder extends FactoryForm
         if (!$ossub) {
             $this->error('参数错误');
         }
-        if ($ossub['goods_type']) {
+        if ($ossub['goods_type'] == 2) {
             $this->error('样品不允许安装/维修');
         }
         if ($ossub['order_status'] != 1) {

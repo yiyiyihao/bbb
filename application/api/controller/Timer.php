@@ -50,8 +50,6 @@ class Timer extends ApiBase
                 $orderReturnDay = $config && isset($config['order_return_day']) ? $config['order_return_day'] : 0;
                 if ($orderReturnDay > 0) {
                     $orderReturnDayTime = $orderReturnDay * 24 * 60 * 60;
-//                     #TODO 测试后删除
-//                     $orderReturnDayTime = 0;
                     $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - $orderReturnDayTime).')';
                 }
             }
@@ -77,14 +75,14 @@ class Timer extends ApiBase
                 }
             }
             if ($finishMap) {
-                $finishSql = 'order_status != 0 AND pay_status = 1 AND pay_time > 0';
+                $finishSql = 'order_status = 1 AND pay_status = 1 AND pay_time > 0';
                 $finishSql .= ' AND ('.implode(' OR ', $finishMap).')';
                 $orders = $orderModel->where($finishSql)->select();
                 if ($orders) {
                     $remark = '系统自动关闭退货退款功能';
                     //订单批量控制是否可退还并将不可退还的订单佣金改为入账状态
                     foreach ($orders as $key => $value) {
-                        $result = $orderModel->orderCloseReturn($value, ['user_id' => 0, 'nickname' => '系统'], $remark);
+                        $result = $orderModel->orderCloseRefund($value, ['user_id' => 0, 'nickname' => '系统'], $remark);
                         if ($result === FALSE) {
                             $this->errorArray[] = [
                                 'action'    => $remark,

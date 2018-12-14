@@ -130,49 +130,70 @@
 					    <table id="table" class="table table-hover ">
 					      <tbody>
 					        <tr>
-					          <th width="80">编号</th>
+					        	<th width="80">编号</th>
+					        	<th width="100">产品类型</th>
 					          <th width="*">产品名称</th>
 					          <th width="100">产品图片</th>
-					          <th width="*">单价</th>
-					          <th width="100">购买数量</th>
-					          <th width="100">支付金额</th>
-					          <th width="100">物流信息</th>
-					          <th width="220">操作</th>
+					          <th width="80">单价</th>
+					          <th width="80">购买数量</th>
+					          <th width="80">支付金额</th>
+					          <th width="120">安装状态</th>
+					          <th width="120">退货退款状态</th>
+					          <th width="*">物流状态</th>
+					          <th width="*">操作</th>
 					        </tr>
 					        {notempty name="info.order.skus"}
 					          {volist name="info.order.skus" id="vo"}
 					            <tr>
-					              <td>{$i}</td>
+					             <td>{$i}</td>
+					             <td>{:goodstype($vo.goods_type)}</td>
 					              <td>{$vo.sku_name} {$vo.sku_spec}</td>
 					              <td><img src="{$vo.sku_thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
 					              <td>{$vo.price}元</td>
 					              <td>{$vo['num']}</td>
 					              <td>{$vo.real_price}元</td>
-					              <td></td>
+					              <td>-</td>
+					              <td>-</td>
+					              <td>-</td>
 					              <td>
-					             	{if condition="$info['order']['order_type'] != 1"}
-						              	{if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] == 0"}
-						              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="确认发货">确认发货</a>
-						              	{elseif condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0" /}
-						                	<a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
+					              	<span class='button-group'>
+					              	<!-- {if condition="$info['order']['order_type'] != 1"}
+						              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
+						                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
 						                {/if}
-						            {else/}
-						            	{if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] == 0"}
-						              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="填写物流信息">填写物流信息</a>
-						                {/if}
+					                {/if} -->
+					                {if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] != 2"}
+					              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="填写物流信息">填写物流信息</a>
 					                {/if}
+					              	</span>
 					              </td>
 					            </tr>
 					            {notempty name="vo"}
-						          {volist name="vo.subs" id="v"}
+						          {volist name="vo.subs" id="v" key='k'}
 						            <tr>
-						              <td>|-{$i}</td>
-						              <td colspan="5"></td>
-						              <td>{$v.delivery_name}<br>{$v.delivery_sn}</td>
+						              <td>|-{$k}</td>
+						              <td colspan="3"></td>
+						              <td>{$v.price}元</td>
+						              <td>1</td>
+						              <td>{$v.real_price}元</td>
 						              <td>
-						              	{if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] == 0"}
-						              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="填写物流信息">填写物流信息</a>
-						                {/if}
+						              	{if condition="$vo.goods_type != 2"}
+						              	{if ($info['order']['pay_status'] == 1 && $v.work_order)}
+						              		{:get_work_order_status($v.work_order.work_order_status)}
+						              	{/if}
+						              	{else/}
+						              		样品不安装
+						              	{/if}
+						              </td>
+						              <td>{:get_service_status($v.service.service_status)}</td>
+						              <td>
+						              	{if ($v.odelivery_id)}
+						              	物流单号:{$v.delivery_sn}({$v.delivery_name})
+						              	{elseif(!$v.odelivery_id && $v['delivery_status'] != 0)/}
+						              	已发货
+						              	{/if}
+						              </td>
+						              <td>
 						              </td>
 						            </tr>
 						          {/volist}
@@ -200,7 +221,7 @@
 					              <td>{$i}</td>
 					              <td>{$vo.nickname}</td>
 					              <td>{$vo.action}</td>
-					              <td>{$vo.msg}</td>
+					              <td>{$vo.msg|raw}</td>
 					              <td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
 					            </tr>
 					          {/volist}

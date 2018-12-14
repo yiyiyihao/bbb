@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-14 15:08:28
+Date: 2018-12-14 17:09:00
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -30,12 +30,17 @@ CREATE TABLE `wja_apilog_app` (
   `response_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '响应时间',
   `error` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '错误状态',
   PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='接口访问日志表';
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='接口访问日志表';
 
 -- ----------------------------
 -- Records of wja_apilog_app
 -- ----------------------------
 INSERT INTO `wja_apilog_app` VALUES ('1', 'TEST', '1544769735', '1544769735', 'finishWorkOrder', '{\"timestamp\":1544769735,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"finishWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"worder_sn\":\"20181214112752239501\",\"sign\":\"f71ee347a270c505af51813237189a49\"}', '{\"errCode\":1,\"errMsg\":\"\\u552e\\u540e\\u5de5\\u5355\\u4e0d\\u5b58\\u5728\\u6216\\u5df2\\u5220\\u9664\"}', '40', '1');
+INSERT INTO `wja_apilog_app` VALUES ('2', 'TEST', '1544772325', '1544772325', 'finishWorkOrder', '{\"timestamp\":1544772325,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"finishWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"worder_sn\":\"20181214112752239501\",\"sign\":\"875f915c433d578728ab5d7e1ef9f11d\"}', '{\"errCode\":1,\"errMsg\":\"\\u552e\\u540e\\u5de5\\u5355\\u4e0d\\u5b58\\u5728\\u6216\\u5df2\\u5220\\u9664\"}', '40', '1');
+INSERT INTO `wja_apilog_app` VALUES ('3', 'TEST', '1544772332', '1544772332', 'receiveWorkOrder', '{\"timestamp\":1544772332,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"receiveWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"sign\":\"641086ded12fe2995240b0ba37071da0\"}', '{\"errCode\":1,\"errMsg\":\"\\u552e\\u540e\\u5de5\\u5355\\u7f16\\u53f7(worder_sn)\\u7f3a\\u5931\"}', '26', '1');
+INSERT INTO `wja_apilog_app` VALUES ('4', 'TEST', '1544772342', '1544772342', 'receiveWorkOrder', '{\"timestamp\":1544772342,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"receiveWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"worder_sn\":\"20181214152442148735\",\"sign\":\"586f1e19b31b68dd990585d344ec66be\"}', '{\"errCode\":0,\"errMsg\":\"ok\",\"msg\":\"\\u63a5\\u5355\\u6210\\u529f,\\u8bf7\\u8054\\u7cfb\\u5ba2\\u6237\\u4e0a\\u95e8\\u670d\\u52a1\"}', '67', '0');
+INSERT INTO `wja_apilog_app` VALUES ('5', 'TEST', '1544772347', '1544772347', 'signWorkOrder', '{\"timestamp\":1544772347,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"signWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"worder_sn\":\"20181214152442148735\",\"sign\":\"ed8dfc9aa8dee5ca75677c555a0f5fc1\"}', '{\"errCode\":0,\"errMsg\":\"ok\",\"msg\":\"\\u7b7e\\u5230\\u6210\\u529f,\\u670d\\u52a1\\u5f00\\u59cb\"}', '57', '0');
+INSERT INTO `wja_apilog_app` VALUES ('6', 'TEST', '1544772501', '1544772501', 'finishWorkOrder', '{\"timestamp\":1544772501,\"signkey\":\"ds7p7auqyjj8\",\"method\":\"finishWorkOrder\",\"openid\":\"xytPju4XCqS6wsoWsVYZiy28H4k0vM\",\"worder_sn\":\"20181214152442148735\",\"sign\":\"04ad63b064c7459499cef3f01ecce073\"}', '{\"errCode\":0,\"errMsg\":\"ok\",\"msg\":\"\\u5de5\\u5355\\u5b8c\\u6210\\u64cd\\u4f5c\\u6210\\u529f\"}', '126', '0');
 
 -- ----------------------------
 -- Table structure for wja_apilog_pay
@@ -798,8 +803,8 @@ CREATE TABLE `wja_order` (
 -- ----------------------------
 -- Records of wja_order
 -- ----------------------------
-INSERT INTO `wja_order` VALUES ('1', '1', '20181214143325535154045916072', '1', '4', '3', '3', '15.00', '0.00', '15.00', '0.00', '15.00', '1', 'wechat_native', 'fasdfa', '111', '121', '22', '天津市 天津市 和平区 222', '3', '1', '0', '2', '1544769205', '0', '1544769224', '1544769224', '1544769913', '', '222', '1', '2');
-INSERT INTO `wja_order` VALUES ('2', '1', '20181214144609495555436996561', '1', '7', '4', '4', '25.00', '0.00', '225.00', '200.00', '225.00', '1', 'wechat_native', 'dfasdf', 'adfasdf', 'adfasdf', '129', '河北省 保定市 徐水区 asdfasdf', '1', '1', '0', '2', '1544769969', '0', '1544769987', '1544769987', '1544769987', '', 'adsfadf', '1', '0');
+INSERT INTO `wja_order` VALUES ('1', '1', '20181214143325535154045916072', '1', '4', '3', '3', '15.00', '0.00', '15.00', '0.00', '15.00', '1', 'wechat_native', 'fasdfa', '111', '121', '22', '天津市 天津市 和平区 222', '3', '1', '0', '2', '1544769205', '0', '1544769987', '1544769224', '1544769913', '', '222', '1', '2');
+INSERT INTO `wja_order` VALUES ('2', '1', '20181214144609495555436996561', '1', '7', '4', '4', '25.00', '0.00', '225.00', '200.00', '225.00', '1', 'wechat_native', 'dfasdf', 'adfasdf', 'adfasdf', '129', '河北省 保定市 徐水区 asdfasdf', '1', '1', '2', '2', '1544769969', '0', '1541769987', '1544769987', '1544777695', '', 'adsfadf', '1', '0');
 
 -- ----------------------------
 -- Table structure for wja_order_log
@@ -818,7 +823,7 @@ CREATE TABLE `wja_order_log` (
   PRIMARY KEY (`log_id`) USING BTREE,
   KEY `order_id` (`order_id`) USING BTREE,
   KEY `order_sn` (`order_sn`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order_log
@@ -834,6 +839,8 @@ INSERT INTO `wja_order_log` VALUES ('8', '1', '20181214143325535154045916072', '
 INSERT INTO `wja_order_log` VALUES ('9', '2', '20181214144609495555436996561', '0', '7', '[买家]lingshou', '创建订单', '提交购买产品并生成订单', '1544769969');
 INSERT INTO `wja_order_log` VALUES ('10', '2', '20181214144609495555436996561', '0', '2', '[卖家]wanjiaan', '支付订单', 'sdfasdf', '1544769987');
 INSERT INTO `wja_order_log` VALUES ('11', '2', '20181214144609495555436996561', '0', '2', '[卖家]wanjiaan', '确认完成', '支付成功,订单完成', '1544769987');
+INSERT INTO `wja_order_log` VALUES ('12', '2', '20181214144609495555436996561', '0', '2', '[卖家]wanjiaan', '订单发货', '无需物流配送<br>备注：sdfasdf', '1544777695');
+INSERT INTO `wja_order_log` VALUES ('13', '2', '20181214144609495555436996561', '2', '7', '[买家]lingshou', '申请退货退款', '阿斯顿发送到发放', '1544778531');
 
 -- ----------------------------
 -- Table structure for wja_order_sku
@@ -862,6 +869,7 @@ CREATE TABLE `wja_order_sku` (
   `stock_reduce_time` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '库存减少时间:1买家拍下减少库存 2买家付款成功减少库存',
   `odelivery_ids` varchar(255) NOT NULL DEFAULT '' COMMENT '产品物流ID(多个用","逗号分割)',
   `delivery_status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '发货状态(0：待发货，1：部分发货，2：已发货)',
+  `delivery_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '发货时间',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`osku_id`) USING BTREE
@@ -870,8 +878,8 @@ CREATE TABLE `wja_order_sku` (
 -- ----------------------------
 -- Records of wja_order_sku
 -- ----------------------------
-INSERT INTO `wja_order_sku` VALUES ('1', '1', '20181214143325535154045916072', '1', '4', '3', '2', '10', '2', '有规格样品测试', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '32G;灰色', '{\"goods_id\":2,\"store_id\":1,\"cate_id\":2,\"goods_cate\":1,\"goods_type\":2,\"name\":\"\\u6709\\u89c4\\u683c\\u6837\\u54c1\\u6d4b\\u8bd5\",\"goods_sn\":\"22222222\",\"thumb\":\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\",\"imgs\":[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"],\"min_price\":\"9.90\",\"max_price\":\"15.00\",\"install_price\":\"0.00\",\"goods_stock\":20,\"description\":\"\",\"content\":\"\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t                  \\t\\t                  \\t\\t                  \",\"sales\":1,\"sort_order\":1,\"status\":1,\"is_del\":0,\"add_time\":\"2018-12-06 17:50:26\",\"update_time\":\"2018-12-13 15:16:29\",\"specs_json\":[{\"specid\":\"1\",\"specname\":\"\\u5bb9\\u91cf\",\"list\":[\"32G\"]},{\"specid\":\"2\",\"specname\":\"\\u989c\\u8272\",\"list\":[\"\\u9ed1\\u8272\",\"\\u7070\\u8272\"]}],\"stock_reduce_time\":2,\"sample_purchase_limit\":1,\"sku_id\":0,\"skus\":[{\"sku_id\":9,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"22222222-1\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"0.00\",\"price\":\"9.90\",\"spec_value\":\"32G;\\u9ed1\\u8272\",\"sales\":1},{\"sku_id\":10,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"22222222-2\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"0.00\",\"price\":\"15.00\",\"spec_value\":\"32G;\\u7070\\u8272\",\"sales\":0}]}', '1', '15.00', '0.00', '15.00', '0.00', '15.00', '2', '', '0', '1544769205', '1544769205');
-INSERT INTO `wja_order_sku` VALUES ('2', '2', '20181214144609495555436996561', '1', '7', '4', '4', '7', '1', '有规格普通商品测试', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '64G;黑色', '{\"goods_id\":4,\"store_id\":1,\"cate_id\":2,\"goods_cate\":1,\"goods_type\":1,\"name\":\"\\u6709\\u89c4\\u683c\\u666e\\u901a\\u5546\\u54c1\\u6d4b\\u8bd5\",\"goods_sn\":\"44444444\",\"thumb\":\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\",\"imgs\":[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"],\"min_price\":\"10.00\",\"max_price\":\"12.50\",\"install_price\":\"100.00\",\"goods_stock\":40,\"description\":\"\",\"content\":\"\\t\\t                  \\t\\t\\t                  \",\"sales\":7,\"sort_order\":1,\"status\":1,\"is_del\":0,\"add_time\":\"2018-12-06 17:52:30\",\"update_time\":\"2018-12-11 09:24:45\",\"specs_json\":[{\"specid\":\"1\",\"specname\":\"\\u5bb9\\u91cf\",\"list\":[\"32G\",\"64G\"]},{\"specid\":\"2\",\"specname\":\"\\u989c\\u8272\",\"list\":[\"\\u9ed1\\u8272\",\"\\u7070\\u8272\"]}],\"stock_reduce_time\":2,\"sample_purchase_limit\":0,\"sku_id\":0,\"skus\":[{\"sku_id\":5,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"44444444-1\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"32G;\\u9ed1\\u8272\",\"sales\":0},{\"sku_id\":6,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"44444444-2\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"32G;\\u7070\\u8272\",\"sales\":1},{\"sku_id\":7,\"sku_name\":\"\\u5bb9\\u91cf:64G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"44444444-3\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"64G;\\u9ed1\\u8272\",\"sales\":3},{\"sku_id\":8,\"sku_name\":\"\\u5bb9\\u91cf:64G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"44444444-4\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"10.00\",\"spec_value\":\"64G;\\u7070\\u8272\",\"sales\":0}]}', '2', '12.50', '100.00', '112.50', '0.00', '225.00', '2', '', '0', '1544769969', '1544769969');
+INSERT INTO `wja_order_sku` VALUES ('1', '1', '20181214143325535154045916072', '1', '4', '3', '2', '10', '2', '有规格样品测试', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '32G;灰色', '{\"goods_id\":2,\"store_id\":1,\"cate_id\":2,\"goods_cate\":1,\"goods_type\":2,\"name\":\"\\u6709\\u89c4\\u683c\\u6837\\u54c1\\u6d4b\\u8bd5\",\"goods_sn\":\"22222222\",\"thumb\":\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\",\"imgs\":[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"],\"min_price\":\"9.90\",\"max_price\":\"15.00\",\"install_price\":\"0.00\",\"goods_stock\":20,\"description\":\"\",\"content\":\"\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t\\t                  \\t\\t                  \\t\\t                  \\t\\t                  \",\"sales\":1,\"sort_order\":1,\"status\":1,\"is_del\":0,\"add_time\":\"2018-12-06 17:50:26\",\"update_time\":\"2018-12-13 15:16:29\",\"specs_json\":[{\"specid\":\"1\",\"specname\":\"\\u5bb9\\u91cf\",\"list\":[\"32G\"]},{\"specid\":\"2\",\"specname\":\"\\u989c\\u8272\",\"list\":[\"\\u9ed1\\u8272\",\"\\u7070\\u8272\"]}],\"stock_reduce_time\":2,\"sample_purchase_limit\":1,\"sku_id\":0,\"skus\":[{\"sku_id\":9,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"22222222-1\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"0.00\",\"price\":\"9.90\",\"spec_value\":\"32G;\\u9ed1\\u8272\",\"sales\":1},{\"sku_id\":10,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"22222222-2\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"0.00\",\"price\":\"15.00\",\"spec_value\":\"32G;\\u7070\\u8272\",\"sales\":0}]}', '1', '15.00', '0.00', '15.00', '0.00', '15.00', '2', '', '0', '0', '1544769205', '1544769205');
+INSERT INTO `wja_order_sku` VALUES ('2', '2', '20181214144609495555436996561', '1', '7', '4', '4', '7', '1', '有规格普通商品测试', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181206174545_basicprofile.jpg', '64G;黑色', '{\"goods_id\":4,\"store_id\":1,\"cate_id\":2,\"goods_cate\":1,\"goods_type\":1,\"name\":\"\\u6709\\u89c4\\u683c\\u666e\\u901a\\u5546\\u54c1\\u6d4b\\u8bd5\",\"goods_sn\":\"44444444\",\"thumb\":\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\",\"imgs\":[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/goods_20181206174545_basicprofile.jpg\"],\"min_price\":\"10.00\",\"max_price\":\"12.50\",\"install_price\":\"100.00\",\"goods_stock\":40,\"description\":\"\",\"content\":\"\\t\\t                  \\t\\t\\t                  \",\"sales\":7,\"sort_order\":1,\"status\":1,\"is_del\":0,\"add_time\":\"2018-12-06 17:52:30\",\"update_time\":\"2018-12-11 09:24:45\",\"specs_json\":[{\"specid\":\"1\",\"specname\":\"\\u5bb9\\u91cf\",\"list\":[\"32G\",\"64G\"]},{\"specid\":\"2\",\"specname\":\"\\u989c\\u8272\",\"list\":[\"\\u9ed1\\u8272\",\"\\u7070\\u8272\"]}],\"stock_reduce_time\":2,\"sample_purchase_limit\":0,\"sku_id\":0,\"skus\":[{\"sku_id\":5,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"44444444-1\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"32G;\\u9ed1\\u8272\",\"sales\":0},{\"sku_id\":6,\"sku_name\":\"\\u5bb9\\u91cf:32G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"44444444-2\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"32G;\\u7070\\u8272\",\"sales\":1},{\"sku_id\":7,\"sku_name\":\"\\u5bb9\\u91cf:64G \\u989c\\u8272:\\u9ed1\\u8272 \",\"sku_sn\":\"44444444-3\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"12.50\",\"spec_value\":\"64G;\\u9ed1\\u8272\",\"sales\":3},{\"sku_id\":8,\"sku_name\":\"\\u5bb9\\u91cf:64G \\u989c\\u8272:\\u7070\\u8272 \",\"sku_sn\":\"44444444-4\",\"sku_thumb\":\"\",\"sku_stock\":10,\"install_price\":\"100.00\",\"price\":\"10.00\",\"spec_value\":\"64G;\\u7070\\u8272\",\"sales\":0}]}', '2', '12.50', '100.00', '112.50', '0.00', '225.00', '2', '0', '2', '1544777695', '1544769969', '1544777695');
 
 -- ----------------------------
 -- Table structure for wja_order_sku_delivery
@@ -937,12 +945,13 @@ CREATE TABLE `wja_order_sku_service` (
   PRIMARY KEY (`service_id`),
   KEY `store_id` (`store_id`),
   KEY `ossub_id` (`ossub_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品售后表';
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品售后表';
 
 -- ----------------------------
 -- Records of wja_order_sku_service
 -- ----------------------------
 INSERT INTO `wja_order_sku_service` VALUES ('1', '1', '245996754227102995', '1', '1', '20181214143325535154045916072', '1', '1', '4', '3', '1', '15.00', 'dadfadf', '[\"http:\\/\\/pimvhcf3v.bkt.clouddn.com\\/order_service_20181214143924_c5a77654dd974592.png\"]', '3', '1544769913', 'dasdfasd', 'fasdf', '1', '1544769567', '1544769913', '0', '0', '0', 'ems', 'EMS邮政', '111', '1', '1544769897');
+INSERT INTO `wja_order_sku_service` VALUES ('2', '1', '609800763998515698', '1', '2', '20181214144609495555436996561', '2', '3', '7', '4', '1', '112.50', '阿斯顿发送到发放', '', '0', '0', '', '', '1', '1544778531', '1544778531', '0', '0', '0', '', '', '', '0', '0');
 
 -- ----------------------------
 -- Table structure for wja_order_sku_sub
@@ -982,8 +991,8 @@ CREATE TABLE `wja_order_sku_sub` (
 -- Records of wja_order_sku_sub
 -- ----------------------------
 INSERT INTO `wja_order_sku_sub` VALUES ('1', 'auto_22222222-2_7072987783', '1', '20181214143325535154045916072', '1', '1', '4', '3', '2', '10', '15.00', '0.00', '15.00', '15.00', '0.00', '0', '', '', '0', '0', '1544769205', '1544769205');
-INSERT INTO `wja_order_sku_sub` VALUES ('2', 'auto_44444444-3_7653301056', '2', '20181214144609495555436996561', '1', '2', '7', '4', '4', '7', '12.50', '100.00', '112.50', '112.50', '0.00', '0', '', '', '0', '0', '1544769969', '1544769969');
-INSERT INTO `wja_order_sku_sub` VALUES ('3', 'auto_44444444-3_3736809029', '2', '20181214144609495555436996561', '1', '2', '7', '4', '4', '7', '12.50', '100.00', '112.50', '112.50', '0.00', '0', '', '', '0', '0', '1544769969', '1544769969');
+INSERT INTO `wja_order_sku_sub` VALUES ('2', 'auto_44444444-3_7653301056', '2', '20181214144609495555436996561', '1', '2', '7', '4', '4', '7', '12.50', '100.00', '112.50', '112.50', '0.00', '0', '', '', '1', '1544777695', '1544769969', '1544777695');
+INSERT INTO `wja_order_sku_sub` VALUES ('3', 'auto_44444444-3_3736809029', '2', '20181214144609495555436996561', '1', '2', '7', '4', '4', '7', '12.50', '100.00', '112.50', '112.50', '0.00', '0', '', '', '1', '1544777695', '1544769969', '1544777695');
 
 -- ----------------------------
 -- Table structure for wja_order_track
@@ -998,7 +1007,7 @@ CREATE TABLE `wja_order_track` (
   `time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '操作时间',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '添加时间',
   PRIMARY KEY (`track_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_order_track
@@ -1009,6 +1018,7 @@ INSERT INTO `wja_order_track` VALUES ('3', '1', '20181214143325535154045916072',
 INSERT INTO `wja_order_track` VALUES ('4', '2', '20181214144609495555436996561', '0', '订单已提交, 系统正在等待付款', '1544769969', '1544769969');
 INSERT INTO `wja_order_track` VALUES ('5', '2', '20181214144609495555436996561', '0', '订单已付款, 等待商家发货', '1544769987', '1544769987');
 INSERT INTO `wja_order_track` VALUES ('6', '2', '20181214144609495555436996561', '0', '支付成功,订单完成', '1544769987', '1544769987');
+INSERT INTO `wja_order_track` VALUES ('7', '2', '20181214144609495555436996561', '0', '商家已发货', '1544777695', '1544777695');
 
 -- ----------------------------
 -- Table structure for wja_payment
@@ -4352,7 +4362,7 @@ CREATE TABLE `wja_store` (
 -- ----------------------------
 -- Records of wja_store
 -- ----------------------------
-INSERT INTO `wja_store` VALUES ('1', '0', '1', '万佳安', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg', '', '', '', '1', '1', '1543287954', '1544519705', '0', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"channel_commission_ratio\":\"10\",\"installer_return_ratio\":\"0\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"15\",\"consumer_hotline\":\"400-2569-5252\",\"installer_check\":\"0\"}', '', '', '', '', '0.00');
+INSERT INTO `wja_store` VALUES ('1', '0', '1', '万佳安', 'http://pimvhcf3v.bkt.clouddn.com/goods_20181127110724_basicprofile.jpg', '', '', '', '1', '1', '1543287954', '1544772451', '0', '{\"order_cancel_minute\":\"1\",\"order_return_day\":\"2\",\"channel_commission_ratio\":\"10\",\"installer_return_ratio\":\"0\",\"workorder_auto_assess_day\":\"3\",\"monthly_withdraw_start_date\":\"6\",\"monthly_withdraw_end_date\":\"15\",\"consumer_hotline\":\"400-2569-5252\",\"installer_check\":\"0\",\"servicer_return_ratio\":\"20\"}', '', '', '', '', '0.00');
 INSERT INTO `wja_store` VALUES ('2', '0', '1', '测试厂商', 'http://pimvhcf3v.bkt.clouddn.com/store_logo_20181127181255_logo1.jpg', '', '', '', '1', '1', '1543288024', '1543313576', '0', '', '', '', '', '', '0.00');
 INSERT INTO `wja_store` VALUES ('3', '1', '2', '万佳安渠道', '', '111', '222', '', '1', '1', '1543302062', '1544521685', '0', '', '', '', '', '', '0.00');
 INSERT INTO `wja_store` VALUES ('4', '1', '3', '万佳安零售商', '', '', '', '', '1', '1', '1543302246', '1543562065', '0', '', '', '', '', '', '0.00');
@@ -4488,7 +4498,7 @@ INSERT INTO `wja_store_finance` VALUES ('1', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('2', '0.00', '0.00', '0.00', '0.00');
 INSERT INTO `wja_store_finance` VALUES ('3', '0.00', '0.00', '22.50', '22.50');
 INSERT INTO `wja_store_finance` VALUES ('4', '0.00', '0.00', '0.00', '0.00');
-INSERT INTO `wja_store_finance` VALUES ('5', '0.00', '0.00', '0.00', '0.00');
+INSERT INTO `wja_store_finance` VALUES ('5', '180.00', '0.00', '0.00', '180.00');
 INSERT INTO `wja_store_finance` VALUES ('6', '0.00', '0.00', '0.00', '0.00');
 
 -- ----------------------------
@@ -4524,6 +4534,7 @@ CREATE TABLE `wja_store_service_income` (
   `install_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '预安装费',
   `assess_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '关联评论ID',
   `score` decimal(5,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '评价得分',
+  `return_ratio` float(5,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '绩效考核百分比',
   `income_amount` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '收益金额(实际得到安装费金额)',
   `income_status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '收益状态(0待结算 1已结算 2已退还)',
   `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '交易时间',
@@ -4533,11 +4544,12 @@ CREATE TABLE `wja_store_service_income` (
   `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '逻辑删除',
   PRIMARY KEY (`log_id`),
   KEY `store_id` (`store_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='服务商安装费数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='服务商安装费数据表';
 
 -- ----------------------------
 -- Records of wja_store_service_income
 -- ----------------------------
+INSERT INTO `wja_store_service_income` VALUES ('1', '5', '1', '20181214152442148735', '1', '20181214144609495555436996561', '2', '4', '7', '200.00', '1', '2.50', '20.00', '180.00', '1', '1544772501', '1544773118', '1', '1', '0');
 
 -- ----------------------------
 -- Table structure for wja_store_withdraw
@@ -4751,11 +4763,12 @@ CREATE TABLE `wja_user_installer` (
   `score` float(4,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '工程师综合得分',
   PRIMARY KEY (`installer_id`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='售后工程师数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='售后工程师数据表';
 
 -- ----------------------------
 -- Records of wja_user_installer
 -- ----------------------------
+INSERT INTO `wja_user_installer` VALUES ('1', '96076495', '5', '1', '5', '111', '0', '333', '2018-12-04', '', '', '1', '1', '1544772301', '1544773118', '0', '', '', '1', '222', '1', '2.50');
 
 -- ----------------------------
 -- Table structure for wja_user_installer_score
@@ -4769,11 +4782,13 @@ CREATE TABLE `wja_user_installer_score` (
   `add_time` int(10) unsigned NOT NULL COMMENT '分值初创时间',
   `update_time` int(10) NOT NULL COMMENT '分值最后更新时间',
   PRIMARY KEY (`score_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
 -- ----------------------------
 -- Records of wja_user_installer_score
 -- ----------------------------
+INSERT INTO `wja_user_installer_score` VALUES ('1', '1', '1', '4.00', '1544773118', '1544773118');
+INSERT INTO `wja_user_installer_score` VALUES ('2', '1', '2', '1.00', '1544773118', '1544773118');
 
 -- ----------------------------
 -- Table structure for wja_work_order
@@ -4820,11 +4835,12 @@ CREATE TABLE `wja_work_order` (
   KEY `worder_sn` (`worder_sn`),
   KEY `factory_id` (`factory_id`),
   KEY `store_id` (`store_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单数据表';
 
 -- ----------------------------
 -- Records of wja_work_order
 -- ----------------------------
+INSERT INTO `wja_work_order` VALUES ('1', '20181214152442148735', '1', '0', '1', '5', '7', '4', '20181214144609495555436996561', '2', '2', '4', '7', '0', '1', 'fasdfadf', 'asdfasdf', '1662', '河南省 周口市', 'sdfasdf', '1545998400', '', '', '1', '4', '1544772282', '1544772314', '0', '1544772342', '1544772347', '1544772501', '1544772501', '0', '200.00', '0.00', '1');
 
 -- ----------------------------
 -- Table structure for wja_work_order_assess
@@ -4844,11 +4860,12 @@ CREATE TABLE `wja_work_order_assess` (
   PRIMARY KEY (`assess_id`) USING BTREE,
   KEY `worder_id` (`worder_id`) USING BTREE,
   KEY `worder_sn` (`worder_sn`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单评价数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单评价数据表';
 
 -- ----------------------------
 -- Records of wja_work_order_assess
 -- ----------------------------
+INSERT INTO `wja_work_order_assess` VALUES ('1', '1', '20181214152442148735', '1', '2', 'wanjiaan', '1', '', '1544773118', '0');
 
 -- ----------------------------
 -- Table structure for wja_work_order_assess_log
@@ -4861,11 +4878,13 @@ CREATE TABLE `wja_work_order_assess_log` (
   `config_id` int(10) NOT NULL COMMENT '对应配置服务评分项ID',
   `value` float(10,2) unsigned NOT NULL COMMENT '服务项分数',
   PRIMARY KEY (`log_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
 -- ----------------------------
 -- Records of wja_work_order_assess_log
 -- ----------------------------
+INSERT INTO `wja_work_order_assess_log` VALUES ('1', '1', '1', '1', '4.00');
+INSERT INTO `wja_work_order_assess_log` VALUES ('2', '1', '1', '2', '1.00');
 
 -- ----------------------------
 -- Table structure for wja_work_order_log
@@ -4883,8 +4902,14 @@ CREATE TABLE `wja_work_order_log` (
   PRIMARY KEY (`log_id`) USING BTREE,
   KEY `worder_id` (`worder_id`) USING BTREE,
   KEY `worder_sn` (`worder_sn`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单日志数据表';
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='工单日志数据表';
 
 -- ----------------------------
 -- Records of wja_work_order_log
 -- ----------------------------
+INSERT INTO `wja_work_order_log` VALUES ('1', '1', '20181214152442148735', '7', 'lingshou', '创建工单', '', '1544772282');
+INSERT INTO `wja_work_order_log` VALUES ('2', '1', '20181214152442148735', '9', 'fuwu0', '分派工程师', '工程师姓名:111<br>工程师电话:333', '1544772314');
+INSERT INTO `wja_work_order_log` VALUES ('3', '1', '20181214152442148735', '5', '小君', '工程师接单', '', '1544772342');
+INSERT INTO `wja_work_order_log` VALUES ('4', '1', '20181214152442148735', '5', '小君', '工程师签到,服务开始', '', '1544772347');
+INSERT INTO `wja_work_order_log` VALUES ('5', '1', '20181214152442148735', '5', '小君', '确认完成', '', '1544772501');
+INSERT INTO `wja_work_order_log` VALUES ('6', '1', '20181214152442148735', '2', 'wanjiaan', '首次评价', '', '1544773118');

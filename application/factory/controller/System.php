@@ -36,17 +36,17 @@ class System extends adminSystem
             
             $channelCommissionRatio  = $params['channel_commission_ratio'] = isset($params['channel_commission_ratio']) ? round(floatval($params['channel_commission_ratio']), 2) : 0;
             if ($channelCommissionRatio < 0) {
-                $this->error('渠道佣金比例必须大于0');
+                $this->error('渠道佣金比例必须大于等于0');
             }
             
             $installerReturnRatio = $params['servicer_return_ratio'] =  isset($params['servicer_return_ratio']) ? round(floatval($params['servicer_return_ratio']), 2) : 0;
             if ($installerReturnRatio < 0) {
-                $this->error('工程师安装服务费百分比必须大于0');
+                $this->error('工程师安装服务费百分比必须大于等于0');
             }
             
             $workorderAutoAssessDay = $params['workorder_auto_assess_day'] = isset($params['workorder_auto_assess_day']) ? intval($params['workorder_auto_assess_day']) : 0;
             if ($workorderAutoAssessDay < 0) {
-                $this->error('工单自动评价时间必须大于0');
+                $this->error('工单自动评价时间必须大于等于0');
             }
             $params['installer_check'] = isset($params['installer_check']) && intval($params['installer_check']) ? 1 : 0;
             

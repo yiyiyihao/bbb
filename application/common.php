@@ -458,6 +458,9 @@ function get_store_config($storeId = 0, $merge = FALSE)
             }
         }
     }
+    if (!isset($config['servicer_return_ratio'])) {
+        $config['servicer_return_ratio'] = 100;
+    }
     return $config;
 }
 function get_system_config($key = '')
