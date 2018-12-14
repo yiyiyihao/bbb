@@ -1,2 +1,20 @@
 </body>
 </html>
+{notempty name="bulletin"}
+<script>
+Do.ready('dialog', function () {
+	layer.open({
+	  type: 1,
+	  title: '{$bulletin.name}',
+	  area: ['600px', '400px'], //宽高
+	  content: '<div class="admin-main">{$bulletin.content|raw}</div>',
+	  btn: ['已读','关闭'],
+	  yes: function(index, layero){
+		  layer.msg("这里执行下异步调用已读");
+	  },btn2: function(index, layero){
+		  layero.close;
+	  }
+	});
+});
+</script>
+{/notempty}
