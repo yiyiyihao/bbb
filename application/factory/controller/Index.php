@@ -25,6 +25,7 @@ class Index extends CommonIndex
         //未读公告列表
         $bulletins      = $bulletinModel->alias('B')->join($join)->where($where)->whereNull('BR.bulletin_id')->select();
         $unReadCount    = count($bulletins);
+        $unReadCount    = $unReadCount > 0 ? $unReadCount : '';
         $this->assign("unread",$unReadCount);
         $this->assign('bulletins', $bulletins);
         

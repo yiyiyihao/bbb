@@ -14,6 +14,6 @@ class Factory extends Store
     {
         $this->storeType = STORE_FACTORY;//厂商
         $this->adminType = ADMIN_FACTORY;
-        $this->groupId = GROUP_FACTORY;
+        $this->groupId   = GROUP_FACTORY;
     }
 }

@@ -302,7 +302,7 @@ class Store extends FormBase
     function _tableData(){
         $table = parent::_tableData();
         $btnArray = [];
-        $btnArray = ['text'  => '管理员','action'=> 'manager', 'icon'  => '','bgClass'=> 'bg-green'];
+        $btnArray = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
         $table['actions']['button'][] = $btnArray;
         $table['actions']['width']  = '210';
         return $table;

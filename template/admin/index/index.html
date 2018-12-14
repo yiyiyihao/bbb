@@ -8,7 +8,7 @@
         </ul>
         <ul class="nav-inline nav-right">
         	{if condition="$adminUser['admin_type'] != 1"}
-            <li class="nav-item"><a href="{:url('bulletin/index')}" target="admin-iframe" title="系统消息"><span class="icon-bell"></span></a>{if condition="isset($bulletin) && $bulletin"}<i class="badge-dot"></i> {/if}</li>
+            <li class="nav-item"><a href="{:url('bulletin/index')}" target="admin-iframe" title="系统消息"><span class="icon-bell"></span></a>{if $unread>0}<i class="badge-dot"></i> {/if}</li>
             {/if}
             <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li>
             {if condition="$adminUser['user_id'] == 1"}

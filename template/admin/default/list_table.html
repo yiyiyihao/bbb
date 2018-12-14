@@ -42,7 +42,12 @@
                                         <a href="{:url('index', $param)}" class="button button-small icon-{$button.icon} {$button.bgClass}" title="{$button.text}">{$button.text}</a> 
                                     {/case}
 									{case condition}
-                                    	
+                                    	{php}
+                                        $rule = $button['condition']['rule'];
+                                        {/php}
+                                    	{if eval("return $rule;")}
+                                    	<a href="{:url($button.condition.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? ''}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
+                                        {/if}
                                     {/case}
 		                        	{default}
 		                        		<a href="{:url($button.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? ''}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
