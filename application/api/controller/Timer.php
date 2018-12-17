@@ -24,12 +24,13 @@ class Timer extends ApiBase
         
         $storeModel = new \app\common\model\Store();
         $orderModel = new \app\common\model\Order();
-        //获取厂商时间配置
+        $workOrderModel = new \app\common\model\WorkOrder();
+        //获取厂商配置
         $where = ['store_type' => STORE_FACTORY, 'is_del' => 0];
         $lists = $storeModel->where($where)->field('store_id, config_json')->select();
         $factorys = [];
         if ($lists) {
-            $cancelMap = $finishMap = [];
+            $cancelMap = $finishMap = $assessMap = [];
             foreach ($lists as $key => $value) {
                 $factoryId = $value['store_id'];
                 $config = $value['config_json'] ? json_decode($value['config_json'], 1) : [];
@@ -51,6 +52,13 @@ class Timer extends ApiBase
                 if ($orderReturnDay > 0) {
                     $orderReturnDayTime = $orderReturnDay * 24 * 60 * 60;
                     $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - $orderReturnDayTime).')';
+                }
+                
+                //工单自动评价时间(天数),售后服务完成，如超过配饰时间用户未评价仍然未评价，系统自动给好评并完成服务费结算；
+                $workOrderAssessDay = $config && isset($config['workorder_auto_assess_day']) ? $config['workorder_auto_assess_day'] : 0;
+                if ($workOrderAssessDay > 0) {
+                    $workOrderAssessDayTime = $workOrderAssessDay * 24 * 60 * 60;
+                    $assessMap[] = '(factory_id = '.$factoryId.' AND finish_time <= '. ($thisTime - $workOrderAssessDayTime).')';
                 }
             }
             if ($cancelMap) {
@@ -75,14 +83,13 @@ class Timer extends ApiBase
                 }
             }
             if ($finishMap) {
-                $finishSql = 'order_status = 1 AND pay_status = 1 AND pay_time > 0';
+                $finishSql = 'order_status = 1 AND pay_status = 1 AND pay_time > 0 AND close_refund_status != 2';
                 $finishSql .= ' AND ('.implode(' OR ', $finishMap).')';
                 $orders = $orderModel->where($finishSql)->select();
                 if ($orders) {
-                    $remark = '系统自动关闭退货退款功能';
                     //订单批量控制是否可退还并将不可退还的订单佣金改为入账状态
                     foreach ($orders as $key => $value) {
-                        $result = $orderModel->orderCloseRefund($value, ['user_id' => 0, 'nickname' => '系统'], $remark);
+                        $result = $orderModel->orderCloseRefund($value, FALSE, '自动关闭退货退款功能');
                         if ($result === FALSE) {
                             $this->errorArray[] = [
                                 'action'    => $remark,
@@ -92,8 +99,30 @@ class Timer extends ApiBase
                         }
                     }
                     echo 'FINISH:';
-                    pre($orders);
+                    pre($orders, 1);
                 }
+            }
+            if ($assessMap) {
+                $assessSql = implode(' OR ', $assessMap);
+                //获取未进行首次评价的已完成的安装工单
+                $assessWhere = [
+                    'work_order_type' => 1,
+                    'work_order_status' => 4,
+                    'WOS.type IS NULL OR WOS.type <> 1',
+                    $assessSql,
+                ];
+                $join = [
+                    ['work_order_assess WOS', 'WO.worder_id = WOS.worder_id', 'LEFT'],
+                ];
+                $workOrders = $workOrderModel->field('WO.*')->alias('WO')->join($join)->where($assessWhere)->select();
+                if ($workOrders) {
+                    foreach ($workOrders as $key => $value) {
+                        //自动评价+安装费返还
+                        $workOrderModel->worderAssess($value, FALSE, FALSE);
+                    }
+                }
+                echo 'workOrders:';
+                pre($workOrders, 1);
             }
         }
     }

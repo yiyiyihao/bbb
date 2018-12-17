@@ -694,6 +694,9 @@ class Order extends Model
             $this->error = lang('param_error');
             return FALSE;
         }
+        if (!$user) {
+            $user = ['user_id' => 0, 'nickname' => '系统'];
+        }
         $skus = isset($order['skus']) ? $order['skus'] : [];
         if (!$skus) {
             $order = $this->getOrderSkus($order);

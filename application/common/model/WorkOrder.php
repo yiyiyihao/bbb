@@ -414,9 +414,16 @@ class WorkOrder extends Model
      * @param array $assessData 用户提交评价信息
      */
     public function worderAssess($worder = [], $user = [], $assessData = []){
-        if (!$worder) {
+        if (!$worder || !$assessData) {
             $this->error = '参数错误';
             return FALSE;
+        }
+        if (!$user) {
+            $assessData = [
+                'type'  => 1,
+                'msg'   => '默认好评',
+            ];
+            $assessData['score'] = db('config')->where(['config_key' => CONFIG_WORKORDER_ASSESS, 'status' => 1, 'is_del' => 0])->column('config_id, 5 as config_value');
         }
         if ($assessData['type'] == 1) {
             //判断当前工单是否存在首次评价
@@ -432,8 +439,8 @@ class WorkOrder extends Model
             'worder_id'     =>  $worder['worder_id'],
             'worder_sn'     =>  $worder['worder_sn'],
             'installer_id'  =>  $worder['installer_id'],
-            'post_user_id'  =>  $user['user_id'],
-            'nickname'      =>  $nickname,
+            'post_user_id'  =>  $user ? $user['user_id'] : 0,
+            'nickname'      =>  $nickname ? $nickname : '系统',
             'type'          =>  $assessData['type'],//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
             'msg'           =>  $assessData['msg'],
             'add_time'      =>  time(),
@@ -496,8 +503,8 @@ class WorkOrder extends Model
         $data = [
             'worder_id' => $worder['worder_id'],
             'worder_sn' => $worder['worder_sn'],
-            'user_id'   => $user['user_id'],
-            'nickname'  => $nickname,
+            'user_id'   => $user ? $user['user_id'] : 0,
+            'nickname'  => $user ? $nickname : '系统',
             'action'    => $action,
             'msg'       => $msg,
             'add_time'  => time(),

@@ -12,6 +12,28 @@ class Bulletin extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
     }
+    /**
+     * 设置公告已读
+     */
+    public function read()
+    {
+        $info = $this->_assignInfo();
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            //判断公告是否已读 未读添加已读日志
+            $logModel = new \app\common\model\BulletinLog();
+            $result = $logModel->read($info, $this->adminUser);
+            if ($result === FALSE) {
+                $this->error($logModel->error);
+            }else{
+                $this->success('已读完成~');
+            }
+        }else{
+            $this->error('无已读权限');
+        }
+    }
+    /**
+     * 公告详情
+     */
     public function detail()
     {
         $info = $this->_assignInfo();

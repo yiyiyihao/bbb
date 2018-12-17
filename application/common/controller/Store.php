@@ -87,6 +87,7 @@ class Store extends FormBase
      * 删除
      */
     function del(){
+        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = $this->_assignInfo($pkId);

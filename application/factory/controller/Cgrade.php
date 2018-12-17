@@ -108,6 +108,7 @@ class Cgrade extends FactoryForm
         return $info;
     }
     function del(){
+        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);

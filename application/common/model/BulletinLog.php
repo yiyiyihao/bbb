@@ -55,7 +55,7 @@ class BulletinLog extends Model
 	    }
 	    $hasDisplay = isset($extra['special_display']) ? intval($extra['special_display']) : 0;
 	    //判断当前公告是否已阅读
-	    $exist = $this->where(['bulletin_id' => $bulletin['bulletin_id'], 'user_id' => $user['user_id'], 'store_id' => $user['store_id'], 'is_read' => 1])->find();
+	    $exist = $this->where(['bulletin_id' => $bulletin['bulletin_id'], 'user_id' => $user['user_id'], 'store_id' => $user['store_id']])->find();
 	    if (!$exist){
 	        $data = [
 	            'bulletin_id' => $bulletin['bulletin_id'],

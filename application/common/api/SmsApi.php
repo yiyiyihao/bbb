@@ -22,6 +22,14 @@ class SmsApi
         ];
         $this->signName = '回响科技';
     }
+    public function sendSms($params = [], $tpl)
+    {
+        $params = $params ? $params : $this->request->param();
+        $phone = isset($params['phone']) ? trim($params['phone']) : '';
+        $phone = isset($params['phone']) ? trim($params['phone']) : '';
+    }
+    
+    
     public function getSmsCode()
     {
         $code = get_nonce_str(6, 2);
@@ -32,7 +40,6 @@ class SmsApi
             return $code;
         }
     }
-    
     /**
      * 微信接口:获取access_token(接口调用凭证)
      * @return string
@@ -85,15 +92,10 @@ class SmsApi
         foreach ($apiParams as $key => $value) {
             $sortedQueryStringTmp .= "&" . $this->encode($key) . "=" . $this->encode($value);
         }
-        
         $stringToSign = "${method}&%2F&" . $this->encode(substr($sortedQueryStringTmp, 1));
-        
         $sign = base64_encode(hash_hmac("sha1", $stringToSign, $accessKeySecret . "&",true));
-        
         $signature = $this->encode($sign);
-        
         $url = ($security ? 'https' : 'http')."://{$domain}/";
-        
         try {
             $content = $this->fetchContent($url, $method, "Signature={$signature}{$sortedQueryStringTmp}");
             return json_decode($content, TRUE);
@@ -109,38 +111,31 @@ class SmsApi
         $res = preg_replace("/%7E/", "~", $res);
         return $res;
     }
-    
     private function fetchContent($url, $method, $body) {
         $ch = curl_init();
-        
         if($method == 'POST') {
             curl_setopt($ch, CURLOPT_POST, 1);//post提交方式
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         } else {
             $url .= '?'.$body;
         }
-        
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             "x-sdk-client" => "php/2.0.0"
         ));
-        
         if(substr($url, 0,5) == 'https') {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         }
-        
         $rtn = curl_exec($ch);
-        
         if($rtn === false) {
             // 大多由设置等原因引起，一般无法保障后续逻辑正常执行，
             // 所以这里触发的是E_USER_ERROR，会终止脚本执行，无法被try...catch捕获，需要用户排查环境、网络等故障
             trigger_error("[CURL_" . curl_errno($ch) . "]: " . curl_error($ch), E_USER_ERROR);
         }
         curl_close($ch);
-        
         return $rtn;
     }
 }

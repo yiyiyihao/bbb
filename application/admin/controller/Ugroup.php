@@ -164,6 +164,7 @@ class Ugroup extends AdminForm
         return $data;
     }
     function del(){
+        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $pkId = intval($params['id']);
         if ($pkId <= USER) {

@@ -52,6 +52,9 @@ function get_status($status = FALSE){
     if ($status === FALSE) {
         return $list;
     }
+    if ($status > 1) {
+        $status = 1;
+    }
     if (isset($list[$status])) {
         return $list[$status];
     }else{

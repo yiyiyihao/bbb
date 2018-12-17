@@ -60,7 +60,7 @@ class OrderService extends Model
             return FALSE;
         }
         $storeConfig = get_store_config($order['store_id'], TRUE);
-        $returnTime = $returnCount = 0;
+        $returnTime = 0;
         //判断商户是否可提现(超时不允许提现)
         if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {
             $returnTime = $storeConfig['order_return_day'] * 24 * 60 * 60;

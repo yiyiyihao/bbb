@@ -12,6 +12,17 @@ class User extends FormBase
         parent::__construct();
         $this->adminType = $this->adminUser['admin_type'];
     }
+    function del()
+    {
+        $this->error(lang('NO ACCESS'));
+        $info = $this->_assignInfo();
+        $group = db('user_group')->find($info['group_id']);
+        if ($group['is_system'] || !$group['store_id']) {
+            $this->error('管理员账号不允许删除');
+        }
+        parent::del();
+    }
+    
     function _getAlias()
     {
         return 'U';

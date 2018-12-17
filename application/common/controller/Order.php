@@ -34,9 +34,6 @@ class Order extends FormBase
         if ($config && isset($config['order_return_day']) && $config['order_return_day'] > 0) {
             $this->config['returnTime'] = $config['order_return_day'] * 24 * 60 * 60;
         }
-        if ($config && isset($config['ordersku_return_limit']) && $config['ordersku_return_limit'] > 0) {
-            $this->config['returnCount'] = $config['ordersku_return_limit'];
-        }
     }
     public function detail()
     {
