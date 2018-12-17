@@ -50,7 +50,17 @@
                                         {/if}
                                     {/case}
 		                        	{default}
-		                        		<a href="{:url($button.action, array('id' => $vo[$td['value']]))}" target="{$button.target ?? ''}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
+		                        		{php}
+		                        			$value = $td['value'];
+                                            if(isset($button['value']) && $button['value']){
+                                            	$value = $button['value'];
+                                            }
+                                        {/php}
+                                        {if (isset($button['js-action']) && $button['js-action'])}
+                                        <a href="javascript:;" url="{:url($button.action, array('id' => $vo[$value]))}" class="button button-small icon-{$button.icon} {$button.bgClass} js-action" refresh="true" title="{$button.text}">{$button.text}</a>
+                                        {else/}                 		
+                                        <a href="{:url($button.action, array('id' => $vo[$value]))}" target="{$button.target ?? ''}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>
+                                        {/if}
 		                        {/switch}
 	                        {/notempty}
                         {/volist}
