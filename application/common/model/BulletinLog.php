@@ -29,6 +29,7 @@ class BulletinLog extends Model
 	    }
 	    $where = [
 	        'store_type' => $user['store_type'],
+	        'bulletin_id'    => $bulletin['bulletin_id'],
 	        'publish_status' => 1,
 	        'visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', to_store_ids))',
 	    ];

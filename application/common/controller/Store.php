@@ -305,7 +305,7 @@ class Store extends FormBase
         $btnArray = [];
         $btnArray = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
         $table['actions']['button'][] = $btnArray;
-        $table['actions']['width']  = '210';
+        $table['actions']['width']  = '220';
         return $table;
     }
     /**

@@ -22,8 +22,9 @@ class Index extends CommonIndex
         $join = [
             ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id ', 'LEFT']
         ];
+        $field  = "B.*";
         //未读公告列表
-        $bulletins      = $bulletinModel->alias('B')->join($join)->where($where)->whereNull('BR.bulletin_id')->select();
+        $bulletins      = $bulletinModel->field($field)->alias('B')->join($join)->where($where)->whereNull('BR.bulletin_id')->select();
         $unReadCount    = count($bulletins);
         $unReadCount    = $unReadCount > 0 ? $unReadCount : '';
         $this->assign("unread",$unReadCount);
@@ -32,7 +33,11 @@ class Index extends CommonIndex
         //获取需要开屏展示的公告列表
         #TODO 登录展示特效未处理
         $where['B.special_display'] = 1;
-        $specialBulletins = $bulletinModel->where($where)->whereNull('BR.bulletin_id')->select();
+        $specialBulletins = $bulletinModel->field($field)->where($where)->whereNull('BR.bulletin_id')->select();
+        if(count($specialBulletins) > 0 && count($specialBulletins) == 1){
+            $this->assign('specialBulletin', $specialBulletins[0]);
+        }
+//         pre($specialBulletins);
         $this->assign('specialBulletins', $specialBulletins);
         
         return parent::index();

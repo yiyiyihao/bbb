@@ -19,6 +19,7 @@ class Bulletin extends FactoryForm
     {
         $info = $this->_assignInfo();
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            #TODO 根据公告是否发送给该用户判断是否可读
             //判断公告是否已读 未读添加已读日志
             $logModel = new \app\common\model\BulletinLog();
             $result = $logModel->read($info, $this->adminUser);
