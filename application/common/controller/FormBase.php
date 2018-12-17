@@ -237,6 +237,7 @@ class FormBase extends CommonBase
                 $action             = strtolower($this->request->action());
                 foreach ($list as $k=>$btn){
                     $flag = false;
+                    if($btn['action'] == 'condition') $btn['action'] = $btn['condition']['action'];
                     $tempStr = url($module.'/'.$controller.'/'.$btn['action']);
                     foreach ($purviewList as $key=>$v){
                         $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
