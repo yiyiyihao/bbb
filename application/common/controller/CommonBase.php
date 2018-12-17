@@ -18,7 +18,7 @@ class CommonBase extends Base
     {
     	parent::__construct();
     	$domain = Request::panDomain();
-    	$adminDomain = config('app.admin_domain');    	
+    	$adminDomain = config('app.admin_domain');
     	if($domain == $adminDomain){
     	    $this->initAdmin($domain);
     	}else{
@@ -93,40 +93,16 @@ class CommonBase extends Base
             //普通用户
             //从登陆信息中取出权限配置
             $groupPurview = $this->adminUser['groupPurview'];
-            /* if(!$groupPurview){
-                session($domain.'_user',NULL);
-                $this->error(lang('NO_GROUP'),'/login');
-            } */
             //json转数组
-            $groupPurview = json_decode($groupPurview,true);
-            $tempRule = [];
-            $module             = strtolower($this->request->module());
-            $controller         = strtolower($this->request->controller());
-            $action             = strtolower($this->request->action());
+            $groupPurview   = json_decode($groupPurview,true);
             if(!empty($groupPurview)){
-                foreach ($groupPurview as $k=>$v){
-                    $key = $v['module'];
-                    if($v['controller']) $key .= '_'.$v['controller'];
-                    if($v['action']){
-                        $key .= '_'.$v['action'];
-                    }else{
-                        $key .= '_index';
-                    }
-                    $tempRule[$key] = $v;
-                    if(is_array($groupPurview)){
-                        foreach ($groupPurview as $k=>$v){
-                            $key = $v['module'];
-                            if($v['controller']) $key .= '_'.$v['controller'];
-                            if($v['action'])     $key .= '_'.$v['action'];
-                            $tempRule[$key] = $v;
-                        }
-                    }
-                }
-                $tempAction = $module . '_' . $controller . '_' . $action;
-                if(!isset($tempRule[$tempAction]) && $action != 'logout' && $action != 'upload' && !IS_AJAX){
+                $authService    = new \app\admin\service\Auth();
+                $return         = $authService->check($this->request,$groupPurview);
+                if(!$return){
                     $this->error(lang('PERMISSION_DENIED'));
                 }
             }else{
+                $controller     = strtolower($this->request->controller());
                 if($controller != 'login'){
                     $this->error(lang('NO_GROUP'));
                 }

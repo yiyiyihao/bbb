@@ -12,8 +12,32 @@ class Auth{
     );
 
     public function __construct() {
-        if (config('AUTH_CONFIG')) {
-            $this->_config = array_merge($this->_config, config('auth'));
+        
+    }
+    
+    /**
+     * 验证操作权限
+     */
+    public function check($request,$groupPurview = []){
+        //获取用户需要验证的所有有效规则列表
+        $commonPurview      = [];//获取默认权限
+        $authList           = array_merge($groupPurview,$commonPurview);
+        $module             = strtolower($request->module());
+        $controller         = strtolower($request->controller());
+        $action             = strtolower($request->action());
+        foreach ($groupPurview as $k=>$v){
+            $key = $v['module'];
+            if($v['controller']) $key .= '_'.$v['controller'];
+            $v['action']    = empty($v['action']) ? '*' : $v['action'];
+            if($v['action'])     $key .= '_'.$v['action'];
+            $tempRule[$key] = $v;
+        }
+        $tempAction = $module . '_' . $controller . '_' . $action;
+        $tempAllAction = $module . '_' . $controller . '_*';//兼容配置所有权限授权点
+        if(!isset($tempRule[$tempAction]) && !isset($tempRule[$tempAllAction]) && $action != 'logout' && $action != 'upload' && !IS_AJAX){
+            return false;
+        }else{
+            return true;
         }
     }
 
@@ -24,9 +48,7 @@ class Auth{
      * @param relation string    如果为 'or' 表示满足任一条规则即通过验证;如果为 'and'则表示需满足所有规则才能通过验证
      * @return boolean           通过验证返回true;失败返回false
      */
-    public function check($name, $purview, $type=1, $relation='or') {
-        if (!$this->_config['AUTH_ON'])
-            return true;
+    public function check_old($name, $purview, $type=1, $relation='or') {
         //获取用户需要验证的所有有效规则列表
         $authList = $purview;
         if (is_string($name)) {
