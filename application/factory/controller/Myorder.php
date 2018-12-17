@@ -118,7 +118,7 @@ class Myorder extends commonOrder
             if ($result === FALSE) {
                 $this->error($payment->error);
             }
-            pre($result);
+//             pre($result);
             if ($payCode == 'wechat_native' && isset($result['code_url'])) {
                 //根据url生成二维码
                 $this->assign('code_url', $result['code_url']);

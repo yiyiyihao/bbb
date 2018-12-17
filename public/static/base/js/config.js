@@ -51,6 +51,9 @@ Do.add('selectmul', {
 Do.add('region', {
     path: Config.libDir + 'region.js'
 });
+Do.add('qrcode', {
+    path: Config.baseDir + 'jquery.qrcode.min.js',
+});
 
 //调试函数
 function debug(obj) {
