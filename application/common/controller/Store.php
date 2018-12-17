@@ -58,7 +58,7 @@ class Store extends FormBase
                 }
             }
             $params['user_id'] = $info ? $info['user_id'] : 0;
-            $result = $userModel->_checkFormat($params);
+            $result = $userModel->checkFormat($params);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }
@@ -87,20 +87,64 @@ class Store extends FormBase
      * 删除
      */
     function del(){
-        $this->error(lang('NO ACCESS'));
-        $params = $this->request->param();
-        $pkId = intval($params['id']);
-        $info = $this->_assignInfo($pkId);
+        $info = $this->_assignInfo();
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY, ADMIN_CHANNEL])) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
         //判断商户类型
         $storeType = $info['store_type'];
-        if ($storeType == 1) {
-            //判断厂商下是否存在其它商户
-            $exist = $this->model->where(['store_id' => $pkId, 'is_del' => 0])->find();
-            $msg = '厂商下存在其它商户，不允许删除';
-        }else{
-            $exist = [];
-            #TODO 判断渠道商 经销商 服务商不能删除条件
-            $msg = '';
+        switch ($storeType) {
+            case STORE_FACTORY:
+                //判断厂商下是否存在其它商户
+                $exist = $this->model->where(['factory_id' => $info['store_id'], 'is_del' => 0])->find();
+                $msg = '厂商下存在其它商户数据，不允许删除';
+                if (!$exist) {
+                    //判断厂商是否有订单数据
+                    $exist = db('order')->where(['store_id' => $info['store_id']])->find();
+                    $msg = '厂商下有订单数据,不允许删除';
+                    if (!$exist) {
+                        //判断厂商下是否有安装工程师数据
+                        $exist = db('user_installer')->where(['factory_id' => $info['store_id']])->find();
+                        $msg = '厂商下存在安装工程师,不允许删除';
+                        if (!$exist) {
+                            //判断服务商是否有工单数据
+                            $exist = db('work_order')->where(['factory_id' => $info['store_id']])->find();
+                            $msg = '厂商下存在工单数据,不允许删除';
+                        }
+                    }
+                }
+                break;
+            case STORE_CHANNEL:
+                //判断渠道商下级是否存在经销商
+                $exist = $this->model->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SD.ostore_id' => $info['store_id']])->find();
+                $msg = '渠道商下存在零售商，不允许删除';
+                if (!$exist) {
+                    //判断渠道商是否有订单数据
+                    $exist = db('order')->where(['user_store_id' => $info['store_id']])->find();
+                    $msg = '渠道商下有订单数据,不允许删除';
+                }
+                break;
+            case STORE_DEALER:
+                //判断零售商是否有订单数据
+                $exist = db('order')->where(['user_store_id' => $info['store_id']])->find();
+                $msg = '零售商有订单数据,不允许删除';
+                break;
+            case STORE_SERVICE:
+                //判断服务商是否有安装工程师数据
+                $exist = db('user_installer')->where(['store_id' => $info['store_id']])->find();
+                $msg = '服务商下存在安装工程师,不允许删除';
+                if (!$exist) {
+                    //判断服务商是否有工单数据
+                    $exist = db('work_order')->where(['store_id' => $info['store_id']])->find();
+                    $msg = '服务商有工单数据,不允许删除';
+                }
+                break;
+            default:
+                $this->error(lang('ERROR'));
+            break;
         }
         if ($exist) {
             $this->error($msg);
@@ -136,11 +180,11 @@ class Store extends FormBase
                     break;
             }
             $detail = model($model)->where(['store_id' => $info['store_id']])->find();
-            if ($this->adminUser['admin_type'] != 1) {
+            if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
                 if ($info['factory_id'] != $this->adminFactory['store_id']) {
                     $this->error(lang('NO ACCESS'));
                 }
-                if ($this->adminUser['admin_type'] != 2 && $this->adminStore['store_id'] != $detail['ostore_id']) {
+                if ($this->adminUser['admin_type'] != ADMIN_FACTORY && $this->adminStore['store_id'] != $detail['ostore_id']) {
                     $this->error(lang('NO ACCESS'));
                 }
             }
@@ -315,8 +359,9 @@ class Store extends FormBase
         $array = $array1 = $array2 = $array3 = [];
         if ($this->storeType != STORE_FACTORY) {
             if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
-                $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
+//                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
             }else{
+                $this->error(lang('NO_OPERATE_PERMISSION'));
                 $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
             }
         }else{

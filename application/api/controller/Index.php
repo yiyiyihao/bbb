@@ -94,7 +94,7 @@ class Index extends ApiBase
             $userId = isset($exist['user_id']) && $exist['user_id'] ? intval($exist['user_id']) : 0;
         }
         $userModel = new \app\common\model\User();
-        $openid = $userModel->_getUserOpenid();
+        $openid = $userModel->getUserOpenid();
         if (!$userId){
             $this->postParams['username'] = $openid;
             $userId = $userModel->save($this->postParams);
@@ -132,7 +132,7 @@ class Index extends ApiBase
         }
         //验证手机号格式
         $userService = new \app\common\model\User();
-        $result = $userService->_checkFormat(['phone' => $phone]);
+        $result = $userService->checkFormat(['phone' => $phone]);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userService->error]);
         }

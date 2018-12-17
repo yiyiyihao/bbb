@@ -14,8 +14,10 @@ class User extends FormBase
     }
     function del()
     {
-        $this->error(lang('NO ACCESS'));
         $info = $this->_assignInfo();
+        if ($info['admin_type'] != $this->adminUser['admin_type']) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
         $group = db('user_group')->find($info['group_id']);
         if ($group['is_system'] || !$group['store_id']) {
             $this->error('管理员账号不允许删除');
@@ -57,6 +59,10 @@ class User extends FormBase
             if($name){
                 $where['U.username'] = ['like','%'.$name.'%'];
             }
+            $phone = isset($params['phone']) ? trim($params['phone']) : '';
+            if($phone){
+                $where['U.phone'] = ['like','%'.$phone.'%'];
+            }
         }
         return $where;
     }
@@ -69,6 +75,7 @@ class User extends FormBase
         $params = $this->request->param();
         $username =  isset($data['username']) ? trim($data['username']) : '';
         $password =  isset($data['password']) ? trim($data['password']) : '';
+        $phone =  isset($data['phone']) ? trim($data['phone']) : '';
         
         $groupId = $params && isset($params['group_id']) ? intval($params['group_id']) : 0;
         if (!$pkId) {
@@ -78,12 +85,15 @@ class User extends FormBase
             if (!$password) {
                 $this->error('登录密码不能为空');
             }
+            if (!$groupId) {
+                $this->error('请选择账户角色');
+            }
         }
-        if (!$groupId) {
-            $this->error('请选择账户角色');
+        if (!$phone) {
+            $this->error('手机号不能为空');
         }
         $userModel = new \app\common\model\User();
-        $result = $userModel->_checkFormat($params);
+        $result = $userModel->checkFormat($params);
         if ($result === FALSE) {
             $this->error($userModel->error);
         }
@@ -96,6 +106,10 @@ class User extends FormBase
     }
     function _assignInfo($pkId = 0){
         $info = parent::_assignInfo($pkId);
+        if ($info && $info['group_id']) {
+            $info['group'] = db('user_group')->find($info['group_id']);
+            $this->assign('info', $info);
+        }
         $this->_getUgroup();
         return $info;
     }
@@ -118,35 +132,8 @@ class User extends FormBase
     function _searchData(){
         $search = [
             ['type' => 'input', 'name' =>  'name', 'value' => '登录用户名', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'phone', 'value' => '手机号', 'width' => '30'],
         ];
         return $search;
-    }
-    
-    /**
-     * 详情字段配置
-     */
-    function _fieldData(){
-        $array = [];
-        if ($this->adminType != 1) {
-            if ($this->adminUser['admin_type'] == 2) {
-                $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
-            }else{
-                $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
-            }
-        }else{
-            $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
-        }
-        $field = [
-            $array,
-            ['title'=>lang($this->modelName).'名称','type'=>'text','name'=>'name','size'=>'40','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'名称请不要填写特殊字符'],
-            ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
-            ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'],
-            ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'可用','value'=>'1'],
-                ['text'=>'禁用','value'=>'0'],
-            ]],
-            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
-        ];
-        return $field;
     }
 }

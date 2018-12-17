@@ -19,22 +19,6 @@ class Payment extends FactoryForm
         $this->assign('payments', $this->payments);
         unset($this->subMenu['add']);
     }
-    function _afterList($list){
-        $displayTypes = [
-            1 => 'PC端',
-            2 => '微信小程序端',
-            3 => 'APP客户端',
-        ];
-        if ($list) {
-            foreach ($list as $key => $value) {
-                $code = $value['pay_code'];
-                $this->payments[$code] = $value + $this->payments[$code];
-            }
-        }
-        $this->assign('displayTypes', $displayTypes);
-        $list = $this->payments;
-        return $list;
-    }
     public function config()
     {
         $params = $this->request->param();
@@ -82,6 +66,36 @@ class Payment extends FactoryForm
     function _getWhere(){
         $where = ['is_del' => 0, 'store_id' => $this->adminUser['store_id']];
         $params = $this->request->param();
+        if ($params) {
+            $name = isset($params['name']) ? trim($params['name']) : '';
+            if($name){
+                $where['name'] = ['like','%'.$name.'%'];
+            }
+        }
         return $where;
+    }
+    function _afterList($list){
+        $displayTypes = [
+            1 => 'PC端',
+            2 => '微信小程序端',
+            3 => 'APP客户端',
+        ];
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $code = $value['pay_code'];
+                $this->payments[$code] = $value + $this->payments[$code];
+            }
+        }
+        $this->assign('displayTypes', $displayTypes);
+        $list = $this->payments;
+        return $list;
+    }
+    function _assignInfo($pkId = 0)
+    {
+        $info = parent::_assignInfo();
+        if ($info['store_id'] != $this->adminUser['store_id']) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        return $info;
     }
 }

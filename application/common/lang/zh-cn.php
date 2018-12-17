@@ -8,6 +8,7 @@ return [
     'SYSTEM_ERROR'          =>  '系统异常',
     'USERNOTEXIST'          =>  '用户不存在',
     'PERMISSION_DENIED'     =>  '没有权限',
+    'NO_OPERATE_PERMISSION' =>  '无操作权限',
     'NO_GROUP'              =>  '未分配角色',
     'USERORPSW_NULL'        =>  '用户名或密码为空',
     'USER_HAS_BEEN_DISABLED'=>  '用户已经被禁用',

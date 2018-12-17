@@ -152,6 +152,29 @@ class Installer extends FormBase
         }
         echo '<img src="'.$domain.$filename.'">';
     }
+    function del(){
+        $info = $this->_assignInfo();
+        //判断工程师是否有对应的工单记录
+        $exist = db('work_order')->where(['installer_id' => $info['installer_id']])->find();
+        if ($exist) {
+            $this->error('工程师存在工单记录,不允许删除');
+        }
+        parent::del();
+    }
+    function _assignInfo($pkId = 0)
+    {
+        $info = parent::_assignInfo();
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $this->adminUser['store_id']) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        return $info;
+    }
     function _getData()
     {
         $info = $this->_assignInfo();

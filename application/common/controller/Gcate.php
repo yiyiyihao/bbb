@@ -70,7 +70,6 @@ class Gcate extends FormBase
         return $join;
     }
     function del(){
-        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $pkId = intval($params['id']);
         $info = parent::_assignInfo($pkId);

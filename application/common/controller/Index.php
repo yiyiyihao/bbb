@@ -58,7 +58,7 @@ class Index extends CommonBase
             if (!$phone) {
                 $this->error('联系电话不能为空');
             }
-            $result = $userModel->_checkFormat($params);
+            $result = $userModel->checkFormat($params);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }
@@ -100,7 +100,7 @@ class Index extends CommonBase
             if ($newPwd != $rePwd) {
                 $this->error('新密码与确认密码不一致');
             }
-            $result = $userModel->_checkFormat(['password' => $newPwd]);
+            $result = $userModel->checkFormat(['password' => $newPwd]);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }

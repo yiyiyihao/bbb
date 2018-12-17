@@ -17,13 +17,13 @@
 							<div class="input-note">请选择服务关联厂商</div>
 						</div>
 					</div>
-					{if condition="$info && !$info['group_id']"}
+					{if condition="$info && $info['group_id'] && $info['group'] && in_array($info['group']['group_type'], [1, 2])"}
 						<div class="form-group">
 							<div class="label">
 								<label>账户角色</label>
 							</div>
 							<div class="field">
-								<input type="text" class="input" disabled="disabled" value="管理员">
+								<input type="text" class="input" disabled="disabled" value="{$info['group']['name']}">
 							</div>
 						</div>
 					{else}

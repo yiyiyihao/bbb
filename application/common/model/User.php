@@ -112,12 +112,12 @@ class User extends Model
      * 获取用户平台openid
      * @return 产生的随机字符串
      */
-    public function _getUserOpenid()
+    public function getUserOpenid()
     {
         $openid = get_nonce_str(30);
         $exist = db('user_data')->where(['openid' => $openid])->find();
         if ($exist) {
-            return $this->_getUserOpenid();
+            return $this->getUserOpenid();
         }else{
             return $openid;
         }
@@ -159,7 +159,7 @@ class User extends Model
      * @param array $extra
      * @return boolean
      */
-    public function _checkFormat($extra = [])
+    public function checkFormat($extra = [])
     {
         $username = isset($extra['username']) ? trim($extra['username']) : '';
         $password = isset($extra['password']) ? trim($extra['password']) : '';
@@ -170,9 +170,8 @@ class User extends Model
                 $this->error = '手机号已存在';
                 return FALSE;
             }
-            $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9]|19[0|1|2|3|5|6|7|8|9]|17[0|1|2|3|5|6|7|8|9])\d{8}$/';
-            if ($phone && !preg_match($pattern, $phone)) {
-                $this->error = '手机号格式错误';
+            $result = $this->checkPhone($phone, FALSE);
+            if ($result === FALSE) {
                 return FALSE;
             }
         }
@@ -198,21 +197,35 @@ class User extends Model
             $this->error = '登录密码格式:长度在5~20之间，只能包含字母、数字和下划线';
             return FALSE;
         }
+        if ($phone) {
+            return $this->checkPhone($phone, TRUE, $extra);
+        }
+        return TRUE;
+    }
+    public function checkPhone($phone = '', $unique = FALSE, $extra = [])
+    {
         $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/';
         if ($phone) {
             if (!preg_match($pattern, $phone)) {
                 $this->error = '手机号格式错误';
                 return FALSE;
             }
-            //验证手机号唯一性
-            $uncheckPhone = $extra && isset($extra['uncheck_phone']) ? $extra['uncheck_phone'] : 0;
-            $userId = $extra && isset($extra['user_id']) ? $extra['user_id'] : 0;
-            if (!$uncheckPhone && $userId) {
-                $exist = $this->where(['phone' => $phone, 'user_id' => ['<>', $userId], 'is_del' => 0])->find();
+            if ($unique) {
+                //验证手机号唯一性
+                $userId = $extra && isset($extra['user_id']) ? $extra['user_id'] : 0;
+                if (!$userId) {
+                    $userId = $extra && isset($extra['id']) ? $extra['id'] : 0;
+                }
+                $where = ['phone' => $phone, 'user_id' => ['<>', $userId], 'is_del' => 0];
+                if ($userId) {
+                    $where['user_id'] = ['<>', $userId];
+                }
+                $exist = $this->where($where)->find();
                 if ($exist) {
                     $this->error = '手机号已存在';
                     return FALSE;
                 }
+                return TRUE;
             }
         }
         return TRUE;

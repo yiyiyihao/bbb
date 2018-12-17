@@ -92,7 +92,8 @@ class Myorder extends commonOrder
         $factoryConfig['pending_order_cancel_time'] = isset($factoryConfig['pending_order_cancel_time']) ? $factoryConfig['pending_order_cancel_time'] : 30;//未设置默认30分钟
         $detail['cancel_countdown'] = $factoryConfig['pending_order_cancel_time'];
         //获取订单产品列表
-        $oSkus = $this->model->getOrderSkus($detail);
+        $order = $this->model->getOrderSkus($detail);
+        $oSkus = $order['skus'];
         if (!$oSkus) {
             $this->error('订单数据异常');
         }
@@ -110,12 +111,14 @@ class Myorder extends commonOrder
             }
             $payment = new \app\common\api\PaymentApi($detail['store_id'], $payCode);
             $detail['subject'] = $sku['sku_name'].' '.$sku['sku_spec'];
-            $detail['product_id'] = $sku['sku_id'];
+//             $detail['product_id'] = $sku['sku_id'];
+            $detail['product_id'] = $order['order_sn'];
             //$detail['openid'] = 'oDDkf5RMJ5hLJ3oOOqGmTXyt3BJk';
             $result = $payment->init($detail);
             if ($result === FALSE) {
                 $this->error($payment->error);
             }
+            pre($result);
             if ($payCode == 'wechat_native' && isset($result['code_url'])) {
                 //根据url生成二维码
                 $this->assign('code_url', $result['code_url']);

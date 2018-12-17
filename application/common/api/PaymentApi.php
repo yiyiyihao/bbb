@@ -180,7 +180,7 @@ class PaymentApi
                 return FALSE;
             }
         }elseif ($tradeType == 'NATIVE'){
-            $params['product_id'] = isset($order['product_id']) ? intval($order['product_id']): 0;
+            $params['product_id'] = isset($order['product_id']) ? trim($order['product_id']): 0;
             if (!$params['product_id']) {
                 $this->error = '产品ID(product_id)缺失';
                 return FALSE;
