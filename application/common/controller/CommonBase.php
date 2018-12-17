@@ -81,17 +81,13 @@ class CommonBase extends Base
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
         //判断用户是否需要强制修改初始密码
-        $info = db('User')->find(ADMIN_ID);
+        $info = db('User')->find(ADMIN_ID);//#TODO 这里为啥不用adminUser数据呢 为啥要重新查一次
         if ($info['pwd_modify'] > 0 && (strtolower($this->request->controller()) != 'index')) {
             $this->redirect(url('index/password'));
         }
-        
         //是超级管理员,不验证操作权限
-        if($this->adminUser['user_id']===1){
-            
-        }else{
-            //普通用户
-            //从登陆信息中取出权限配置
+        if($this->adminUser['user_id']!==1){
+            //普通用户 //从登陆信息中取出权限配置
             $groupPurview = $this->adminUser['groupPurview'];
             //json转数组
             $groupPurview   = json_decode($groupPurview,true);
