@@ -206,6 +206,10 @@ class Service extends FactoryForm
         ];
         return $search;
     }
+//     function _afterList($list)
+//     {
+//         pre($list);
+//     }
     /**
      * 列表项配置
      */
@@ -218,6 +222,40 @@ class Service extends FactoryForm
         }else{
             $table['actions']['button'][] = ['text'  => '取消', 'action'=> 'cancel', 'icon'  => 'setting','bgClass'=> 'bg-gray'];
             $table['actions']['button'][] = ['text'  => '退货', 'action'=> 'delivery', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $table['actions']['button'][] = [
+                'text'  => '审核', 'action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-yellow',
+                'condition' => [
+                    'action' => 'check',
+                    'rule' => '$vo["service_status"] == 0'
+                ]
+            ];
+            $table['actions']['button'][] = [
+                'text'  => '退款', 'action'=> 'condition', 'icon'  => '','bgClass'=> 'bg-red',
+                'condition' => [
+                    'action' => 'refund',
+                    'rule' => '$vo["service_status"] == 2'
+                ]
+            ];
+        }else{
+            $table['actions']['button'][] = [
+                'text'  => '取消', 'action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-gray',
+                'condition' => [
+                    'action' => 'cancel',
+                    'rule' => '$vo["service_status"] != 0'
+                ]
+            ];
+            $table['actions']['button'][] = [
+                'text'  => '退货',
+                'action'=> 'condition',
+                'icon'  => 'setting',
+                'bgClass'=> 'bg-yellow',
+                'condition' => [
+                    'action' => 'delivery',
+                    'rule' => '$vo["service_status"] == 0'
+                ]
+            ];
         }
         $table['actions']['width']  = '*';
         return $table;

@@ -410,7 +410,7 @@ class OrderService extends Model
                 $storeIds = [$user['store_id']];
                 if ($user['admin_type'] == ADMIN_CHANNEL) {
                     //获取零售商的下级经销商
-                    $ids = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
+                    $ids = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
                     $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
                 }
                 $where['user_store_id'] = ['IN', $storeIds];

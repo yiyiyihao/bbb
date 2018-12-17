@@ -80,6 +80,49 @@ class System extends AdminForm
             return $this->fetch();
         }
     }
+    public function sms(){
+        $configKey = 'system_sms';
+        $info = $this->model->where(['config_key' => $configKey, 'is_del' => 0, 'status' => 1])->find();
+        $config = $info && $info['config_value'] ? json_decode($info['config_value'], 1) : [];
+        if (IS_POST) {
+            $data = $this->request->param();
+            if (!$data) {
+                $this->error('参数异常');
+            }
+            if ($data) {
+                foreach ($data as $key => $value) {
+                    if (is_array($value)) {
+                        foreach ($value as $k => $v) {
+                            $config[$key][$k] = trim($v);
+                        }
+                    }else{
+                        $config[$key] = trim($value);
+                    }
+                }
+                $configJson = $config ? json_encode($config): '';
+                $data = [
+                    'config_value' => $configJson,
+                    'update_time' => time(),
+                ];
+                if ($info) {
+                    $result = $this->model->where(['config_id' => $info['config_id']])->update($data);
+                }else{
+                    $data['name'] = '系统短信模版配置';
+                    $data['config_key'] = $configKey;
+                    $data['post_user_id'] = ADMIN_ID;
+                    $data['add_time'] = time();
+                    $result = $this->model->insertGetId($data);
+                }
+                if ($result === FALSE) {
+                    $this->error($this->model->error);
+                }
+            }
+            $this->success('配置成功');
+        }else{
+            $this->assign('config', $config);
+            return $this->fetch();
+        }
+    }
     public function _getData()
     {
         $this->error('NO ACCESS');

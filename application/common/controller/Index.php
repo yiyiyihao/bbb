@@ -108,7 +108,11 @@ class Index extends CommonBase
             if ($user['password'] <> $userModel->pwdEncryption($password)) {
                 $this->error('原登录密码验证错误');
             }
-            $result = $userModel->save(['password' => $userModel->pwdEncryption($newPwd), 'update_time' => time()], ['user_id' => ADMIN_ID]);
+            $data = ['password' => $userModel->pwdEncryption($newPwd)];
+            if ($user['pwd_modify'] > 0) {
+                $data['pwd_modify'] = 0;
+            }
+            $result = $userModel->save($data, ['user_id' => ADMIN_ID]);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{

@@ -171,10 +171,10 @@ class Index extends ApiBase
         ];
         if ($result && isset($result['Code']) && $result['Code'] == 'OK' && $result['BizId']) {
             $data['status'] = 1;
-            $codeModel->where(['sms_id' => $smsId])->update($data);
+            $codeModel->where(['code_id' => $smsId])->update($data);
             $this->_returnMsg(['errCode' => 0, 'msg' => '验证码发送成功,5分钟内有效']);
         }else{
-            $codeModel->where(['sms_id' => $smsId])->update($data);
+            $codeModel->where(['code_id' => $smsId])->update($data);
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$result['Message']]);
         }
     }

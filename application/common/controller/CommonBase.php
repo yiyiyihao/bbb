@@ -34,9 +34,58 @@ class CommonBase extends Base
     	    $this->commonInit($domain);
     	}
     }
+    /**
+     * 重置密码
+     */
+    public function resetpwd($user = [])
+    {
+        $params = $this->request->param();
+        $userId = isset($params['id']) ? intval($params['id']) : 0;
+        if (!$userId){
+            $this->error(lang('ERROR'));
+        }
+        $userModel = new \app\common\model\User();
+        $user = $userModel->find($userId);
+        if (!$user || $user['is_del']){
+            $this->error('账户不存在或已删除');
+        }
+        $phone = $user['phone'];
+        if (!$phone){
+            $this->error('当前账户未绑定手机号');
+        }
+        $password = get_nonce_str(8, 2);//账户初始密码
+        $data = [
+            'pwd_modify' => 1,
+            'password'  => $userModel->pwdEncryption($password)
+        ];
+        $result = $userModel->save($data, ['user_id' => $userId]);
+        if ($result){
+            $informModel = new \app\common\model\LogInform();
+            $extra = ['name' => $user['nickname'], 'password' => $password];
+            $result = $informModel->sendInform(0, 'sms', $user, 'reset_pwd', $extra);
+            if ($result === FALSE) {
+                $this->error($informModel->error);
+            }else {
+                if ($result !== FALSE) {
+                    $this->success('重置密码成功');
+                }else{
+                    $this->error('重置密码错误:'.$result['result']);
+                }
+            }
+        }else{
+            $this->error(lang('system_error'));
+        }
+    }
+    
     //公共登录处理初始化
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
+        //判断用户是否需要强制修改初始密码
+        $info = db('User')->find(ADMIN_ID);
+        if ($info['pwd_modify'] > 0 && (strtolower($this->request->controller()) != 'index')) {
+            $this->redirect(url('index/password'));
+        }
+        
         //是超级管理员,不验证操作权限
         if($this->adminUser['user_id']===1){
             

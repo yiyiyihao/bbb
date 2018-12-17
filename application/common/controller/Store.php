@@ -46,6 +46,7 @@ class Store extends FormBase
             $params = $this->request->param();
             $username = isset($params['username']) ? trim($params['username']) : '';
             $password = isset($params['password']) ? trim($params['password']) : '';
+            $phone = isset($params['phone']) ? trim($params['phone']) : '';
             if (isset($params['id'])) {
                 unset($params['id']);
             }
@@ -56,6 +57,9 @@ class Store extends FormBase
                 if (!$password) {
                     $this->error('登录密码不能为空');
                 }
+            }
+            if (!$phone) {
+                $this->error('管理员手机号不能为空');
             }
             $params['user_id'] = $info ? $info['user_id'] : 0;
             $result = $userModel->checkFormat($params);
@@ -346,10 +350,9 @@ class Store extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
-        $btnArray = [];
-        $btnArray = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
-        $table['actions']['button'][] = $btnArray;
-        $table['actions']['width']  = '220';
+        $table['actions']['button'][] = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
+        $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
+        $table['actions']['width']  = '*';
         return $table;
     }
     /**

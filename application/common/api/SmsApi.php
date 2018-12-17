@@ -9,52 +9,27 @@ class SmsApi
 {
     var $config;
     var $error;
-    var $templateCodes;
-    var $signName;
     public function __construct($config = []){
-        $this->config = [
-            'accessKeyId'     => 'LTAIIjUwy0ZCVFvl',
-            'accessKeySecret' => 'TPOAbpRXzxh07xCtto86mtCONb8owW',
-        ];
-        $this->templateCodes = [
-            'send_code'         => 'SMS_147437513',//发送验证码
-            'winning_notice'    => 'SMS_147417695',//中奖结果通知
-        ];
-        $this->signName = '回响科技';
-    }
-    public function sendSms($params = [], $tpl)
-    {
-        $params = $params ? $params : $this->request->param();
-        $phone = isset($params['phone']) ? trim($params['phone']) : '';
-        $phone = isset($params['phone']) ? trim($params['phone']) : '';
-    }
-    
-    
-    public function getSmsCode()
-    {
-        $code = get_nonce_str(6, 2);
-        $exist = db('log_code')->where(['code' => $code])->find();
-        if ($exist){
-            return $this->getSmsCode();
-        }else{
-            return $code;
-        }
+        $this->config = $config;
     }
     /**
      * 微信接口:获取access_token(接口调用凭证)
      * @return string
      */
-    public function send($phone, $type, $param)
+    public function send($phone, $templateCode, $param)
     {
-        $templateCode = isset($this->templateCodes[$type]) ? trim($this->templateCodes[$type]) : '';
+        if (!isset($this->config['sign_name']) || !$this->config['sign_name']) {
+            $this->error = '签名名称不能为空';
+            return FALSE;
+        }
         if (!$templateCode) {
             $this->error = 'TemplateCode不能为空';
             return FALSE;
         }
         $params = [
             'PhoneNumbers'  => trim($phone),
-            'SignName'      => $this->signName,
-            'TemplateCode'  => $templateCode,
+            'SignName'      => trim($this->config['sign_name']),
+            'TemplateCode'  => trim($templateCode),
             'TemplateParam' => $param,
         ];
         if(!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
@@ -63,7 +38,11 @@ class SmsApi
         $security = FALSE;
         $params = array_merge($params, array("RegionId" => "cn-hangzhou", "Action" => "SendSms", "Version" => "2017-05-25"));
         // 此处可能会抛出异常，注意catch
-        $content = $this->sendRequest($this->config['accessKeyId'], $this->config['accessKeySecret'], "dysmsapi.aliyuncs.com", $params, $security);
+        try {
+            $content = $this->sendRequest($this->config['accesskey_id'], $this->config['accesskey_secret'], "dysmsapi.aliyuncs.com", $params, $security);
+        } catch (\Exception $e) {
+            throw $e;
+        }
         return $content;
     }
     /**

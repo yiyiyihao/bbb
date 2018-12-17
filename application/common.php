@@ -444,27 +444,31 @@ function get_admin_type($type = FALSE){
     }
 }
 
-function get_store_config($storeId = 0, $merge = FALSE)
+function get_store_config($storeId = 0, $merge = FALSE, $systemKey = 0)
 {
     $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+    $configKey = $systemKey ? $systemKey : 'default';
+    $config = isset($config[$configKey]) ?$config[$configKey] : [];
+    
     if ($merge) {
         //获取系统默认配置
-        $default = get_system_config('system_default');
+        $systemKey = 'system_'.$configKey;
+        $default = get_system_config($systemKey);
         $sysConfig = $default['config_value'];
         
         if ($sysConfig) {
             foreach ($sysConfig as $key => $value) {
-                if (!isset($config[$key])) {
-                    $config[$key] = $value;
+                if (!isset($config[$configKey][$key])) {
+                    $config[$configKey][$key] = $value;
                 }
             }
         }
     }
-    if (!isset($config['servicer_return_ratio'])) {
-        $config['servicer_return_ratio'] = 100;
+    if ($configKey == 'default' && !isset($config[$configKey]['servicer_return_ratio'])) {
+        $config[$configKey]['servicer_return_ratio'] = 100;
     }
-    return $config;
+    return isset($config[$configKey]) ? $config[$configKey] : [];
 }
 function get_system_config($key = '')
 {

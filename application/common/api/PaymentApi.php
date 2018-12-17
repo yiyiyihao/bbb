@@ -11,6 +11,7 @@ class PaymentApi
     var $payCode;
     var $storeId;
     var $error;
+    var $apiHost;
     public function __construct($storeId = 0, $payCode = '', $option = []){
         $this->storeId = $storeId;
         $this->payments = [
@@ -90,6 +91,7 @@ class PaymentApi
             $this->config = $payment && $payment['config_json'] ? json_decode($payment['config_json'], TRUE): [];
         }
         $this->payCode = strtolower($payCode);
+        $this->apiHost = 'http://zxjapi.zhidekan.me/';
     }
     /**
      * 初始化支付数据
@@ -111,7 +113,7 @@ class PaymentApi
             case 'wechat_native'://微信扫码支付
                 $tradeType = $tradeType ? $tradeType : 'NATIVE';
             case 'wechat_js'://微信公众号支付
-                $this->config['notify_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/api/pay/wechat/code/'.$this->payCode;//异步通知地址
+                $this->config['notify_url'] = $this->apiHost.'pay/wechat/code/'.$this->payCode;//异步通知地址
                 $tradeType = isset($tradeType) && $tradeType ? $tradeType : 'JSAPI';
                 $result = $this->wechatUnifiedOrder($order, $tradeType);
                 if ($result) {

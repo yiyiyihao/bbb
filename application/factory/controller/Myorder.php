@@ -113,12 +113,10 @@ class Myorder extends commonOrder
             $detail['subject'] = $sku['sku_name'].' '.$sku['sku_spec'];
 //             $detail['product_id'] = $sku['sku_id'];
             $detail['product_id'] = $order['order_sn'];
-            //$detail['openid'] = 'oDDkf5RMJ5hLJ3oOOqGmTXyt3BJk';
             $result = $payment->init($detail);
             if ($result === FALSE) {
                 $this->error($payment->error);
             }
-//             pre($result);
             if ($payCode == 'wechat_native' && isset($result['code_url'])) {
                 //根据url生成二维码
                 $this->assign('code_url', $result['code_url']);

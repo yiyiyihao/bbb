@@ -28,22 +28,18 @@ class System extends adminSystem
             if ($orderCancelMinute < 1) {
                 $this->error('待支付订单取消时间必须大于0');
             }
-            
             $orderReturnDay = $params['order_return_day'] = isset($params['order_return_day']) ? intval($params['order_return_day']) : 0;
             if ($orderReturnDay < 1) {
                 $this->error('支付成功后的退款退货时间必须大于0');
             }
-            
             $channelCommissionRatio  = $params['channel_commission_ratio'] = isset($params['channel_commission_ratio']) ? round(floatval($params['channel_commission_ratio']), 2) : 0;
             if ($channelCommissionRatio < 0) {
                 $this->error('渠道佣金比例必须大于等于0');
             }
-            
             $installerReturnRatio = $params['servicer_return_ratio'] =  isset($params['servicer_return_ratio']) ? round(floatval($params['servicer_return_ratio']), 2) : 0;
             if ($installerReturnRatio < 0) {
                 $this->error('工程师安装服务费百分比必须大于等于0');
             }
-            
             $workorderAutoAssessDay = $params['workorder_auto_assess_day'] = isset($params['workorder_auto_assess_day']) ? intval($params['workorder_auto_assess_day']) : 0;
             if ($workorderAutoAssessDay < 0) {
                 $this->error('工单自动评价时间必须大于等于0');
@@ -81,8 +77,9 @@ class System extends adminSystem
             $config = get_store_config($this->adminStore['store_id']);
             $params = $params ? $params : $this->request->param();
             if ($params) {
+                $configKey = 'default';
                 foreach ($params as $key => $value) {
-                    $config[$key] = trim($value);
+                    $config[$configKey][$key] = trim($value);
                 }
                 $configJson = $config ? json_encode($config): '';
                 $result = $storeModel->save(['config_json' => $configJson], ['store_id' => $this->adminStore['store_id']]);

@@ -407,7 +407,7 @@ class Order extends Model
                 'is_del' => 0,
                 'S.store_id' => $order['user_store_id'],
             ];
-            $store = db('store')->alias('S')->join([['store_dealer SD', 's.store_id = SD.store_id', 'INNER']])->where($where)->find();
+            $store = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where($where)->find();
             if ($store && $store['ostore_id']) {
                 //获取厂商信息
                 $factory = db('store')->where(['is_del' => 0, 'store_id' => $store['factory_id']])->find();

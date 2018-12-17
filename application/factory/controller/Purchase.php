@@ -22,9 +22,13 @@ class Purchase extends FactoryForm
         $info['sku_id'] = is_int($skus) ? $skus : 0;
         $info['thumb_big'] = $this->_thumbToBig($info['thumb']);
         $info['imgs'] = json_decode($info['imgs'],true);
-        foreach ($info['imgs'] as $k=>$v){
-            $imgs[$k]["thumb"] = $v;
-            $imgs[$k]["thumb_big"] = $this->_thumbToBig($v);
+        if ($info['imgs']) {
+            foreach ($info['imgs'] as $k=>$v){
+                $imgs[$k]["thumb"] = $v;
+                $imgs[$k]["thumb_big"] = $this->_thumbToBig($v);
+            }
+        }else{
+            $imgs = [];
         }
         $info['imgs'] = $imgs;
 		$info['specs'] = json_decode($info['specs_json'],true);
