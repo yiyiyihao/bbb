@@ -231,11 +231,11 @@ class PaymentApi
 //         $code = $this->payCode == 'wechat_app' ? $this->payCode : 'wechat_js';
 //         $sslcert = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_cert.pem';
 //         $sslkey = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_key.pem';
-        $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
+        /* $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
         $sslkey = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
         
         curl_setopt($ch, CURLOPT_SSLCERT, $sslcert);
-        curl_setopt($ch, CURLOPT_SSLKEY, $sslkey);
+        curl_setopt($ch, CURLOPT_SSLKEY, $sslkey); */
         
         //设置header
         curl_setopt($ch, CURLOPT_HEADER, FALSE);
