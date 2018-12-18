@@ -28,7 +28,7 @@ class Auth{
         foreach ($groupPurview as $k=>$v){
             $key = $v['module'];
             if($v['controller']) $key .= '_'.$v['controller'];
-            $v['action']    = empty($v['action']) ? '*' : $v['action'];
+            $v['action']    = empty($v['action']) ? 'index' : $v['action'];
             if($v['action'])     $key .= '_'.$v['action'];
             $tempRule[$key] = $v;
         }
