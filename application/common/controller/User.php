@@ -166,11 +166,13 @@ class User extends FormBase
     function _getUgroup()
     {
         $where = [
-            'is_del' => 0, 
-            'status' =>1,
+            'is_del'    => 0, 
+            'status'    => 1,
         ];
         if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
-            $where['group_type'] = 1;
+            $where['group_type'] = 2;
+            $where['store_type'] = $this->adminStore['store_type'];
+            $where['is_system'] = 0;
         }
         $groups = db('user_group')->where($where)->select();
         $this->assign('groups', $groups);

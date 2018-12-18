@@ -23,7 +23,7 @@ class Base extends Controller
         defined('STORE_DEALER') or define('STORE_DEALER',   3); //经销商/零售商商户
         defined('STORE_SERVICE')or define('STORE_SERVICE',  4); //服务商商户
         
-        defined('GROUP_FACTORY')or define('GROUP_FACTORY',  1); //厂商角色
+        defined('GROUP_FACTORY')or define('GROUP_FACTORY',  1); //商户角色
         defined('GROUP_CHANNEL')or define('GROUP_CHANNEL',  2); //渠道商角色
         defined('GROUP_DEALER') or define('GROUP_DEALER',   3); //经销商/零售商角色
         defined('GROUP_SERVICE')or define('GROUP_SERVICE',  4); //服务商角色

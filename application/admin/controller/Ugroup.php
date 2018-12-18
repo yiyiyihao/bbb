@@ -154,28 +154,44 @@ class Ugroup extends AdminForm
         $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
         if($pkId){
             $where['group_id'] = ['neq', $pkId];
+        }else{
+            $data['menu_json'] = '';
         }
         $exist = $this->model->where($where)->find();
         if($exist){
             $this->error('当前分组名称已存在');
         }
+        $groupType = isset($params['group_type']) ? intval($params['group_type']) : 0;
+        if ($groupType == 1) {
+            $data['store_type'] = 0;
+        }else{
+            if (!isset($data['store_type']) || !$data['store_type']) {
+                $this->error('请选择商户角色对应的商户类型');
+            }
+        }
         $data['name'] = $name;
-        $data['menu_json'] = '';
         return $data;
     }
     function del(){
-        $this->error(lang('NO ACCESS'));
         $params = $this->request->param();
         $pkId = intval($params['id']);
-        if ($pkId <= USER) {
+        $info = parent::_assignInfo($pkId);
+        if ($info['is_system']) {
             $this->error('系统分组，不允许删除');
         }
-        $info = parent::_assignInfo($pkId);
         //判断当前分组下是否存在用户
         $device = db('user')->where(['group_id' => $pkId, 'is_del' => 0])->find();
         if ($device) {
             $this->error('分组下存在用户，不允许删除');
         }
         parent::del();
+    }
+    function _assignInfo($pkId = 0) {
+        $info = parent::_assignInfo();
+        $groupTypes = get_group_type();
+        $this->assign('groupTypes', $groupTypes);
+        $storeTypes = get_store_type();
+        $this->assign('storeTypes', $storeTypes);
+        return $info;
     }
 }

@@ -156,15 +156,19 @@ function goodstype($type = FALSE){
 /**
  * 角色分组名称
  */
-function groupname($type = 0){
-    $name = '';
-    switch ($type){
-        case 1:
-            $name = '平台角色';break;
-        case 2:
-            $name = '厂商角色';break;
+function get_group_type($type = FALSE){
+    $types = [
+        1 => '平台角色',
+        2 => '商户角色',
+    ];
+    if ($type === FALSE) {
+        return $types;
     }
-    return $name;
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
 }
 
 /**
