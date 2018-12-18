@@ -517,8 +517,6 @@ class Validate
         }
 
         $i = 0;
-        $result = true;
-
         foreach ($rules as $key => $rule) {
             if ($rule instanceof \Closure) {
                 $result = call_user_func_array($rule, [$value, $data]);
@@ -529,18 +527,17 @@ class Validate
 
                 if (isset($this->append[$field]) && in_array($info, $this->append[$field])) {
 
-                } elseif (array_key_exists($field, $this->remove) && (null === $this->remove[$field] || in_array($info, $this->remove[$field]))) {
+                } elseif (isset($this->remove[$field]) && in_array($info, $this->remove[$field])) {
                     // 规则已经移除
                     $i++;
                     continue;
                 }
 
                 // 验证类型
-                if (isset(self::$type[$type])) {
-                    $result = call_user_func_array(self::$type[$type], [$value, $rule, $data, $field, $title]);
-                } elseif ('must' == $info || 0 === strpos($info, 'require') || (!is_null($value) && '' !== $value)) {
+                $callback = isset(self::$type[$type]) ? self::$type[$type] : [$this, $type];
+                if ('must' == $info || 0 === strpos($info, 'require') || (!is_null($value) && '' !== $value) || method_exists($callback[0], $callback[1])) {
                     // 验证数据
-                    $result = call_user_func_array([$this, $type], [$value, $rule, $data, $field, $title]);
+                    $result = call_user_func_array($callback, [$value, $rule, $data, $field, $title]);
                 } else {
                     $result = true;
                 }

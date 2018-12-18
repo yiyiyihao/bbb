@@ -371,7 +371,7 @@ trait Attribute
                 case 'datetime':
                 case 'date':
                     $format = !empty($param) ? $param : $this->dateFormat;
-                    $value  = $this->formatDateTime($format . '.u');
+                    $value  = $this->formatDateTime(time(), $format);
                     break;
                 case 'timestamp':
                 case 'integer':
@@ -384,9 +384,9 @@ trait Attribute
             'date',
             'timestamp',
         ])) {
-            $value = $this->formatDateTime($this->dateFormat . '.u');
+            $value = $this->formatDateTime(time(), $this->dateFormat);
         } else {
-            $value = time();
+            $value = $this->formatDateTime(time(), $this->dateFormat, true);
         }
 
         return $value;
@@ -433,7 +433,7 @@ trait Attribute
             case 'datetime':
                 $format = !empty($param) ? $param : $this->dateFormat;
                 $value  = is_numeric($value) ? $value : strtotime($value);
-                $value  = $this->formatDateTime($format, $value);
+                $value  = $this->formatDateTime($value, $format);
                 break;
             case 'object':
                 if (is_object($value)) {
@@ -500,9 +500,9 @@ trait Attribute
                 'date',
                 'timestamp',
             ])) {
-                $value = $this->formatDateTime($this->dateFormat, $value);
+                $value = $this->formatDateTime(strtotime($value), $this->dateFormat);
             } else {
-                $value = $this->formatDateTime($this->dateFormat, $value, true);
+                $value = $this->formatDateTime($value, $this->dateFormat);
             }
         } elseif ($notFound) {
             $value = $this->getRelationAttribute($name, $item);
@@ -588,13 +588,13 @@ trait Attribute
             case 'timestamp':
                 if (!is_null($value)) {
                     $format = !empty($param) ? $param : $this->dateFormat;
-                    $value  = $this->formatDateTime($format, $value, true);
+                    $value  = $this->formatDateTime($value, $format);
                 }
                 break;
             case 'datetime':
                 if (!is_null($value)) {
                     $format = !empty($param) ? $param : $this->dateFormat;
-                    $value  = $this->formatDateTime($format, $value);
+                    $value  = $this->formatDateTime(strtotime($value), $format);
                 }
                 break;
             case 'json':

@@ -140,7 +140,7 @@ trait SoftDelete
     public static function destroy($data, $force = false)
     {
         // 包含软删除数据
-        $query = (new static())->db(false);
+        $query = self::withTrashed();
 
         if (is_array($data) && key($data) !== 0) {
             $query->where($data);
