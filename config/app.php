@@ -108,6 +108,7 @@ return [
     'url_domain_root'        => '',
     'admin_domain'           => 'admin',
     'api_domain'             => 'api',
+    'websocket_ip'           => '127.0.0.1',
     //系统保留二级域名前缀
     'system_keeps_domain'    => ['admin', 'api'],
     // 是否自动转换URL中的控制器和操作名
