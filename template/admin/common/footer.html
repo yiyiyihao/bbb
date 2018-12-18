@@ -1,13 +1,13 @@
 <script>
 $(function(){
 	//建立WebSocket通讯
-	var socket = new WebSocket("ws://ws.qudao.com:8383");
+	var socket = new WebSocket("ws://127.0.0.1:8282");
 	//连接成功时触发
 	socket.onopen = function(){
 		socket.send('XXX连接成功'); 
 		//var login_data = '{$loginData|default=''}';
 		//socket.send(login_data);
-		console.log("连接成功");
+		console.log("websocket握手成功");
 		//console.log("websocket握手成功，发送登录数据:"+login_data);
 	};
 	

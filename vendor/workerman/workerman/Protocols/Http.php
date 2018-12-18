@@ -455,11 +455,11 @@ class Http
         }
         HttpCache::$instance->sessionStarted = true;
         // Generate a SID.
-        if (!isset($_COOKIE[HttpCache::$sessionName]) || !is_file(HttpCache::$sessionPath . '/worker_sess_' . $_COOKIE[HttpCache::$sessionName])) {
+        if (!isset($_COOKIE[HttpCache::$sessionName]) || !is_file(HttpCache::$sessionPath . '/sess_' . $_COOKIE[HttpCache::$sessionName])) {
             // Create a unique session_id and the associated file name.
             while (true) {
                 $session_id = static::sessionCreateId();
-                if (!is_file($file_name = HttpCache::$sessionPath . '/worker_sess_' . $session_id)) break;
+                if (!is_file($file_name = HttpCache::$sessionPath . '/sess_' . $session_id)) break;
             }
             HttpCache::$instance->sessionFile = $file_name;
             return self::setcookie(
@@ -473,24 +473,16 @@ class Http
             );
         }
         if (!HttpCache::$instance->sessionFile) {
-            HttpCache::$instance->sessionFile = HttpCache::$sessionPath . '/worker_sess_' . $_COOKIE[HttpCache::$sessionName];
+            HttpCache::$instance->sessionFile = HttpCache::$sessionPath . '/sess_' . $_COOKIE[HttpCache::$sessionName];
         }
         // Read session from session file.
         if (HttpCache::$instance->sessionFile) {
             $raw = file_get_contents(HttpCache::$instance->sessionFile);
             if ($raw) {
-                $_SESSION = self::common_unserialize($raw);
+                $_SESSION = unserialize($raw);
             }
         }
         return true;
-    }   
-    
-    public static function common_unserialize($str) {
-        if(empty($str)){
-            return '';
-        }
-        $str = preg_replace_callback('#s:(\d+):"(.*?)";#s',function($match){return 's:'.strlen($match[2]).':"'.$match[2].'";';},$str);
-        return unserialize($str);
     }
 
     /**
