@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-18 12:17:38
+Date: 2018-12-18 12:20:19
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -470,7 +470,7 @@ CREATE TABLE `wja_form_table` (
   `add_time` int(13) unsigned DEFAULT NULL,
   `update_time` int(13) unsigned DEFAULT NULL,
   PRIMARY KEY (`table_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=104 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=105 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of wja_form_table
@@ -489,7 +489,7 @@ INSERT INTO `wja_form_table` VALUES ('11', '2', 'mobile', '联系电话', '160',
 INSERT INTO `wja_form_table` VALUES ('12', '2', 'username', '管理员账号', '120', '1', null, '', '50', '1', '0', '0', '0', '1544070079', '1544070079');
 INSERT INTO `wja_form_table` VALUES ('13', '3', '', '编号', '60', '3', null, '', '10', '1', '0', '0', '0', '1544096236', '1544096236');
 INSERT INTO `wja_form_table` VALUES ('14', '3', 'group_type', '角色分组', '150', '2', null, 'get_group_type', '20', '1', '0', '0', '0', '1544096342', '1544096342');
-INSERT INTO `wja_form_table` VALUES ('15', '3', 'name', '角色名称', '*', '1', null, '', '30', '1', '0', '0', '0', '1544096365', '1544096365');
+INSERT INTO `wja_form_table` VALUES ('15', '3', 'name', '角色名称', '*', '1', null, '', '40', '1', '0', '0', '0', '1544096365', '1545106808');
 INSERT INTO `wja_form_table` VALUES ('16', '4', '', '编号', '60', '3', null, '', '10', '1', '0', '0', '0', '1544098612', '1544098612');
 INSERT INTO `wja_form_table` VALUES ('17', '4', 'sname', '所属商户', '100', '1', null, '', '20', '1', '0', '0', '0', '1544098638', '1544098638');
 INSERT INTO `wja_form_table` VALUES ('18', '4', 'gname', '角色名称', '*', '1', null, '', '30', '1', '0', '0', '0', '1544098666', '1544098666');
@@ -578,6 +578,7 @@ INSERT INTO `wja_form_table` VALUES ('100', '15', 'description', '公告描述',
 INSERT INTO `wja_form_table` VALUES ('101', '11', 'score', '综合得分', '80', '1', null, '', '80', '1', '0', '0', '0', '1544672582', '1544672871');
 INSERT INTO `wja_form_table` VALUES ('102', '11', 'assess_detail', '服务评分', '*', '1', null, '', '70', '1', '0', '0', '0', '1544672668', '1544672865');
 INSERT INTO `wja_form_table` VALUES ('103', '12', 'refund_amount', '订单退款金额', '120', '1', null, '', '50', '1', '0', '0', '0', '1544754025', '1544754036');
+INSERT INTO `wja_form_table` VALUES ('104', '3', 'store_type', '商户类型', '*', '2', null, 'get_store_type', '30', '1', '0', '0', '0', '1545106804', '1545106804');
 
 -- ----------------------------
 -- Table structure for wja_goods
