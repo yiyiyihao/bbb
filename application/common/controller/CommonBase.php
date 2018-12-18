@@ -40,6 +40,13 @@ class CommonBase extends Base
     //公共登录处理初始化
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
+        $loginData = array(
+            'type'          => 'login',
+            'id'            => $this->adminUser['user_id'],
+            'client_name'   => $this->adminUser['username'],
+            'room_id'       => 1,
+        );
+        $this->assign('loginData',json_encode($loginData));
         //判断用户是否需要强制修改初始密码
         $controller = strtolower($this->request->controller());
         if (isset($this->adminUser['pwd_modify']) && $this->adminUser['pwd_modify']> 0 && !in_array($controller, ['index', 'login'])) {

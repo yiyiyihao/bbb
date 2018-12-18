@@ -1,13 +1,10 @@
 <?php
 namespace app\common\service;
-use GatewayClient\Gateway;
+use think\Gateway;
 
 //消息推送底层控制器
-class PushBase extends Gateway
+class PushBase
 {
-    // 设置GatewayWorker服务的Register服务ip和端口，请根据实际情况改成实际值(ip不能是0.0.0.0)
-    static $registerAddress = '127.0.0.1:1236';
-    
     /**
      * 绑定用户
      */
@@ -22,6 +19,10 @@ class PushBase extends Gateway
         Gateway::joinGroup($client_id, $group_id);
     }
     
+    public function sendToUid($uid, $message){
+        // 向任意uid的网站页面发送数据
+        Gateway::sendToUid($uid, $message);
+    }
     /**
      * 发送消息
      */

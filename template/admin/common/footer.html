@@ -4,23 +4,23 @@ $(function(){
 	var socket = new WebSocket("ws://127.0.0.1:8282");
 	//连接成功时触发
 	socket.onopen = function(){
-		socket.send('XXX连接成功'); 
-		//var login_data = '{$loginData|default=''}';
-		//socket.send(login_data);
-		console.log("websocket握手成功");
-		//console.log("websocket握手成功，发送登录数据:"+login_data);
+		//socket.send('XXX连接成功'); 
+		var login_data = '{$loginData|raw|default=""}';
+		socket.send(login_data);
+		//console.log("websocket握手成功");
+		console.log("websocket握手成功，发送登录数据:"+login_data);
 	};
 	
 	//监听收到的消息
 	socket.onmessage = function(res){
-		console.log(res);
+		//console.log(res.data);
 		//var data = res.data;
 		if(typeof res.data=='object'){
 			var data = res.data;
 		}else{
 			var data = eval("("+res.data+")");
 		}
-		//console.log(data);
+		console.log(data);
 		//res为接受到的值，如 {"emit": "messageName", "data": {}}
 		//emit即为发出的事件名，用于区分不同的消息
 		//res = JSON.parse(res);
@@ -50,12 +50,15 @@ $(function(){
 			}*/
 		}
 		if(data.type === 'say'){			
-			console.log(data);
+			console.log(data.message);
 		}
 		//console.log(data.type);
 		if(data.type === 'login'){
 			//获取当前登陆的客户端id
 			var fromId = data.client_id;
+			Do.ready('dialog', function () {				
+				layer.msg("登录成功");
+			})
 			//socket.send('登陆成功'); 
 			//layim.getMessage(res.data); //res.data即你发送消息传递的数据（阅读：监听发送的消息）
 		}
