@@ -12,6 +12,56 @@ class User extends FormBase
         parent::__construct();
         $this->adminType = $this->adminUser['admin_type'];
     }
+    /**
+     * 重置密码
+     */
+    public function resetpwd($user = [])
+    {
+        $params = $this->request->param();
+        $userId = isset($params['id']) ? intval($params['id']) : 0;
+        if (!$userId){
+            $this->error(lang('ERROR'));
+        }
+        $userModel = new \app\common\model\User();
+        $user = $userModel->find($userId);
+        if (!$user || $user['is_del']){
+            $this->error('账户不存在或已删除');
+        }
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            if (!$this->adminUser['store_id']) {
+                $this->error(lang('NO ACCESS'));
+            }
+            if ($this->adminUser['admin_type'] != $user['admin_type']) {
+                $this->error(lang('NO ACCESS'));
+            }
+        }
+        $phone = $user['phone'];
+        if (!$phone){
+            $this->error('当前账户未绑定手机号');
+        }
+        $password = get_nonce_str(8, 2);//账户初始密码
+        $data = [
+            'pwd_modify' => 1,
+            'password'  => $userModel->pwdEncryption($password)
+        ];
+        $result = $userModel->save($data, ['user_id' => $userId]);
+        if ($result){
+            $informModel = new \app\common\model\LogInform();
+            $extra = ['name' => $user['nickname'], 'password' => $password];
+            $result = $informModel->sendInform($this->adminUser['store_id'], 'sms', $user, 'reset_pwd', $extra);
+            if ($result === FALSE) {
+                $this->error($informModel->error);
+            }else {
+                if ($result !== FALSE) {
+                    $this->success('重置密码成功');
+                }else{
+                    $this->error('重置密码错误:'.$result['result']);
+                }
+            }
+        }else{
+            $this->error(lang('system_error'));
+        }
+    }
     function del()
     {
         $info = $this->_assignInfo();
@@ -135,5 +185,14 @@ class User extends FormBase
             ['type' => 'input', 'name' =>  'phone', 'value' => '手机号', 'width' => '30'],
         ];
         return $search;
+    }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
+        $table['actions']['width']  = '*';
+        return $table;
     }
 }

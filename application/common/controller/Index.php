@@ -2,6 +2,7 @@
 namespace app\common\controller;
 use app\common\controller\CommonBase;
 use think\facade\Env;
+use think\facade\Request;
 /**
  * @author chany
  * @date 2018-11-08
@@ -116,6 +117,12 @@ class Index extends CommonBase
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{
+                if ($user['pwd_modify'] > 0) {
+                    //更新session
+                    $domain = Request::panDomain();
+                    $this->adminUser['pwd_modify'] = 0;
+                    $userModel->setSession($domain, $this->adminUser);
+                }
                 $this->success('修改密码成功');
             }
         }else{

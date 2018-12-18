@@ -83,9 +83,14 @@ class User extends Model
 		    'phone'           => $user['phone'],
 		    'last_login_time' => $user['last_login_time'],
 		    'groupPurview'    => $groupPurview,
+		    'pwd_modify'      => $user['pwd_modify'],
 		];
-		session($domain.'_user', $adminUser);
+		$this->setSession($domain, $adminUser);
         return TRUE;        
+    }
+    public function setSession($domain, $user)
+    {
+        session($domain.'_user', $user);
     }
     /**
      * 密码加密

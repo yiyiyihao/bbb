@@ -206,23 +206,12 @@ class Service extends FactoryForm
         ];
         return $search;
     }
-//     function _afterList($list)
-//     {
-//         pre($list);
-//     }
     /**
      * 列表项配置
      */
     function _tableData(){
         $table = parent::_tableData();
         $table['actions']['button'][] = ['text'  => '详情查看', 'action'=> 'detail', 'icon'  => 'setting','bgClass'=> 'bg-main'];
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $table['actions']['button'][] = ['text'  => '审核', 'action'=> 'check', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
-            $table['actions']['button'][] = ['text'  => '退款', 'action'=> 'refund', 'icon'  => '','bgClass'=> 'bg-red'];
-        }else{
-            $table['actions']['button'][] = ['text'  => '取消', 'action'=> 'cancel', 'icon'  => 'setting','bgClass'=> 'bg-gray'];
-            $table['actions']['button'][] = ['text'  => '退货', 'action'=> 'delivery', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
-        }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $table['actions']['button'][] = [
                 'text'  => '审核', 'action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-yellow',

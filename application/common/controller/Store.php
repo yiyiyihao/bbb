@@ -87,6 +87,12 @@ class Store extends FormBase
             return $this->fetch('store/manager');
         }
     }
+    public function resetpwd()
+    {
+        $params = $this->request->param();
+        $userController = new \app\common\controller\User();
+        return $userController->resetpwd();
+    }
     /**
      * 删除
      */
