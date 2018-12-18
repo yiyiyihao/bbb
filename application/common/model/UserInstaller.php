@@ -19,6 +19,32 @@ class UserInstaller extends Model
         parent::initialize();
     }
     
+    public function getInstallerStatus($storeId = 0, $factoryId = 0)
+    {
+        $flag = TRUE; //默认需要厂商审核
+        //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
+        if ($storeId > 0) {
+            $config = get_store_config($storeId, TRUE);
+            //默认需要服务商审核
+            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                $checkStatus = -3;
+                $flag = FALSE;
+            }
+        }
+        if ($flag && $factoryId) {
+            //不需要服务商审核,判断是否需要厂商审核
+            $config = get_store_config($factoryId, TRUE);
+            //默认需要厂商审核
+            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                $checkStatus = -1;
+            }else {
+                //服务商和厂商都不审核,直接通过
+                $checkStatus = 1;
+            }
+        }
+        return $checkStatus;
+    }
+    
     /**
      * 更新指定工程师综合得分
      */

@@ -7,21 +7,9 @@ class ApiBase extends Base
     protected $requestTime;
     protected $visitMicroTime;
     protected $postParams;
-    protected $imgFile;
-    protected $captureTime;
-    protected $deviceCode;
-    protected $faceApi;
-    protected $apiType;
     
     public function __construct(){
         parent::__construct();
-        /* if ($flag) {
-            $action = $this->request->action();
-            if (!method_exists($this, $action)) {
-                die('NO ACCESS');
-            }
-            $this->_checkPostParams();
-        } */
     }
     protected function _checkPostParams()
     {

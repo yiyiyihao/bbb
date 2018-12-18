@@ -1,0 +1,87 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">角色信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>角色名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <div class="input-note">角色名称请不要填写特殊字符</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>角色类型</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            {volist name="groupTypes" id="groupType"}
+                                <label class='button{if (!$info && $i == 1 ) ||(isset($info['group_type']) && $info['group_type'] == $key)} active{/if}'>
+                                	<input name="group_type" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['group_type']) && $info['group_type'] == $key)}checked="checked"{/if} type="radio">{$groupType}
+                                </label>
+                            {/volist}
+                            </div>
+                            <div class="input-note">请选择角色类型</div>
+                        </div>
+                    </div>
+                    <div class="form-group factory {if (!$info || $info['group_type'] == 1)}hide{/if}">
+                        <div class="label">
+                            <label>商户类型</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            {volist name="storeTypes" id="storeType"}
+                                <label class='button{if (!$info && $i == 1 ) ||(isset($info['store_type']) && $info['store_type'] == $key)} active{/if}'>
+                                	<input name="store_type" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['store_type']) && $info['store_type'] == $key)}checked="checked"{/if} type="radio">{$storeType}
+                                </label>
+                            {/volist}
+                            </div>
+                            <div class="input-note">请选择商户类型</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
+                            <div class="input-note">数字小的显示在前面</div>
+                        </div>
+                    </div>   
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+	$('input[name="group_type"]').change(function(){
+		var group_type = $(this).val();
+		if(group_type == 2){
+			$(".factory").show();
+		}else{
+			$(".factory").hide();
+		}
+	});
+	Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({});
+    }); 
+</script>

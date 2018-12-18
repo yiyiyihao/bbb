@@ -19,8 +19,11 @@ class CommonBase extends Base
     	parent::__construct();
     	$domain = Request::panDomain();
     	$adminDomain = config('app.admin_domain');
+    	$apiDomain = config('app.api_domain');
     	if($domain == $adminDomain){
     	    $this->initAdmin($domain);
+    	}elseif ($domain == $apiDomain){
+    	    return ;
     	}else{
     	    $this->initFactory($domain);
     	}

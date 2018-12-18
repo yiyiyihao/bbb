@@ -147,6 +147,54 @@ class WorkOrder extends Model
         }
     }
     /**
+     * 工程师拒绝工单操作
+     * @param array $worder
+     * @param array $user
+     * @param array $installer
+     * @return boolean
+     */
+    public function worderRefuse($worder, $user, $installer, $remark = '')
+    {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
+            $this->error = '无操作权限';
+            return FALSE;
+        }
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($worder['work_order_status']) {
+            case -1:
+                $this->error = '工单已取消,无操作权限';
+                return FALSE;
+            case 0:
+                $this->error = '工单待分派工程师,无操作权限';
+                return FALSE;
+            case 2:
+                $this->error = '工单已接收,无操作权限';
+                return FALSE;
+            case 3:
+                $this->error = '工程师服务中,无操作权限';
+                return FALSE;
+            case 4:
+                $this->error = '服务已完成,无操作权限';
+                return FALSE;
+            default:
+                ;
+                break;
+        }
+        $result = $this->save(['work_order_status' => 0, 'installer_id' => 0], ['worder_id' => $worder['worder_id']]);
+        if ($result !== FALSE) {
+            //操作日志记录
+            $this->worderLog($worder, $user, '工程师拒绝接单', $remark);
+            return TRUE;
+        }else{
+            $this->error = '系统异常';
+            return FALSE;
+        }
+    }
+    /**
      * 工程师接单操作
      * @param array $worder
      * @param array $user
@@ -376,7 +424,7 @@ class WorkOrder extends Model
      * @param int $userId
      * @return boolean
      */
-    public function worderCancel($worder = [], $user = [])
+    public function worderCancel($worder = [], $user = [], $remark = '')
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -400,7 +448,7 @@ class WorkOrder extends Model
         $result = $this->save(['work_order_status' => -1, 'cancel_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, '取消工单', '');
+            $this->worderLog($worder, $user, '取消工单', $remark);
         }else{
             $this->error = '系统异常';
             return FALSE;

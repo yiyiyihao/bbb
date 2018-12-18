@@ -13,6 +13,105 @@ class User extends Model
     {
         parent::initialize();
     }
+    public function authorized($factoryId, $params = [])
+    {
+        $thirdType      = isset($params['third_type']) ? trim($params['third_type']) : '';
+        $thirdOpenid    = isset($params['third_openid']) ? trim($params['third_openid']) : '';
+        $nickname       = isset($params['nickname']) ? trim($params['nickname']) : '';
+        $avatar         = isset($params['avatar']) ? trim($params['avatar']) : '';
+        $gender         = isset($params['gender']) ? trim($params['gender']) : 0;
+        $unionid        = isset($params['unionid']) ? trim($params['unionid']) : '';
+        if (!$factoryId){
+            $this->error = '厂商ID不能为空';
+            return FALSE;
+        }
+        if (!$thirdType){
+            $this->error = '第三方账户类型不能为空';
+            return FALSE;
+        }
+        if (!$thirdOpenid){
+            $this->error = '第三方账户唯一标识不能为空';
+            return FALSE;
+        }
+        $thirdTypes = [
+            'wechat_applet' => '微信小程序',
+        ];
+        if (!isset($thirdTypes[$thirdType])) {
+            $this->error = '第三方账户类型错误';
+            return FALSE;
+        }
+        //判断userData表第三方账号是否存在
+        $where = [
+            'factory_id'    => $factoryId,
+            'third_openid'  => $thirdOpenid,
+            'third_type'    => $thirdType,
+            'is_del'        => 0,
+        ];
+        $userDataModel = new \app\common\model\UserData();
+        $exist = $userDataModel->where($where)->find();
+        $userId = 0;
+        if (!$exist){
+            if ($unionid) {
+                //判断unionid对应第三方账户是否绑定账号
+                $info = $userDataModel->where(['factory_id' => $factoryId, 'unionid' => $unionid, 'is_del' => 0, 'third_type' => ['<>', $thirdType]])->find();
+                if ($info) {
+                    $userId = isset($info['user_id']) && $info['user_id'] ? intval($info['user_id']) : 0;
+                }
+            }
+            $openid = $this->getUserOpenid();
+            $params['factory_id']   = $factoryId;
+            $params['user_id']      = $userId;
+            $params['openid']       = $openid;
+            $udataId = $userDataModel->save($params);
+        }else{
+            $openid = $exist['openid'];
+            $userId = $exist['user_id'];
+            //修改第三方更新的数据
+            $data = [];
+            foreach ($exist as $key => $value) {
+                if (isset($params[$key]) && trim($value) != trim($params[$key])) {
+                    $data[$key] = trim($params[$key]);
+                }
+            }
+            if ($data) {
+                $udataId = $userDataModel->save($data, ['udata_id' => $exist['udata_id']]);
+            }
+        }
+        return ['openid' => $openid, 'user_id' => $userId];
+    }
+    public function bindPhone($openid, $phone)
+    {
+        if (!$openid || !$phone) {
+            $this->error = lang('PARAM_ERROR');
+            return FALSE;
+        }
+        $udataModel = new \app\common\model\UserData();
+        $udataInfo = $udataModel->where(['openid' => $openid])->find();
+        if (!$udataInfo){
+            $this->error = '账号不存在或已删除';
+            return FALSE;
+        }
+        $factoryId = $udataInfo['factory_id'];
+        //判断手机号对应账户是否存在
+        $exist = $this->where(['factory_id' => $factoryId, 'phone' => $phone, 'is_del' => 0])->find();
+        if (!$exist) {
+            $data = [
+                'factory_id' => $factoryId,
+                'username' => $phone,
+                'nickname' => $udataInfo['nickname'],
+                'realname' => $udataInfo['nickname'],
+                'phone' => $phone,
+                'avatar' => $udataInfo['avatar'],
+                'gender' => $udataInfo['gender'],
+            ];
+            $userId = $this->save($data);
+        }else{
+            $userId = $exist['user_id'];
+        }
+        $result = $udataModel->save(['user_id' => $userId], ['udata_id' => $udataInfo['udata_id']]);
+        return $userId;
+    }
+    
     /**
      * 登录用户
      * @param string $user
@@ -164,7 +263,7 @@ class User extends Model
      * @param array $extra
      * @return boolean
      */
-    public function checkFormat($extra = [])
+    public function checkFormat($factoryId = 0, $extra = [])
     {
         $username = isset($extra['username']) ? trim($extra['username']) : '';
         $password = isset($extra['password']) ? trim($extra['password']) : '';
@@ -175,7 +274,7 @@ class User extends Model
                 $this->error = '手机号已存在';
                 return FALSE;
             }
-            $result = $this->checkPhone($phone, FALSE);
+            $result = $this->checkPhone($factoryId, $phone, FALSE);
             if ($result === FALSE) {
                 return FALSE;
             }
@@ -203,11 +302,11 @@ class User extends Model
             return FALSE;
         }
         if ($phone) {
-            return $this->checkPhone($phone, TRUE, $extra);
+            return $this->checkPhone($factoryId, $phone, TRUE, $extra);
         }
         return TRUE;
     }
-    public function checkPhone($phone = '', $unique = FALSE, $extra = [])
+    public function checkPhone($factoryId = 0, $phone = '', $unique = FALSE, $extra = [])
     {
         $pattern = '/^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/';
         if ($phone) {
@@ -221,7 +320,7 @@ class User extends Model
                 if (!$userId) {
                     $userId = $extra && isset($extra['id']) ? $extra['id'] : 0;
                 }
-                $where = ['phone' => $phone, 'user_id' => ['<>', $userId], 'is_del' => 0];
+                $where = ['phone' => $phone, 'factory_id' => $factoryId, 'user_id' => ['<>', $userId], 'is_del' => 0];
                 if ($userId) {
                     $where['user_id'] = ['<>', $userId];
                 }

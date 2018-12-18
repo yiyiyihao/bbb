@@ -79,9 +79,10 @@ class System extends adminSystem
             if ($params) {
                 $configKey = 'default';
                 foreach ($params as $key => $value) {
-                    $config[$configKey][$key] = trim($value);
+                    $config[$key] = trim($value);
                 }
-                $configJson = $config ? json_encode($config): '';
+                $data[$configKey] = $config;
+                $configJson = $data ? json_encode($data): '';
                 $result = $storeModel->save(['config_json' => $configJson], ['store_id' => $this->adminStore['store_id']]);
                 if ($result === FALSE) {
                     $this->error($storeModel->error);

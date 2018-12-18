@@ -11,6 +11,7 @@ class Test extends Base
         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
         $params['timestamp'] = time();
         $params['signkey'] = 'ds7p7auqyjj8';
+        $params['mchkey'] = '1458745225';
         $params['method'] = isset($request['method']) ? trim($request['method']) : '';
         if ($request) {
             $params = array_merge($params, $request);
@@ -20,7 +21,18 @@ class Test extends Base
         echo '<pre>';
         print_r($params);
         $params['sign'] = $this->getSign($params, $params['signkey']);
-        $params = json_encode($params);
+        if ($params['method'] == 'uploadImage') {
+            $filename = $_SERVER['DOCUMENT_ROOT'].'\default.png';
+            if (file_exists($filename)) {
+                echo 'exist';
+            }else{
+                echo 'no';
+            }
+            $params['file'] = new \CURLFile($filename);
+        }else{
+            $params = json_encode($params);
+            echo "<hr>";
+        }
         pre($params, 1);
         echo "<hr>";
         $result = curl_post_https($url, $params);

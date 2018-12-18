@@ -107,6 +107,7 @@ return [
     // 域名根，如thinkphp.cn
     'url_domain_root'        => '',
     'admin_domain'           => 'admin',
+    'api_domain'             => 'api',
     //系统保留二级域名前缀
     'system_keeps_domain'    => ['admin', 'api'],
     // 是否自动转换URL中的控制器和操作名

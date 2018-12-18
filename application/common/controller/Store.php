@@ -356,7 +356,8 @@ class Store extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
-        $table['actions']['button'][] = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
+//         $table['actions']['button'][] = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
+        $table['actions']['button'][] = ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-green'];
         $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
         $table['actions']['width']  = '*';
         return $table;

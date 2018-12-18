@@ -188,7 +188,7 @@ function yesorno($status = 0){
  * 是/否状态文字格式化
  */
 function yorn($status = 0){
-    return $status == 1 ? '<span class="tag bg-green">是</span>' : '<span class="tag bg-gray">否</span>';
+    return $status > 1 ? '<span class="tag bg-green">是</span>' : '<span class="tag bg-gray">否</span>';
 }
 
 /**
@@ -453,7 +453,6 @@ function get_store_config($storeId = 0, $merge = FALSE, $systemKey = 0)
     $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
     $configKey = $systemKey ? $systemKey : 'default';
-    $config = isset($config[$configKey]) ?$config[$configKey] : [];
     
     if ($merge) {
         //获取系统默认配置
@@ -718,6 +717,7 @@ function curl_post_https($url, $post_data){
     }
     //关闭URL请求
     curl_close($curl);
+    echo $data;
     $json = json_decode($data,true);
     if (empty($json)){
         return $data = $data ? $data : $url.':'.$error;

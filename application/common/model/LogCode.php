@@ -8,9 +8,7 @@ class LogCode extends Model
 	protected $pk = 'code_id';
 	public $error;
 	private $codeTypes = [
-	    'login'    => '登录',
-	    'register' => '注册',
-	    'resetPwd' => '重置密码',
+	    'bind_phone' => '绑定手机号',
 	];
 	//自定义初始化
     protected function initialize()
@@ -26,7 +24,7 @@ class LogCode extends Model
      * @param string $codeType
      * @return boolean|array
      */
-    public function sendSmsCode($storeId, $phone, $codeType = 'login')
+    public function sendSmsCode($storeId, $phone, $codeType = 'bind_phone')
     {
         // 获取短信验证配置
         $config = get_store_config($storeId, TRUE, 'sms');
@@ -59,7 +57,7 @@ class LogCode extends Model
         $data = [
             'store_id'  => $storeId,
             'phone'     => $phone,
-            'code_code_type' => $codeType,
+            'code_type' => $codeType,
             'code'      => $code,
             'status'    => 0,//默认发送失败
             'result'    => '',
@@ -95,7 +93,7 @@ class LogCode extends Model
     {
         $phone      = isset($params['phone']) ? trim($params['phone']) : '';
         $code       = isset($params['code']) ? trim($params['code']) : '';
-        $codeType   = isset($params['code_type']) ? trim($params['code_type']) : 'login';
+        $codeType   = isset($params['type']) ? trim($params['type']) : 'bind_phone';
         if (!$phone) {
             $this->error = '手机号不能为空';
             return FALSE;
@@ -122,13 +120,15 @@ class LogCode extends Model
             $this->error = '验证码错误';
             return FALSE;
         }
-        $this->where(['phone' => $phone, 'code_type' => $code_type])->delete();
-        if ($exist['add_time'] + 5*60 < time()) {
+        $addTime = is_int($exist['add_time']) ?$exist['add_time'] : strtotime($exist['add_time']);
+        
+        $this->where(['phone' => $phone, 'code_type' => $codeType])->delete();
+        if ($addTime + 5*60 < time()) {
             $this->error = '验证码已失效';
             return FALSE;
         }
         //删除当前手机号已失效的验证码
-        $this->where(['phone' => $phone, 'add_time' => ['<', time()-5*60]])->delete();
+        $this->where(['phone' => $phone, 'add_time' => ['<=', time()-5*60]])->delete();
         return TRUE;
     }
     /**

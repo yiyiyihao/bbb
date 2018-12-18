@@ -9,7 +9,7 @@ class Installer extends FormBase
     {
         $this->infotempfile = 'checkInfo';
         $this->modelName = 'user_installer';
-        $this->model = model($this->modelName);
+        $this->model = new \app\common\model\UserInstaller();
         parent::__construct();
         
         if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY])) {
@@ -100,15 +100,15 @@ class Installer extends FormBase
             }
             //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
             if ($checkStatus > 0) {
-                $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? 1: $this->getConfigStatus(0, $this->adminStore['factory_id']);
+                $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? 1: $this->model->getInstallerStatus(0, $this->adminStore['factory_id']);
             }else{
                 $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? -2: -4;
             }
             $data = [
-                'update_time' => time(),
                 'check_status' => $status,
+                'admin_remark' => $remark,
             ];
-            $result = $this->model->where(['installer_id' => $info['installer_id']])->update($data);
+            $result = $this->model->save($data, ['installer_id' => $info['installer_id']]);
             if ($result !== FALSE) {
                 $this->success('操作成功', url('index'));
             }else{
@@ -214,31 +214,6 @@ class Installer extends FormBase
         }
         $params['check_status'] = $this->getConfigStatus($params['store_id'], $params['factory_id']);
         return $params;
-    }
-    private function getConfigStatus($storeId = 0, $factoryId = 0)
-    {
-        $flag = TRUE; //默认需要厂商审核
-        //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
-        if ($storeId > 0) {
-            $config = get_store_config($storeId);
-            //默认需要服务商审核
-            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
-                $checkStatus = -3;
-                $flag = FALSE;
-            }
-        }
-        if ($flag && $factoryId) {
-            //不需要服务商审核,判断是否需要厂商审核
-            $config = get_store_config($factoryId);
-            //默认需要厂商审核
-            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
-                $checkStatus = -1;
-            }else {
-                //服务商和厂商都不审核,直接通过
-                $checkStatus = 1;
-            }
-        }
-        return $checkStatus;
     }
     function _getAlias()
     {

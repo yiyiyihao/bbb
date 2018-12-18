@@ -24,6 +24,14 @@ class Store extends Model
             self::_after($data, $data['store_id']);
         });
     }
+    public function save($data = [], $where = [], $sequence = null){
+        if (!$where) {
+            ;
+        }
+        //获取商户编号
+        $data['store_no'] = self::_getMchKey();
+        return parent::save($data, $where);
+    }
     private static function _after($store, $storeId = 0)
     {
         if (!$store) {
@@ -32,16 +40,16 @@ class Store extends Model
         $store = $store->toArray();
         $storeType = isset($store['store_type']) ? $store['store_type'] : '';
         switch ($storeType) {
-            case 1:
+            case STORE_FACTORY:
                 $model = 'factory';
                 break;
-            case 2:
+            case STORE_CHANNEL:
                 $model = 'channel';
                 break;
-            case 3:
+            case STORE_DEALER:
                 $model = 'dealer';
                 break;
-            case 4:
+            case STORE_SERVICE:
                 $model = 'servicer';
                 break;
             default:
@@ -53,5 +61,16 @@ class Store extends Model
             $where = ['store_id' => $storeId];
         }
         return $result = model($model)->save($store, $where);
+    }
+    private static function _getMchKey()
+    {
+        $key = get_nonce_str(10, 2);
+        //判断商户密钥是否存在
+        $info = db('store')->where(['store_no' => $key])->find();
+        if ($info){
+            return $this->_getMchKey();
+        }else{
+            return $key;
+        }
     }
 }
