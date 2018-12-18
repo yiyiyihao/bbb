@@ -1233,11 +1233,9 @@ class Template
 
             $template = $path . $template . '.' . ltrim($this->config['view_suffix'], '.');
         }
-
         if (is_file($template)) {
             // 记录模板文件的更新时间
             $this->includeFile[$template] = filemtime($template);
-
             return $template;
         }
         if (isset($module) && strtolower($module) == 'factory') {
