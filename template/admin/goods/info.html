@@ -1,6 +1,6 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
     <div class="tab admin-tab">
-        <div class="panel admin-box active">
+        <div class="panel fixed-pannel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
@@ -95,7 +95,7 @@
 		                    <input name="thumb" type="hidden" class="input title_img" value="{$info['thumb'] ?? ''}" />
 		                    <img src="{$info.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
 		                  </div>
-	                </div> 
+	                </div>
 	                <div class="form-group">
                         <div class="label">
                             <label>产品编码</label>
@@ -219,7 +219,7 @@
 		                </div>
 		                <div class="field">
 		                  <textarea class="input js-editor" id="content" name="content" rows="30">
-		                  	{$info.content? stripslashes($info.content) : '' }
+		                  	{$info.content|raw|default=''}
 		                  </textarea>
 		                  <div class="input-note">请输入产品详情</div>
 		                </div>

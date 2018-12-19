@@ -250,8 +250,8 @@ textarea.input{height:auto;}
 .tab .tab-nav .active a{cursor:default;}
 .tab .tab-body{border-top:solid 1px #ddd;padding-top:15px;}
 .tab .tab-body-bordered{border:solid 1px #ddd;border-radius:4px;padding:15px;}
-.tab .tab-body .tab-panel{display:none;}
-.tab .tab-body .active{display:block;}
+.tab .tab-body .tab-panel{/*display:none;*/ width:100%; height:0; overflow:hidden; margin:0; padding:0; border:0;}
+.tab .tab-body .active{/*display:block;*/ width:auto; height:auto;}
 .tab.tab-small strong{padding-top:3px;}
 .tab.tab-small .tab-more{margin:5px 0 0 10px;}
 .tab.tab-small li a{padding:3px 10px;}

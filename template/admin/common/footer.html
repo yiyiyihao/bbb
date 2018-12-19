@@ -4,68 +4,31 @@ $(function(){
 	var socket = new WebSocket("ws://{$Think.config.websocket_ip}:8282");
 	//连接成功时触发
 	socket.onopen = function(){
-		//socket.send('XXX连接成功'); 
 		var login_data = '{$loginData|raw|default=""}';
 		socket.send(login_data);
-		//console.log("websocket握手成功");
-		console.log("websocket握手成功，发送登录数据:"+login_data);
 	};
-	
 	//监听收到的消息
 	socket.onmessage = function(res){
-		//console.log(res.data);
-		//var data = res.data;
 		if(typeof res.data=='object'){
 			var data = res.data;
 		}else{
 			var data = eval("("+res.data+")");
 		}
-		console.log(data);
-		//res为接受到的值，如 {"emit": "messageName", "data": {}}
-		//emit即为发出的事件名，用于区分不同的消息
-		//res = JSON.parse(res);
 		if(data.type === 'chatMessage'){
-			console.log(data);
-			layer.alert("来自"+data.data.username+"新消息:"+data.data.content);	
-			/*var message = {
-			  username: data.data.username
-			  ,avatar: data.data.avatar
-			  ,id: data.data.id
-			  ,type: data.data.type
-			  ,content: data.data.content
-			};
-			console.log(message);
-			layim.getMessage(message); //res.data即你发送消息传递的数据（阅读：监听发送的消息）*/
+			
 		}
-		if(data.type === 'msg_push'){	
-			console.log(data);
-			layer.msg("收到一条新的推送");
-			/*if(data.data.push_info.type === 'work_order'){
-				//处理收到工单提醒
-				console.log(data.data.push_info);
-			}
-			if(data.data.push_info.type === 'plan'){
-				//处理收到预案方案提醒
-				console.log(data.data.push_info);
-			}*/
+		if(data.type === 'sysPush'){	
+		
 		}
 		if(data.type === 'say'){			
 			console.log(data.message);
 		}
-		//console.log(data.type);
 		if(data.type === 'login'){
 			//获取当前登陆的客户端id
 			var fromId = data.client_id;
-			Do.ready('dialog', function () {				
-				layer.msg("登录成功");
-			})
-			//socket.send('登陆成功'); 
-			//layim.getMessage(res.data); //res.data即你发送消息传递的数据（阅读：监听发送的消息）
 		}
 	};
-	
 	socket.onerror = function(e) {
-     	  console.log("出现错误");
 		  console.log(e);
     };
 })
@@ -108,18 +71,6 @@ Do.ready('dialog', function () {
 	  ]
 	});
 	{/present}
-	/*layer.open({
-	  type: 1,
-	  title: '',
-	  area: ['600px', '400px'], //宽高
-	  content: '<div class="admin-main"></div>',
-	  btn: ['已读','关闭'],
-	  yes: function(index, layero){
-		  layer.msg("这里执行下异步调用已读");
-	  },btn2: function(index, layero){
-		  layero.close;
-	  }
-	});*/
 });
 </script>
 {/notempty}
