@@ -1,38 +1,4 @@
-<script>
-$(function(){
-	//建立WebSocket通讯
-	var socket = new WebSocket("ws://{$Think.config.websocket_ip}:8282");
-	//连接成功时触发
-	socket.onopen = function(){
-		var login_data = '{$loginData|raw|default=""}';
-		socket.send(login_data);
-	};
-	//监听收到的消息
-	socket.onmessage = function(res){
-		if(typeof res.data=='object'){
-			var data = res.data;
-		}else{
-			var data = eval("("+res.data+")");
-		}
-		if(data.type === 'chatMessage'){
-			
-		}
-		if(data.type === 'sysPush'){	
-		
-		}
-		if(data.type === 'say'){			
-			console.log(data.message);
-		}
-		if(data.type === 'login'){
-			//获取当前登陆的客户端id
-			var fromId = data.client_id;
-		}
-	};
-	socket.onerror = function(e) {
-		  console.log(e);
-    };
-})
-</script>
+{include file="common/socket" /}
 </body>
 </html>
 {notempty name="specialBulletins"}

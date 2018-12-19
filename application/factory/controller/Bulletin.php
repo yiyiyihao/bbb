@@ -1,5 +1,6 @@
 <?php
 namespace app\factory\controller;
+use app\common\service\PushBase;
 //公告管理
 class Bulletin extends FactoryForm
 {
@@ -87,7 +88,13 @@ class Bulletin extends FactoryForm
     	}
         $result = $this->model->where(['bulletin_id' => $info['bulletin_id']])->update(['publish_status' => 1, 'publish_time' => time(), 'update_time' => time()]);
         if($result){
-            #TODO 接口推送
+            $push = new PushBase;
+            $data = [
+                'type'  => 'notice',
+                'message'   => '测试消息'
+            ];
+            //发送给群组内在线的人
+            $push->sendToGroup($info['store_type'], json_encode($data));
             $this->success('公告发布成功','index');
         }else{
             $this->error('发布失败');

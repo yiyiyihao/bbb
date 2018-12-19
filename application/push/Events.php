@@ -47,7 +47,7 @@ class Events
     * @param int $client_id 连接id
     * @param mixed $message 具体消息
     */
-   public static function onMessage($client_id, $message)
+   public static function onMessage($clientId, $message)
    {
        // 客户端传递的是json数据
        $messageData = json_decode($message, true);
@@ -58,52 +58,37 @@ class Events
        // 根据类型执行不同的业务
        switch($messageData['type'])
        {
-           case 'sysPush':
+           case 'notice':   //公告推送
                break;
-           case 'pong':
+           case 'pong':     //心跳监测
                break;
-           case 'login':
-               // uid
+           case 'login':    //链接登录
                $uid = $messageData['id'];
                // 将当前链接与uid绑定
-               Gateway::bindUid($client_id, $uid);
+               Gateway::bindUid($clientId, $uid);
                // 判断是否有房间号
-               if(!isset($messageData['room_id']))
+               if(isset($messageData['room']))
                {
-                   throw new \Exception("\$message_data['room_id'] not set. client_ip:{$_SERVER['REMOTE_ADDR']} \$message:$message");
+                   $room = $messageData['room'];
+                   //如果有房间号,加入到房间
+                   Gateway::joinGroup($clientId, $room);
                }
-               
-               // 把房间号昵称放到session中
-               $room_id = $messageData['room_id'];
-               $client_name = htmlspecialchars($messageData['client_name']);
-               $_SESSION['room_id'] = $room_id;
-               $_SESSION['client_name'] = $client_name;
-               $_SESSION['uid'] = $uid;
-               
-               // 获取房间内所有用户列表
-               /* $clients_list = Gateway::getClientSessionsByGroup($room_id);
-               foreach($clients_list as $tmp_client_id=>$item)
-               {
-                   $clients_list[$tmp_client_id] = $item['client_name'];
-               }
-               $clients_list[$client_id] = $client_name; */
-               
-               // 转播给当前房间的所有客户端，xx进入聊天室 message {type:login, client_id:xx, name:xx}
-               $returnMessage = array('type'=>$messageData['type'],'uid'=>$uid, 'client_id'=>$client_id, 'client_name'=>htmlspecialchars($client_name), 'time'=>date('Y-m-d H:i:s'));
-//                Gateway::sendToGroup($room_id, json_encode($returnMessage));
-               Gateway::joinGroup($client_id, $room_id);
-               
-               // 给当前用户发送用户列表
-//                $returnMessage['client_list'] = $clients_list;
+               $returnMessage = [
+                   'type'       =>  $messageData['type'],
+                   'uid'        =>  $uid,
+                   'clientId'   =>  $clientId,
+                   'time'       =>  date('Y-m-d H:i:s')
+               ];
+               //给当前用户发送登录回执
                Gateway::sendToCurrentClient(json_encode($returnMessage));
                break;
-           case 'chatMessage':
+           case 'worker':   //工单推送
                break;
-           case 'message':
+           case 'order':    //订单推送
+               break;
+           case 'message':  //消息推送
                break;
        }
-        // 向所有人发送 
-        //Gateway::sendToAll("$client_id said $message\r\n");
    }
    
    /**

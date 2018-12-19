@@ -11,9 +11,12 @@ class Index extends CommonIndex
     public function test(){
         $push = new PushBase;
         $data = [
-            'type'  => 'say',
+            'type'  => 'notice',
             'message'   => '测试消息'
         ];
-        $push->sendToUid(2, json_encode($data));
+        //发送给指定的人
+        $push->sendToUid(md5(2), json_encode($data));
+        //发送给群组内在线的人
+        $push->sendToGroup(1, json_encode($data));
     }
 }

@@ -40,11 +40,12 @@ class CommonBase extends Base
     //公共登录处理初始化
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
+        $room = $this->adminUser['store_type'] ? $this->adminUser['store_type'] : 'admin';
         $loginData = array(
             'type'          => 'login',
-            'id'            => $this->adminUser['user_id'],
-            'client_name'   => $this->adminUser['username'],
-            'room_id'       => 1,
+            'id'            => md5($this->adminUser['user_id']),
+//             'client_name'   => $this->adminUser['username'],
+            'room'          => $room,
         );
         $this->assign('loginData',json_encode($loginData));
         //判断用户是否需要强制修改初始密码
@@ -96,7 +97,7 @@ class CommonBase extends Base
         $server = isset($_SERVER['REDIRECT_URL']) ? $_SERVER['REDIRECT_URL'] : $_SERVER['REQUEST_URI'];
         $self = strip_tags($server);
         $this->assign('self', $self);
-        $this->assign('title',config('setting.title').lang('home_manager'));
+        $this->assign('title', config('setting.title').lang('home_manager'));
         $this->assign('adminUser', $this->adminUser);
         $this->assign('adminStore', $this->adminStore);
         $this->assign('adminFactory', $this->adminFactory);

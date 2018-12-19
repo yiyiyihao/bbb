@@ -19,10 +19,23 @@ class PushBase
         Gateway::joinGroup($client_id, $group_id);
     }
     
+    /**
+     * 发送消息给指定用户
+     * @param $uid
+     * @param $message
+     */
     public function sendToUid($uid, $message){
         // 向任意uid的网站页面发送数据
         Gateway::sendToUid($uid, $message);
     }
+    
+    /**
+     * 发送消息给群组内的所有人
+     */
+    public function sendToGroup($group, $message){
+        Gateway::sendToGroup($group, $message);
+    }
+    
     /**
      * 发送消息
      */
