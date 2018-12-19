@@ -5,7 +5,7 @@
                 <div class="tab-head">
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">{$name ?? '工单信息'}</a></li>
-                        <li><a href="#tab-2">产品信息</a></li>
+                        <!-- <li><a href="#tab-2">产品信息</a></li> -->
                     </ul>
                 </div>
             </div>
@@ -59,8 +59,29 @@
                             <div class="input-note">故障报修时请简要描述故障信息</div>
                         </div>
                     </div>
+                    <div class="form-group">
+		                <div class="label">
+		                  <label>上传图片</label>
+		                </div>
+		                <div class="field"> <a class="button bg-main button-small js-multi-upload" data="imgs" id="image_upload" href="javascript:;" ><span class="icon-upload"> 批量上传</span></a>
+		                  <div class="input-note note">请上传不大于2M的图片,支持多图上传</div>
+		                </div>
+		              </div>
+		              <div class="imagesBox form-group clearfix" id="imgs">
+		              	{if condition="$info && isset($info['images'])"}
+		                  {volist name="info.images" id="vo" mod="10"}
+		                	<div class="media radius clearfix">
+		                      <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
+		                      <img src="{$vo ?? ''}" >
+		                      <div class="media-body">
+		                      <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
+		                      </div>
+		                  </div>
+		                  {/volist}
+		                  {/if}
+		              </div>
                 </div>
-           		<div class="tab-panel" id="tab-2">
+           		<!-- <div class="tab-panel" id="tab-2">
                     <div class="form-group">
                         <div class="label">
                             <label>订单号</label>
@@ -86,7 +107,7 @@
 		                    <img src="{$ossub['sku_name']['sku_thumb']|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
                         </div>
                     </div> 
-            </div>
+            </div> -->
             <div class="panel-foot">
                 <div class="form-button">
                     <button class="button bg-main" type="submit">保存</button>

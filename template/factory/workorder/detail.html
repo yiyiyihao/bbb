@@ -5,9 +5,10 @@
                 <div class="tab-head">
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">基本信息</a></li>
-                        <li><a href="#tab-2">日志信息</a></li>
+                        <li><a href="#tab-2">产品信息</a></li>
+                        <li><a href="#tab-3">日志信息</a></li>
                         {if condition="$info['assess_list']"}
-                        <li><a href="#tab-3">评价记录</a></li>
+                        <li><a href="#tab-4">评价记录</a></li>
                         {/if}
                     </ul>
                 </div>
@@ -63,8 +64,68 @@
                         	<textarea class="input" id="fault_desc" disabled="disabled" name="fault_desc" rows="6" cols="60">{$info['fault_desc'] ?? ''}</textarea>
                         </div>
                     </div>
+                    {if condition='$info && $info.images'}
+                    <div class="imagesBox form-group clearfix" id="imgs">
+		              	{if condition="$info && isset($info['images'])"}
+		                  {volist name="info.images" id="vo" mod="10"}
+		                	<div class="media radius clearfix">
+		                      <img src="{$vo ?? ''}" >
+		                      <div class="media-body">
+		                      </div>
+		                  </div>
+		                  {/volist}
+		                  {/if}
+		              </div>
+		              {/if}
                 </div>
             	<div class="tab-panel" id="tab-2">
+            		{if condition="$info['sub'] && isset($info['sub']['ossub_id']) && $info['sub']['ossub_id']"}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['order_sn'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['sku_name'] ?? ''}  {$info['sub']['sku_spec'] ?? ''} ">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="image_preview" style="margin-bottom:10px;">
+		                    <img src="{$info['sub']['sku_thumb']|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
+                        </div>
+                    </div>
+                    {else/}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['name'] ?? ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>产品图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="image_preview" style="margin-bottom:10px;">
+		                    <img src="{$info['sub']['thumb']|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
+                        </div>
+                    </div>
+                    {/if}
+            	</div>
+            	<div class="tab-panel" id="tab-3">
             		<div class="table-responsive">
 					    <table id="table" class="table table-hover ">
 					      <tbody>
@@ -89,7 +150,7 @@
 					  </div>
             	</div>
             	{if condition="$info['assess_list']"}
-            	<div class="tab-panel" id="tab-3">
+            	<div class="tab-panel" id="tab-4">
             		<div class="table-responsive">
 					    <table id="table" class="table table-hover ">
 					      <tbody>

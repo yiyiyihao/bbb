@@ -119,39 +119,6 @@ class Installer extends FormBase
             return $this->fetch();
         }
     }
-    
-    /**
-     * 工程师绑定小程序二维码
-     */
-    public function wxacode()
-    {
-        $info = $this->_assignInfo();
-        if (!$info || $info['is_del']) {
-            $this->error('安装工程师不存在或已删除');
-        }
-        //远程判断图片是否存在
-        $qiniuApi = new \app\common\api\QiniuApi();
-        $config = $qiniuApi->config;
-        $domain = $config ? 'http://'.$config['domain'].'/': '';
-        $filename = 'installer_wxacode_'.$info['store_id'].'.png';
-        $result = curl_post($domain.$filename, []);
-        $page = 'pages/index/index';//二维码扫码打开页面
-        $scene = 'type=installer&id='.$info['installer_id'];//最大32个可见字符，只支持数字，大小写英文以及部分特殊字符：!#$&'()*+,/:;=?@-._~，其它字符请自行编码为合法字符（因不支持%，中文无法使用 urlencode 处理，请使用其他编码方式）
-        if (isset($result['error'])) {
-            $wechatApi = new \app\common\api\WechatApi('wechat_applet');
-            $data = $wechatApi->getWXACodeUnlimit($scene, $page);
-            if ($wechatApi->error) {
-                $this->error($wechatApi->error);
-            }else{
-                $result = $qiniuApi->uploadFileData($data, $filename);
-                if (isset($result['error']) && $result['error'] > 0) {
-                    $this->error($result['msg']);
-                }
-                $result = $this->model->where(['installer_id' => $info['installer_id']])->update(['update_time' => time(), 'wxacode' => $domain.$filename]);
-            }
-        }
-        echo '<img src="'.$domain.$filename.'">';
-    }
     function del(){
         $info = $this->_assignInfo();
         //判断工程师是否有对应的工单记录
@@ -167,11 +134,13 @@ class Installer extends FormBase
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
-            $this->error(lang('NO_OPERATE_PERMISSION'));
-        }
-        if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $this->adminUser['store_id']) {
-            $this->error(lang('NO_OPERATE_PERMISSION'));
+        if ($info) {
+            if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
+                $this->error(lang('NO_OPERATE_PERMISSION'));
+            }
+            if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $this->adminUser['store_id']) {
+                $this->error(lang('NO_OPERATE_PERMISSION'));
+            }
         }
         return $info;
     }

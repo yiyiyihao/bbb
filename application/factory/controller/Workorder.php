@@ -193,7 +193,14 @@ class Workorder extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
         $params = $this->request->param();
-        $type = isset($params['type']) ? intval($params['type']) : 0;
+        if (!$info) {
+            $type = isset($params['type']) ? intval($params['type']) : 0;
+            if (!isset($this->orderTypes[$type])) {
+                $this->error('工单类型错误');
+            }
+        }else{
+            $type = $info['type'];
+        }
         //零售商和渠道商只允许添加安装工单 厂商仅允许添加维修工单
         if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
             $this->error(lang('NO ACCESS'));
@@ -201,9 +208,6 @@ class Workorder extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
         $ossubId = isset($params['ossub_id']) ? intval($params['ossub_id']) : 0;
-        if (!isset($this->orderTypes[$type])) {
-            $this->error('工单类型错误');
-        }
         $name = $this->modelName = $this->orderTypes[$type];
         if (!$ossubId) {
             $this->error(lang('param_error'));
@@ -258,7 +262,9 @@ class Workorder extends FactoryForm
         $data = parent::_getData();
         $params = $this->request->param();
         $info = parent::_assignInfo();
-        $ossub = $this->_getSkuSub($info);
+        if (!$info) {
+            $ossub = $this->_getSkuSub($info);
+        }
         $type = isset($params['type']) ? intval($params['type']) : '';
         $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
         $phone = isset($data['phone']) ? trim($data['phone']) : '';
@@ -278,10 +284,10 @@ class Workorder extends FactoryForm
             }
             $data['store_id'] = $storeID;
         }
-        if (!$type) {
+        if (!$info && !$type) {
             $this->error('请选择工单类型');
         }
-        if (!isset($this->orderTypes[$type])) {
+        if ($type && !isset($this->orderTypes[$type])) {
             $this->error('工单类型错误');
         }
         if (!$info) {
@@ -295,7 +301,9 @@ class Workorder extends FactoryForm
             $data['sku_id']         = $ossub['sku_id'];
             $data['post_store_id']  = $this->adminUser['store_id'];
         }
-        $data['install_price'] = $ossub['install_amount'];
+        if ($ossub) {
+            $data['install_price'] = $ossub['install_amount'];
+        }
         if (!$userName || !$phone || !$regionId || !$regionName) {
             $this->error('请完善客户信息');
         }
@@ -318,7 +326,7 @@ class Workorder extends FactoryForm
         if ($type == 1) {
             $data['fault_desc'] = '';
         }
-        $data['images'] = '';
+        $data['images'] = $data['imgs'] ? implode(',', $data['imgs']) :'';
         $data['appointment'] = $appointment ? strtotime($appointment) : 0;
         if ($data['appointment'] <= time()) {
             $this->error('预约服务时间必须大于当前时间');
@@ -328,5 +336,11 @@ class Workorder extends FactoryForm
     function _assignAdd(){
         parent::_assignAdd();
         $this->_getSkuSub();
+    }
+    function _assignInfo($pkId = 0)
+    {
+        $info = parent::_assignInfo();
+        $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        return $info;
     }
 }

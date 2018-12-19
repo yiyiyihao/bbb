@@ -28,7 +28,7 @@ class QiniuApi
     
     public function uploadFileData($data, $qiniuName = '', $thumbType = '')
     {
-        require_once APP_PATH . '/../vendor/Qiniu/autoload.php';
+        require_once env('think_path') . '/vendor/Qiniu/autoload.php';
         // 构建鉴权对象
         $auth = new Auth($this->config['accessKey'], $this->config['secretKey']);
         $token = $auth->uploadToken($this->config['bucket']);

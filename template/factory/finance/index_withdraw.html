@@ -30,7 +30,7 @@
             	<p>NOTICE：</p>
             	<p class="ml5">1. <a href="{:url('setting')}">绑定提现银行卡</a></p>
             	<p class="ml5">2. 单笔提现最小金额：{$config['withdraw_min_amount'] ?? 100} 元</p>
-            	{if condition="$config['monthly_withdraw_start_date'] && $config['monthly_withdraw_end_date']"}
+            	{if condition="isset($config['monthly_withdraw_start_date']) && $config['monthly_withdraw_start_date'] && $config['monthly_withdraw_end_date']"}
             	<p class="ml5">3. 提现时间：每月{$config['monthly_withdraw_start_date'] ?? 0}日-{$config['monthly_withdraw_end_date'] ?? 0}日</p>
             	<p class="ml5">4. 到账时间：提现后{$config['withdrawal_work_day'] ?? 1}个工作日内到账；</p>
             	{/if}

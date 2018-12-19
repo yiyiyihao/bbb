@@ -24,10 +24,14 @@ class WorkOrder extends Model
         if (!$flag) {
             $sn = $this->_getWorderSn();
             $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
-            //工单创建成功后填写工单号
-            $worder = $this->getWorderDetail($sn, $data['post_user_id']);
+            $worder = [
+                'worder_sn' => $sn,
+                'worder_id' => $worderId,
+                'post_user_id' => $data['post_user_id'],
+            ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
             $this->worderLog($worder, $user, '创建工单');
+            return $sn;
         }
         return $result;
     }
@@ -52,12 +56,17 @@ class WorkOrder extends Model
             $this->error = lang('NO ACCESS');
             return FALSE;
         }
-        $orderSkuModel = new \app\common\model\OrderSku();
-        $info['sub'] = $orderSkuModel->getSubDetail($info['ossub_id'], FALSE, TRUE);
+        if ($info['ossub_id']) {
+            $orderSkuModel = new \app\common\model\OrderSku();
+            $info['sub'] = $orderSkuModel->getSubDetail($info['ossub_id'], FALSE, TRUE);
+        }else{
+            $info['sub'] = db('goods')->find($info['goods_id']);
+        }
         //获取工单日志
         $info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
         $info['assess_list'] = $this->getWorderAssess($info);
+        $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
         return $info;
     }
     
@@ -477,11 +486,10 @@ class WorkOrder extends Model
             //判断当前工单是否存在首次评价
             $log = db('work_order_assess')->where(['worder_id' => $worder['worder_id'], 'type' => 1])->find();
             if ($log) {
-                $this->error = '已完成首次评价';
+                $this->error = '工单已评价';
                 return FALSE;
             }
         }
-       
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
             'worder_id'     =>  $worder['worder_id'],
@@ -519,8 +527,11 @@ class WorkOrder extends Model
                         $score = round($score/$len,1);
                         //更新工程师综合得分
                         model('user_installer')->scoreUpdate($worder['installer_id'],$score);
-                        //首次评价,处理安装服务费发放结算
-                        $this->serviceSettlement($worder, $assessId, $user, $score);
+                        //安装工单
+                        if ($worder['work_order_type'] == 1) {
+                            //首次评价,处理安装服务费发放结算
+                            $this->serviceSettlement($worder, $assessId, $user, $score);
+                        }
                         return $assessId;
                     }else{
                         $this->error = '没有评分项';

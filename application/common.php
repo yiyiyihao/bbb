@@ -448,11 +448,11 @@ function get_admin_type($type = FALSE){
     }
 }
 
-function get_store_config($storeId = 0, $merge = FALSE, $systemKey = 0)
+function get_store_config($storeId = 0, $merge = FALSE, $defaultKey = FALSE)
 {
     $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
-    $configKey = $systemKey ? $systemKey : 'default';
+    $configKey = $defaultKey ? $defaultKey : 'default';
     
     if ($merge) {
         //获取系统默认配置
@@ -470,6 +470,9 @@ function get_store_config($storeId = 0, $merge = FALSE, $systemKey = 0)
     }
     if ($configKey == 'default' && !isset($config[$configKey]['servicer_return_ratio'])) {
         $config[$configKey]['servicer_return_ratio'] = 100;
+    }
+    if ($defaultKey === FALSE) {
+        return $config;
     }
     return isset($config[$configKey]) ? $config[$configKey] : [];
 }
@@ -717,7 +720,6 @@ function curl_post_https($url, $post_data){
     }
     //关闭URL请求
     curl_close($curl);
-    echo $data;
     $json = json_decode($data,true);
     if (empty($json)){
         return $data = $data ? $data : $url.':'.$error;

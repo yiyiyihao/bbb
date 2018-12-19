@@ -4,7 +4,8 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">订单设置</a></li>
+                    	<li class="active"><a href="#tab-0">微信配置</a></li>
+                        <li><a href="#tab-1">订单设置</a></li>
                         <li><a href="#tab-2">商户配置</a></li>
                         <li><a href="#tab-3">售后配置</a></li>
                         <li><a href="#tab-4">审核配置</a></li>
@@ -14,14 +15,52 @@
                 </div>
             </div>
             <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
+            	<div class="tab-panel active" id="tab-0">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>APPID(智享家师傅端)</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="installer_appid" name="wechat_applet[installer_appid]" datatype="*" value="{$config['wechat_applet']['installer_appid'] ?? ''}">
+                            <div class="input-note">请填写智享家师傅端小程序的APPID</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>AppSecret(智享家师傅端)</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="60" class="input" id="installer_appid" name="wechat_applet[installer_appsecret]" datatype="*" value="{$config['wechat_applet']['installer_appsecret'] ?? ''}">
+                            <div class="input-note">请填写智享家师傅端小程序的AppSecret</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>APPID(智享家用户端)</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="user_appid" name="wechat_applet[user_appid]" datatype="*" value="{$config['wechat_applet']['user_appid'] ?? ''}">
+                            <div class="input-note">请填写智享家用户端小程序的APPID</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>AppSecret(智享家用户端)</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="60" class="input" id="user_appsecret" name="wechat_applet[user_appsecret]" datatype="*" value="{$config['wechat_applet']['user_appsecret'] ?? ''}">
+                            <div class="input-note">请填写智享家用户端小程序的AppSecret</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-1">
                 	<div class="form-group">
                         <div class="label">
                             <label>待支付订单取消时间</label>
                         </div>
                         <div class="field">
                             <label>订单</label>
-                            <input type="number" min="1" class="input" id="order_cancel_minute" name="order_cancel_minute" datatype="n" value="{$config['order_cancel_minute'] ?? ''}">
+                            <input type="number" min="1" class="input" id="order_cancel_minute" name="order_cancel_minute" datatype="n" value="{$config['default']['order_cancel_minute'] ?? ''}">
                             <label>分钟内未付款，系统自动取消订单</label>
                             <div class="input-note">未设置则当前厂商下的订单无自动取消操作</div>
                         </div>
@@ -32,7 +71,7 @@
                         </div>
                         <div class="field">
                             <label>支付成功</label>
-                            <input type="number" min="1" class="input" id="order_return_day" name="order_return_day" size="5" datatype="n" value="{$config['order_return_day'] ?? ''}">
+                            <input type="number" min="1" class="input" id="order_return_day" name="order_return_day" size="5" datatype="n" value="{$config['default']['order_return_day'] ?? ''}">
                             <label>天后，不允许退货退款</label>
                             <div class="input-note">未设置则当前厂商下的订单无退货退款时间限制</div>
                         </div>
@@ -45,7 +84,7 @@
                         </div>
                         <div class="field">
                         	<label>其下级零售商销售额的</label>
-                            <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$config['channel_commission_ratio'] ?? 0}">
+                            <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$config['default']['channel_commission_ratio'] ?? 0}">
                             <label>%</label>
                         </div>
                     </div>
@@ -57,7 +96,7 @@
                         </div>
                         <div class="field">
                         	<label>安装服务费的</label>
-                            <input type="text" class="input" id="servicer_return_ratio" name="servicer_return_ratio" size="5" datatype="n" value="{$config['servicer_return_ratio'] ?? 100}">
+                            <input type="text" class="input" id="servicer_return_ratio" name="servicer_return_ratio" size="5" datatype="n" value="{$config['default']['servicer_return_ratio'] ?? 100}">
                             <label>% 作为售后工程师的绩效考核金</label>
                         </div>
                     </div>
@@ -67,7 +106,7 @@
                         </div>
                         <div class="field">
                         	<label>售后服务完成，如用户未评价，</label>
-                            <input type="number" min="1" class="input" id="workorder_auto_assess_day" name="workorder_auto_assess_day" size="5" datatype="n" value="{$config['workorder_auto_assess_day'] ?? ''}">
+                            <input type="number" min="1" class="input" id="workorder_auto_assess_day" name="workorder_auto_assess_day" size="5" datatype="n" value="{$config['default']['workorder_auto_assess_day'] ?? ''}">
                             <label>天后，系统自动给好评并完成服务费结算；</label>
                             <div class="input-note">未设置则当前厂商下的售后工单无自动好评和自动服务结算操作</div>
                         </div>
@@ -83,10 +122,10 @@
                         		{if condition="!isset($config['installer_check'])"}
                         		{assign name="config.installer_check" value="1" /}
                         		{/if}
-                            	<label class="button {if (isset($config['installer_check']) && $config['installer_check'] == 1)}active{/if}">
-                            	<input name="installer_check" value="1" type="radio" {if (isset($config['installer_check']) && $config['installer_check'] == 1)}checked="checked"{/if}>是</label>
-                            	<label class="button {if (!isset($config['installer_check']) || !$config['installer_check'] == 1)}active{/if}">
-                            	<input name="installer_check" value="0" type="radio" {if (isset($config['installer_check']) && $config['installer_check'] == 1)}checked="checked"{/if}>否</label>
+                            	<label class="button {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}active{/if}">
+                            	<input name="installer_check" value="1" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>是</label>
+                            	<label class="button {if (!isset($config['default']['installer_check']) || !$config['default']['installer_check'] == 1)}active{/if}">
+                            	<input name="installer_check" value="0" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>否</label>
                             </div>
                             <div class="input-note">配置售后工程师申请:服务商审核后是否需要厂商审核才能成为售后工程师</div>
                         </div>
@@ -97,10 +136,10 @@
                         </div>
                         <div class="field">
                         	<div class="button-group radio">
-                            	<label class="button {if (isset($config['channel_operate_check']) && $config['channel_operate_check'] == 1)}active{/if}">
-                            	<input name="channel_operate_check" value="1" type="radio" {if (isset($config['channel_operate_check']) && $config['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
-                            	<label class="button {if (!isset($config['channel_operate_check']) || !$config['channel_operate_check'] == 1)}active{/if}">
-                            	<input name="channel_operate_check" value="0" type="radio" {if (isset($config['channel_operate_check']) && $config['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
+                            	<label class="button {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}active{/if}">
+                            	<input name="channel_operate_check" value="1" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
+                            	<label class="button {if (!isset($config['default']['channel_operate_check']) || !$config['default']['channel_operate_check'] == 1)}active{/if}">
+                            	<input name="channel_operate_check" value="0" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
                             </div>
                             <div class="input-note">渠道商在新增、删除、编辑零售商时,是否需要厂商审核后操作才能完成</div>
                         </div>
@@ -113,9 +152,9 @@
                         </div>
                         <div class="field">
                         	<label>每月</label>
-                            <input type="number" min="1" max="27" class="input" id="monthly_withdraw_start_date" name="monthly_withdraw_start_date" size="5" datatype="n" value="{$config['monthly_withdraw_start_date'] ?? ''}">
+                            <input type="number" min="1" max="27" class="input" id="monthly_withdraw_start_date" name="monthly_withdraw_start_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_start_date'] ?? ''}">
                             <label>日 ~ </label>
-                            <input type="number" min="2" max="28" class="input" id="monthly_withdraw_end_date" name="monthly_withdraw_end_date" size="5" datatype="n" value="{$config['monthly_withdraw_end_date'] ?? ''}">
+                            <input type="number" min="2" max="28" class="input" id="monthly_withdraw_end_date" name="monthly_withdraw_end_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_end_date'] ?? ''}">
                             <label>日，允许提现</label>
                             <div class="input-note">未设置则当前厂商下的商户无提现日期限制</div>
                         </div>
@@ -127,7 +166,7 @@
                             <label>厂商客服电话</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="consumer_hotline" name="consumer_hotline" size="20" placeholder="请输入厂商客服电话" datatype="*" value="{$config['consumer_hotline'] ?? ''}">
+                            <input type="text" class="input" id="consumer_hotline" name="consumer_hotline" size="20" placeholder="请输入厂商客服电话" datatype="*" value="{$config['default']['consumer_hotline'] ?? ''}">
                             <div class="input-note"></div>
                         </div>
                     </div>

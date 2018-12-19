@@ -26,10 +26,9 @@ class Store extends Model
     }
     public function save($data = [], $where = [], $sequence = null){
         if (!$where) {
-            ;
+            //获取商户编号
+            $data['store_no'] = self::_getMchKey();
         }
-        //获取商户编号
-        $data['store_no'] = self::_getMchKey();
         return parent::save($data, $where);
     }
     private static function _after($store, $storeId = 0)

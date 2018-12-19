@@ -97,7 +97,7 @@ class User extends Model
         if (!$exist) {
             $data = [
                 'factory_id' => $factoryId,
-                'username' => $phone,
+                'username' => '',
                 'nickname' => $udataInfo['nickname'],
                 'realname' => $udataInfo['nickname'],
                 'phone' => $phone,
@@ -110,6 +110,50 @@ class User extends Model
         }
         $result = $udataModel->save(['user_id' => $userId], ['udata_id' => $udataInfo['udata_id']]);
         return $userId;
+    }
+    public function changePhone($user, $oldPhone, $phone)
+    {
+        if (!$user || !isset($user['user_id']) || !$user['user_id']) {
+            $this->error = lang('PARAM_ERROR');
+            return FALSE;
+        }
+        if (!$oldPhone) {
+            $this->error = lang('原手机号不能为空');
+            return FALSE;
+        }
+        //验证原手机号格式
+        $result = $this->checkPhone($user['factory_id'], $oldPhone);
+        if ($result === FALSE) {
+            return FALSE;
+        }
+        if (!$phone) {
+            $this->error = lang('新手机号不能为空');
+            return FALSE;
+        }
+        //验证新手机号格式
+        $result = $this->checkPhone($user['factory_id'], $phone);
+        if ($result === FALSE) {
+            return FALSE;
+        }
+        if ($oldPhone == $phone) {
+            $this->error = lang('更换的手机号不能与原手机号一致');
+            return FALSE;
+        }
+        if (!isset($user['phone']) || !$user['phone']) {
+            $this->error = lang('未绑定手机号,不能更换');
+            return FALSE;
+        }
+        if ($user['phone'] != $oldPhone) {
+            $this->error = lang('原手机号错误');
+            return FALSE;
+        }
+        //判断新手机号是否已经绑定过账户
+        $exist = $this->where(['phone' => $phone, 'is_del' => 0])->find();
+        if ($exist) {
+            $this->error = lang('新手机号已绑定其它账户');
+            return FALSE;
+        }
+        return $this->save(['phone' => $phone], ['user_id' => $user['user_id']]);
     }
     
     /**
@@ -174,7 +218,7 @@ class User extends Model
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
 		    'admin_type'      => $user['admin_type'],
-		    'factory_id'      => $user['admin_type'] == 2 ? $user['store_id'] : 0,
+		    'factory_id'      => $user['admin_type'] == 2 ? $user['store_id'] : (isset($adminStore) && $adminStore ? $adminStore['factory_id'] : 0),
 		    'store_id'        => $user['store_id'],
 		    'store_type'      => $storeType,
 		    'group_id'        => $user['group_id'],

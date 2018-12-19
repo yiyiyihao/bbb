@@ -176,7 +176,7 @@ class Goods extends FormBase
         $this->getAjaxList($where, 'sku_id as id, sku_name as name');
     }
     function _getField(){
-        $field = 'G.*, C.name as cate_name';
+        $field = 'G.*, (CASE WHEN G.goods_stock <= G.stock_warning_num THEN 1 ELSE 0 END) as warning, C.name as cate_name';
         return $field;
     }
     function _getAlias(){
@@ -370,6 +370,12 @@ class Goods extends FormBase
         $btnArray = ['text'  => '产品规格','action'=> 'spec', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
         $table['actions']['button'][] = $btnArray;
         $table['actions']['width']  = '240';
+        foreach ($table as $key => $value) {
+            if (isset($value['value']) && $value['value'] == 'goods_stock') {
+                $table[$key]['warning'] = TRUE;
+                break;
+            }
+        }
         return $table;
     }
     

@@ -66,12 +66,12 @@
 </form>
 <script>
 	var Config = {
-		'editorUploadUrl' : "{:url('admin/Upload/editorupload', ['prex' => 'goods_'])}",
+		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'goods_'])}",
 	};
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{:url('admin/Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb'])}",
             {present name="info['goods_id']"}
             cookie: 'editgoods{$info.goods_id}',
             num: {$info.imgnum}

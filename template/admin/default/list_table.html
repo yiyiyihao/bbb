@@ -14,7 +14,11 @@
         <td>
         	{switch td.type}
             	{case index}{$k}{/case}
-                {case text}{$vo[$td['value']] ?? ''}{/case}
+                {case text}{$vo[$td['value']] ?? ''}
+                	{if condition="isset($td['warning']) && $td['warning'] && isset($vo['warning']) && $vo['warning']"}
+                		<span class="tag bg-red">预警</span>
+                	{/if}
+                {/case}
                 {case function}{php}echo call_user_func($td['function'],$vo[$td['value']]);{/php}{/case}
                 {case yesOrNo}{$vo[$td['value']]?'<span class="tag bg-green">'.$td['yes'].'</span>':'<span class="tag bg-gray">'.$td['no'].'</span>'}{/case}
                 {case icon}<span class="icon-{$vo[$td['value']]}"></span>{/case}

@@ -54,7 +54,6 @@ class System extends adminSystem
             if ($params['monthly_withdraw_start_date'] >= $params['monthly_withdraw_end_date'] || $params['monthly_withdraw_end_date'] < 1 || $params['monthly_withdraw_end_date'] > 28) {
                 $this->error('每月提现结束日期必须大于1号小于28号(且必须大于开始日期)');
             }
-            
             $params['consumer_hotline'] = isset($params['consumer_hotline']) ? trim($params['consumer_hotline']) : 0;
             if (!$params['consumer_hotline']) {
                 $this->error('厂商客服电话不能为空');
@@ -62,12 +61,60 @@ class System extends adminSystem
         }
         return $this->_storeConfig($params);
     }
+    
     public function servicer()
     {
         if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_SERVICE) {
             $this->error(lang('NO ACCESS'));
         }
         return $this->_storeConfig();
+    }
+    
+    /**
+     * 商户二维码
+     */
+    public function wxacode()
+    {
+        if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $platType = 1;
+        $storeModel = new \app\common\model\Store();
+        $info = $storeModel->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
+        if (!$info) {
+            $this->error('商户不存在或已删除');
+        }
+        $wxacode = $info['wxacode'] ? json_decode($info['wxacode'], 1) : [];
+        $name = $platType == 1? 'installer' : 'user';
+        $codeUrl = isset($wxacode[$name]) ?trim($wxacode[$name]) : '';
+        if (!$codeUrl) {
+            //远程判断图片是否存在
+            $qiniuApi = new \app\common\api\QiniuApi();
+            $config = $qiniuApi->config;
+            $domain = $config ? 'http://'.$config['domain'].'/': '';
+            $filename = 'wxacode_'.$info['store_no'].'_'.$name.'.png';
+            $page = 'pages/index/index';//二维码扫码打开页面
+            $page = '';
+            $scene = 'store_no='.$info['store_no'];//最大32个可见字符，只支持数字，大小写英文以及部分特殊字符：!#$&'()*+,/:;=?@-._~，其它字符请自行编码为合法字符（因不支持%，中文无法使用 urlencode 处理，请使用其他编码方式）
+            $wechatApi = new \app\common\api\WechatApi($this->adminUser['factory_id'], 'wechat_applet');
+            $data = $wechatApi->getWXACodeUnlimit($scene, $page);
+            if ($wechatApi->error) {
+                $this->error($wechatApi->error);
+            }else{
+                $result = $qiniuApi->uploadFileData($data, $filename);
+                if (isset($result['error']) && $result['error'] > 0) {
+                    $this->error($result['msg']);
+                }
+//                 $codeUrl = $wxacode[$name] = $domain.$filename = 'http://pimvhcf3v.bkt.clouddn.com/wxacode_5121288100_installer.png';
+                $codeUrl = $wxacode[$name] = $domain.$filename;
+                $data = [
+                    'wxacode' => json_encode($wxacode),
+                ];
+                $result = $storeModel->save($data, ['store_id' => $info['store_id']]);
+            }
+        }
+        $this->assign('codeUrl', $codeUrl);
+        return $this->fetch();
     }
     
     private function _storeConfig($params = [])
@@ -79,7 +126,11 @@ class System extends adminSystem
             if ($params) {
                 $configKey = 'default';
                 foreach ($params as $key => $value) {
-                    $config[$key] = trim($value);
+                    if (!is_array($value)) {
+                        $config[$key] = trim($value);
+                    }else{
+                        $data[$key] = $value;
+                    }
                 }
                 $data[$configKey] = $config;
                 $configJson = $data ? json_encode($data): '';
