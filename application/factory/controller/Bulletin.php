@@ -207,8 +207,13 @@ class Bulletin extends FactoryForm
                 }
             }
         }
-        $table['actions']['button'][] = ['text'  => '公告查看', 'action'=> 'detail', 'icon'  => '','bgClass'=> 'bg-main'];
-        $table['actions']['button'][] = ['text'  => '公告发布', 'class' => 'js-action', 'action'=> 'publish', 'icon'  => 'bell','bgClass'=> 'bg-yellow'];
+        $table['actions']['button'] = [];
+        $table['actions']['button'][] = ['text'  => '编辑', 'action'=> 'condition', 'icon'  => 'edit','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$vo["publish_status"] == 0']];
+        $table['actions']['button'][] = ['text'  => '删除', 'action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["publish_status"] == 0']];
+        $table['actions']['button'][] = ['text'  => '查看公告', 'action'=> 'condition', 'icon'  => 'chart-line','bgClass'=> 'bg-blue','condition'=>['action'=>'detail','rule'=>'$vo["publish_status"] == 1']];
+        $table['actions']['button'][] = ['text'  => '发布', 'action'=> 'condition','js-action' => true, 'icon'  => 'check','bgClass'=> 'bg-dot','condition'=>['action'=>'publish','rule'=>'$vo["publish_status"] == 0']];
+        
+//         $table['actions']['button'][] = ['text'  => '公告发布',  'action'=> 'publish', 'icon'  => 'check','bgClass'=> 'bg-dot'];
         $table['actions']['width']  = '*';
         return $table;
     }

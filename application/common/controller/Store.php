@@ -356,10 +356,12 @@ class Store extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
-//         $table['actions']['button'][] = ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["store_id"] != 1']];
+//         $table['actions']['button'][] = ['text'  => '管理员设置','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["username"] == ""']];
+        
         $table['actions']['button'][] = ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-green'];
-        $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
-        $table['actions']['width']  = '*';
+        $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != ""']];
+//         $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
+        $table['actions']['width']  = '300';
         return $table;
     }
     /**

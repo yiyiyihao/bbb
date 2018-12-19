@@ -34,13 +34,13 @@ class Events
      * 
      * @param int $client_id 连接id
      */
-    /* public static function onConnect($client_id)
+    public static function onConnect($client_id)
     {
         // 向当前client_id发送数据 
-        Gateway::sendToClient($client_id, "Hello $client_id\r\n");
+//         Gateway::sendToClient($client_id, "Hello $client_id\r\n");
         // 向所有人发送
-        Gateway::sendToAll("$client_id login\r\n");
-    } */
+//         Gateway::sendToAll("$client_id login\r\n");
+    }
     
    /**
     * 当客户端发来消息时触发
@@ -81,20 +81,20 @@ class Events
                $_SESSION['uid'] = $uid;
                
                // 获取房间内所有用户列表
-               $clients_list = Gateway::getClientSessionsByGroup($room_id);
+               /* $clients_list = Gateway::getClientSessionsByGroup($room_id);
                foreach($clients_list as $tmp_client_id=>$item)
                {
                    $clients_list[$tmp_client_id] = $item['client_name'];
                }
-               $clients_list[$client_id] = $client_name;
+               $clients_list[$client_id] = $client_name; */
                
                // 转播给当前房间的所有客户端，xx进入聊天室 message {type:login, client_id:xx, name:xx}
                $returnMessage = array('type'=>$messageData['type'],'uid'=>$uid, 'client_id'=>$client_id, 'client_name'=>htmlspecialchars($client_name), 'time'=>date('Y-m-d H:i:s'));
-               Gateway::sendToGroup($room_id, json_encode($returnMessage));
+//                Gateway::sendToGroup($room_id, json_encode($returnMessage));
                Gateway::joinGroup($client_id, $room_id);
                
                // 给当前用户发送用户列表
-               $returnMessage['client_list'] = $clients_list;
+//                $returnMessage['client_list'] = $clients_list;
                Gateway::sendToCurrentClient(json_encode($returnMessage));
                break;
            case 'chatMessage':
@@ -113,6 +113,6 @@ class Events
    public static function onClose($client_id)
    {
        // 向所有人发送 
-       GateWay::sendToAll("$client_id logout\r\n");
+       //GateWay::sendToAll("$client_id logout\r\n");
    }
 }

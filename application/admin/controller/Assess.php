@@ -75,9 +75,9 @@ class Assess extends AdminForm
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
             ['title'     => '参数名称', 'width'   => '*','value'     => 'name', 'type'      => 'text'],
             /* ['title'     => '评价分数', 'width'   => '160', 'value'     => 'config_value', 'type'      => 'text'], */
-            ['title'     => '显示排序','width'    => '*','value'      => 'sort_order','type'      => 'text'],
-            ['title'     => '状态','width'    => '*','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
-            ['title'     => '操作','width'    => '*','value'   => 'config_id','type'      => 'button','button'    =>
+            ['title'     => '显示排序','width'    => '80','value'      => 'sort_order','type'      => 'text'],
+            ['title'     => '状态','width'    => '80','value'      => 'status','type'      => 'yesOrNo', 'yes'       => '可用','no'        => '禁用'],
+            ['title'     => '操作','width'    => '160','value'   => 'config_id','type'      => 'button','button'    =>
                 [
                     ['text'  => '编辑','action'=> 'edit','icon'  => 'edit','bgClass'=> 'bg-main'],
                     ['text'  => '删除','action'=> 'del','icon'  => 'delete','bgClass'=> 'bg-red']

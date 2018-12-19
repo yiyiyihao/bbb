@@ -12,18 +12,18 @@
                 <div class="tab-panel active" id="tab-1">
                     <div class="form-group">
                         <div class="label">
-                            <label>登录用户名</label>
+                            <label>登录账号</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="40" value="{$info['username']}" disabled="disabled">
+                        	<span class="field-text">{$info.username|default=''}</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>账号角色</label>
+                            <label>所属平台</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="40" value="{:get_admin_type($adminUser['admin_type'])}" disabled="disabled">
+                        	<span class="field-text">{:get_admin_type($adminUser['admin_type'])}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -31,7 +31,16 @@
                             <label>管理员角色</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" size="40" value="{$info['group']['name'] ?? '管理员'}" disabled="disabled">
+                        	<span class="field-text">{$info['group']['name'] ?? '管理员'}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>显示昵称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="nickname" name="nickname" size="40" value="{$info['nickname'] ?? ''}">
+                            <div class="input-note">请填写账号昵称(别名)</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -40,7 +49,7 @@
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="realname" name="realname" size="40" value="{$info['realname'] ?? ''}">
-                            <div class="input-note">请填写负责人登录用户名</div>
+                            <div class="input-note">请填写负责人真实姓名</div>
                         </div>
                     </div>
                     <div class="form-group">

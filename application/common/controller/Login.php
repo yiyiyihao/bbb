@@ -41,7 +41,7 @@ class Login extends CommonBase
                 return $this->error(lang('USERNOTEXIST'));
             }
             $user = $user->toArray();
-            if(!$user['status']){
+            if(!$user['status'] || $user['is_del']){
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
             if($user['password']<> $userModel->pwdEncryption($passWord)){
