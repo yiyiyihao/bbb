@@ -4,14 +4,14 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">基本信息</a>
-                        </li>
+                        <li class="active"><a href="#tab-1">基本信息</a></li>
+                        <li><a href="#tab-2">产品详情</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	{include file="common/factory" /}
+                	<!-- {include file="common/factory" /} -->
                     <div class="form-group">
 						<div class="label">
 							<label>产品分类</label>
@@ -156,26 +156,6 @@
                             <div class="input-note">请选择库存计数类型</div>
                         </div>
                     </div>
-	                <div class="form-group">
-			            <div class="label">
-			              <label>产品描述</label>
-			            </div>
-			            <div class="field">
-			              <textarea class="input" id="description" name="description" rows="5" cols="60">{$info['description'] ?? ''}</textarea>
-			              <div class="input-note"></div>
-			            </div>
-			          </div>
-			          <div class="form-group">
-		                <div class="label">
-		                  <label>产品详情</label>
-		                </div>
-		                <div class="field">
-		                  <textarea class="input js-editor" id="content" name="content" rows="20">
-		                  	{$info.content? stripslashes($info.content) : '' }
-		                  </textarea>
-		                  <div class="input-note">请输入产品详情</div>
-		                </div>
-		              </div>
                     <div id="expand"></div>
                     <div class="form-group">
                         <div class="label">
@@ -210,6 +190,41 @@
                         </div>
                     </div>                    
                 </div>
+            	
+            	<div class="tab-panel" id="tab-2">
+            		<div class="form-group">
+						<div class="label">
+							<label>小程序商品分类图片</label>
+						</div>
+						<div class="field">
+							<input type="hidden" class="input" id="cate_thumb" name="cate_thumb" size="38" value="{$info['cate_thumb']|default=''}">
+			                <div class="cate_thumb_preview" style="margin-bottom:10px;"><img src="{$info['cate_thumb']|default='/static/base/images/default.png'}" id="cate_thumb_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="cate_thumb" preview="cate_thumb_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传</span>
+			                </a>
+						</div>
+					</div>
+					<div class="form-group">
+			            <div class="label">
+			              <label>产品描述</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="description" name="description" rows="5" cols="60">{$info['description'] ?? ''}</textarea>
+			              <div class="input-note"></div>
+			            </div>
+			          </div>
+			          <div class="form-group">
+		                <div class="label">
+		                  <label>产品详情</label>
+		                </div>
+		                <div class="field">
+		                  <textarea class="input js-editor" id="content" name="content" rows="30">
+		                  	{$info.content? stripslashes($info.content) : '' }
+		                  </textarea>
+		                  <div class="input-note">请输入产品详情</div>
+		                </div>
+		              </div>
+				</div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
