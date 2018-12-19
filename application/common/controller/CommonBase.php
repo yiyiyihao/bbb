@@ -40,12 +40,13 @@ class CommonBase extends Base
     //公共登录处理初始化
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
-        $room = $this->adminUser['store_type'] ? $this->adminUser['store_type'] : 'admin';
+        $storeType = $this->adminUser['store_type'] ? $this->adminUser['store_type'] : 'admin';
+        $storeRoom = $this->adminUser['store_id'] ? $this->adminUser['store_id'] : 0;
         $loginData = array(
             'type'          => 'login',
             'id'            => md5($this->adminUser['user_id']),
-//             'client_name'   => $this->adminUser['username'],
-            'room'          => $room,
+            'storeType'     => $storeType,              //各角色大类型分组
+            'storeRoom'     => 'store'.$storeRoom,      //各角色子用户分组
         );
         $this->assign('loginData',json_encode($loginData));
         //判断用户是否需要强制修改初始密码

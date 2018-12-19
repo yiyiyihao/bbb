@@ -66,12 +66,19 @@ class Events
                $uid = $messageData['id'];
                // 将当前链接与uid绑定
                Gateway::bindUid($clientId, $uid);
-               // 判断是否有房间号
-               if(isset($messageData['room']))
+               // 判断是否有storeType
+               if(isset($messageData['storeType']))
                {
-                   $room = $messageData['room'];
+                   $storeType = $messageData['storeType'];
                    //如果有房间号,加入到房间
-                   Gateway::joinGroup($clientId, $room);
+                   Gateway::joinGroup($clientId, $storeType);
+               }
+               // 判断是否有storeRoom
+               if(isset($messageData['storeRoom']))
+               {
+                   $storeRoom = $messageData['storeRoom'];
+                   //如果有房间号,加入到房间
+                   Gateway::joinGroup($clientId, $storeRoom);
                }
                $returnMessage = [
                    'type'       =>  $messageData['type'],

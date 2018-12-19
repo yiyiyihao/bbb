@@ -91,7 +91,9 @@ class Bulletin extends FactoryForm
             $push = new PushBase;
             $data = [
                 'type'  => 'notice',
-                'message'   => '测试消息'
+                'title' => $info['name'],
+                'desc'  => $info['description'],
+                'content'=>$info['content'],
             ];
             //发送给群组内在线的人
             $push->sendToGroup($info['store_type'], json_encode($data));
