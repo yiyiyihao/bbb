@@ -133,7 +133,8 @@ class CommonBase extends Base
             $tempStr = url($module.$menu['url']);
             foreach ($purviewList as $key=>$v){
                 $pstr = url($v['module'].'/'.$v['controller'].'/'.$v['action']);
-                if($pstr == $tempStr){
+//                 if($pstr == $tempStr){//之前严格校验操作权限
+                if(strpos($tempStr,$pstr) !== false){//现改成包含校验,可能会有问题,后续优化 @chany 2018-12-20
                     $flag = true;
                 }
                 if($flag) continue;
