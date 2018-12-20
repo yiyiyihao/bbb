@@ -134,7 +134,7 @@ class Bulletin extends FactoryForm
         $params['to_store_ids'] = $visibleRange ? '' : implode(',', $storeIds);
         if (!$info) {
             $params['post_user_id'] = ADMIN_ID;
-            $params['store_id'] = $this->adminUser['admin_type'];
+            $params['store_id'] = $this->adminUser['store_id'];
         }
         return $params;
     }
@@ -176,6 +176,8 @@ class Bulletin extends FactoryForm
             $where[] = 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))';
             $where[] = 'B.store_type = 0 OR B.store_type = '.$this->adminUser['store_type'];
             $where[] = 'BR.is_del IS NULL OR BR.is_del = 0';
+        }else{
+            $where['B.store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {
             $status = isset($params['status']) ? intval($params['status']) : -1;
