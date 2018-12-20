@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-19 20:54:40
+Date: 2018-12-20 10:56:56
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -30,7 +30,7 @@ CREATE TABLE `wja_apilog_app` (
   `response_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '响应时间',
   `error` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '错误状态',
   PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='接口访问日志表';
+) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='接口访问日志表';
 
 -- ----------------------------
 -- Records of wja_apilog_app
@@ -50,6 +50,7 @@ INSERT INTO `wja_apilog_app` VALUES ('12', 'TEST', '1545211799', '1545211799', '
 INSERT INTO `wja_apilog_app` VALUES ('13', 'TEST', '1545216522', '1545216522', 'getThirdOpenid', '{\"timestamp\":1545216521,\"signkey\":\"ds7p7auqyjj8\",\"mchkey\":\"1458745225\",\"method\":\"getThirdOpenid\",\"type\":\"1\",\"sign\":\"ad4de8a0dbedc863d1c6537fd2cbd313\"}', '{\"errCode\":1,\"errMsg\":\"code\\u4e0d\\u80fd\\u4e3a\\u7a7a\"}', '11', '1');
 INSERT INTO `wja_apilog_app` VALUES ('14', 'TEST', '1545216857', '1545216857', 'getThirdOpenid', '{\"timestamp\":1545216856,\"signkey\":\"ds7p7auqyjj8\",\"mchkey\":\"1458745225\",\"method\":\"getThirdOpenid\",\"type\":\"1\",\"sign\":\"e53bd9679018e8de72a39cb609e26b30\"}', '{\"errCode\":1,\"errMsg\":\"\\u5382\\u5546\\u672a\\u914d\\u7f6e\\u667a\\u4eab\\u5bb6\\u7528\\u6237\\u7aef\\u5c0f\\u7a0b\\u5e8f\\u4fe1\\u606f\"}', '33', '1');
 INSERT INTO `wja_apilog_app` VALUES ('15', 'TEST', '1545217188', '1545217188', 'getThirdOpenid', '{\"timestamp\":1545217187,\"signkey\":\"ds7p7auqyjj8\",\"mchkey\":\"1458745225\",\"method\":\"getThirdOpenid\",\"type\":\"1\",\"sign\":\"7668cf9366471792165a11e2d7e9fa9c\"}', '{\"errCode\":1,\"errMsg\":\"code\\u4e0d\\u80fd\\u4e3a\\u7a7a\"}', '25', '1');
+INSERT INTO `wja_apilog_app` VALUES ('16', 'TEST', '1545274109', '1545274109', 'getWorkOrderList', '{\"timestamp\":1545274109,\"signkey\":\"ds7p7auqyjj8\",\"mchkey\":\"1458745225\",\"method\":\"getWorkOrderList\",\"openid\":\"IniKj4LPxfSeWXSfdPd77mi0GIIiII\",\"sign\":\"42b081939629f2b910471c38c0a6e5bc\"}', '{\"errCode\":1,\"errMsg\":\"\\u672a\\u7ed1\\u5b9a\\u624b\\u673a\\u53f7\"}', '34', '1');
 
 -- ----------------------------
 -- Table structure for wja_apilog_pay
@@ -4616,8 +4617,8 @@ CREATE TABLE `wja_user` (
 -- ----------------------------
 -- Records of wja_user
 -- ----------------------------
-INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1545183188', '1545183188', '0', '0');
-INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1545183149', '1545183149', '0', '0');
+INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1545271378', '1545271378', '0', '0');
+INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1545271434', '1545271434', '0', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '2', '1', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1544428622', '1544428622', '0', '0');
 INSERT INTO `wja_user` VALUES ('4', '3', '1', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1545129614', '1545129613', '0', '0');
 INSERT INTO `wja_user` VALUES ('5', '4', '1', '4', '3', '0', 'lingshou', '8ba8f868ba577b107b8908c11e5c3758', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1545033126', '1545033126', '0', '0');

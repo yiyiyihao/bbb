@@ -59,7 +59,7 @@ class OrderService extends Model
             $this->error = '申请已存在不能重复申请';
             return FALSE;
         }
-        $storeConfig = get_store_config($order['store_id'], TRUE);
+        $storeConfig = get_store_config($order['store_id'], TRUE, 'default');
         $returnTime = 0;
         //判断商户是否可提现(超时不允许提现)
         if ($storeConfig && isset($storeConfig['order_return_day']) && $storeConfig['order_return_day'] > 0) {

@@ -326,7 +326,9 @@ class Workorder extends FactoryForm
         if ($type == 1) {
             $data['fault_desc'] = '';
         }
-        $data['images'] = $data['imgs'] ? implode(',', $data['imgs']) :'';
+        if (isset($data['imgs'])) {
+            $data['images'] = $data['imgs'] ? implode(',', $data['imgs']) :'';
+        }
         $data['appointment'] = $appointment ? strtotime($appointment) : 0;
         if ($data['appointment'] <= time()) {
             $this->error('预约服务时间必须大于当前时间');
@@ -340,7 +342,9 @@ class Workorder extends FactoryForm
     function _assignInfo($pkId = 0)
     {
         $info = parent::_assignInfo();
-        $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        if ($info) {
+            $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        }
         return $info;
     }
 }

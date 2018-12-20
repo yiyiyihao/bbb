@@ -716,7 +716,7 @@ class Order extends Model
             return FALSE;
         }
         $closeFlag = 0;
-        $config = get_store_config($order['store_id'], TRUE);
+        $config = get_store_config($order['store_id'], TRUE, 'default');
         if ($config) {
             //退货退款时间限制
             $returnTime = $config['order_return_day'] * 24 * 60 * 60;
