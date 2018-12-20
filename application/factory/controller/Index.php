@@ -228,8 +228,8 @@ class Index extends CommonIndex
         $this->assign('today', $today);
         $this->assign('total', $total);
         
-//         $hometpl = 'home_'.$tpl;
-        $hometpl = 'home';
+        $hometpl = 'home_'.$tpl;
+//         $hometpl = 'home';
         return $this->fetch($hometpl);
     }
 }
