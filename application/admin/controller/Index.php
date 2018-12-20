@@ -1,7 +1,6 @@
 <?php
 namespace app\admin\controller;
 use app\common\controller\Index as CommonIndex;
-use app\common\service\PushBase;
 /**
  * @author chany
  * @date 2018-11-08
@@ -9,7 +8,7 @@ use app\common\service\PushBase;
 class Index extends CommonIndex
 {
     public function test(){
-        $push = new PushBase;
+        $push = new \app\common\service\PushBase();
         $data = [
             'type'  => 'notice',
             'message'   => '测试消息'

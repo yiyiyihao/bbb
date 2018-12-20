@@ -5,6 +5,9 @@ use think\Gateway;
 //消息推送底层控制器
 class PushBase
 {
+    public function __construct(){
+        
+    }
     /**
      * 绑定用户
      */

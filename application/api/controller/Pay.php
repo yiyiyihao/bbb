@@ -44,7 +44,7 @@ class Pay extends ApiBase
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
-                $push = new PushBase;
+                $push = new \app\common\service\PushBase();
                 $data = [
                     'type'          => 'order',
                     'orderSn'       => $orderSn,

@@ -1,6 +1,5 @@
 <?php
 namespace app\factory\controller;
-use app\common\service\PushBase;
 //公告管理
 class Bulletin extends FactoryForm
 {
@@ -88,7 +87,7 @@ class Bulletin extends FactoryForm
     	}
         $result = $this->model->where(['bulletin_id' => $info['bulletin_id']])->update(['publish_status' => 1, 'publish_time' => time(), 'update_time' => time()]);
         if($result){
-            $push = new PushBase;
+            $push = new \app\common\service\PushBase();
             $data = [
                 'type'  => 'notice',
                 'title' => $info['name'],

@@ -13,6 +13,10 @@ class WorkOrder extends Model
     {
         parent::initialize();
     }
+    
+    /**
+     * 创建工单
+     */
     public function save($data = [], $where = [], $sequence = null)
     {
         parent::checkBeforeSave($data, $where);
@@ -30,6 +34,15 @@ class WorkOrder extends Model
                 'post_user_id' => $data['post_user_id'],
             ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
+            //发送工单通知给服务商
+            $push = new \app\common\service\PushBase();
+            $sendData = [
+                'type'  => 'worker',
+                'worder_sn'    => $worder['worder_sn'],
+                'worder_id'    => $worder['worder_id'],
+            ];
+            //发送给服务商在线管理员
+            $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
             $this->worderLog($worder, $user, '创建工单');
             return $sn;
         }
