@@ -248,7 +248,7 @@ class Installer extends FormBase
         $btnArray = [];
         $btnArray = [
 //             ['text'  => '审核', 'action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'],
-            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'pay-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser.admin_type == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser.admin_type == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
+            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'pay-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser["admin_type"] == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
             ['text'  => '详情', 'action'=> 'detail','icon'  => 'detail','bgClass'=> 'bg-green'],
         ];
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
