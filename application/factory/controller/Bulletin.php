@@ -94,8 +94,9 @@ class Bulletin extends FactoryForm
                 'desc'  => $info['description'],
                 'content'=>$info['content'],
             ];
-            //发送给群组内在线的人
-            $push->sendToGroup($info['store_type'], json_encode($data));
+            //发送给群组内在线的人,如果store_type == 0 代表发给所有角色
+            $group = $info['store_type'] == 0 ? 'factory'.$info['store_id'] : $info['store_type'];
+            $push->sendToGroup($group , json_encode($data));
             $this->success('公告发布成功','index');
         }else{
             $this->error('发布失败');
@@ -172,8 +173,8 @@ class Bulletin extends FactoryForm
         ];
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
             $where['B.publish_status'] = 1;
-            $where['B.store_type'] = $this->adminUser['store_type'];
             $where[] = 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))';
+            $where[] = 'B.store_type = 0 OR B.store_type = '.$this->adminUser['store_type'];
             $where[] = 'BR.is_del IS NULL OR BR.is_del = 0';
         }
         if ($params) {
@@ -212,6 +213,9 @@ class Bulletin extends FactoryForm
                 if (isset($value['value']) && $value['value'] == 'is_top') {
                     $table[$key]['value'] = 'is_read';
                     $table[$key]['title'] = '是否已读';
+                }
+                if(isset($value['value']) && !in_array($value['value'], ['is_top','name','publish_time','bulletin_id'])){
+                    unset($table[$key]);
                 }
             }
         }

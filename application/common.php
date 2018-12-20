@@ -76,6 +76,8 @@ function get_store_type($type = FALSE){
     }
     if (isset($types[$type])) {
         return $types[$type];
+    }else if($type === 0){
+        return '全部商户';
     }else{
         return '';
     }

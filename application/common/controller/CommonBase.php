@@ -40,11 +40,13 @@ class CommonBase extends Base
     //公共登录处理初始化
     protected function commonInit($domain){
         $this->adminUser = session($domain.'_user');
-        $storeType = $this->adminUser['store_type'] ? $this->adminUser['store_type'] : 'admin';
-        $storeRoom = $this->adminUser['store_id'] ? $this->adminUser['store_id'] : 0;
+        $factoryRoom     = $this->adminUser['factory_id'] ? $this->adminUser['factory_id'] : 0;
+        $storeType       = $this->adminUser['store_type'] ? $this->adminUser['store_type'] : 'admin';
+        $storeRoom       = $this->adminUser['store_id'] ? $this->adminUser['store_id'] : 0;
         $loginData = array(
             'type'          => 'login',
             'id'            => md5($this->adminUser['user_id']),
+            'factoryRoom'   => 'factory'.$factoryRoom,  //各厂商下级分组
             'storeType'     => $storeType,              //各角色大类型分组
             'storeRoom'     => 'store'.$storeRoom,      //各角色子用户分组
         );

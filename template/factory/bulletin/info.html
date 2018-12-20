@@ -26,11 +26,9 @@
                         </div>
                         <div class="field">
                             <div class="button-group radio">
+                            	<label class='button{if (!$info) ||(isset($info['store_type']) && $info['store_type'] == 0)} active{/if}'><input name="store_type" value="0" {if (!$info) ||(isset($info['store_type']) && $info['store_type'] == 0)}checked="checked"{/if} type="radio">全部商户</label>
                             {volist name="types" id="type"}
-                            	{if ($i == 1)}
-                            	 {assign name="store_type" value="$key" /}
-                            	{/if}
-                                <label class='button{if (!$info && $i == 1 ) ||(isset($info['store_type']) && $info['store_type'] == $key)} active{/if}'><input name="store_type" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['store_type']) && $info['store_type'] == $key)}checked="checked"{/if} type="radio">{$type}</label>
+                                <label class='button{if (isset($info['store_type']) && $info['store_type'] == $key)} active{/if}'><input name="store_type" value="{$key}" {if (isset($info['store_type']) && $info['store_type'] == $key)}checked="checked"{/if} type="radio">{$type}</label>
                             {/volist}
                             </div>
                             <div class="input-note">请选择公告可见商户类型</div>
