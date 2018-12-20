@@ -29,3 +29,7 @@
 .goodsText .priceBox p span{font-size:18px;}
 .goodsText .priceBox p #salePrice{ font-style:normal; font-size:32px;}
 
+.goodsDetail{ padding:15px;}
+.goodsDetail .detail-title{ line-height:40px; border-bottom:1px solid #ddd;}
+.goodsDetail .detail-main{ font-size:12px; padding:10px 0;}
+.goodsDetail .detail-main img{ max-width:100% !important;}

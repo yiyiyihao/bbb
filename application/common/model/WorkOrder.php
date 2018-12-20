@@ -594,7 +594,7 @@ class WorkOrder extends Model
             'installer_id'  => $installerId,
             'action'        => $action,
             'status'        => 1,
-            'remark'        => $$remark,
+            'remark'        => $remark,
             'add_time'      => time(),
         ];
         return $result = db('work_order_log')->insertGetId($data);
