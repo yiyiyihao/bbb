@@ -7,12 +7,19 @@ namespace app\admin\service;
 class Auth{
 
     //默认配置
-    protected $_config = array(
+    protected $_config = [
         'AUTH_ON'           => true,                // 认证开关
-    );
+    ];
+    protected $_common = [];
 
     public function __construct() {
-        
+        $this->_common = [
+            [
+                'module'        => 'factory',
+                'controller'    => 'upload',
+                'action'        => '*',
+            ]
+        ];
     }
     
     /**
@@ -20,12 +27,12 @@ class Auth{
      */
     public function check($request,$groupPurview = []){
         //获取用户需要验证的所有有效规则列表
-        $commonPurview      = [];//获取默认权限
+        $commonPurview      = $this->_common;//获取默认权限
         $authList           = array_merge($groupPurview,$commonPurview);
         $module             = strtolower($request->module());
         $controller         = strtolower($request->controller());
         $action             = strtolower($request->action());
-        foreach ($groupPurview as $k=>$v){
+        foreach ($authList as $k=>$v){
             $key = $v['module'];
             if($v['controller']) $key .= '_'.$v['controller'];
             $v['action']    = empty($v['action']) ? 'index' : $v['action'];
