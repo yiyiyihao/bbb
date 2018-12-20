@@ -328,6 +328,8 @@ class Workorder extends FactoryForm
         }
         if (isset($data['imgs'])) {
             $data['images'] = $data['imgs'] ? implode(',', $data['imgs']) :'';
+        }else {
+            $data['images'] = '';
         }
         $data['appointment'] = $appointment ? strtotime($appointment) : 0;
         if ($data['appointment'] <= time()) {
