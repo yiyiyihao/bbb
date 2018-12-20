@@ -32,6 +32,16 @@ class Workorder extends FactoryForm
             }
             $result = $this->model->worderDispatch($info, $this->adminUser, $installerId);
             if ($result !== FALSE) {
+                //发送派单通知给工程师
+                $push = new \app\common\service\PushBase();
+                $sendData = [
+                    'type'         => 'worker',
+                    'worder_sn'    => $info['worder_sn'],
+                    'worder_id'    => $info['worder_id'],
+                ];
+                //发送给服务商在线管理员
+                $push->sendToUid(md5($installerId), json_encode($sendData));
+                #TODO 发送服务通知/短信给工程师
                 $this->success('售后工程师指派成功', url('index'));
             }else{
                 $this->error('操作失败:'.$this->model->error);
