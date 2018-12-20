@@ -411,6 +411,27 @@ function get_work_order_status($status = FALSE)
         return '';
     }
 }
+function get_work_order_installer_status($status = FALSE)
+{
+    $list = [
+        0 => '待分派',
+        1 => '待接单',
+        2 => '待上门',
+        3 => '服务中',
+        4 => '已完成',
+        -1 => '已取消',
+        -2 => '已拒绝',
+        -3 => '已转移',
+    ];
+    if ($status === FALSE) {
+        return $list;
+    }
+    if (isset($list[$status])) {
+        return $list[$status];
+    }else{
+        return '';
+    }
+}
 
 function get_installer_status($status = FALSE)
 {

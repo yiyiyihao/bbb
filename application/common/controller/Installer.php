@@ -180,8 +180,9 @@ class Installer extends FormBase
                 $params['store_id'] = $storeId;
                 $params['factory_id'] = $this->adminStore['store_id'];
             }
+//             $params['check_status'] = $this->model->getInstallerStatus($params['store_id'], $params['factory_id']);
+            $params['check_status'] = 1;
         }
-        $params['check_status'] = $this->model->getInstallerStatus($params['store_id'], $params['factory_id']);
         return $params;
     }
     function _getAlias()

@@ -311,6 +311,8 @@ class Store extends FormBase
         }
         if ($this->storeType != STORE_FACTORY) {
             $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
+        }else{
+            $join[] = ['user_group UG', 'UG.group_id = U.group_id AND UG.is_system = 1', 'INNER'];
         }
         return $join;
     }

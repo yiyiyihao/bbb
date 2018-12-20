@@ -9,6 +9,7 @@ class LogCode extends Model
 	public $error;
 	private $codeTypes = [
 	    'bind_phone' => '绑定手机号',
+	    'change_phone' => '更换手机号',
 	];
 	//自定义初始化
     protected function initialize()

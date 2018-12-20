@@ -148,8 +148,6 @@ class Index extends ApiBase
     //短信验证码验证
     protected function checkSmsCode()
     {
-        $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
-        $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
         $codeModel = new \app\common\model\LogCode();
         $result = $codeModel->verifyCode($this->postParams);
         if ($result === FALSE){
@@ -521,6 +519,7 @@ class Index extends ApiBase
             'idcard_font_img' => $idcardFontImg,
             'idcard_back_img' => $idcardBackImg,
             'work_time' => $workTime,
+            'security_record_num' => $securityRecordNum,
         ];
         if ($user['installer']) {
             $data['check_status'] = $checkStatus = $user['installer']['check_status'] == -2 ? -1 : -3;
@@ -560,45 +559,56 @@ class Index extends ApiBase
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         $orderType = isset($this->postParams['type']) ? intval($this->postParams['type']): '';
-        $status = isset($this->postParams['status']) ? intval($this->postParams['status']): 1;
-        if (!get_work_order_status($status)) {
-            $status = 1;
+        $status = isset($this->postParams['status']) ? intval($this->postParams['status']): FALSE;
+        if (!$installer) {
+            if (!get_work_order_status($status)) {
+                $status = FALSE;
+            }
+        }else{
+            if (!get_work_order_installer_status($status)) {
+                $status = FALSE;
+            }
         }
         if ($orderType && !in_array($orderType, [1, 2])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(work_order_type)错误']);
         }
+        $where = ['WO.is_del' => 0];
         if (!$installer) {
-            $where = [
-                'post_user_id' => $user['user_id'],
-                'WO.is_del' => 0,
-            ];
+            $where['WO.post_user_id'] = $user['user_id'];
         }else{
-            $where = [
-                'installer_id' => $installer['installer_id'],
-                'WO.is_del' => 0,
-            ];
+            if ($status >= -1) {
+                $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+            }else{
+                if ($status == -2) {
+                    $installStatus = 1;
+                }else{
+                    $installStatus = 2;
+                }
+                $where[] = '(WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status = '.$installStatus.')';
+            }
         }
         if ($orderType) {
             $where['work_order_type'] = $orderType;
         }
-        if (isset($this->postParams['status'])) {
+        if ($status !== FALSE && $status >= -1) {
             $where['work_order_status'] = $status;
         }
-        $field = 'WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
-        $field .= ', G.name as sku_name';
+        $field = 'WO.installer_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field .= ', G.name as sku_name, (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         $order = 'WO.add_time ASC';
         $join = [
             ['goods G', 'G.goods_id = WO.goods_id', 'LEFT'],
+            ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
+            ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
         ];
+        $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($list) {
             foreach ($list as $key => $value) {
-                $list[$key]['status_txt'] = get_work_order_status($value['work_order_status']);
                 $list[$key]['appointment'] = $value['appointment'] ? date('Y-m-d H:i', $value['appointment']) : '';
                 $list[$key]['work_order_type'] = $value['work_order_type'];
                 $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
-                
-                $list[$key]['has_assess'] = 1;#TODO 判断是否评价
+                $list[$key]['status_txt'] = get_work_order_installer_status($value['work_order_status']);
             }
         }
         $this->_returnMsg(['list' => $list]);
@@ -612,35 +622,43 @@ class Index extends ApiBase
         if (!$worderSn) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
-        $where = ['worder_sn' => $worderSn, 'is_del' => 0];
+        $where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
         if ($installer) {
-            $where['installer_id'] = $installer['installer_id'];
+//             $where['WO.installer_id'] = $installer['installer_id'];
+            $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
         }else{
-            $where['post_user_id'] = $user['user_id'];
+            $where['WO.post_user_id'] = $user['user_id'];
         }
-        $field = 'worder_id, worder_sn, installer_id, goods_id, work_order_type, order_sn, user_name, phone, region_name, address, appointment, images, fault_desc';
-        $field .= ', work_order_status, add_time, dispatch_time, cancel_time, receive_time, sign_time, finish_time';
-        $detail = db('work_order')->field($field)->where($where)->find();
+        $join = [
+            ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
+        ];
+        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
+        $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
+        $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
         }
         $detail['images'] = $detail['images']? explode(',', $detail['images']) : [];
-        $detail['status_txt'] = get_work_order_status($detail['work_order_status']);
         $detail['appointment'] = $detail['appointment'] ? date('Y-m-d H:i', $detail['appointment']) : '';
         $detail['work_order_type_txt'] = get_work_order_type($detail['work_order_type']);
+        $detail['status_txt'] = get_work_order_installer_status($detail['work_order_status']);
         if ($return) {
             return $detail;
         }
         $installer = db('user_installer')->field('job_no, realname, phone, service_count, score')->where(['installer_id' => $detail['installer_id']])->find();
         $sku = db('goods')->field('goods_id, name, thumb')->where(['goods_id' => $detail['goods_id']])->find();
-        unset($detail['installer_id'], $detail['osku_id']);
         $assess = [];
         //工单完成后获取首次评价
         if ($detail) {
             $workOrderModel = new \app\common\model\WorkOrder();
             $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
         }
-        $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess]);
+        //获取工程师工单日志
+        $logs = db('work_order_log')->field('worder_sn, action, msg, add_time')->where(['worder_id' => $detail['worder_id'], 'installer_id' => $user['installer']['installer_id']])->select();
+        $logs = $logs ? $logs : [];
+        unset($detail['worder_id'], $detail['installer_id'], $detail['osku_id']);
+        $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess, 'logs' => $logs]);
     }
     //售后工程师拒绝接单
     protected function refuseWorkOrder()

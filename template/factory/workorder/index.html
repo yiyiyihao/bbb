@@ -74,8 +74,10 @@
               		{if condition="($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && ($adminUser.admin_type == $Think.const.ADMIN_SERVICE)"}
 	              	<a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">派单</a>
 	              	{/if}
-	              	{if condition="!in_array($vo['work_order_status'], [-1, 3, 4]) && ($adminUser.admin_type == $Think.const.ADMIN_SERVICE)"}
-	              	<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
+	              	{if condition="$vo['work_order_status'] == 0"}
+	              		{if condition="(($vo.work_order_type==1 && in_array($adminUser.admin_type, [$Think.const.ADMIN_CHANNEL, $Think.const.ADMIN_DEALER]) || ($vo.work_order_type==2 && in_array($adminUser.admin_type, [$Think.const.ADMIN_FACTORY, $Think.const.ADMIN_SERVICE]))))""}
+	              		<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
+	              		{/if}
 	              	{/if}
                     {if $vo.work_order_status==4 && $adminUser.admin_type == $Think.const.ADMIN_FACTORY}
 	              	<a href="{:url('assess', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-message">评价工单</a>

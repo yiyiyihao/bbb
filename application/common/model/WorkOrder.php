@@ -43,7 +43,7 @@ class WorkOrder extends Model
             ];
             //发送给服务商在线管理员
             $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
-            $this->worderLog($worder, $user, '创建工单');
+            $this->worderLog($worder, $user, 0, '创建工单');
             return $sn;
         }
         return $result;
@@ -113,6 +113,10 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        if ($user['admin_type'] != ADMIN_SERVICE) {
+            $this->error = '当前账户无操作权限';
+            return FALSE;
+        }
         //判断用户是否有分派工程师权限(仅服务商有分派工程师权限)
         if ($user['admin_type'] == ADMIN_SERVICE && $user['store_id'] != $worder['store_id']) {
             $this->error = '当前账户无操作权限';
@@ -163,8 +167,14 @@ class WorkOrder extends Model
         if ($result !== FALSE) {
             //操作日志记录
             $msg = '工程师姓名:'.$installer['realname'].'<br>工程师电话:'.$installer['phone'];
-            $this->worderLog($worder, $user, $action, $msg);
-            $this->_worderInstallerLog($worder, $installerId, 'dispatch', 1, $msg);
+            $this->worderLog($worder, $user, $installerId, $action, $msg);
+            if ($worder['installer_id'] != $installerId) {
+                $this->_worderInstallerLog($worder, $installerId, 'dispatch', 0);
+                //状态(1已拒绝  2分派转移)
+                if ($worder['installer_id'] > 0) {
+                    $this->_worderInstallerLog($worder, $worder['installer_id'], 'dispatch_other', 2);
+                }
+            }
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -212,7 +222,8 @@ class WorkOrder extends Model
         $result = $this->save(['work_order_status' => 0, 'installer_id' => 0], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, '工程师拒绝接单', $remark);
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师拒绝接单', $remark);
+            $this->_worderInstallerLog($worder, $installer['installer_id'], 'refuse', 1);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -260,7 +271,7 @@ class WorkOrder extends Model
         $result = $this->save(['work_order_status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, '工程师接单');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师接单');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -308,7 +319,7 @@ class WorkOrder extends Model
         $result = $this->save(['work_order_status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, '工程师签到,服务开始');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到,服务开始');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -389,7 +400,7 @@ class WorkOrder extends Model
             //增加工程师服务次数
             model('user_installer')->where(['installer_id'=>$worder['installer_id']])->setInc('service_count');
             //操作日志记录
-            $this->worderLog($worder, $user, '确认完成');
+            $this->worderLog($worder, $user, $worder['installer_id'], '确认完成');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -455,6 +466,12 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        $type = $worder['work_order_type'];
+        //只有厂商和服务商有维修工单的取消权限
+        if ($type == 2 && $user['admin_type'] >0 && !in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+            $this->error = '无操作权限';
+            return FALSE;
+        }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['work_order_status']) {
             case -1:
@@ -473,7 +490,7 @@ class WorkOrder extends Model
         $result = $this->save(['work_order_status' => -1, 'cancel_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, '取消工单', $remark);
+            $this->worderLog($worder, $user, 0, '取消工单', $remark);
         }else{
             $this->error = '系统异常';
             return FALSE;
@@ -521,7 +538,7 @@ class WorkOrder extends Model
         if($assessId){
             $action = $assessData['type'] ? '首次评价': '追加评价';
             //操作日志记录
-            $this->worderLog($worder, $user, $action, $assessData['msg']);
+            $this->worderLog($worder, $user, 0, $action, $assessData['msg']);
             switch ($assessData['type']){
                 case 1://首次评价带评分,记录评分信息
                     $scoreData = $assessData['score'];
@@ -572,12 +589,13 @@ class WorkOrder extends Model
      * @param string $msg
      * @return number|string
      */
-    public function worderLog($worder, $user, $action = '', $msg = '')
+    public function worderLog($worder, $user, $installerId = 0, $action = '', $msg = '')
     {
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
             'worder_id' => $worder['worder_id'],
             'worder_sn' => $worder['worder_sn'],
+            'installer_id' => $installerId,
             'user_id'   => $user ? $user['user_id'] : 0,
             'nickname'  => $user ? $nickname : '系统',
             'action'    => $action,
@@ -586,18 +604,27 @@ class WorkOrder extends Model
         ];
         return $result = db('work_order_log')->insertGetId($data);
     }
-    private function _worderInstallerLog($worder, $installerId, $action = "dispatch", $status = 1, $remark = '')
+    private function _worderInstallerLog($worder, $installerId, $action = "dispatch_other", $status = 1)
     {
+        $logModel = db('work_order_installer_record');
+        
+        $exist = $logModel->where(['worder_id' => $worder['worder_id'], 'installer_id' => $installerId, 'is_del' => 0])->find();
+        if ($exist) {
+            $result = $logModel->where(['log_id' => $exist['log_id']])->update(['is_del' => 1, 'update_time' => time()]);
+        }
+        if ($action == 'dispatch') {
+            return FALSE;
+        }
         $data = [
             'worder_id'     => $worder['worder_id'],
             'worder_sn'     => $worder['worder_sn'],
             'installer_id'  => $installerId,
             'action'        => $action,
-            'status'        => 1,
-            'remark'        => $remark,
+            'status'        => $status,//状态(1已拒绝   2分派转移)
             'add_time'      => time(),
+            'update_time'   => time(),
         ];
-        return $result = db('work_order_log')->insertGetId($data);
+        return $result = db('work_order_installer_record')->insertGetId($data);
     }
     private function _getWorderSn($sn = '')
     {

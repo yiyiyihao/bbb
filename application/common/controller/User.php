@@ -69,7 +69,7 @@ class User extends FormBase
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $group = db('user_group')->find($info['group_id']);
-        if ($group['is_system'] || !$group['store_id']) {
+        if ($group['is_system']) {
             $this->error('管理员账号不允许删除');
         }
         parent::del();
@@ -195,6 +195,11 @@ class User extends FormBase
         $table = parent::_tableData();
         $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
         $table['actions']['width']  = '*';
+        foreach ($table['actions']['button'] as $key => $value) {
+            if ($value['action'] == 'del') {
+                $table['actions']['button'][$key] = ['text'  => '删除', 'js-action' => TRUE, 'action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["is_system"] == 0']];
+            }
+        }
         return $table;
     }
 }

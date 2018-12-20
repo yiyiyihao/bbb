@@ -20,9 +20,46 @@ class Workorder extends FactoryForm
         unset($this->subMenu['add']);
         $this->assign('orderTypes', $this->orderTypes);
     }
+    public function edit()
+    {
+        $info = parent::_assignInfo();
+        if ($info) {
+            //派单之后不允许编辑
+            if ($info['work_order_status'] != 0) {
+                $this->error(lang('不允许编辑'));
+            }
+        }
+        $type = isset($info['work_order_type']) ? intval($info['work_order_type']) : 0;
+        //只有渠道和零售商可以编辑安装工单
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->error(lang('NO ACCESS'));
+        }
+        //只有厂商可以编辑维修工单
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])) {
+            $this->error(lang('NO ACCESS'));
+        }
+        return parent::edit();
+    }
+    public function add()
+    {
+        $params = $this->request->param();
+        $type = isset($params['type']) ? intval($params['type']) : 0;
+        //只有渠道和零售商可以新增安装工单
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->error(lang('NO ACCESS'));
+        }
+        //只有厂商可以新增维修工单
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])) {
+            $this->error(lang('NO ACCESS'));
+        }
+        return parent::add();
+    }
     //指派售后工程师
     public function dispatch()
     {
+        if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
+            $this->error(lang('NO ACCESS'));
+        }
         $info = $this->_assignInfo();
         if (IS_POST) {
             $params = $this->request->param();
@@ -101,6 +138,11 @@ class Workorder extends FactoryForm
     public function detail()
     {
         $info = $this->_assignInfo();
+        $type = $info['work_order_type'];
+        //只有厂商和服务商有维修工单的查看权限
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+            $this->error('无操作权限');
+        }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
         if ($info === FALSE) {
             $this->error($this->model->error);
