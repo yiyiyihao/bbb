@@ -68,6 +68,9 @@ function initMenu(data){
 			//打开菜单
 			$('#siderbar-nav a:first').click();
 		}
+		$("#backHome").click(function(){
+			$('#siderbar-nav a:first').click();
+		})
 	}
 	
 	$('.admin-head').on('click','.sideflag',function(){

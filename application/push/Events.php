@@ -66,6 +66,13 @@ class Events
                $uid = $messageData['id'];
                // 将当前链接与uid绑定
                Gateway::bindUid($clientId, $uid);
+               // 判断是否有factoryRoom 厂商下级管理用户
+               if(isset($messageData['factoryRoom']))
+               {
+                   $factoryRoom = $messageData['factoryRoom'];
+                   //如果有房间号,加入到房间
+                   Gateway::joinGroup($clientId, $factoryRoom);
+               }
                // 判断是否有storeType 1厂商 2渠道商 3零售商/零售商 4服务商
                if(isset($messageData['storeType']))
                {
