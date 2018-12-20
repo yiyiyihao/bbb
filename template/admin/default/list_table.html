@@ -16,7 +16,7 @@
             	{case index}{$k}{/case}
                 {case text}{$vo[$td['value']] ?? ''}
                 	{if condition="isset($td['warning']) && $td['warning'] && isset($vo['warning']) && $vo['warning']"}
-                		<span class="tag bg-red">预警</span>
+                		<span class="tag bg-red">缺货</span>
                 	{/if}
                 {/case}
                 {case function}{php}echo call_user_func($td['function'],$vo[$td['value']]);{/php}{/case}
