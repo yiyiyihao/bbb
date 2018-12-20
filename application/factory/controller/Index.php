@@ -149,7 +149,19 @@ class Index extends CommonIndex
             case ADMIN_CHANNEL:
                 $tpl = 'channel';
                 //今日佣金收益
+                $commissionModel=new \app\common\model\StoreCommission();
+                $join=[
+                    ['store S','C.store_id = S.store_id','INNER'],
+                ];
+                $where=[
+                    'S.store_id'=>$storeId,
+                    'C.commission_status'=>['IN',[0,1]],
+                    'C.add_time'=>['>=',$beginToday],
+                ];
+                $today['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
                 //累计佣金收益
+                unset($where['C.add_time']);
+                $total['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
                 
                 //今日订单数(渠道下的零售商订单数量)
                 //累计订单数(渠道下的零售商订单数量)
@@ -202,25 +214,88 @@ class Index extends CommonIndex
                 //累计订单金额(渠道下的零售商订单金额)
                 
                 //今日新增零售商数量
+                $where = [
+                    'factory_id' => $storeId,
+                    'store_type' => STORE_DEALER,
+                    'add_time' => ['>=',$beginToday],
+                ];
+                $today['channel_count']=$storeModel->where($where)->count();
                 //累计新增零售商数量
+
             break;
             case ADMIN_DEALER:
                 $tpl = 'dealer';
+                //今日订单数据统计
+                $where = [
+                    'store_id' => $storeId,
+                    'add_time' => ['>=', $beginToday],
+                ];
+                $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //今日订单数
-                //累计订单数
-                
+                $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
+                $today['order_amount'] = $todayOrder && isset($todayOrder['order_amount']) ? sprintf("%.2f",($todayOrder['order_amount'])) : 0;
+
+                //累计订单数据统计
+                $where = [
+                    'store_id' => $storeId,
+                ];
+                $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                //累计订单数
+                $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
                 //累计订单金额
+                $total['order_amount'] = $totalOrder && isset($totalOrder['order_amount']) ? sprintf("%.2f",($totalOrder['order_amount'])) : 0;
+
             break;
             case ADMIN_SERVICE:
                 $tpl = 'servicer';
                 //今日佣金收益
+                $commissionModel=new \app\common\model\StoreCommission();
+                $join=[
+                    ['store S','C.store_id = S.store_id','INNER'],
+                ];
+                $where=[
+                    'S.store_id'=>$storeId,
+                    'C.commission_status'=>['IN',[0,1]],
+                    'C.add_time'=>['>=',$beginToday],
+                ];
+                $today['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
                 //累计佣金收益
+                unset($where['C.add_time']);
+                $total['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
+
+
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'work_order_type' => 1,
+                    'add_time'=>['>=',$beginToday],
+                ];
                 //今日安装工单数量
+                $today['workorder_count_1']=$workOrderModel->where($where)->count();
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'work_order_type' => 1,
+                ];
                 //累计安装工单数量
+                $total['workorder_count_1']=$workOrderModel->where($where)->count();
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'work_order_type' => 2,
+                    'add_time'=>['>=',$beginToday],
+                ];
                 //今日维修工单数量
+                $today['workorder_count_2']=$workOrderModel->where($where)->count();
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'work_order_type' => 2,
+                ];
                 //累计维修工单数量
-            break;
+                $total['workorder_count_2']=$workOrderModel->where($where)->count();
+                break;
             default:
                 $this->error(lang('NO ACCESS'));
             break;
@@ -229,7 +304,7 @@ class Index extends CommonIndex
         $this->assign('total', $total);
         
         $hometpl = 'home_'.$tpl;
-//         $hometpl = 'home';
+        //$hometpl = 'home';
         return $this->fetch($hometpl);
     }
 }

@@ -11,12 +11,11 @@ namespace app\common\model;
 
 use think\Model;
 
-class Commission extends Model
+class StoreCommission extends Model
 {
     public $error;
     protected $fields;
     protected $pk = 'log_id';
-    protected $table='store_commission';
 
     //自定义初始化
     protected function initialize()

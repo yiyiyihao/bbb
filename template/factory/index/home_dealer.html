@@ -1,78 +1,33 @@
 <div class="line-big col-space15">
-	<div class="xm8">
-    	<div class="line-big col-space15">
-        	<div class="xm6">
+    <div class="xm8">
+        <div class="line-big col-space15">
+            <div class="xm6">
                 <div class="panel admin-dashboard boxShadow">
-                    <div class="panel-head"><span>数据汇总</span><span class="tag bg-main">昨日</span></div>
                     <div class="panel-body">
-                       <div class="panel-block flex-container">
-                       		<div class="flex-item num-item-box">
-                            	<h4>交易总额</h4>
-                                <div class="item-num">￥886.00</div>
-                            </div>                            
+                        <div class="panel-block flex-container">
                             <div class="flex-item num-item-box">
-                            	<h4>新增订单</h4>
-                                <div class="item-num">886</div>
+                                <h4>今日订单数量</h4>
+                                <div class="item-num">{$today.order_count}</div>
                             </div>
                             <div class="flex-item num-item-box">
-                            	<h4>新增经销商</h4>
-                                <div class="item-num">886</div>
-                            </div>
-                       </div>
-                    </div>
-                </div>
-            </div>
-        	<div class="xm6">
-                <div class="panel admin-dashboard boxShadow">
-                    <div class="panel-head"><span>今日当前数据</span></div>
-                    <div class="panel-body">
-                       <div class="panel-block flex-container">
-                       		<div class="flex-item num-item-box">
-                            	<h4>当前交易额</h4>
-                                <div class="item-num">￥886.00</div>
-                            </div>                            
-                            <div class="flex-item num-item-box">
-                            	<h4>新增订单</h4>
-                                <div class="item-num">886</div>
-                            </div>
-                            <div class="flex-item num-item-box">
-                            	<h4>新增经销商</h4>
-                                <div class="item-num">886</div>
-                            </div>
-                       </div>
-                    </div>
-                </div>
-            </div>
-            <div class="xm12">
-                <div class="panel pannel-tab admin-dashboard boxShadow">
-                	<div class="panel-head">
-                        <ul class="panel-tab-head">
-                            <li class="tab-active"><span>七日销售数据</span></li>
-                            <li><span>代理商业绩排行</span></li>
-                        </ul>
-                    </div>
-                    <div class="panel-body panel-tab-body">
-                    	<div class="panel-tab-item tab-active">
-                            <div class="panel-block">                        	
-                                <div class="js-chart1" style="height:400px;" data-chart='{$weekData|default=''}'>tab1</div>
+                                <h4>今日订单金额</h4>
+                                <div class="item-num">{$today.order_amount}</div>
                             </div>
                         </div>
-                        <div class="panel-tab-item">
-                            <div class="panel-block">                        	
-                                <div class="js-chart1" style="height:400px;" data-chart='{$weekData|default=''}'>tab2</div>
+                        <div class="panel-block flex-container">
+                            <div class="flex-item num-item-box">
+                                <h4>累计订单数量</h4>
+                                <div class="item-num">￥{$total.order_count}</div>
+                            </div>
+                            <div class="flex-item num-item-box">
+                                <h4>累计订单金额</h4>
+                                <div class="item-num">￥{$total.order_amount}</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="xm4">
-    	<div class="panel admin-dashboard boxShadow">
-        	<div class="panel-head"><span>待处理业务</span></div>
-            <div class="panel-body">
-               <div class="panel-block"></div>
-            </div>
+
         </div>
     </div>
 </div>
