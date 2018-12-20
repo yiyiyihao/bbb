@@ -570,12 +570,12 @@ class Index extends ApiBase
         if (!$installer) {
             $where = [
                 'post_user_id' => $user['user_id'],
-                'is_del' => 0,
+                'WO.is_del' => 0,
             ];
         }else{
             $where = [
                 'installer_id' => $installer['installer_id'],
-                'is_del' => 0,
+                'WO.is_del' => 0,
             ];
         }
         if ($orderType) {
@@ -584,14 +584,21 @@ class Index extends ApiBase
         if (isset($this->postParams['status'])) {
             $where['work_order_status'] = $status;
         }
-        $field = 'worder_sn, work_order_type, user_name, phone, region_name, address, appointment, work_order_status, add_time, cancel_time, receive_time, sign_time, finish_time';
-        $order = 'add_time ASC';
-        $list = $this->_getModelList(db('work_order'), $where, $field, $order);
+        $field = 'WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field .= ', G.name as sku_name';
+        $order = 'WO.add_time ASC';
+        $join = [
+            ['goods G', 'G.goods_id = WO.goods_id', 'LEFT'],
+        ];
+        $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($list) {
             foreach ($list as $key => $value) {
                 $list[$key]['status_txt'] = get_work_order_status($value['work_order_status']);
                 $list[$key]['appointment'] = $value['appointment'] ? date('Y-m-d H:i', $value['appointment']) : '';
-                $list[$key]['work_order_type'] = get_work_order_type($value['work_order_type']);
+                $list[$key]['work_order_type'] = $value['work_order_type'];
+                $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
+                
+                $list[$key]['has_assess'] = 1;#TODO 判断是否评价
             }
         }
         $this->_returnMsg(['list' => $list]);
@@ -611,8 +618,7 @@ class Index extends ApiBase
         }else{
             $where['post_user_id'] = $user['user_id'];
         }
-        $field = $return ? 'worder_id, ' : '';
-        $field .= ' worder_sn, installer_id, goods_id, work_order_type, order_sn, user_name, phone, region_name, address, appointment, images, fault_desc';
+        $field = 'worder_id, worder_sn, installer_id, goods_id, work_order_type, order_sn, user_name, phone, region_name, address, appointment, images, fault_desc';
         $field .= ', work_order_status, add_time, dispatch_time, cancel_time, receive_time, sign_time, finish_time';
         $detail = db('work_order')->field($field)->where($where)->find();
         if (!$detail) {
@@ -621,14 +627,20 @@ class Index extends ApiBase
         $detail['images'] = $detail['images']? explode(',', $detail['images']) : [];
         $detail['status_txt'] = get_work_order_status($detail['work_order_status']);
         $detail['appointment'] = $detail['appointment'] ? date('Y-m-d H:i', $detail['appointment']) : '';
-        $detail['work_order_type'] = get_work_order_type($detail['work_order_type']);
+        $detail['work_order_type_txt'] = get_work_order_type($detail['work_order_type']);
         if ($return) {
             return $detail;
         }
         $installer = db('user_installer')->field('job_no, realname, phone, service_count, score')->where(['installer_id' => $detail['installer_id']])->find();
         $sku = db('goods')->field('goods_id, name, thumb')->where(['goods_id' => $detail['goods_id']])->find();
         unset($detail['installer_id'], $detail['osku_id']);
-        $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku]);
+        $assess = [];
+        //工单完成后获取首次评价
+        if ($detail) {
+            $workOrderModel = new \app\common\model\WorkOrder();
+            $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
+        }
+        $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess]);
     }
     //售后工程师拒绝接单
     protected function refuseWorkOrder()
@@ -918,7 +930,7 @@ class Index extends ApiBase
         $user = db('user_data')->alias('UD')->join('user U', 'UD.user_id = U.user_id AND U.is_del = 0', 'LEFT')->field($field)->where($where)->find();
         if (!$user['user_id']) {
             if ($verify) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '未绑定手机号']);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在/未绑定手机号']);
             }
             $user['openid'] = $openid;
         }else{

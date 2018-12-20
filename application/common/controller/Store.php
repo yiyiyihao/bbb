@@ -62,7 +62,7 @@ class Store extends FormBase
                 $this->error('管理员手机号不能为空');
             }
             $params['user_id'] = $info ? $info['user_id'] : 0;
-            $result = $userModel->checkFormat($params);
+            $result = $userModel->checkFormat($this->adminUser['factory_id'], $params);
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }

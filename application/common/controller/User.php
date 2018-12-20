@@ -143,7 +143,7 @@ class User extends FormBase
             $this->error('手机号不能为空');
         }
         $userModel = new \app\common\model\User();
-        $result = $userModel->checkFormat($params);
+        $result = $userModel->checkFormat($this->adminUser['factory_id'], $params);
         if ($result === FALSE) {
             $this->error($userModel->error);
         }

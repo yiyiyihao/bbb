@@ -312,17 +312,6 @@ class User extends Model
         $username = isset($extra['username']) ? trim($extra['username']) : '';
         $password = isset($extra['password']) ? trim($extra['password']) : '';
         $phone = isset($extra['phone']) ? trim($extra['phone']) : '';
-        if ($phone == $username) {
-            $exist = $this->where(['username' => $phone, 'is_del' => 0])->find();
-            if ($exist) {
-                $this->error = '手机号已存在';
-                return FALSE;
-            }
-            $result = $this->checkPhone($factoryId, $phone, FALSE);
-            if ($result === FALSE) {
-                return FALSE;
-            }
-        }
         //检查用户名格式
         $pattern = '/^[\w]{5,16}$/';
         if ($username) {

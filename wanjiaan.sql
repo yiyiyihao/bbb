@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-20 10:56:56
+Date: 2018-12-20 15:35:15
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -4620,10 +4620,10 @@ CREATE TABLE `wja_user` (
 INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '0', '0', 'admin', 'f62df18cf9f77c1ddd315da773e0a18b', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1545271378', '1545271378', '0', '0');
 INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '1', '0', 'wanjiaan', 'f03be5a5d3fa6933cbe31b3817728515', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1545271434', '1545271434', '0', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '2', '1', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1544428622', '1544428622', '0', '0');
-INSERT INTO `wja_user` VALUES ('4', '3', '1', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1545129614', '1545129613', '0', '0');
-INSERT INTO `wja_user` VALUES ('5', '4', '1', '4', '3', '0', 'lingshou', '8ba8f868ba577b107b8908c11e5c3758', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1545033126', '1545033126', '0', '0');
+INSERT INTO `wja_user` VALUES ('4', '3', '1', '3', '2', '0', 'qudao', 'e8c94a39f248ffd0973920279f7a9a89', '', '', '', '', '0.00', '', '', '1', '1', '1543302686', '1545289253', '1545289253', '0', '0');
+INSERT INTO `wja_user` VALUES ('5', '4', '1', '4', '3', '0', 'lingshou', '8ba8f868ba577b107b8908c11e5c3758', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1545289281', '1545289280', '0', '0');
 INSERT INTO `wja_user` VALUES ('6', '4', '1', '6', '3', '0', 'lingshou1', 'ddb26f505418ec290e9fe09953530090', '', '', '13760170785', '', '0.00', '', '', '1', '1', '1544092577', '1545050355', '1545050155', '0', '0');
-INSERT INTO `wja_user` VALUES ('7', '5', '1', '5', '4', '0', 'fuwu0', '71b5ae2224384de48378da23c00ce187', '', '', '', '', '0.00', '', '', '1', '1', '1544501785', '1545223639', '1545223639', '0', '0');
+INSERT INTO `wja_user` VALUES ('7', '5', '1', '5', '4', '0', 'fuwu0', '71b5ae2224384de48378da23c00ce187', '', '', '', '', '0.00', '', '', '1', '1', '1544501785', '1545289286', '1545289286', '0', '0');
 INSERT INTO `wja_user` VALUES ('8', '0', '1', '0', '0', '0', '', '', '小君', '小君', '13741414141', '', '0.00', '', '2', '1', '1', '1545211752', '1545211799', '0', '0', '0');
 
 -- ----------------------------
@@ -4877,6 +4877,29 @@ CREATE TABLE `wja_work_order_assess_log` (
 
 -- ----------------------------
 -- Records of wja_work_order_assess_log
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wja_work_order_installer_log
+-- ----------------------------
+DROP TABLE IF EXISTS `wja_work_order_installer_log`;
+CREATE TABLE `wja_work_order_installer_log` (
+  `log_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `worder_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '订单ID',
+  `worder_sn` varchar(255) NOT NULL DEFAULT '' COMMENT '订单号',
+  `installer_id` int(10) NOT NULL COMMENT '工程师ID',
+  `action` varchar(255) NOT NULL DEFAULT '' COMMENT '操作方法',
+  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(-1 已取消 0已拒绝 1正常 2分派转移)',
+  `remark` varchar(1000) NOT NULL DEFAULT '' COMMENT '操作备注',
+  `is_del` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`log_id`),
+  KEY `worder_id` (`worder_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of wja_work_order_installer_log
 -- ----------------------------
 
 -- ----------------------------

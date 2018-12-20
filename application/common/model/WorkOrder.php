@@ -83,16 +83,18 @@ class WorkOrder extends Model
         return $info;
     }
     
-    public function getWorderAssess($worder)
+    public function getWorderAssess($worder, $field = false)
     {
         $assessModel = db('work_order_assess');
-        $list = $assessModel->where(['worder_id' => $worder['worder_id']])->select();
+        $field = $field ? $field : '*';
+        $list = $assessModel->field($field)->where(['worder_id' => $worder['worder_id'], 'is_del' => 0])->select();
         if ($list) {
             foreach ($list as $key => $value) {
+                $config = [];
                 if ($value['type'] == 1) {
                     $config = db('work_order_assess_log')->alias("WOAL")->join("config C","C.config_id = WOAL.config_id")->field('C.name, WOAL.value as score')->where(['WOAL.assess_id' => $value['assess_id']])->select();
                 }
-                $list[$key]['configs'] = isset($config) && $config ? $config : [];
+                $list[$key]['configs'] = $config;
             }
         }
         return $list;
@@ -162,6 +164,7 @@ class WorkOrder extends Model
             //操作日志记录
             $msg = '工程师姓名:'.$installer['realname'].'<br>工程师电话:'.$installer['phone'];
             $this->worderLog($worder, $user, $action, $msg);
+            $this->_worderInstallerLog($worder, $installerId, 'dispatch', 1, $msg);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -580,6 +583,19 @@ class WorkOrder extends Model
             'action'    => $action,
             'msg'       => $msg,
             'add_time'  => time(),
+        ];
+        return $result = db('work_order_log')->insertGetId($data);
+    }
+    private function _worderInstallerLog($worder, $installerId, $action = "dispatch", $status = 1, $remark = '')
+    {
+        $data = [
+            'worder_id'     => $worder['worder_id'],
+            'worder_sn'     => $worder['worder_sn'],
+            'installer_id'  => $installerId,
+            'action'        => $action,
+            'status'        => 1,
+            'remark'        => $$remark,
+            'add_time'      => time(),
         ];
         return $result = db('work_order_log')->insertGetId($data);
     }

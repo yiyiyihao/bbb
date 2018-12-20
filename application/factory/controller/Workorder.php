@@ -312,7 +312,7 @@ class Workorder extends FactoryForm
             $data['post_store_id']  = $this->adminUser['store_id'];
         }
         if ($ossub) {
-            $data['install_price'] = $ossub['install_amount'];
+            $data['install_price'] = $ossub['install_price'];
         }
         if (!$userName || !$phone || !$regionId || !$regionName) {
             $this->error('请完善客户信息');
