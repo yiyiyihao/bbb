@@ -521,18 +521,18 @@ class Index extends ApiBase
             'work_time' => $workTime,
             'security_record_num' => $securityRecordNum,
         ];
+        $checkStatus = -3;
         if ($user['installer']) {
-            $data['check_status'] = $checkStatus = $user['installer']['check_status'] == -2 ? -1 : -3;
+//             $data['check_status'] = $checkStatus = $user['installer']['check_status'] == -2 ? -1 : -3;
             $where = ['job_no' => $user['installer']['job_no']];
         }else{
             $where = [];
             //0禁用 1正常 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝
-            $checkStatus = $installerModel->getInstallerStatus($store['store_id'], $this->factory['store_id']);
             $data['factory_id'] = $this->factory['store_id'];
             $data['store_id'] = $store['store_id'];
             $data['user_id'] = $user['user_id'];
-            $data['check_status'] = $checkStatus;
         }
+        $data['check_status'] = $checkStatus;
         $msg = $checkStatus == 1? '申请成功' : '已提交申请，请耐心等待审核通过';
         $result = $installerModel->save($data, $where);
         if ($result === FALSE) {
