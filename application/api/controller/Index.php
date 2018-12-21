@@ -573,6 +573,12 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(work_order_type)错误']);
         }
         $where = ['WO.is_del' => 0];
+        $join = [
+            ['goods G', 'G.goods_id = WO.goods_id', 'LEFT'],
+            ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
+        ];
+        $field = 'WO.installer_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field .= ', G.name as sku_name';
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
         }else{
@@ -586,6 +592,8 @@ class Index extends ApiBase
                 }
                 $where[] = '(WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status = '.$installStatus.')';
             }
+            $join[] = ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'];
+            $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         }
         if ($orderType) {
             $where['work_order_type'] = $orderType;
@@ -593,14 +601,8 @@ class Index extends ApiBase
         if ($status !== FALSE && $status >= -1) {
             $where['work_order_status'] = $status;
         }
-        $field = 'WO.installer_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
-        $field .= ', G.name as sku_name, (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         $order = 'WO.add_time ASC';
-        $join = [
-            ['goods G', 'G.goods_id = WO.goods_id', 'LEFT'],
-            ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
-            ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
-        ];
+        
         $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($list) {
