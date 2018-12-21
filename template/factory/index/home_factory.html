@@ -117,10 +117,33 @@
     	<div class="panel admin-dashboard boxShadow">
             <div class="panel-head"><span>订单概况</span></div>
             <div class="panel-body">
-            	<div class="js-chart" id="orderChart" style="height:400px;" data-chart='{$chart|default=""}'></div>
+            	<div class="js-chart" id="orderChart" style="height:400px;" data-chart='{$chart_overview|default=""}'></div>
+            </div>
+        </div>
+    </div>
+    <div class="xm12">
+        <div class="panel admin-dashboard boxShadow">
+            <div class="panel-head"><span>订单金额统计</span></div>
+            <div class="panel-body">
+                <div class="js-chart" id="chart_amount" style="height:400px;" data-chart='{$chart_amount|default=""}'></div>
             </div>
         </div>
     </div>
     
     
 </div>
+
+
+{literal}
+<script>
+    //异步获取数据
+    var url = "/admin/ajaxdata/homedata";
+    $.post(url,{date:date},function(e){
+        var data = e.data;
+        if(data.normaldata.customerTotal !== ''){
+            $("#customerTotal").text(data.normaldata.customerTotal);
+        }
+    });
+</script>
+
+{/literal}
