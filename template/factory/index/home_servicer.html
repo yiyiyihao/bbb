@@ -6,21 +6,23 @@
                     <div class="panel-body">
                         <div class="panel-block flex-container">
                             <div class="flex-item num-item-box">
-                                <h4>今日佣金收益</h4>
+                                <h4>今日服务佣金收益</h4>
                                 <div class="item-num">￥{$today.commission_amount}</div>
                             </div>
                             <div class="flex-item num-item-box">
-                                <h4>累计佣金收益</h4>
-                                <div class="item-num">￥{$total.commission_amount}</div>
+                                <h4>今日安装工单数</h4>
+                                <div class="item-num">{$today.workorder_count_1}</div>
                             </div>
+
                         </div>
                         <div class="panel-block flex-container">
                             <div class="flex-item num-item-box">
-                                <h4>今日安装工单数量</h4>
-                                <div class="item-num">{$today.workorder_count_1}</div>
+                                <h4>累计服务佣金收益</h4>
+                                <div class="item-num">￥{$total.commission_amount}</div>
                             </div>
+
                             <div class="flex-item num-item-box">
-                                <h4>累计安装工单数量</h4>
+                                <h4>累计安装工单数</h4>
                                 <div class="item-num">{$total.workorder_count_1}</div>
                             </div>
                         </div>
@@ -32,11 +34,14 @@
                     <div class="panel-body">
                         <div class="panel-block flex-container">
                             <div class="flex-item num-item-box">
-                                <h4>今日维修工单数量</h4>
+                                <h4>今日维修工单数</h4>
                                 <div class="item-num">{$today.workorder_count_2}</div>
                             </div>
+
+                        </div>
+                        <div class="panel-block flex-container">
                             <div class="flex-item num-item-box">
-                                <h4>累计维修工单数量</h4>
+                                <h4>累计维修工单数</h4>
                                 <div class="item-num">{$total.workorder_count_2}</div>
                             </div>
                         </div>
