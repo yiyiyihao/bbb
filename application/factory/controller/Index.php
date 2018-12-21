@@ -1,6 +1,7 @@
 <?php
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
+use app\common\service\Chart;
 
 class Index extends CommonIndex
 {
@@ -166,20 +167,25 @@ class Index extends CommonIndex
                 //今日订单数(渠道下的零售商订单数量)
                 //累计订单数(渠道下的零售商订单数量)
                 $where = [
-                    'user_store_id' => $storeId,
-                    'add_time' => ['>=', $beginToday],
+                    'S.is_del' => 0,
+                    'S.store_type'=> 3,
+                    'SD.ostore_id'=> $storeId,
+                    'O.add_time' => ['>=', $beginToday],
                 ];
-                $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                $join=[
+                    ['store_dealer SD','SD.store_id = O.user_store_id'],
+                    ['store S','S.store_id = SD.store_id'],
+                ];
+                $field='count(*) as order_count, sum(real_amount) as order_amount';
+                $todayOrder = $orderModel->alias('O')->field($field)->join($join)->where($where)->find();
                 //今日订单数
                 $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
                 $today['order_amount'] = $todayOrder && isset($todayOrder['order_amount']) ? sprintf("%.2f",($todayOrder['order_amount'])) : 0;
                 
                 //累计订单数据统计
-                $where = [
-                    'user_store_id' => $storeId,
-                ];
-                $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                unset($where['O.add_time']);
+                $totalOrder = $orderModel->alias('O')->field($field)->join($join)->where($where)->find();
                 //累计订单数
                 $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
                 //累计订单金额
@@ -303,8 +309,9 @@ class Index extends CommonIndex
         }
         $this->assign('today', $today);
         $this->assign('total', $total);
-        
+        //$this->assign('chart', $this->chart_data());
         $hometpl = 'home_'.$tpl;
+
         //$hometpl = 'home';
         return $this->fetch($hometpl);
     }
@@ -318,38 +325,113 @@ class Index extends CommonIndex
         $endTime=strtotime($to.' 23:59:59');
         $adminType = $this->adminUser['admin_type'];
         $storeId = $this->adminUser['store_id'];
+        $chart_type=$this->request->param("type",0,'intval');
+
+        $startTime=0;
+        $endTime=9999999999999;
+
         if (!$adminType) {
             $this->error(lang('NO ACCESS'));
         }
         $orderModel = new \app\common\model\Order();
         $data=[];
+        $lable=[];
+        $dataset[0] = [
+            'name'     =>'访问人次666',
+            'type'     =>'line',
+            'itemStyle'=>[],
+            'smooth'   => 0
+        ];
         switch ($adminType){
-            //厂商
-            case ADMIN_FACTORY:
+            case ADMIN_FACTORY://厂商
                 //订单概况
                 //订单金额统计
-                break;
-            //渠道商
-            case ADMIN_CHANNEL:
+                //break;
+            case ADMIN_CHANNEL://渠道商
                 //订单概况
                 //订单金额统计
-                break;
-            //零售商
-            case ADMIN_DEALER:
+                //break;
+            case ADMIN_DEALER://零售商
                 //订单概况
                 //订单金额统计
+                $where=[
+                    ['add_time','>=',$startTime],
+                    ['add_time','<=',$endTime],
+                    ['store_id','=',$storeId],
+                ];
+                if ($chart_type){
+                    $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,count(1) value';
+                    //订单概况
+                    $data=$orderModel->field($field)->where($where)->group('time')->order('add_time')->select()->toArray();
+                }else{
+                    $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,sum(real_amount) value';
+                    //订单金额统计
+                    $data=$orderModel->field($field)->where($where)->group('time')->order('add_time')->select()->toArray();
+                }
                 break;
-            //服务商
-            case ADMIN_SERVICE:
-                //工单概况
-                //工单佣金统计
+            case ADMIN_SERVICE://服务商
+                $workOrder=new \app\common\model\WorkOrder();
+                $where=[
+                    ['add_time','>=',$startTime],
+                    ['add_time','<=',$endTime],
+                    ['store_id','=',$storeId],
+                ];
+                if($chart_type){
+                    $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,count(1) value';
+                    //工单概况
+                    $data=$workOrder->field($field)->where($where)->group('time')->order('add_time')->select()->toArray();
+                }else{
+                    //工单佣金统计
+                    $model=db('store_service_income');
+                    $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,sum(income_amount) value';
+                    $data['workorder_amount']=$model->field($field)->where($where)->group('time')->order('add_time')->select();
+                }
                 break;
             default:
                 $this->error(lang('NO ACCESS'));
                 break;
         }
 
+        foreach ($data as $item) {
+            $lable[]=$item['time'];
+            $dataset[0]['data'][] = $item['value'];
+        }
+        $color=['#33ccff'];
+        $chart=new Chart('group',['测试'],$lable,$dataset,$color,false);
+        $result=$chart->getOption();
+        return json_encode($result);
+    }
 
+    //订单概况
+    private function orderOverView($startTime,$endTime,$storeId)
+    {        
+        $orderModel=new \app\common\model\Order();
+        $where=[
+            ['add_time','>=',$startTime],
+            ['add_time','<=',$endTime],
+            ['store_id','=',$storeId],
+        ];
+        $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,count(1) value';
+        $data=$orderModel->field($field)->where($where)->group('time')->order('add_time')->select()->toArray();
+        return $data;
+    }
+
+    //订单金额统计
+    private function orderAmount($startTime,$endTime,$storeId)
+    {
+        $field='FROM_UNIXTIME(add_time, "%Y-%m-%d") time,sum(real_amount) value';
+        $orderModel=new \app\common\model\Order();
+        $where=[
+            ['add_time','>=',$startTime],
+            ['add_time','<=',$endTime],
+            ['store_id','=',$storeId],
+        ];
+        $data=$orderModel->field($field)->where($where)->group('time')->order('add_time')->select()->toArray();
+        return $data;
+    }
+    //
+    private function workOrderOverView()
+    {
 
     }
 
