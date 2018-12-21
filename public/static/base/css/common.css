@@ -330,7 +330,7 @@ a.text-white:hover, .bg-inverse a:hover{color:#ddd;}
 .bg-yellow,.border-yellow .button.active,.pointer.border-yellow .active,.nav-pills.border-yellow .active a,.nav-main.border-yellow .nav-head,.pagination.border-yellow .active
 {background-color:#f60;}
 .bg-blue,.border-blue .button.active,.pointer.border-blue active,.nav-pills.border-blue .active a,.nav-main.border-blue .nav-head,.pagination.border-blue .active
-{background-color:#0ae;}
+{background-color:#1ea3ff;}
 .bg-green,.border-green .button.active,.pointer.border-green .active,.nav-pills.border-green .active a,.pagination.border-green .active
 {background-color:#2c7;}
 .bg-red-light,.table .red, .table .red td, .table .red th,.alert-red,.border-red-light .button.active,.pointer.border-red-light .active,.nav-pills.border-red-light .active a,.nav-main.border-red-light .nav-head,.pagination.border-red-light .active
@@ -357,7 +357,7 @@ a.text-white:hover, .bg-inverse a:hover{color:#ddd;}
 .border-yellow,.border-yellow .button,.border-yellow .tab-nav li a,.border-yellow .tab-body,.button.bg-yellow,.selected.border-yellow,.pointer.border-yellow li,.check-warning .input,.nav.border-yellow .active a,.nav.nav-tabs.border-yellow,.nav-main.border-yellow a, .nav-main.border-yellow .nav-head,.pagination.border-yellow li,.pager.border-yellow a
 {border-color:#f60;}
 .border-blue,.border-blue .button,.border-blue .tab-nav li a,.border-blue .tab-body,.button.bg-blue,.selected.border-blue,.pointer.border-blue li,.nav.border-blue .active a,.nav.nav-tabs.border-blue,.nav-main.border-blue a, .nav-main.border-blue .nav-head,.pagination.border-blue li,.pager.border-blue a
-{border-color:#0ae;}
+{border-color:#1ea3ff;}
 .border-green,.border-green .button,.border-green .tab-nav li a,.border-green .tab-body,.button.bg-green,.selected.border-green,.pointer.border-green li,.check-success .input,.nav.border-green .active a,.nav.nav-tabs.border-green,.nav-main.border-green a, .nav-main.border-green .nav-head,.pagination.border-green li,.pager.border-green a
 {border-color:#2c7;}
 .border-red-light,.border-red-light .button,.border-red-light .tab-nav li a,.border-red-light .tab-body,.button.bg-red-light,.selected.border-red-light,.alert-red,.pointer.border-red-light li,.nav.border-red-light .active a,.nav.nav-tabs.border-red-light,.nav-main.border-red-light a, .nav-main.border-red-light .nav-head,.pagination.border-red-light li,.pager.border-red-light a
@@ -374,7 +374,7 @@ a.text-white:hover, .bg-inverse a:hover{color:#ddd;}
 .button.border-white:hover,.button.border-white:focus,.button.bg-white:hover,.button.bg-white:focus{color:#333;border-color:#d5d5d5;background-color:#f5f5f5;}
 .button.border-red:hover,.button.border-red:focus,.button.bg-red:hover,.button.bg-red:focus{color:#fff;border-color:#bf2222;background-color:#bf2222;}
 .button.border-yellow:hover,.button.border-yellow:focus,.button.bg-yellow:hover,.button.bg-yellow:focus{color:#fff;border-color:#f90;background-color:#f90;}
-.button.border-blue:hover,.button.border-blue:focus,.button.bg-blue:hover,.button.bg-blue:focus{color:#fff;border-color:#3bd;background-color:#3bd;}
+.button.border-blue:hover,.button.border-blue:focus,.button.bg-blue:hover,.button.bg-blue:focus{color:#fff;border-color:#0f9dff;background-color:#0f9dff;}
 .button.border-green:hover,.button.border-green:focus,.button.bg-green:hover,.button.bg-green:focus{color:#fff;border-color:#5d8;background-color:#5d8;}
 .button.border-red-light:hover,.button.border-red-light:focus,.button.bg-red-light:hover,.button.bg-red-light:focus,.alert-red:hover{color:#e33;border-color:#fdc;background-color:#fdc;}
 .button.border-yellow-light:hover,.button.border-yellow-light:focus,.button.bg-yellow-light:hover,.button.bg-yellow-light:focus,.alert-yellow:hover{color:#f60;border-color:#fec;background-color:#fec;}
