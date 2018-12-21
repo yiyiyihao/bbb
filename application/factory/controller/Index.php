@@ -166,7 +166,7 @@ class Index extends CommonIndex
                 //今日订单数(渠道下的零售商订单数量)
                 //累计订单数(渠道下的零售商订单数量)
                 $where = [
-                    'store_id' => $storeId,
+                    'user_store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -177,7 +177,7 @@ class Index extends CommonIndex
                 
                 //累计订单数据统计
                 $where = [
-                    'store_id' => $storeId,
+                    'user_store_id' => $storeId,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
@@ -218,6 +218,7 @@ class Index extends CommonIndex
                     'factory_id' => $storeId,
                     'store_type' => STORE_DEALER,
                     'add_time' => ['>=',$beginToday],
+                    'is_del'=> 0,
                 ];
                 $today['channel_count']=$storeModel->where($where)->count();
                 //累计新增零售商数量
@@ -307,4 +308,50 @@ class Index extends CommonIndex
         //$hometpl = 'home';
         return $this->fetch($hometpl);
     }
+
+
+    public function chart_data()
+    {
+        $from=$this->request->param("start",null,'trim');
+        $to=$this->request->param("end",null,'trim');
+        $startTime=strtotime($from.' 00:00:00');
+        $endTime=strtotime($to.' 23:59:59');
+        $adminType = $this->adminUser['admin_type'];
+        $storeId = $this->adminUser['store_id'];
+        if (!$adminType) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $orderModel = new \app\common\model\Order();
+        $data=[];
+        switch ($adminType){
+            //厂商
+            case ADMIN_FACTORY:
+                //订单概况
+                //订单金额统计
+                break;
+            //渠道商
+            case ADMIN_CHANNEL:
+                //订单概况
+                //订单金额统计
+                break;
+            //零售商
+            case ADMIN_DEALER:
+                //订单概况
+                //订单金额统计
+                break;
+            //服务商
+            case ADMIN_SERVICE:
+                //工单概况
+                //工单佣金统计
+                break;
+            default:
+                $this->error(lang('NO ACCESS'));
+                break;
+        }
+
+
+
+    }
+
+
 }
