@@ -403,32 +403,67 @@ class Index extends CommonIndex
         //$endTime='2018-12-25';
         //$storeId=3;
 
-        $begin=strtotime($startTime.' 00:00:00');
-        $endTime=strtotime($endTime.' 23:59:59');
-        $i=0;
+        if ($startTime==$endTime){//单日数据
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
+            $now=date('Y-m-d H:00');
+            while ($begin<=$endTime) {
+                $data[$i]['time']=date('H:00',$begin);
+                $end=$begin+3600;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['user_store_id','=',$storeId],
+                ];
+                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+                $query=$orderModel->where($where);
+                //以前数据加缓存7天
+                //if ($now != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->count();
 
-        $today=date('Y-m-d');
-        while($begin<=$endTime){
-            $data[$i]['time']=date('Y-m-d',$begin);
-            $end=$begin+86400;
-            $where=[
-                ['add_time','>=',$begin],
-                ['add_time','<',$end],
-                ['user_store_id','=',$storeId],
-            ];
-            $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-            $query=$orderModel->where($where);
-            //以前数据加缓存7天
-            //if ($today != $data[$i]['time']) {
-            //    $query->cache($key,86400*7);
-            //}
-            $data[$i]['value']=$query->count();
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                    break;
+                }
+            }
+        }else{
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
 
-            $lable[$i]=$data[$i]['time'];//鼠标移动提示
-            $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-            $i++;
-            $begin=$end;
+            $today=date('Y-m-d');
+            while($begin<=$endTime){
+                $data[$i]['time']=date('Y-m-d',$begin);
+                $end=$begin+86400;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['user_store_id','=',$storeId],
+                ];
+                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+                $query=$orderModel->where($where);
+                //以前数据加缓存7天
+                //if ($today != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->count();
+
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+            }
         }
+
+
+
+
         $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
@@ -456,32 +491,64 @@ class Index extends CommonIndex
         //$endTime='2018-12-25';
         //$storeId=3;
 
-        $begin=strtotime($startTime.' 00:00:00');
-        $endTime=strtotime($endTime.' 23:59:59');
-        $i=0;
-        $today=date('Y-m-d');
-        while($begin<=$endTime){
-            $data[$i]['time']=date('Y-m-d',$begin);
-            $end=$begin+86400;
-            $where=[
-                ['add_time','>=',$begin],
-                ['add_time','<',$end],
-                ['user_store_id','=',$storeId],
-            ];
-            $key='order_amount_'.$begin.'_'.$end.'_'.$storeId;
-            $query=$orderModel->where($where);
-            //以前数据加缓存7天
-            //if ($today != $data[$i]['time']) {
-            //    $query->cache($key,86400*7);
-            //}
-            $data[$i]['value']=$query->sum('real_amount');
+        if ($startTime==$endTime){//单日数据
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
+            $now=date('Y-m-d H:00');
+            while ($begin<=$endTime) {
+                $data[$i]['time']=date('H:00',$begin);
+                $end=$begin+3600;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['user_store_id','=',$storeId],
+                ];
+                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+                $query=$orderModel->where($where);
+                //以前数据加缓存7天
+                //if ($now != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->sum('real_amount');
 
-            $lable[$i]=$data[$i]['time'];//鼠标移动提示
-            $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                    break;
+                }
+            }
+        }else{
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
 
-            $i++;
-            $begin=$end;
+            $today=date('Y-m-d');
+            while($begin<=$endTime){
+                $data[$i]['time']=date('Y-m-d',$begin);
+                $end=$begin+86400;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['user_store_id','=',$storeId],
+                ];
+                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+                $query=$orderModel->where($where);
+                //以前数据加缓存7天
+                //if ($today != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->sum('real_amount');
+
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+            }
         }
+
         $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
@@ -502,45 +569,73 @@ class Index extends CommonIndex
             'itemStyle'=>[],
             'smooth'   => 1
         ];
-
         $workOrder=new \app\common\model\WorkOrder();
 
-
         //$startTime='2018-12-14';
-        //$endTime='2018-12-20';
-        //$storeId=5;
+        //$endTime='2018-12-25';
+        //$storeId=3;
 
-        $begin=strtotime($startTime.' 00:00:00');
-        $endTime=strtotime($endTime.' 23:59:59');
-        $i=0;
-        $today=date('Y-m-d');
-        while($begin<=$endTime){
-            $data[$i]['time']=date('Y-m-d',$begin);
-            $end=$begin+86400;
-            $where=[
-                ['add_time','>=',$begin],
-                ['add_time','<',$end],
-                ['store_id','=',$storeId],
-            ];
+        if ($startTime==$endTime){//单日数据
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
+            $now=date('Y-m-d H:00');
+            while ($begin<=$endTime) {
+                $data[$i]['time']=date('H:00',$begin);
+                $end=$begin+3600;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['store_id','=',$storeId],
+                ];
+                $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+                $query=$workOrder->where($where);
+                //以前数据加缓存7天
+                //if ($now != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->count();
 
-            $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId;
-            $query=$workOrder->where($where);
-            //以前数据加缓存7天
-            //if ($today != $data[$i]['time']) {
-            //    $query->cache($key,86400*7);
-            //}
-            $data[$i]['value']=$query->count();
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                    break;
+                }
+            }
+        }else{
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
 
-            $lable[$i]=$data[$i]['time'];//鼠标移动提示
-            $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+            $today=date('Y-m-d');
+            while($begin<=$endTime){
+                $data[$i]['time']=date('Y-m-d',$begin);
+                $end=$begin+86400;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['store_id','=',$storeId],
+                ];
+                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+                $query=$workOrder->where($where);
+                //以前数据加缓存7天
+                //if ($today != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->count();
 
-            $i++;
-            $begin=$end;
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+            }
         }
-        $color=['#33ccff'];
+
+        $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
-
         if(IS_AJAX){
             return $this->ajaxJsonReturn($result);
         }else{
@@ -551,53 +646,82 @@ class Index extends CommonIndex
     //工单佣金统计
     private function workOrderIncome($startTime,$endTime,$storeId)
     {
+
         $data=[];
         $lable=[];
         $dataset[0] = [
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 1
+            'smooth'   => 0
         ];
-
         $model=db('store_service_income');
-        $data=[];
 
         //$startTime='2018-12-14';
-        //$endTime='2018-12-20';
+        //$endTime='2018-12-25';
         //$storeId=3;
 
-        $begin=strtotime($startTime.' 00:00:00');
-        $endTime=strtotime($endTime.' 23:59:59');
-        $i=0;
-        $today=date('Y-m-d');
-        while($begin<=$endTime){
-            $data[$i]['time']=date('Y-m-d',$begin);
-            $end=$begin+86400;
-            $where=[
-                ['add_time','>=',$begin],
-                ['add_time','<',$end],
-                ['store_id','=',$storeId],
-            ];
+        if ($startTime==$endTime){//单日数据
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
+            $now=date('Y-m-d H:00');
+            while ($begin<=$endTime) {
+                $data[$i]['time']=date('H:00',$begin);
+                $end=$begin+3600;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['store_id','=',$storeId],
+                ];
+                $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+                $query=$model->where($where);
+                //以前数据加缓存7天
+                //if ($now != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->sum('income_amount');
 
-            $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
-            $query=$model->where($where);
-            //以前数据加缓存7天
-            //if ($today != $data[$i]['time']) {
-            //    $query->cache($key,86400*7);
-            //}
-            $data[$i]['value']=$query->sum('income_amount');
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                    break;
+                }
+            }
+        }else{
+            $begin=strtotime($startTime.' 00:00:00');
+            $endTime=strtotime($endTime.' 23:59:59');
+            $i=0;
 
-            $lable[$i]=$data[$i]['time'];//鼠标移动提示
-            $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+            $today=date('Y-m-d');
+            while($begin<=$endTime){
+                $data[$i]['time']=date('Y-m-d',$begin);
+                $end=$begin+86400;
+                $where=[
+                    ['add_time','>=',$begin],
+                    ['add_time','<',$end],
+                    ['store_id','=',$storeId],
+                ];
+                $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
+                $query=$model->where($where);
+                //以前数据加缓存7天
+                //if ($today != $data[$i]['time']) {
+                //    $query->cache($key,86400*7);
+                //}
+                $data[$i]['value']=$query->sum('income_amount');
 
-            $i++;
-            $begin=$end;
+                $lable[$i]=$data[$i]['time'];//鼠标移动提示
+                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+                $i++;
+                $begin=$end;
+            }
         }
-        $color=['#33ccff'];
+
+        $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
-
         if(IS_AJAX){
             return $this->ajaxJsonReturn($result);
         }else{
