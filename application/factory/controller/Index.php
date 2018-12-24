@@ -336,12 +336,12 @@ class Index extends CommonIndex
         return $this->fetch($hometpl);
     }
 
-
+    //异步处理图表数据
     public function chart_data()
     {
-        $from=$this->request->param("start",null,'trim');
-        $to=$this->request->param("end",null,'trim');
-        $chart_type=$this->request->param("type",0,'intval');
+        $from=$this->request->param("start",null,'trim');//开始时间，如2018-02-01
+        $to=$this->request->param("end",null,'trim');//结束时间，如 2018-02-10
+        $chart_type=$this->request->param("chart_type",0,'intval');//1 数据概况，0金额统计
         $adminType = $this->adminUser['admin_type'];
         $storeId = $this->adminUser['store_id'];
         if (!$adminType) {
@@ -407,6 +407,7 @@ class Index extends CommonIndex
         $endTime=strtotime($endTime.' 23:59:59');
         $i=0;
 
+        $today=date('Y-m-d');
         while($begin<=$endTime){
             $data[$i]['time']=date('Y-m-d',$begin);
             $end=$begin+86400;
@@ -415,8 +416,13 @@ class Index extends CommonIndex
                 ['add_time','<',$end],
                 ['user_store_id','=',$storeId],
             ];
-            //@todo 加缓存
-            $data[$i]['value']=$orderModel->where($where)->count();
+            $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+            $query=$orderModel->where($where);
+            //以前数据加缓存7天
+            if ($today != $data[$i]['time']) {
+                $query->cache($key,86400*7);
+            }
+            $data[$i]['value']=$query->count();
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
             $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
@@ -449,6 +455,7 @@ class Index extends CommonIndex
         $begin=strtotime($startTime.' 00:00:00');
         $endTime=strtotime($endTime.' 23:59:59');
         $i=0;
+        $today=date('Y-m-d');
         while($begin<=$endTime){
             $data[$i]['time']=date('Y-m-d',$begin);
             $end=$begin+86400;
@@ -457,8 +464,13 @@ class Index extends CommonIndex
                 ['add_time','<',$end],
                 ['user_store_id','=',$storeId],
             ];
-            //@todo 加缓存
-            $data[$i]['value']=$orderModel->where($where)->sum('real_amount');
+            $key='order_amount_'.$begin.'_'.$end.'_'.$storeId;
+            $query=$orderModel->where($where);
+            //以前数据加缓存7天
+            if ($today != $data[$i]['time']) {
+                $query->cache($key,86400*7);
+            }
+            $data[$i]['value']=$query->sum('real_amount');
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
             $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
@@ -493,6 +505,7 @@ class Index extends CommonIndex
         $begin=strtotime($startTime.' 00:00:00');
         $endTime=strtotime($endTime.' 23:59:59');
         $i=0;
+        $today=date('Y-m-d');
         while($begin<=$endTime){
             $data[$i]['time']=date('Y-m-d',$begin);
             $end=$begin+86400;
@@ -501,8 +514,14 @@ class Index extends CommonIndex
                 ['add_time','<',$end],
                 ['store_id','=',$storeId],
             ];
-            //@todo 加缓存
-            $data[$i]['value']=$workOrder->where($where)->count();
+
+            $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId;
+            $query=$workOrder->where($where);
+            //以前数据加缓存7天
+            if ($today != $data[$i]['time']) {
+                $query->cache($key,86400*7);
+            }
+            $data[$i]['value']=$query->count();
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
             $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
@@ -538,6 +557,7 @@ class Index extends CommonIndex
         $begin=strtotime($startTime.' 00:00:00');
         $endTime=strtotime($endTime.' 23:59:59');
         $i=0;
+        $today=date('Y-m-d');
         while($begin<=$endTime){
             $data[$i]['time']=date('Y-m-d',$begin);
             $end=$begin+86400;
@@ -546,8 +566,14 @@ class Index extends CommonIndex
                 ['add_time','<',$end],
                 ['store_id','=',$storeId],
             ];
-            //@todo 加缓存
-            $data[$i]['value']=$model->where($where)->sum('income_amount');
+
+            $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
+            $query=$model->where($where);
+            //以前数据加缓存7天
+            if ($today != $data[$i]['time']) {
+                $query->cache($key,86400*7);
+            }
+            $data[$i]['value']=$query->sum('income_amount');
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
             $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值

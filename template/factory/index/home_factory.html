@@ -134,16 +134,23 @@
 </div>
 
 
-{literal}
+{php}
+//1个星期
+$week_start=date('Y-m-d');
+$week_end=date('Y-m-d',strtotime($week_start.' -1 week'));
+//1个月
+$month_start=date('Y-m-d');
+$month_end=date('Y-m-d',strtotime($month_start.' -1 month'));
+{/php}
+
 <script>
     //异步获取数据
-    var url = "/admin/ajaxdata/homedata";
+    var url = "/index/chart_data";
+    //一周内的数据,type:1 订单概况，0订单金额，非当天数据有缓存
+    var data={start:{$week_start},end:{$week_end},type:1}
+    //1个月数据，type:1 订单概况，0订单金额，非当天数据有缓存
+    //var data={start:{$week_start},end:{$week_end},type:1}
     $.post(url,{date:date},function(e){
-        var data = e.data;
-        if(data.normaldata.customerTotal !== ''){
-            $("#customerTotal").text(data.normaldata.customerTotal);
-        }
+        $("#customerTotal").text(data.normaldata.customerTotal);
     });
 </script>
-
-{/literal}
