@@ -429,7 +429,7 @@ class Index extends CommonIndex
             $i++;
             $begin=$end;
         }
-        $color=['#33ccff'];
+        $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
         if(IS_AJAX){
@@ -482,7 +482,7 @@ class Index extends CommonIndex
             $i++;
             $begin=$end;
         }
-        $color=['#33ccff'];
+        $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
         if(IS_AJAX){
