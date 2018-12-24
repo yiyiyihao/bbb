@@ -419,9 +419,9 @@ class Index extends CommonIndex
             $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
             $query=$orderModel->where($where);
             //以前数据加缓存7天
-            if ($today != $data[$i]['time']) {
-                $query->cache($key,86400*7);
-            }
+            //if ($today != $data[$i]['time']) {
+            //    $query->cache($key,86400*7);
+            //}
             $data[$i]['value']=$query->count();
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
@@ -467,9 +467,9 @@ class Index extends CommonIndex
             $key='order_amount_'.$begin.'_'.$end.'_'.$storeId;
             $query=$orderModel->where($where);
             //以前数据加缓存7天
-            if ($today != $data[$i]['time']) {
-                $query->cache($key,86400*7);
-            }
+            //if ($today != $data[$i]['time']) {
+            //    $query->cache($key,86400*7);
+            //}
             $data[$i]['value']=$query->sum('real_amount');
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
@@ -518,9 +518,9 @@ class Index extends CommonIndex
             $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId;
             $query=$workOrder->where($where);
             //以前数据加缓存7天
-            if ($today != $data[$i]['time']) {
-                $query->cache($key,86400*7);
-            }
+            //if ($today != $data[$i]['time']) {
+            //    $query->cache($key,86400*7);
+            //}
             $data[$i]['value']=$query->count();
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
