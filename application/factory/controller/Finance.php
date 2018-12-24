@@ -231,7 +231,7 @@ class Finance extends FactoryForm
         return 'SW';
     }
     function _getField(){
-        $field = 'SW.*, U.username, U.nickname';
+        $field = 'SW.*, U.username, (if(U.realname != "", U.realname, U.nickname)) as nickname';
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $field .= ',S.name as sname';
         }

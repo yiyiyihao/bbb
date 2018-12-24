@@ -27,7 +27,7 @@ class Store extends FormBase
         if (!$this->adminUser['store_id']){
             $this->_getFactorys();
         }
-        $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
+        $this->uploadUrl = url('Upload/upload', ['prex' => 'store_', 'thumb_type' => 'logo_thumb']);
     }
     public function manager()
     {
@@ -262,8 +262,13 @@ class Store extends FormBase
                 $this->error('二级域名已存在');
             }
         }
-        $data['config_json'] = '';
+        if (!$pkId) {
+            $data['config_json'] = '';
+        }
         $data['store_type'] = $this->storeType;
+        if (isset($data['sample_amount']) && $data['sample_amount']) {
+            $data['sample_amount'] = floatval($data['sample_amount']);
+        }
         return $data;
     }
     function _getAlias()
@@ -284,7 +289,7 @@ class Store extends FormBase
     }
     function _getJoin()
     {
-        $join[] = ['user U', 'U.store_id = S.store_id AND U.admin_type = '.$this->adminType, 'LEFT'];
+        $join[] = ['user U', 'U.store_id = S.store_id AND is_admin = 1 AND U.admin_type = '.$this->adminType, 'LEFT'];
         switch ($this->storeType) {
             case 1://厂商
                 $tabel = 'store_factory AS';
@@ -311,8 +316,6 @@ class Store extends FormBase
         }
         if ($this->storeType != STORE_FACTORY) {
             $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
-        }else{
-            $join[] = ['user_group UG', 'UG.group_id = U.group_id AND UG.is_system = 1', 'INNER'];
         }
         return $join;
     }
@@ -359,10 +362,8 @@ class Store extends FormBase
     function _tableData(){
         $table = parent::_tableData();
 //         $table['actions']['button'][] = ['text'  => '管理员设置','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["username"] == ""']];
-        
         $table['actions']['button'][] = ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-green'];
         $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != ""']];
-//         $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'resetpwd', 'icon'  => '','bgClass'=> 'bg-yellow', 'value' => 'user_id', 'js-action' => TRUE];
         $table['actions']['width']  = '300';
         return $table;
     }
@@ -370,7 +371,7 @@ class Store extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
-        $array = $array1 = $array2 = $array3 = [];
+        $array = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
         if ($this->storeType != STORE_FACTORY) {
             if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
 //                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
@@ -385,10 +386,19 @@ class Store extends FormBase
             $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
             $this->assign('channels', $channels);
             $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
+            $array2= ['title'=>'已采购样品金额名称','type'=>'text','name'=>'sample_amount','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写已采购样品金额'];
+            $array4 = ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
         }
         if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
             $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
             $array3 = ['title'=>'负责区域','type'=>'region','length'=>2,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择负责区域'];
+            $array4 = ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array6 = ['title'=>'营业执照','type'=>'uploadImg','name'=>'license_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array7 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
         }
         $field = [
             $array, $array1,
@@ -396,8 +406,7 @@ class Store extends FormBase
             ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
             ['title'=>lang($this->modelName).'联系人姓名','type'=>'text','name'=>'user_name','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系人姓名'],
             ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'mobile','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系电话'],
-            $array2,
-            $array3,
+            $array2,$array3,$array4,$array5,$array6,$array7,$array8,
             ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'],
             ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
                 ['text'=>'可用','value'=>'1'],

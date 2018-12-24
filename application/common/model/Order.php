@@ -413,6 +413,7 @@ class Order extends Model
                 $factory = db('store')->where(['is_del' => 0, 'store_id' => $store['factory_id']])->find();
                 if ($factory) {
                     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
+                    $config = isset($config['default']) ? $config['default'] : [];
                     $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
                     if ($ratio > 0) {
                         $dataSet = [];
@@ -544,6 +545,13 @@ class Order extends Model
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
             }
+            $userModel = new \app\common\model\User();
+            //验证手机号格式
+            $result = $userModel->checkPhone(0, $addrPhone);
+            if ($result === FALSE) {
+                $this->error = $userModel->error;
+                return FALSE;
+            }
             if ($list['all_amount'] <= 0) {
                 $this->error = '订单支付金额不能小于等于0';
                 return FALSE;
@@ -556,7 +564,7 @@ class Order extends Model
                 'store_id'      => $storeId,
                 'user_id'       => $user['user_id'],
                 'user_store_id' => $user['store_id'] ? intval($user['store_id']) : 0,
-                'user_store_type' => $user['admin_type'] ? intval($user['admin_type']) : 0,
+                'user_store_type' => $user['store_type'] ? intval($user['store_type']) : 0,
                 'goods_amount'  => $list['sku_amount'],
                 'install_amount'=> $list['install_amount'],
                 'delivery_amount'=> $list['delivery_amount'],

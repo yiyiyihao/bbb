@@ -83,7 +83,9 @@ class Payment extends FactoryForm
         if ($list) {
             foreach ($list as $key => $value) {
                 $code = $value['pay_code'];
-                $this->payments[$code] = $value + $this->payments[$code];
+                if ($this->payments && isset($this->payments[$code])) {
+                    $this->payments[$code] = $value + $this->payments[$code];
+                }
             }
         }
         $this->assign('displayTypes', $displayTypes);

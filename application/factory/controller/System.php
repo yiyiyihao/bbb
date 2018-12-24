@@ -64,6 +64,7 @@ class System extends adminSystem
     
     public function servicer()
     {
+        $this->error(lang('NO ACCESS'));
         if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_SERVICE) {
             $this->error(lang('NO ACCESS'));
         }
@@ -113,6 +114,7 @@ class System extends adminSystem
                 $result = $storeModel->save($data, ['store_id' => $info['store_id']]);
             }
         }
+        $this->assign('info', $info);
         $this->assign('codeUrl', $codeUrl);
         return $this->fetch();
     }
@@ -127,13 +129,12 @@ class System extends adminSystem
                 $configKey = 'default';
                 foreach ($params as $key => $value) {
                     if (!is_array($value)) {
-                        $config[$key] = trim($value);
+                        $config[$configKey][$key] = trim($value);
                     }else{
-                        $data[$key] = $value;
+                        $config[$key] = $value;
                     }
                 }
-                $data[$configKey] = $config;
-                $configJson = $data ? json_encode($data): '';
+                $configJson = $config ? json_encode($config): '';
                 $result = $storeModel->save(['config_json' => $configJson], ['store_id' => $this->adminStore['store_id']]);
                 if ($result === FALSE) {
                     $this->error($storeModel->error);

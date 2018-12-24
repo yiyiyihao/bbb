@@ -55,6 +55,15 @@ class Index extends ApiBase
         }
         $this->$method();
     }
+    protected function getStoreDetail()
+    {
+        $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
+        if (!$storeNo) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户编号不能为空']);
+        }
+        $store = db('store')->where(['store_no' => $storeNo, 'is_del' => 0])->field('store_no, name')->find();
+        $this->_returnMsg(['detail' => $store]);
+    }
     //获取第三方openid
     protected function getThirdOpenid(){
         $type = isset($this->postParams['type']) ? intval($this->postParams['type']) : 0;
@@ -173,7 +182,7 @@ class Index extends ApiBase
 //         }
         $userModel = new \app\common\model\User();
         //验证手机号格式
-        $result = $userModel->checkPhone($this->factory['store_id'], $phone);
+        $result = $userModel->checkPhone($this->factory['store_id'], $phone, TRUE);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'msg' => $userModel->error]);
         }
@@ -538,6 +547,8 @@ class Index extends ApiBase
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '申请失败']);
         }else{
+            //修改用户真实姓名
+            db('user')->where(['user_id' => $user['user_id']])->update(['realname' => $realname]);
             $this->_returnMsg(['msg' => $msg]);
         }
     }
@@ -545,7 +556,7 @@ class Index extends ApiBase
     protected function getInstallerDetail()
     {
         $user = $this->_checkOpenid();
-        $field = 'UI.job_no, UI.realname, UI.phone, UI.idcard_font_img, UI.idcard_back_img, UI.security_record_num, UI.service_count, UI.score, UI.work_time, UI.check_status, UI.remark, UI.admin_remark';
+        $field = 'S.store_no, S.name as store_name, UI.job_no, UI.realname, UI.phone, UI.idcard_font_img, UI.idcard_back_img, UI.security_record_num, UI.service_count, UI.score, UI.work_time, UI.check_status, UI.remark, UI.admin_remark';
         $installer =  $this->_checkInstaller($user['user_id'], $field);
         if ($installer['check_status'] != -2 && $installer['check_status'] != -4) {
             //0禁用 1正常 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝
@@ -582,7 +593,7 @@ class Index extends ApiBase
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
         }else{
-            if ($status >= -1) {
+            if ($status >= -1 || $status === FALSE) {
                 $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
             }else{
                 if ($status == -2) {
@@ -602,6 +613,8 @@ class Index extends ApiBase
             $where['work_order_status'] = $status;
         }
         $order = 'WO.add_time ASC';
+        $order = 'wstatus ASC,  WO.work_order_status ASC';
+        $field .= ', if(WO.work_order_status > 0, 0, 1) as wstatus';
         
         $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);

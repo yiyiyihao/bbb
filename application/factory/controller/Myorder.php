@@ -89,6 +89,7 @@ class Myorder extends commonOrder
         //获取厂商设置未支付订单取消时间
         $factoryConfig = db('store')->where(['store_id' => $detail['store_id'], 'is_del' => 0])->value('config_json');
         $factoryConfig = $factoryConfig ? json_decode($factoryConfig, 1) : [];
+        $factoryConfig = isset($factoryConfig['default']) ? $factoryConfig['default'] : [];
         $factoryConfig['pending_order_cancel_time'] = isset($factoryConfig['pending_order_cancel_time']) ? $factoryConfig['pending_order_cancel_time'] : 30;//未设置默认30分钟
         $detail['cancel_countdown'] = $factoryConfig['pending_order_cancel_time'];
         //获取订单产品列表
@@ -120,6 +121,8 @@ class Myorder extends commonOrder
             if ($payCode == 'wechat_native' && isset($result['code_url'])) {
                 //根据url生成二维码
                 $this->assign('code_url', $result['code_url']);
+            }elseif ($payCode == 'alipay_page' && $result){
+                $this->redirect($result,302);
             }
             return $this->fetch();
         }

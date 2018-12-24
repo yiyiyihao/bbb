@@ -148,7 +148,7 @@ class User extends Model
             return FALSE;
         }
         //判断新手机号是否已经绑定过账户
-        $exist = $this->where(['phone' => $phone, 'is_del' => 0])->find();
+        $exist = $this->where(['factory_id' => $user['factory_id'], 'phone' => $phone, 'is_del' => 0])->find();
         if ($exist) {
             $this->error = lang('新手机号已绑定其它账户');
             return FALSE;
@@ -223,6 +223,8 @@ class User extends Model
 		    'store_type'      => $storeType,
 		    'group_id'        => $user['group_id'],
 		    'username'        => $user['username'],
+		    'realname'        => $user['realname'],
+		    'nickname'        => $user['nickname'],
 		    'phone'           => $user['phone'],
 		    'last_login_time' => $user['last_login_time'],
 		    'groupPurview'    => $groupPurview,

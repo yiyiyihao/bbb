@@ -491,7 +491,7 @@ function get_store_config($storeId = 0, $merge = FALSE, $defaultKey = FALSE)
             }
         }
     }
-    if ($configKey == 'default' && !isset($config[$configKey]['servicer_return_ratio'])) {
+    if ($defaultKey && $configKey == 'default' && !isset($config[$configKey]['servicer_return_ratio'])) {
         $config[$configKey]['servicer_return_ratio'] = 100;
     }
     if ($defaultKey === FALSE) {

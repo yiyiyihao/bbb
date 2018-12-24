@@ -59,6 +59,7 @@ class Index extends CommonBase
             if (!$phone) {
                 $this->error('联系电话不能为空');
             }
+            $params['user_id'] = $user['user_id'];
             $result = $userModel->checkFormat($this->adminUser['factory_id'], $params);
             if ($result === FALSE) {
                 $this->error($userModel->error);
@@ -67,6 +68,22 @@ class Index extends CommonBase
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{
+                if (isset($this->adminUser['realname'])) {
+                    $flag = FALSE;
+                    if ($realname != $this->adminUser['realname']) {
+                        $flag = TRUE;
+                        $this->adminUser['realname'] = $realname;
+                    }
+                    if ($phone != $this->adminUser['phone']) {
+                        $flag = TRUE;
+                        $this->adminUser['phone'] = $phone;
+                    }
+                    if ($flag) {
+                        //更新缓存信息
+                        $domain = Request::panDomain();
+                        $userModel->setSession($domain, $this->adminUser);
+                    }
+                }
                 $this->success('修改资料成功');
             }
         }else{

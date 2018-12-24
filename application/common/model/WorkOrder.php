@@ -427,9 +427,7 @@ class WorkOrder extends Model
             //绩效考核百分比
             $baseAmount = $installAmount * (1 - $returnRatio);//基本服务金额
             $otherAmount = $installAmount * $returnRatio;
-            
             $amount = round($baseAmount + $otherAmount * $score/$totalScore, 2);
-            
             $data = [
                 'assess_id'     => $assessId,
                 'score'         => $score,
@@ -444,7 +442,6 @@ class WorkOrder extends Model
                 $params = [
                     'amount'        => $amount,//可提现金额
                     'pending_amount'=> -$installAmount,//待结算金额(减去预安装金额)
-                    'total_amount'  => $amount,
                 ];
                 if ($amount < $installAmount) {
                     $params['total_amount'] = - ($installAmount - $amount);

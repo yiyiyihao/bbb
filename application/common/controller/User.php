@@ -150,6 +150,7 @@ class User extends FormBase
         if ($password) {
             $data['password'] = $userModel->pwdEncryption($password);
         }
+        $data['factory_id'] = $this->adminUser['factory_id'];
         $data['store_id'] = $this->adminUser['store_id'];
         $data['admin_type'] = $this->adminUser['admin_type'];
         return $data;

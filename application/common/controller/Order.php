@@ -205,7 +205,7 @@ class Order extends FormBase
     }
     
     function _getField(){
-        return 'U.nickname, U.username, U.realname, O.*';
+        return '(if(U.realname != "", U.realname, U.nickname)) as nickname, U.username, O.*';
     }
     function _getAlias(){
         return 'O';

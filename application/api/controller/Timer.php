@@ -34,6 +34,7 @@ class Timer extends ApiBase
             foreach ($lists as $key => $value) {
                 $factoryId = $value['store_id'];
                 $config = $value['config_json'] ? json_decode($value['config_json'], 1) : [];
+                $config = isset($config['default']) ? $config['default'] : [];
                 if ($defaultConfig) {
                     //合并默认配置
                     foreach ($defaultConfig as $k => $v) {
@@ -125,6 +126,7 @@ class Timer extends ApiBase
                 pre($workOrders, 1);
             }
         }
+        $this->_returnMsg(['time' => date('Y-m-d H:i:s')]);
     }
     
     protected function _checkPostParams()

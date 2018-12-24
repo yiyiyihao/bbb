@@ -43,10 +43,11 @@
                         </div>
                         <div class="field">
                             <input type="text" class="input" name="send_code[template_code]" size="30" datatype="*" value="{$config['send_code']['template_code'] ?? ''}">
-                            <div class="input-note">请输入短信平台模版CODE</div>
+                            <div class="input-note">请输入短信平台验证码模版CODE</div>
+                            <div class="input-note">短信模板内容示例: 您的验证码为：${code}，该验证码 5 分钟内有效，请勿泄漏于他人</div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="label">
                             <label>验证码模版内容</label>
                         </div>
@@ -54,25 +55,26 @@
                             <textarea class="input" cols="40" rows="6" name="send_code[template_content]" datatype="*">{$config['send_code']['template_content'] ?? ''}</textarea>
                             <div class="input-note">请输入短信平台模版内容(示例：您的验证码为：${code}，该验证码 5 分钟内有效，请勿泄漏于他人)</div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <div class="label">
                             <label>重置密码模版CODE</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" name="reset_pwd[template_code]" size="30" datatype="*" value="{$config['reset_pwd']['template_code'] ?? ''}">
-                            <div class="input-note">请输入短信平台模版CODE</div>
+                            <div class="input-note">请输入短信平台重置密码模版CODE</div>
+                            <div class="input-note">短信模板内容示例: 您好，您的密码已经重置为${password}，请及时登录并修改密码。</div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="label">
                             <label>重置密码模版内容</label>
                         </div>
                         <div class="field">
                             <textarea class="input" cols="40" rows="6" name="reset_pwd[template_content]" datatype="*">{$config['reset_pwd']['template_content'] ?? ''}</textarea>
-                            <div class="input-note">请输入短信平台模版内容(示例：尊敬的${name}您好，您的密码已经重置为${password}，请及时登录并修改密码。)</div>
+                            <div class="input-note">请输入短信平台模版内容(示例：您好，您的密码已经重置为${password}，请及时登录并修改密码。)</div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                </div>
             </div>

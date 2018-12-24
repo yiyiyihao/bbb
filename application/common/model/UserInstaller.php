@@ -24,7 +24,7 @@ class UserInstaller extends Model
         $flag = TRUE; //默认需要厂商审核
         //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
         if ($storeId > 0) {
-            $config = get_store_config($storeId, TRUE);
+            $config = get_store_config($storeId, TRUE, 'default');
             //默认需要服务商审核
             if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
                 $checkStatus = -3;
@@ -33,7 +33,7 @@ class UserInstaller extends Model
         }
         if ($flag && $factoryId) {
             //不需要服务商审核,判断是否需要厂商审核
-            $config = get_store_config($factoryId, TRUE);
+            $config = get_store_config($factoryId, TRUE, 'default');
             //默认需要厂商审核
             if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
                 $checkStatus = -1;

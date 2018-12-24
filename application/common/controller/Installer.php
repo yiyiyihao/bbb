@@ -20,6 +20,7 @@ class Installer extends FormBase
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY){
             $this->_getFactorys();
         }
+        unset($this->subMenu['add']);
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_logo_', 'thumb_type' => 'logo_thumb']);
     }
     
@@ -100,7 +101,19 @@ class Installer extends FormBase
             }
             //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
             if ($checkStatus > 0) {
-                $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? 1: $this->model->getInstallerStatus(0, $this->adminStore['factory_id']);
+                if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+                    $status = 1;
+                }else{
+                    //判断是否需要厂商审核
+                    $config = get_store_config($this->adminStore['factory_id'], TRUE, 'default');
+                    //默认需要厂商审核
+                    if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                        $status = -1;
+                    }else {
+                        //服务商和厂商都不审核,直接通过
+                        $status = 1;
+                    }
+                }
             }else{
                 $status = $this->adminUser['admin_type'] == ADMIN_FACTORY ? -2: -4;
             }
@@ -173,6 +186,7 @@ class Installer extends FormBase
 //             $this->error('请上传身份证反面图片');
 //         }
         if (!$info) {
+            $this->error('无工程师新增权限');
             if ($this->adminUser['admin_type'] == ADMIN_SERVICE) {
                 $params['store_id'] = $this->adminStore['store_id'];
                 $params['factory_id'] = $this->adminStore['factory_id'];
@@ -180,7 +194,7 @@ class Installer extends FormBase
                 $params['store_id'] = $storeId;
                 $params['factory_id'] = $this->adminStore['store_id'];
             }
-//             $params['check_status'] = $this->model->getInstallerStatus($params['store_id'], $params['factory_id']);
+            $params['check_status'] = $this->model->getInstallerStatus($params['store_id'], $params['factory_id']);
             $params['check_status'] = 1;
         }
         return $params;
@@ -301,5 +315,3 @@ class Installer extends FormBase
         return array_filter($field);
     }
 }
-
-

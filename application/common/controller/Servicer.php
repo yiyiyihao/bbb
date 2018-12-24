@@ -16,4 +16,12 @@ class Servicer extends Store
         $this->adminType = ADMIN_SERVICE;
         $this->groupId = GROUP_SERVICE;
     }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        $table[] = ['title'=>'服务商编号','width'=>'100','value'=>'store_no','type'=>'text','sort'=>'40'];
+        return $table;
+    }
 }

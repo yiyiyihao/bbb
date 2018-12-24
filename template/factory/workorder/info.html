@@ -59,6 +59,7 @@
                             <div class="input-note">故障报修时请简要描述故障信息</div>
                         </div>
                     </div>
+                    {if condition='(!$info && $_GET && isset($_GET.type) && $_GET.type == 2) || ($info && $info.work_order_type == 2)'}
                     <div class="form-group">
 		                <div class="label">
 		                  <label>上传图片</label>
@@ -80,6 +81,7 @@
 		                  {/volist}
 		                  {/if}
 		              </div>
+		              {/if}
                 </div>
            		<!-- <div class="tab-panel" id="tab-2">
                     <div class="form-group">

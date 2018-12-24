@@ -144,7 +144,7 @@ class Service extends FactoryForm
         }
     }
     function _getField(){
-        return ' S.*, U.username, S1.name as sname, S1.mobile,OS.sku_name';
+        return ' S.*, (if(U.realname != "", U.realname, if(U.nickname != "", U.nickname, U.username))) as username, S1.name as sname, S1.mobile,OS.sku_name';
     }
     function _getAlias(){
         return 'S';
