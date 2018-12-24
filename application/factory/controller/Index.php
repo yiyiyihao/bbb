@@ -341,7 +341,7 @@ class Index extends CommonIndex
     {
         $from=$this->request->param("start",null,'trim');//开始时间，如2018-02-01
         $to=$this->request->param("end",null,'trim');//结束时间，如 2018-02-10
-        $chart_type=$this->request->param("chart_type",0,'intval');//1 数据概况，0金额统计
+        $chart_type=$this->request->param("type",0,'intval');//1 数据概况，0金额统计
         $adminType = $this->adminUser['admin_type'];
         $storeId = $this->adminUser['store_id'];
         if (!$adminType) {
