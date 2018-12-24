@@ -395,7 +395,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 0
+            'smooth'   => 1
         ];
         $orderModel=new \app\common\model\Order();
 
@@ -492,7 +492,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 0
+            'smooth'   => 1
         ];
 
         $workOrder=new \app\common\model\WorkOrder();
@@ -500,7 +500,7 @@ class Index extends CommonIndex
 
         //$startTime='2018-12-14';
         //$endTime='2018-12-20';
-        //$storeId=3;
+        //$storeId=5;
 
         $begin=strtotime($startTime.' 00:00:00');
         $endTime=strtotime($endTime.' 23:59:59');
@@ -544,7 +544,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 0
+            'smooth'   => 1
         ];
 
         $model=db('store_service_income');
@@ -570,9 +570,9 @@ class Index extends CommonIndex
             $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
             $query=$model->where($where);
             //以前数据加缓存7天
-            if ($today != $data[$i]['time']) {
-                $query->cache($key,86400*7);
-            }
+            //if ($today != $data[$i]['time']) {
+            //    $query->cache($key,86400*7);
+            //}
             $data[$i]['value']=$query->sum('income_amount');
 
             $lable[$i]=$data[$i]['time'];//鼠标移动提示
