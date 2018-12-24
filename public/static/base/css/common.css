@@ -210,6 +210,7 @@ textarea.input{height:auto;}
 .panel-head{background-color:#fff;line-height:50px; padding:0 15px;border-bottom:solid 1px #ddd; position:relative; font-size:16px;}
 .panel-head strong{padding:0 20px 0 0;line-height:40px; display:inline-block; font-weight:normal;}
 .panel-head span{display:inline-block;}
+.panel-head .button-group .button{ margin-top:10px;}
 .panel-head .tag{position:absolute; right:15px; top:15px; display:inline-block; line-height:16px;}
 .panel-head .panel-head-tab{ position:absolute; right:0px; bottom:-3px; overflow:hidden;}
 .panel-head .panel-head-tab li{ float:left; padding:0 15px; height:34px; line-height:34px;}

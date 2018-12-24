@@ -432,7 +432,11 @@ class Index extends CommonIndex
         $color=['#33ccff'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
-        return json_encode($result);
+        if(IS_AJAX){
+            return $this->ajaxJsonReturn($result);
+        }else{
+            return json_encode($result);
+        }
     }
 
     //订单金额统计
@@ -481,7 +485,11 @@ class Index extends CommonIndex
         $color=['#33ccff'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
-        return json_encode($result);
+        if(IS_AJAX){
+            return $this->ajaxJsonReturn($result);
+        }else{
+            return json_encode($result);
+        }
     }
     //工单概况
     private function workOrderOverView($startTime,$endTime,$storeId)
