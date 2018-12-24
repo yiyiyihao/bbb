@@ -1,39 +1,41 @@
 <div class="line-big col-space15">
-    <div class="xm8">
-        <div class="line-big col-space15">
-            <div class="xm6">
-                <div class="panel admin-dashboard boxShadow">
-                    <div class="panel-body">
-                        <div class="panel-block flex-container">
-                            <div class="flex-item num-item-box">
-                                <h4>今日订单数量</h4>
-                                <div class="item-num">{$today.order_count}</div>
-                            </div>
-                            <div class="flex-item num-item-box">
-                                <h4>今日订单金额</h4>
-                                <div class="item-num">￥{$today.order_amount}</div>
-                            </div>
-                        </div>
-                        <div class="panel-block flex-container">
-                            <div class="flex-item num-item-box">
-                                <h4>累计订单数量</h4>
-                                <div class="item-num">{$total.order_count}</div>
-                            </div>
-                            <div class="flex-item num-item-box">
-                                <h4>累计订单金额</h4>
-                                <div class="item-num">￥{$total.order_amount}</div>
-                            </div>
-                        </div>
+    <div class="xm12">
+        <div class="panel admin-dashboard boxShadow">
+            <div class="panel-body clearfix">
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>今日订单数</h4>
+                        <div class="item-num">{$today.order_count}</div>
                     </div>
                 </div>
-            </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>累计订单数</h4>
+                        <div class="item-num">{$total.order_count}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>今日订单金额</h4>
+                        <div class="item-num">￥{$today.order_amount}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>累计订单金额</h4>
+                        <div class="item-num">￥{$total.order_amount}</div>
+                    </div>
+                </div>
 
+
+            </div>
         </div>
     </div>
 
+
     <div class="xm12">
         <div class="panel admin-dashboard boxShadow">
-            <div class="panel-head"><span>订单概况</span></div>
+            <div class="panel-head"><span>订单概况</span><div class="float-right button-group" data-type="1"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
             <div class="panel-body">
                 <div class="js-chart" id="orderChart" style="height:400px;" data-chart='{$chart_overview|default=""}'></div>
             </div>
@@ -41,10 +43,70 @@
     </div>
     <div class="xm12">
         <div class="panel admin-dashboard boxShadow">
-            <div class="panel-head"><span>订单金额统计</span></div>
+            <div class="panel-head"><span>订单金额统计</span><div class="float-right button-group" data-type="0"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
             <div class="panel-body">
                 <div class="js-chart" id="chart_amount" style="height:400px;" data-chart='{$chart_amount|default=""}'></div>
             </div>
         </div>
     </div>
 </div>
+
+
+{php}
+$today = date('Y-m-d');
+//1天
+$day_start = $today;
+//1个星期
+$week_start= date('Y-m-d',strtotime($today.' -1 week'));
+//1个月
+$month_start=date('Y-m-d',strtotime($today.' -1 month'));
+{/php}
+
+<script>
+    $(function(){
+        $(".panel-head .button-group .button").click(function(){
+            var group = $(this).parent();
+            var chartType = group.data("type");
+            group.find(".bg-main").removeClass("bg-main");
+            $(this).addClass("bg-main");
+            var days = $(this).data("type");
+            getChartData(chartType,days);
+        })
+        //异步取得图表数据
+        function getChartData(chartType,days){
+            //异步获取数据
+            var url = "/index/chart_data";
+            var start = '';
+            var end   = '{$today}';
+            //一周内的数据,type:1 订单概况，0订单金额，非当天数据有缓存
+            switch(days){
+                case 1://获取当天数据
+                    start = '{$day_start}';
+                    break;
+                case 7://获取一周数据
+                    start = '{$week_start}';
+                    break;
+                case 30://获取一月数据
+                    start = '{$month_start}';
+                    break;
+            }
+            var data = {start:start,end:end,type:chartType};
+            //1个月数据，type:1 订单概况，0订单金额，非当天数据有缓存
+            $.post(url , data ,function(e){
+                var id = '';
+                switch(chartType){
+                    case 0:
+                        id = 'chart_amount';
+                        break;
+                    case 1:
+                        id = 'orderChart';
+                        break;
+                }
+                $("#"+id).data("chart",e);
+                $("#"+id).EChartNew();
+            });
+        }
+    })
+
+
+</script>
