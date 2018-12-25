@@ -389,6 +389,7 @@ class Index extends CommonIndex
     //订单概况
     private function orderOverView($startTime,$endTime,$storeId)
     {
+
         $data=[];
         $lable=[];
         $dataset[0] = [
@@ -414,8 +415,13 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['user_store_id','=',$storeId],
                 ];
+                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                    $where['store_id']=$storeId;
+                }else{
+                    $where['user_store_id']=$storeId;
+                }
+
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
                 $query=$orderModel->where($where);
                 //以前数据加缓存7天
@@ -428,15 +434,15 @@ class Index extends CommonIndex
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
                 $i++;
                 $begin=$end;
-                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                if ($end>strtotime(date('Y-m-d H:00'))) {
                     break;
                 }
+
             }
         }else{
             $begin=strtotime($startTime.' 00:00:00');
             $endTime=strtotime($endTime.' 23:59:59');
             $i=0;
-
             $today=date('Y-m-d');
             while($begin<=$endTime){
                 $data[$i]['time']=date('Y-m-d',$begin);
@@ -444,8 +450,12 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['user_store_id','=',$storeId],
                 ];
+                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                    $where['store_id']=$storeId;
+                }else{
+                    $where['user_store_id']=$storeId;
+                }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
                 $query=$orderModel->where($where);
                 //以前数据加缓存7天
@@ -460,9 +470,6 @@ class Index extends CommonIndex
                 $begin=$end;
             }
         }
-
-
-
 
         $color=['#009688'];
         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
@@ -516,9 +523,10 @@ class Index extends CommonIndex
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
                 $i++;
                 $begin=$end;
-                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                if ($end>strtotime(date('Y-m-d H:00'))) {
                     break;
                 }
+
             }
         }else{
             $begin=strtotime($startTime.' 00:00:00');
@@ -600,7 +608,7 @@ class Index extends CommonIndex
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
                 $i++;
                 $begin=$end;
-                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                if ($begin>strtotime(date('Y-m-d H:00'))) {
                     break;
                 }
             }
@@ -686,7 +694,7 @@ class Index extends CommonIndex
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
                 $i++;
                 $begin=$end;
-                if ($begin>=strtotime(date('Y-m-d H:00'))) {
+                if ($begin>strtotime(date('Y-m-d H:00'))) {
                     break;
                 }
             }
