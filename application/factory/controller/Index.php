@@ -147,6 +147,18 @@ class Index extends CommonIndex
                 //服务商累计提现金额
                 $total['servicer_withdraw_amount'] = $totalStore && isset($totalStore['servicer_withdraw_amount']) ? floatval($totalStore['servicer_withdraw_amount']) : 0;
 
+                $orderSku=db('order_sku_service');
+                $where = [
+                    'store_id' => $storeId,
+                    'service_status' => 3,
+                ];
+                $field='count(*) count,sum(refund_amount) amount';
+                $refund=$orderSku->field($field)->where($where)->find();
+                //累计退款订单数
+                $total['refund_count']=$refund['count'];
+                //累计退款金额
+                $total['refund_amount']=$refund['amount'];
+
                 $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->orderOverView($from,$to,$storeId));
@@ -175,7 +187,7 @@ class Index extends CommonIndex
                 $where = [
                     'S.is_del' => 0,
                     'S.store_type'=> 3,
-                    'SD.ostore_id'=> $storeId,
+                    'O.user_store_id'=> $storeId,
                     'O.add_time' => ['>=', $beginToday],
                 ];
                 $join=[
@@ -244,7 +256,7 @@ class Index extends CommonIndex
                 $tpl = 'dealer';
                 //今日订单数据统计
                 $where = [
-                    'store_id' => $storeId,
+                    'user_store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -255,7 +267,7 @@ class Index extends CommonIndex
 
                 //累计订单数据统计
                 $where = [
-                    'store_id' => $storeId,
+                    'user_store_id' => $storeId,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
