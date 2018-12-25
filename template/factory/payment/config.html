@@ -33,10 +33,14 @@
 	          			{volist name="payment.config" id="vo"}
 		                    <div class="form-group">
 		                        <div class="label">
-		                            <label>{$key}</label>
+		                            <label>{$vo['name'] ?? $key}</label>
 		                        </div>
 		                        <div class="field">
+		                        	{if condition="isset($vo['type']) && $vo['type'] == 'textarea'"}
+		                            <textarea class="input" id="{$key}" name="config[{$key}]" rows="10" cols="60">{$info['config'][$key] ?? ''}</textarea>
+		                            {else/}
 		                            <input type="text" class="input" id="{$key}" name="config[{$key}]" datatype="*" size="60" value="{$info['config'][$key] ?? ''}">
+		                            {/if}
 		                            <div class="input-note">{$vo['desc'] ?? ''}</div>
 		                        </div>
 		                    </div>

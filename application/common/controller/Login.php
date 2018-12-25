@@ -54,6 +54,9 @@ class Login extends CommonBase
                 return $this->error($result['msg']);
             }
         }else{
+            if(ADMIN_ID){
+                $this->redirect('/');
+            }
             $this->assign('title',config("setting.title").lang('home_manager'));
             $this->import_resource('base:js/Validform.min.js,base:js/form.js');
             $this->view->engine->layout(false);

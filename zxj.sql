@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50721
 File Encoding         : 65001
 
-Date: 2018-12-24 18:27:26
+Date: 2018-12-25 10:17:06
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -495,7 +495,7 @@ CREATE TABLE `wja_apilog_pay` (
   `error` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '错误状态',
   `error_msg` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='支付日志表';
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='支付日志表';
 
 -- ----------------------------
 -- Records of wja_apilog_pay
@@ -506,6 +506,11 @@ INSERT INTO `wja_apilog_pay` VALUES ('3', '1545639292', '1545639292', 'order', '
 INSERT INTO `wja_apilog_pay` VALUES ('4', '1545639303', '1545639303', 'order', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":\"\"}', '0', '1', '请求参数异常');
 INSERT INTO `wja_apilog_pay` VALUES ('5', '1545639310', '1545639310', 'order', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":\"\"}', '0', '1', '请求参数异常');
 INSERT INTO `wja_apilog_pay` VALUES ('6', '1545639311', '1545639311', 'order', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":\"\"}', '0', '1', '请求参数异常');
+INSERT INTO `wja_apilog_pay` VALUES ('7', '1545701177', '1545701177', 'alipay', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":[]}', '0', '1', '请求参数异常');
+INSERT INTO `wja_apilog_pay` VALUES ('8', '1545701601', '1545701601', 'alipay', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":null}', '1', '1', '请求参数异常');
+INSERT INTO `wja_apilog_pay` VALUES ('9', '1545701637', '1545701637', 'alipay', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":null}', '0', '1', '请求参数异常');
+INSERT INTO `wja_apilog_pay` VALUES ('10', '1545701771', '1545701771', 'alipay', 'alipay_page', '20181224161143102551363546357', '{\"out_trade_no\":\"20181224161143102551363546357\",\"trade_no\":\"1224161143102551363546357\",\"trade_status\":\"TRADE_FINISHED\"}', '{\"errCode\":1,\"errMsg\":\"\\u652f\\u4ed8\\u5b9d\\u652f\\u4ed8\\u91d1\\u989d\\u4e0e\\u8ba2\\u5355\\u5e94\\u4ed8\\u91d1\\u989d\\u4e0d\\u4e00\\u81f4\",\"order_sn\":\"20181224161143102551363546357\"}', '17', '1', '支付宝支付金额与订单应付金额不一致');
+INSERT INTO `wja_apilog_pay` VALUES ('11', '1545704010', '1545704010', 'alipay', '', '', '', '{\"errCode\":1,\"errMsg\":\"\\u8bf7\\u6c42\\u53c2\\u6570\\u5f02\\u5e38\",\"params\":\"\"}', '1', '1', '请求参数异常');
 
 -- ----------------------------
 -- Table structure for wja_apilog_timer
@@ -5133,7 +5138,7 @@ CREATE TABLE `wja_user` (
 -- Records of wja_user
 -- ----------------------------
 INSERT INTO `wja_user` VALUES ('1', '1', '0', '0', '1', '0', '0', 'admin', 'f02b3bb7b40a43c0c364f23d36e4aa52', '', '管理员', '13587458745', '', '0.00', '', '', '1', '1', '1542683553', '1545614647', '1545614647', '0', '0');
-INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '1', '1', '0', 'wanjiaan', '45e10aab779eb35fe020503ae1f63272', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1545616867', '1545616867', '0', '0');
+INSERT INTO `wja_user` VALUES ('2', '2', '1', '1', '1', '1', '0', 'wanjiaan', '45e10aab779eb35fe020503ae1f63272', '', '', '13458745748', '', '0.00', '', '', '1', '1', '1543223533', '1545701044', '1545701043', '0', '0');
 INSERT INTO `wja_user` VALUES ('3', '2', '2', '2', '1', '1', '0', 'ceshi', '3de54ec60cfd102a6f0e6a7211a5be1c', '', '', '', '', '0.00', '', '', '1', '1', '1543288394', '1544428622', '1544428622', '0', '0');
 INSERT INTO `wja_user` VALUES ('4', '3', '1', '3', '1', '2', '0', 'qudao', '3b3a4cd3d66c22faf7a679e0d0d8a68c', '小月', '刘越', '13569856520', '', '0.00', '', '', '1', '1', '1543302686', '1545617081', '1545617081', '0', '0');
 INSERT INTO `wja_user` VALUES ('5', '4', '1', '4', '1', '3', '0', 'lingshou', '951f07795fa3475e6ee613c9fef60a6c', '', '', '', '', '0.00', '', '', '1', '1', '1544092030', '1545385633', '1545385633', '0', '0');
