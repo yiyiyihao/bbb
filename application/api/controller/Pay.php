@@ -172,7 +172,9 @@ class Pay extends ApiBase
         $this->writeLog('action:'.$action);
         switch ($action) {
             case 'alipay':
+                $this->writeLog('alipay:');
                 $this->postParams = $this->request->post();
+                $this->writeLog('alipay_POST:'.json_encode($this->postParams));
                 break;
             case 'wechat':
                 $this->writeLog('wechat:');
@@ -182,12 +184,13 @@ class Pay extends ApiBase
                     $notify = file_get_contents('php://input');
                     $this->writeLog('input:', $notify);
                 }
-//                 if (!$notify) {
-//                     $notify = $this->request->param();
-//                     $this->writeLog('param:', json_encode($notify));
-//                 }
                 if (!$notify) {
-                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常', 'params' => $notify]);
+                    $this->writeLog('param1');
+                    $notify = $this->request->param();
+                    $this->writeLog('param2:', json_encode($notify));
+                }
+                if (!$notify) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常1', 'params' => $notify]);
                 }
                 if (is_array($notify)) {
                     $this->postParams = $notify;
@@ -203,7 +206,7 @@ class Pay extends ApiBase
             break;
         }
         if (!$this->postParams) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常', 'params' => $this->postParams]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常2', 'params' => $this->postParams]);
         }
     }
     /**
