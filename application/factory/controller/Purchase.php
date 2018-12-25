@@ -79,7 +79,7 @@ class Purchase extends FactoryForm
                 $post = $this->request->post();
                 $specs = isset($post['specs']) ? trim($post['specs']) : '';
                 if(!empty($specs)){
-                    $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1")->find();
+                    $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
                     if($skuInfo){
                         $return = array(
                             'status'    => 1,
