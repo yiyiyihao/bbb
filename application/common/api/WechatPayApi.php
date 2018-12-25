@@ -209,8 +209,8 @@ class WechatPayApi
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         if ($cert) {
-            $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
-            $sslkey = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
+            $sslcert = dirname(getcwd()).'/config/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
+            $sslkey = dirname(getcwd()).'/config/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
             if (!file_exists($sslcert) || !file_exists($sslkey)) {
                 $this->error = '未上传微信支付证书文件(apiclient_cert.pem和apiclient_key.pem)';
                 return FALSE;
