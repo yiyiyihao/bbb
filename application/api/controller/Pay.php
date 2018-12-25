@@ -56,14 +56,14 @@ class Pay extends ApiBase
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
-                $push = new \app\common\service\PushBase();
+                /* $push = new \app\common\service\PushBase();
                 $data = [
                     'type'          => 'order',
                     'orderSn'       => $orderSn,
                     'paidAmount'    => $paidAmount,
                 ];
                 //发送给店铺下所有管理用户
-                $push->sendToGroup('store'.$order['store_id'], json_encode($data));
+                $push->sendToGroup('store'.$order['store_id'], json_encode($data)); */
                 $this->_returnMsg(['msg' => '支付成功', 'order_sn' => $orderSn]);
             }
         }else{
@@ -169,19 +169,17 @@ class Pay extends ApiBase
         $this->requestTime = time();
         $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
         $action = strtolower($this->request->action());
-        $this->writeLog('action:'.$action);
         switch ($action) {
             case 'alipay':
-                $this->writeLog('alipay:');
                 $this->postParams = $this->request->post();
-                $this->writeLog('alipay_POST:'.json_encode($this->postParams));
                 break;
             case 'wechat':
                 $notify = isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '';
-                $this->writeLog('HTTP_RAW_POST_DATA:', $notify);
                 if (!$notify) {
                     $notify = file_get_contents('php://input');
-                    $this->writeLog('input:', $notify);
+                }
+                if (!$notify) {
+                    $notify = $_POST;
                 }
                 if (!$notify) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常1', 'params' => $notify]);
@@ -255,8 +253,9 @@ class Pay extends ApiBase
         if($result['return_code'] != 'SUCCESS'){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['return_msg']]);
         }
-        $paymentService = new \app\common\api\PaymentApi($storeId, $payCode);
-        $sign = $paymentService->_wechatGetSign($result);
+        $wechatApi = new \app\common\api\WechatPayApi($storeId, $payCode);
+        $sign = $wechatApi->_wechatGetSign($result);
+        
         $error = isset($result['sign']) && ($result['sign'] == $sign) ? 0 : 1;
         if ($error) {
             $this->_returnMsg(['errCode' => $error, 'errMsg' => '签名错误: '.'[sign:'.$sign.'] [notify_sign:'.$result['sign'].']']);

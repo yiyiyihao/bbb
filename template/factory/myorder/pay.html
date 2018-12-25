@@ -33,7 +33,7 @@
                             {if condition="$payments"}
                             	{volist name="payments" id="vo"}
                             	<!-- <input type="radio" class="input" name="pay_code" size="40" datatype="*" checked="checked" value="{$vo['pay_code']}">{$vo['name']} -->
-                            	<a href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>
+                            	<a {if ($vo['pay_code'] == 'alipay_page')}target="_blank"{/if} href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>
                             	{/volist}
                             {/if}
                         </div>
