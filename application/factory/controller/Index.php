@@ -396,7 +396,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 1
+            'smooth'   => 0.5
         ];
         $orderModel=new \app\common\model\Order();
 
@@ -582,7 +582,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 1
+            'smooth'   => 0.5
         ];
         $workOrder=new \app\common\model\WorkOrder();
 
