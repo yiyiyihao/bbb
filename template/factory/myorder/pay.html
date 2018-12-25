@@ -1,6 +1,6 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
     <div class="tab admin-tab">
-        <div class="panel admin-box active">
+        <div class="panel fixed-pannel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
                     <strong>订单支付</strong>
@@ -31,10 +31,12 @@
                         </div>
                         <div class="field">
                             {if condition="$payments"}
+                                <div class="button-group radio">
                             	{volist name="payments" id="vo"}
-                            	<!-- <input type="radio" class="input" name="pay_code" size="40" datatype="*" checked="checked" value="{$vo['pay_code']}">{$vo['name']} -->
-                            	<a {if ($vo['pay_code'] == 'alipay_page')}target="_blank"{/if} href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>
-                            	{/volist}
+                                    <label class="button{if $i==1} active icon-wechat{else/} icon-alipay{/if}"><input name="pay_code" value="{$vo['pay_code']}"{if $i==1} checked="checked"{/if} type="radio"> {$vo['name']}</label>
+                            	<!--<a {if ($vo['pay_code'] == 'alipay_page')}target="_blank"{/if} href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>-->
+                            	{/volist}                                
+                                </div>
                             {/if}
                         </div>
                     </div>
@@ -50,12 +52,13 @@
                     {/if}
                 </div>
             </div>
+            {if is_null($Think.get.step)}
             <div class="panel-foot">
                 <div class="form-button">
-                    <a href="{:url('myorder/index')}" class="button bg-main">我的订单列表</a>
-                    <div id="tips"></div>
+                    <span class="button bg-main icon-pay-setting" id="dopay"> 去付款</span>
                 </div>
             </div>
+            {/if}
         </div>
     </div>
 </form>
@@ -63,6 +66,24 @@
     Do.ready('base', 'qrcode', function () {
         //表单综合处理
         $('#form').FormPage();
+		$("#dopay").click(function(){
+			var url = "{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2])}";
+			var pay_code = $("input[type='radio'][name='pay_code']:checked").val();
+			url += "/pay_code/"+pay_code;
+			if(pay_code=='alipay_page'){
+				layer.confirm('付款完成？', {
+				  icon : 3,
+				  btn: ['已付款', '取消'] //可以无限个按钮
+				}, function(index, layero){
+				  //已付款 TODO 验证是否已经支付成功
+				}, function(index){
+				  //取消 关闭当前页面
+				});
+				window.open(url, '_blank').location;
+			}else{
+				window.location.href = url;
+			}
+		})
 		{if isset($code_url)}
 		$('#qrcode').qrcode({width: 180,height: 180,text: "{$code_url}",foreground: '#666'});
 		{/if}
