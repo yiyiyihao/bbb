@@ -106,9 +106,80 @@ class WechatPayApi
             $this->error = $this->error ? $this->error :'支付请求异常';
             return FALSE;
         }
-//         return $result;
+    }
+    /**
+     * 订单退款
+     * @param array $order 退款订单信息
+     * @param array $service 售后信息
+     * @return boolean
+     */
+    public function tradeRefund($order = [], $service = [])
+    {
+        $params = [
+            'appid'     => trim($this->config['app_id']),
+            'mch_id'    => trim($this->config['mch_id']),
+            'nonce_str' => get_nonce_str(32),
+            'out_trade_no'      => trim($order['order_sn']),
+            'transaction_id'    => trim($order['pay_sn']),
+            'spbill_create_ip'  => $_SERVER['REMOTE_ADDR'],
+            'total_fee'         => intval((100 * $order['paid_amount'])),
+            'refund_fee'         => intval((100 * $service['refund_amount'])),
+            'out_refund_no'     => $service['service_sn'],
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';//退款接口地址
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, TRUE, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return TRUE;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'支付请求异常';
+            return FALSE;
+        }
     }
     
+    public function tradeRefundQuery($service = [])
+    {
+        $params = [
+            'appid'     => trim($this->config['app_id']),
+            'mch_id'    => trim($this->config['mch_id']),
+            'nonce_str' => get_nonce_str(32),
+            'out_trade_no'      => trim($service['order_sn']),
+            'out_refund_no'     => $service['service_sn'],
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        $url = 'https://api.mch.weixin.qq.com/pay/refundquery';//退款接口地址
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, TRUE, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'支付请求异常';
+            return FALSE;
+        }
+    }
     /**
      * 生成签名
      * @return 签名，本函数不覆盖sign成员变量，如要设置签名需要调用SetSign方法赋值
@@ -129,7 +200,7 @@ class WechatPayApi
     /*
      *与微信通讯获得二维码地址信息，必须以xml格式
      */
-    private function _wechatPostXmlCurl($xml, $url, $second = 60)
+    private function _wechatPostXmlCurl($xml, $url, $second = 120, $cert = FALSE)
     {
         //初始化curl
         $ch = curl_init();
@@ -137,16 +208,16 @@ class WechatPayApi
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        
-//         $code = $this->payCode == 'wechat_app' ? $this->payCode : 'wechat_js';
-//         $sslcert = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_cert.pem';
-//         $sslkey = dirname(getcwd()).'/biapp/common/cert/'.$code.'_apiclient_key.pem';
-        /* $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
-        $sslkey = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
-        
-        curl_setopt($ch, CURLOPT_SSLCERT, $sslcert);
-        curl_setopt($ch, CURLOPT_SSLKEY, $sslkey); */
-        
+        if ($cert) {
+            $sslcert = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_cert.pem';
+            $sslkey = dirname(getcwd()).'/public/certs/'.$this->storeId.'/'.$this->payCode.'_apiclient_key.pem';
+            if (!file_exists($sslcert) || !file_exists($sslkey)) {
+                $this->error = '未上传微信支付证书文件(apiclient_cert.pem和apiclient_key.pem)';
+                return FALSE;
+            }
+            curl_setopt($ch, CURLOPT_SSLCERT, $sslcert);
+            curl_setopt($ch, CURLOPT_SSLKEY, $sslkey);
+        }
         //设置header
         curl_setopt($ch, CURLOPT_HEADER, FALSE);
         //要求结果为字符串且输出到屏幕上
@@ -162,6 +233,9 @@ class WechatPayApi
         if ($errno > 0) {
             if ($errno == 58) {
                 $this->error = 'CURL证书错误';
+                return FALSE;
+            }elseif ($errno == 28) {
+                $this->error = '连接超时，请稍后重试';
                 return FALSE;
             }else{
                 $this->error = 'CURL错误'.$errno;

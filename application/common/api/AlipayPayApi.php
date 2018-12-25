@@ -88,20 +88,17 @@ class AlipayPayApi
      * @param array $order
      * @return string|\app\common\api\提交表单HTML文本
      */
-    public function tradeRefund($order = [])
+    public function tradeRefund($order = [], $service = [])
     {
         $totalAmount = floatval($order['real_amount']);
-        $bizContent = [
-            'product_code'  => 'FAST_INSTANT_TRADE_PAY',
-            'body' => '',
-            'subject'       => isset($order['subject']) ? trim($order['subject']) : '产品购买',
-            'out_trade_no'  => trim($order['order_sn']),
-            'trade_no'      => trim($order['order_sn']),
-            'total_amount'  => floatval($order['real_amount']),  //付款金额，必填(订单总金额，单位为元，精确到小数点后两位，取值范围[0.01,100000000])
+        $apiParams = [
+            'out_trade_no'      => trim($order['order_sn']),
+            'trade_no'          => trim($order['pay_sn']),
+            'refund_amount'     => floatval($service['refund_amount']),
+            'out_request_no'    => $service['service_sn'],
         ];
-        #TODO
-        $bizContent = json_encode($bizContent,JSON_UNESCAPED_UNICODE);
-        $totalParams = [
+        $bizContent = json_encode($apiParams,JSON_UNESCAPED_UNICODE);
+        $sysParams = [
             'biz_content'=> $bizContent,
             'app_id'    => trim($this->config['app_id']),
             'version'   => '1.0',
@@ -112,10 +109,76 @@ class AlipayPayApi
             'charset'   => $this->postCharset,
         ];
         //待签名字符串
-        $preSignStr = $this->getSignContent($totalParams);
+        $preSignStr = $this->getSignContent($sysParams);
         //签名
-        $totalParams["sign"] = $this->generateSign($totalParams, $this->signType);
+        $sysParams["sign"] = $this->generateSign(array_merge($apiParams, $sysParams), $this->signType);
+        
+        $result = $this->execute($sysParams, $apiParams);
+        $response = $result && isset($result['alipay_trade_refund_response']) ? $result['alipay_trade_refund_response'] : [];
+        if ($response) {
+            $code = $response ? $response['code'] : '';
+            if ($code == 10000) {//操作成功
+                return TRUE;
+            }else{
+                $subCode = isset($response['sub_code'])? $response['sub_code'] : '';
+                $this->error = $subCode;
+                return FALSE;
+            }
+        }else{
+            $this->error = '请求错误';
+            return FALSE;
+        }
     }
+    public function tradeRefundQuery($service = [])
+    {
+        $apiParams = [
+            'out_trade_no'          => $service['order_sn'],
+            'out_request_no'    => $service['service_sn'],
+        ];
+        $bizContent = json_encode($apiParams,JSON_UNESCAPED_UNICODE);
+        $sysParams = [
+            'biz_content'=> $bizContent,
+            'app_id'    => trim($this->config['app_id']),
+            'version'   => '1.0',
+            'format'    => 'json',
+            'sign_type' => $this->signType,
+            'method'    => 'alipay.trade.fastpay.refund.query',
+            'timestamp' => date('Y-m-d H:i:s', time()),
+            'charset'   => $this->postCharset,
+        ];
+        //待签名字符串
+        $preSignStr = $this->getSignContent($sysParams);
+        //签名
+        $sysParams["sign"] = $this->generateSign(array_merge($apiParams, $sysParams), $this->signType);
+        $result = $this->execute($sysParams, $apiParams);
+        $response = $result && isset($result['alipay_trade_fastpay_refund_query_response']) ? $result['alipay_trade_fastpay_refund_query_response'] : [];
+        if ($response) {
+            $code = $response ? $response['code'] : '';
+            if ($code == 10000) {//操作成功
+                return $result;
+            }else{
+                $subCode = isset($response['sub_code'])? $response['sub_code'] : '';
+                $this->error = $subCode;
+                return FALSE;
+            }
+        }else{
+            $this->error = '请求错误';
+            return FALSE;
+        }
+    }
+    protected function execute($sysParams, $apiParams)
+    {
+        //系统参数放入GET请求串
+        $requestUrl = $this->gatewayUrl . "?";
+        foreach ($sysParams as $sysParamKey => $sysParamValue) {
+            $requestUrl .= "$sysParamKey=" . urlencode($this->characet($sysParamValue, $this->postCharset)) . "&";
+        }
+        $requestUrl = substr($requestUrl, 0, -1);
+        
+        $result = curl_post_https($requestUrl, $apiParams);
+        return $result;
+    }
+    
     /** rsaCheckV1 & rsaCheckV2
      *  验证签名
      *  公钥是否是读取字符串还是读取文件，是根据初始化传入的值判断的。

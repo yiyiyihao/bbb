@@ -21,6 +21,7 @@ class PaymentApi
                 'name' => '微信扫码支付',
                 'desc' => '用户打开"微信扫一扫“，扫描商户的二维码后完成支付',
                 'display_type' => 1,//支付显示客户端1:PC端 2微信小程序端 3APP客户端
+                'api_type'     => 'wechat',
                 'config' => [
                     'app_id' => [
                         'desc' => '微信支付分配的公众账号ID（企业号corpid即为此appId）',
@@ -37,7 +38,8 @@ class PaymentApi
             'alipay_page' => [
                 'code' => 'alipay_page',
                 'name' => '支付宝支付',
-                'display_type' => 1,
+                'display_type'  => 1,
+                'api_type'      => 'alipay',
                 'desc' => '用户通过支付宝PC收银台完成支付，交易款项即时给到商户支付宝账户。（用户交易款项即时到账，交易订单三个月内可退款，提供退款、清结算、对账等配套服务。）',
                 'config' => [
                     'app_id' => [

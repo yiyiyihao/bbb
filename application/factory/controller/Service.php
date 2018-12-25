@@ -124,9 +124,6 @@ class Service extends FactoryForm
     {
         $params = $this->request->param();
         $service = $this->_assignInfo();
-        if ($service['service_status'] != 2) {
-            $this->error('无操作权限');
-        }
         if (IS_POST) {
             $result = $this->serviceModel->serviceRefund($service, $this->adminUser, $params);
             if ($result === FALSE) {
@@ -141,6 +138,17 @@ class Service extends FactoryForm
             }
             $this->assign('info', $service);
             return $this->fetch();
+        }
+    }
+    //退款详情查看接口查询
+    public function refundDetail()
+    {
+        $service = $this->_assignInfo();
+        $result = $this->serviceModel->serviceRefundDetail($service);
+        if ($result === FALSE) {
+            $this->error($this->serviceModel->error);
+        }else{
+            $this->success('退款已完成');
         }
     }
     function _getField(){
@@ -221,10 +229,10 @@ class Service extends FactoryForm
                 ]
             ];
             $table['actions']['button'][] = [
-                'text'  => '退款', 'action'=> 'condition', 'icon'  => '','bgClass'=> 'bg-red',
+                'text'  => '确定退款', 'action'=> 'condition',  'js-action' => TRUE, 'icon'  => '','bgClass'=> 'bg-red',
                 'condition' => [
                     'action' => 'refund',
-                    'rule' => '$vo["service_status"] == 2'
+                    'rule' => '$vo["service_status"] == 2',
                 ]
             ];
         }else{

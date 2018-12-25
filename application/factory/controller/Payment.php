@@ -43,6 +43,7 @@ class Payment extends FactoryForm
                 'status'        => isset($params['status']) ? intval($params['status']) : '',
                 'sort_order'    => isset($params['sort_order']) ? trim($params['sort_order']) : '',
                 'display_type'  => $payment['display_type'],
+                'api_type'      => $payment['api_type'],
             ];
             if ($info) {
                 $result = $this->model->where(['pay_id' => $info['pay_id']])->update($data);

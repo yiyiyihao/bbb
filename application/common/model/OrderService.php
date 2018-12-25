@@ -241,52 +241,115 @@ class OrderService extends Model
      */
     public function serviceRefund($service, $user, $params)
     {
+        $transferNo = isset($params['transfer_no']) ? trim($params['transfer_no'])  : '';
+        $remark = isset($params['remark']) ? trim($params['remark'])  : '';
+//         if (!$transferNo) {
+//             $this->error = '请填写退款转账流水号';
+//             return FALSE;
+//         }
+        
         $service = $this->getServiceDetail($service['service_sn'], $user);
         if (!$service){
             return FALSE;
         }
-        $type = $service['service_type'];
-        $transferNo = isset($params['transfer_no']) ? trim($params['transfer_no'])  : '';
-        $remark = isset($params['remark']) ? trim($params['remark'])  : '';
-        if (!$transferNo) {
-            $this->error = '请填写退款转账流水号';
+        //售后状态(-2已取消 -1拒绝申请 0申请中 1等待买家退货 2等待卖家退款 3退款成功)
+        switch ($service['service_status']) {
+            case -2:
+                $this->error = '售后申请已取消,不允许退款';
+                return FALSE;
+            break;
+            case -1:
+                $this->error = '售后申请已拒绝,不允许退款';
+                return FALSE;
+            break;
+            case 0:
+                $this->error = '售后申请未审核,不允许退款';
+                return FALSE;
+            break;
+            case 1:
+                $this->error = '等待卖家退货,不允许退款';
+                return FALSE;
+            break;
+            case 3:
+                $this->error = '已完成退款,不允许重复操作';
+                return FALSE;
+            break;
+            default:
+            break;
+        }
+        if ($user['admin_type'] != ADMIN_FACTORY) {
+            $this->error = '无退款权限';
             return FALSE;
         }
-        $order = db('order')->where(['order_id' => $service['order_id']])->find();
+        //判断订单是否已支付(是否在线支付)
+        $order = db('Order')->where(['order_id' => $service['order_id'], 'store_id' => $user['store_id']])->find();
         if (!$order) {
-            $this->error = 'param_error';
+            $this->error = lang('param_error');
+            return FALSE;
+        }
+        if ($order['pay_type'] != 1) {
+            $this->error = lang('非在线支付，不允许退款操作');
+            return FALSE;
+        }
+        if (!$order['pay_code'] || !$order['pay_sn']) {
+            $this->error = lang('支付异常,不允许操作');
             return FALSE;
         }
         $subModel = db('order_sku_sub');
         $osub = $subModel->where(['order_id' => $service['order_id'], 'ossub_id' => $service['ossub_id']])->find();
         if (!$osub) {
-            $this->error = 'param_error';
+            $this->error = lang('param_error');
             return FALSE;
         }
-        //判断审核状态
-        if ($service['service_status'] != 2) {
-            $this->error = '操作异常';
+        $payCode = $order['pay_code'];
+        $config = db('payment')->where(['pay_code' => $payCode, 'is_del' => 0, 'status' => 1])->find();
+        if (!$config) {
+            $this->error = lang('支付配置已删除/已禁用，请检查配置详情');
             return FALSE;
         }
+        $apiType = $config['api_type'];
+        $config = $config['config_json'] ? json_decode($config['config_json'], 1) : [];
+        $storeId = $order['store_id'];
+        switch ($apiType) {
+            case 'alipay':
+                $alipayApi = new \app\common\api\AlipayPayApi($storeId, $payCode);
+                $result = $alipayApi->tradeRefund($order, $service);
+                if ($result === FALSE) {
+                    $this->error = $alipayApi->error;
+                    return FALSE;
+                }
+            break;
+            case 'wechat':
+                $wechatApi = new \app\common\api\WechatPayApi($storeId, $payCode);
+                $result = $wechatApi->tradeRefund($order, $service);
+                if ($result === FALSE) {
+                    $this->error = $wechatApi->error;
+                    return FALSE;
+                }
+            break;
+            default:
+                $this->error = lang('接口未开通');
+                return FALSE;
+            break;
+        }
+        $transferNo = $service['service_sn'];
         $serviceStatus = 3;//已完成
         $data = [
-            'refund_time' => time(),
+            'refund_time'    => time(),
             'service_status' => $serviceStatus,
-            'transfer_no' => $transferNo,
-            'admin_remark' => $remark,
+            'transfer_no'    => $transferNo,
+            'admin_remark'   => $remark,
         ];
         $result = $this->save($data, ['service_id' => $service['service_id']]);
         if ($result === FALSE){
             $this->error = lang('system_error');
             return FALSE;
         }
-        
         //退货退款完成时,库存还原
         if ($service['service_type'] == 1) {
             $goodsModel = new \app\common\model\Goods();
             $goodsModel->setGoodsStock($osub, $service['num']);
         }
-        
         $commissionModel = db('store_commission');
         $where = [
             'order_id'  => $service['order_id'],
@@ -336,6 +399,45 @@ class OrderService extends Model
             $orderModel->orderCloseRefund($order);
         }
         return TRUE;
+    }
+    public function serviceRefundDetail($service)
+    {
+        if ($service['service_status'] && $service['service_type'] == 1) {
+            $payCode = $service['sub']['pay_code'];
+            $config = db('payment')->where(['pay_code' => $payCode, 'is_del' => 0, 'status' => 1])->find();
+            if (!$config) {
+                $this->error = lang('支付配置已删除/已禁用，请检查配置详情');
+                return FALSE;
+            }
+            $apiType = $config['api_type'];
+            $config = $config['config_json'] ? json_decode($config['config_json'], 1) : [];
+            $storeId = $service['sub']['store_id'];
+            switch ($apiType) {
+                case 'alipay':
+                    $alipayApi = new \app\common\api\AlipayPayApi($storeId, $payCode);
+                    $result = $alipayApi->tradeRefundQuery($service);
+                    if ($result === FALSE) {
+                        $this->error = $alipayApi->error;
+                        return FALSE;
+                    }
+                    break;
+                case 'wechat':
+                    $wechatApi = new \app\common\api\WechatPayApi($storeId, $payCode);
+                    $result = $wechatApi->tradeRefundQuery($service);
+                    if ($result === FALSE) {
+                        $this->error = $wechatApi->error;
+                        return FALSE;
+                    }
+                    break;
+                default:
+                    $this->error = lang('接口未开通');
+                    return FALSE;
+                    break;
+            }
+            return $result;
+        }else{
+            return FALSE;
+        }
     }
     
     /**
