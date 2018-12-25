@@ -95,13 +95,13 @@ class Pay extends ApiBase
             $user = db('user')->where(['user_id' => $order['user_id']])->find();
             $paidAmount = isset($this->postParams['total_amount']) ? floatval($this->postParams['total_amount']) : 0;
             //2、判断total_amount是否确实为该订单的实际金额（即商户订单创建时的金额），
-            if ($paidAmount < $order['paid_amount']) {
+            if ($paidAmount < $order['real_amount']) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付宝支付金额与订单应付金额不一致', 'order_sn' => $orderSn]);
             }
             $orderModel = new \app\common\model\Order();
             //交易状态
             $tradeStatus = $this->postParams['trade_status'];
-            if(in_array($tradeStatus, [TRADE_FINISHED, TRADE_SUCCESS])) {
+            if(in_array($tradeStatus, ['TRADE_FINISHED', 'TRADE_SUCCESS'])) {
                 $extra = [
                     'pay_sn'        => $this->postParams['trade_no'],//支付宝交易号
                     'paid_amount'   => $paidAmount,
@@ -112,14 +112,14 @@ class Pay extends ApiBase
                 if ($result === FALSE) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
                 }else{
-//                     $push = new \app\common\service\PushBase();
-//                     $data = [
-//                         'type'          => 'order',
-//                         'orderSn'       => $orderSn,
-//                         'paidAmount'    => $paidAmount,
-//                     ];
-//                     //发送给店铺下所有管理用户
-//                     $push->sendToGroup('store'.$order['store_id'], json_encode($data));
+                    $push = new \app\common\service\PushBase();
+                    $data = [
+                        'type'          => 'order',
+                        'orderSn'       => $orderSn,
+                        'paidAmount'    => $paidAmount,
+                    ];
+                    //发送给店铺下所有管理用户
+                    $push->sendToGroup('store'.$order['store_id'], json_encode($data));
                     $this->_returnMsg(['msg' => '支付成功', 'order_sn' => $orderSn]);
                 }
                 //判断该笔订单是否在商户网站中已经做过处理
@@ -168,43 +168,61 @@ class Pay extends ApiBase
     {
         $this->requestTime = time();
         $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
-        $notify = isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '';
-        if (!$notify) {
-            $notify = file_get_contents('php://input');
-        }
-        if (!$notify) {
-            $notify = $_POST;
-        }
-        if (!$notify) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常', 'params' => $notify]);
-        }
         $action = strtolower($this->request->action());
-        if (strtolower($action) == 'wechat') {
-            /* $notify = '<xml><appid><![CDATA[wx06b088dbc933d613]]></appid>
-<bank_type><![CDATA[CFT]]></bank_type>
-<cash_fee><![CDATA[1]]></cash_fee>
-<fee_type><![CDATA[CNY]]></fee_type>
-<is_subscribe><![CDATA[N]]></is_subscribe>
-<mch_id><![CDATA[1520990381]]></mch_id>
-<nonce_str><![CDATA[Co9QiWUgfdZYNAJWXYld6k3i2OQjDOQn]]></nonce_str>
-<openid><![CDATA[ozO5o5F0XQTBGBHhS76lzlI5E8Bg]]></openid>
-<out_trade_no><![CDATA[20181217155356521005891782895]]></out_trade_no>
-<result_code><![CDATA[SUCCESS]]></result_code>
-<return_code><![CDATA[SUCCESS]]></return_code>
-<sign><![CDATA[07CF16B5151A01FFBCE58AF96CE8B000]]></sign>
-<time_end><![CDATA[20181217161447]]></time_end>
-<total_fee>1</total_fee>
-<trade_type><![CDATA[NATIVE]]></trade_type>
-<transaction_id><![CDATA[4200000219201812172231676123]]></transaction_id>
-</xml>'; */
-            //将XML转为array
-            //禁止引用外部xml实体
-            libxml_disable_entity_loader(true);
-            $this->postParams = xml_to_array($notify);
+        $this->writeLog('action:'.$action);
+        switch ($action) {
+            case 'alipay':
+                $this->postParams = $this->request->post();
+                break;
+            case 'wechat':
+                $this->writeLog('wechat:');
+                $notify = isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '';
+                $this->writeLog('HTTP_RAW_POST_DATA:', $notify);
+                if (!$notify) {
+                    $notify = file_get_contents('php://input');
+                    $this->writeLog('input:', $notify);
+                }
+//                 if (!$notify) {
+//                     $notify = $this->request->param();
+//                     $this->writeLog('param:', json_encode($notify));
+//                 }
+                if (!$notify) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常', 'params' => $notify]);
+                }
+                if (is_array($notify)) {
+                    $this->postParams = $notify;
+                }else{
+                    //将XML转为array
+                    //禁止引用外部xml实体
+                    libxml_disable_entity_loader(true);
+                    $this->postParams = xml_to_array($notify);
+                }
+                break;
+            default:
+                ;
+            break;
         }
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常', 'params' => $this->postParams]);
         }
+    }
+    /**
+     * 请确保项目文件有可写权限，不然打印不了日志。
+     */
+    private function writeLog($text) {
+        // $text=iconv("GBK", "UTF-8//IGNORE", $text);
+        //$text = characet ( $text );
+        $dir = env('runtime_path').'log/'.date("Ym");
+        $filename = $dir.'/wechat_'.(date('d')).'.log';
+        if (!file_exists($dir)) {
+            mkdir($dir);
+            chmod($dir,0777);
+        }
+        //判断文件是否存在不存在则创建
+        if (!file_exists($filename)) {
+            $myfile = fopen($filename, "w") or die("Unable to open file!");
+        }
+        file_put_contents ($filename, date ( "Y-m-d H:i:s" ) . "  " . $text . "\r\n", FILE_APPEND );
     }
     /**
      * 处理返回参数

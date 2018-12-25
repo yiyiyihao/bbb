@@ -29,6 +29,7 @@ class PaymentApi
                         'desc' => '微信支付分配的商户号',
                     ],
                     'mch_key' => [
+                        'name' => '微信支付密钥',
                         'desc' => '微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置',
                     ],
                 ],
@@ -42,11 +43,15 @@ class PaymentApi
                     'app_id' => [
                         'desc' => '支付宝应用APPID',
                     ],
-                    'merchant_private_key' => [
-                        'desc' => '微信支付分配的商户号',
-                    ],
                     'alipay_public_key' => [
-                        'desc' => '支付宝公钥,查看地址：https://openhome.alipay.com/platform/keyManage.htm 对应APPID下的支付宝公钥。',
+                        'name' => '支付宝公钥',
+                        'desc' => '查看地址：https://openhome.alipay.com/platform/keyManage.htm 对应APPID下的支付宝公钥。',
+                        'type' => 'textarea',
+                    ],
+                    'merchant_private_key' => [
+                        'name' => '商户密钥',
+                        'desc' => '支付宝公钥对应的支付宝商户密钥',
+                        'type' => 'textarea',
                     ],
                 ],
             ],
@@ -77,8 +82,6 @@ class PaymentApi
             return FALSE;
         }
         $tradeType = '';
-        $this->config['notify_url'] = $this->apiHost.'pay/alipay/code/'.$this->payCode;//异步通知地址
-        $this->config['return_url'] = $this->apiHost.'pay/order/sn/'.$outTradeNo;//异步通知地址
         switch ($this->payCode) {
             case 'wechat_app'://微信APP支付
                 $tradeType = 'APP';
@@ -87,6 +90,7 @@ class PaymentApi
             case 'wechat_native'://微信扫码支付
                 $tradeType = $tradeType ? $tradeType : 'NATIVE';
             case 'wechat_js'://微信公众号支付
+                $this->config['notify_url'] = $this->apiHost.'pay/wechat/code/'.$this->payCode;//异步通知地址
                 $tradeType = isset($tradeType) && $tradeType ? $tradeType : 'JSAPI';
                 $wechatApi = new \app\common\api\WechatPayApi($order['store_id'], $this->payCode, $this->config);
                 $result = $wechatApi->wechatUnifiedOrder($order, $tradeType);
@@ -98,6 +102,8 @@ class PaymentApi
                 }
                 break;
             case 'alipay_page'://支付宝网页支付
+                $this->config['return_url'] = $this->apiHost.'pay/order/sn/'.$outTradeNo;//异步通知地址
+                $this->config['notify_url'] = $this->apiHost.'pay/alipay/code/'.$this->payCode;//异步通知地址
                 $alipayApi = new \app\common\api\AlipayPayApi($order['store_id'], $this->payCode, $this->config);
                 $result = $alipayApi->pagePay($order, "GET");
                 if ($result) {

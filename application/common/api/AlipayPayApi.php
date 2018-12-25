@@ -15,6 +15,7 @@ class AlipayPayApi
     protected $rsaPrivateKeyFilePath = FALSE;
     protected $rsaPrivateKey;
     protected $alipayPublicKey;
+    private $alipayrsaPublicKey;
     public function __construct($storeId, $payCode = '', $option = []){
         if (!$storeId) {
             $this->error = lang('paran_error');
@@ -28,6 +29,7 @@ class AlipayPayApi
         }
         $this->rsaPrivateKey = isset($this->config['merchant_private_key']) ? trim($this->config['merchant_private_key']) : '';
         $this->alipayPublicKey = isset($this->config['alipay_public_key']) ? trim($this->config['alipay_public_key']) : '';
+        $this->alipayrsaPublicKey = $this->alipayPublicKey;
         if (!$this->rsaPrivateKey || !$this->alipayPublicKey) {
             $this->error = '私钥配置错误，请检查配置';
             return FALSE;
@@ -45,7 +47,6 @@ class AlipayPayApi
             'total_amount'  => floatval($order['real_amount']),  //付款金额，必填(订单总金额，单位为元，精确到小数点后两位，取值范围[0.01,100000000])
         ];
         $bizContent = json_encode($bizContent,JSON_UNESCAPED_UNICODE);
-//         $bizContent = '{"product_code":"FAST_INSTANT_TRADE_PAY","body":"","subject":"11","total_amount":"0.02","out_trade_no":"20181221171909100971243370754"}';
         $totalParams = [
             'biz_content'=> $bizContent,
             'app_id'    => trim($this->config['app_id']),
@@ -54,10 +55,6 @@ class AlipayPayApi
             'sign_type' => $this->signType,
             'method'    => 'alipay.trade.page.pay',
             'timestamp' => date('Y-m-d H:i:s', time()),
-//             'alipay_sdk' => 'alipay-sdk-php-20161101',
-//             'terminal_type' => null,
-//             'terminal_info' => null,
-//             'prod_code' => null,
             'notify_url'=> trim($this->config['notify_url']),
             'return_url'=> trim($this->config['return_url']),
             'charset'   => $this->postCharset,
@@ -83,9 +80,41 @@ class AlipayPayApi
      * @return boolean
      */
     public function checkSign($arr){
-        $this->writeLog(json_encode($arr));
         $result = $this->rsaCheckV1($arr, $this->alipayPublicKey, $this->signType);
         return $result;
+    }
+    /**
+     * 交易退款操作
+     * @param array $order
+     * @return string|\app\common\api\提交表单HTML文本
+     */
+    public function tradeRefund($order = [])
+    {
+        $totalAmount = floatval($order['real_amount']);
+        $bizContent = [
+            'product_code'  => 'FAST_INSTANT_TRADE_PAY',
+            'body' => '',
+            'subject'       => isset($order['subject']) ? trim($order['subject']) : '产品购买',
+            'out_trade_no'  => trim($order['order_sn']),
+            'trade_no'      => trim($order['order_sn']),
+            'total_amount'  => floatval($order['real_amount']),  //付款金额，必填(订单总金额，单位为元，精确到小数点后两位，取值范围[0.01,100000000])
+        ];
+        #TODO
+        $bizContent = json_encode($bizContent,JSON_UNESCAPED_UNICODE);
+        $totalParams = [
+            'biz_content'=> $bizContent,
+            'app_id'    => trim($this->config['app_id']),
+            'version'   => '1.0',
+            'format'    => 'json',
+            'sign_type' => $this->signType,
+            'method'    => 'alipay.trade.refund',
+            'timestamp' => date('Y-m-d H:i:s', time()),
+            'charset'   => $this->postCharset,
+        ];
+        //待签名字符串
+        $preSignStr = $this->getSignContent($totalParams);
+        //签名
+        $totalParams["sign"] = $this->generateSign($totalParams, $this->signType);
     }
     /** rsaCheckV1 & rsaCheckV2
      *  验证签名
@@ -103,11 +132,8 @@ class AlipayPayApi
         return $this->verify($this->getSignContent($params), $sign, $rsaPublicKeyFilePath, $signType);
     }
     protected function verify($data, $sign, $rsaPublicKeyFilePath, $signType = 'RSA') {
-        if (!$this->alipayPublicKey) {
-            $this->error = '支付宝公钥不能为空';
-            return FALSE;
-        }
-        if($this->checkEmpty($this->alipayPublicKey)){
+        if(!$this->checkEmpty($this->alipayPublicKey)){
+            
             $pubKey= $this->alipayrsaPublicKey;
             $res = "-----BEGIN PUBLIC KEY-----\n" .
                 wordwrap($pubKey, 64, "\n", true) .
@@ -118,20 +144,21 @@ class AlipayPayApi
             //转换为openssl格式密钥
             $res = openssl_get_publickey($pubKey);
         }
-        if (!$res) {
-            $this->error = '支付宝RSA公钥错误。请检查公钥格式是否正确';
-            return FALSE;
-        }
+        ($res) or die('支付宝RSA公钥错误。请检查公钥文件格式是否正确');
+        
         //调用openssl内置方法验签，返回bool值
+        
         if ("RSA2" == $signType) {
             $result = (bool)openssl_verify($data, base64_decode($sign), $res, OPENSSL_ALGO_SHA256);
         } else {
             $result = (bool)openssl_verify($data, base64_decode($sign), $res);
         }
-        if(!$this->checkEmpty($this->alipayPublicKey)) {
+        
+        if($this->checkEmpty($this->alipayPublicKey)) {
             //释放资源
             openssl_free_key($res);
         }
+        
         return $result;
     }
     /**
