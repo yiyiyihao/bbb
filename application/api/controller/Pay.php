@@ -177,7 +177,6 @@ class Pay extends ApiBase
                 $this->writeLog('alipay_POST:'.json_encode($this->postParams));
                 break;
             case 'wechat':
-                $this->writeLog('wechat:');
                 $notify = isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '';
                 $this->writeLog('HTTP_RAW_POST_DATA:', $notify);
                 if (!$notify) {
@@ -185,21 +184,12 @@ class Pay extends ApiBase
                     $this->writeLog('input:', $notify);
                 }
                 if (!$notify) {
-                    $this->writeLog('param1');
-                    $notify = $this->request->param();
-                    $this->writeLog('param2:', json_encode($notify));
-                }
-                if (!$notify) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常1', 'params' => $notify]);
                 }
-                if (is_array($notify)) {
-                    $this->postParams = $notify;
-                }else{
-                    //将XML转为array
-                    //禁止引用外部xml实体
-                    libxml_disable_entity_loader(true);
-                    $this->postParams = xml_to_array($notify);
-                }
+                //将XML转为array
+                //禁止引用外部xml实体
+                libxml_disable_entity_loader(true);
+                $this->postParams = xml_to_array($notify);
                 break;
             default:
                 ;
