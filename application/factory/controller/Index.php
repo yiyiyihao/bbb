@@ -421,7 +421,6 @@ class Index extends CommonIndex
                 }else{
                     $where[]=['user_store_id','=',$storeId];
                 }
-
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
                 $query=$orderModel->where($where);
                 //以前数据加缓存7天
@@ -509,8 +508,12 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['user_store_id','=',$storeId],
                 ];
+                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                    $where[]=['store_id','=',$storeId];
+                }else{
+                    $where[]=['user_store_id','=',$storeId];
+                }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
                 $query=$orderModel->where($where);
                 //以前数据加缓存7天
@@ -540,8 +543,12 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['user_store_id','=',$storeId],
                 ];
+                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                    $where[]=['store_id','=',$storeId];
+                }else{
+                    $where[]=['user_store_id','=',$storeId];
+                }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
                 $query=$orderModel->where($where);
                 //以前数据加缓存7天
