@@ -44,7 +44,7 @@
             <div class="panel-foot">
                 <div class="form-button" style="margin-left:385px;">
                 	<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}">                    
-                    <div class="button bg-main buy_btn">进货下单</div> <a class="button bg-dot" href="{:url('index')}"> 返回</a>
+                    <div class="button bg-main buy_btn icon-plus">进货下单</div> <a class="button bg-dot icon-back" href="{:url('index')}"> 返回</a>
                 </div>
             </div>
         </div>
@@ -105,15 +105,19 @@ $(function(){
 				goods_total = data.data.sku;
 				if(data.data.sku <= 0){
 					$("#skuText").text("库存不足");
-					$(".goodsButton .button").attr('disabled',"true");
+					$(".form-button .buy_btn").attr('disabled',"true");
 				}else{
-					$(".goodsButton .button").removeAttr("disabled");
+					$(".form-button .buy_btn").removeAttr("disabled");
 					if(data.data.sku <= 10){
 						$("#skuText").text("库存紧张");
 					}else{
 						$("#skuText").text("");
 					}
 				}
+			}else{
+				$("#saleSku").text('--');
+				$("#skuText").text("无此规格");
+				$(".form-button .buy_btn").attr('disabled',"true");
 			}
 		})
 	}
