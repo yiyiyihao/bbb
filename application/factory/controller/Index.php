@@ -147,7 +147,7 @@ class Index extends CommonIndex
                 //服务商累计提现金额
                 $total['servicer_withdraw_amount'] = $totalStore && isset($totalStore['servicer_withdraw_amount']) ? floatval($totalStore['servicer_withdraw_amount']) : 0;
 
-                $from=date('Y-m-d',$beginToday-86400*7);
+                $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->orderOverView($from,$to,$storeId));
                 $this->assign('chart_amount',$this->orderAmount($from,$to,$storeId));
@@ -234,7 +234,7 @@ class Index extends CommonIndex
                 ];
                 $today['channel_count']=$storeModel->where($where)->count();
                 //累计新增零售商数量
-                $from=date('Y-m-d',$beginToday-86400*7);
+                $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->orderOverView($from,$to,$storeId));
                 $this->assign('chart_amount',$this->orderAmount($from,$to,$storeId));
@@ -263,7 +263,7 @@ class Index extends CommonIndex
                 //累计订单金额
                 $total['order_amount'] = $totalOrder && isset($totalOrder['order_amount']) ? sprintf("%.2f",($totalOrder['order_amount'])) : 0;
 
-                $from=date('Y-m-d',$beginToday-86400*7);
+                $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->orderOverView($from,$to,$storeId));
                 $this->assign('chart_amount',$this->orderAmount($from,$to,$storeId));
@@ -318,7 +318,7 @@ class Index extends CommonIndex
                 //累计维修工单数量
                 $total['workorder_count_2']=$workOrderModel->where($where)->count();
 
-                $from=date('Y-m-d',$beginToday-86400*7);
+                $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->workOrderOverView($from,$to,$storeId));
                 $this->assign('chart_amount',$this->workOrderIncome($from,$to,$storeId));
