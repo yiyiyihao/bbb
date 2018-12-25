@@ -18,6 +18,11 @@ class Auth{
                 'module'        => 'factory',
                 'controller'    => 'upload',
                 'action'        => '*',
+            ],
+            [
+                'module'        => 'factory',
+                'controller'    => 'login',
+                'action'        => '*',
             ]
         ];
     }
