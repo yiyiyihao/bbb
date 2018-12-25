@@ -541,10 +541,10 @@ class Order extends Model
             $regionId = isset($addr['region_id']) && $addr['region_id'] ? trim($addr['region_id']) : '';
             $addrRegion = isset($addr['region_name']) && $addr['region_name'] ? trim($addr['region_name']) : '';
             $addrDetail = isset($addr['address']) && $addr['address'] ? trim($addr['address']) : '';
-            if (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail) {
-                $this->error = '收货人姓名/电话/地址 不能为空';
-                return FALSE;
-            }
+//             if (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail) {
+//                 $this->error = '收货人姓名/电话/地址 不能为空';
+//                 return FALSE;
+//             }
             $userModel = new \app\common\model\User();
             //验证手机号格式
             $result = $userModel->checkPhone(0, $addrPhone);
@@ -569,10 +569,10 @@ class Order extends Model
                 'install_amount'=> $list['install_amount'],
                 'delivery_amount'=> $list['delivery_amount'],
                 'real_amount'   => $list['pay_amount'],
-                'address_name'  => $addr['address_name'],
-                'address_phone' => $addr['address_phone'],
-                'region_id'     => $addr['region_id'],
-                'address_detail'=> $addr['region_name'].' '.$addr['address'],
+                'address_name'  => $addrName,
+                'address_phone' => $addrPhone,
+                'region_id'     => $regionId,
+                'address_detail'=> $regionId ? ($addrRegion.' '.$addrDetail) : '',
                 'remark'        => trim($remark),
                 'add_time'      => time(),
                 'update_time'   => time(),

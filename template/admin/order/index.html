@@ -38,9 +38,9 @@
           <th width="80">下单账号</th>
           <th width="*">第三方交易号</th>
           <th width="100">订单金额</th>
-          <th width="100">收货人姓名</th>
+          <!-- <th width="100">收货人姓名</th>
           <th width="100">收货人电话</th>
-          <th width="160">收货地址</th>
+          <th width="160">收货地址</th> -->
           <th width="100">下单时间</th>
           <th width="80">订单状态</th>
           <th width="80">安装状态</th>
@@ -53,9 +53,9 @@
               <td>{$vo.nickname ? $vo.nickname: $vo.username}</td>
               <td>{$vo['pay_sn']}</td>
               <td>{$vo.real_amount}元</td>
-              <td>{$vo.address_name}</td>
+              <!-- <td>{$vo.address_name}</td>
               <td>{$vo.address_phone}</td>
-              <td>{$vo.address_detail}</td>
+              <td>{$vo.address_detail}</td> -->
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
               <td>{$vo['_status']['status_text']}</td>
               <td>

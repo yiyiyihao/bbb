@@ -92,7 +92,7 @@
                             <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['delivery_amount'] ?? ''}">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="label">
                             <label>收货人姓名</label>
                         </div>
@@ -115,7 +115,7 @@
                         <div class="field">
                             <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['address_detail'] ?? ''}">
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-group">
 			            <div class="label">
 			              <label>买家留言</label>
@@ -162,9 +162,9 @@
 						                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
 						                {/if}
 					                {/if} -->
-					                {if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] != 2"}
+					                <!-- {if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] != 2"}
 					              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="填写物流信息">填写物流信息</a>
-					                {/if}
+					                {/if} -->
 					              	</span>
 					              </td>
 					            </tr>
