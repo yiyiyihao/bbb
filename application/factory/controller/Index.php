@@ -288,7 +288,7 @@ class Index extends CommonIndex
 
 
                 $where = [
-                    'factory_id' => $storeId,
+                    'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 1,
                     'add_time'=>['>=',$beginToday],
@@ -296,14 +296,14 @@ class Index extends CommonIndex
                 //今日安装工单数量
                 $today['workorder_count_1']=$workOrderModel->where($where)->count();
                 $where = [
-                    'factory_id' => $storeId,
+                    'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 1,
                 ];
                 //累计安装工单数量
                 $total['workorder_count_1']=$workOrderModel->where($where)->count();
                 $where = [
-                    'factory_id' => $storeId,
+                    'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 2,
                     'add_time'=>['>=',$beginToday],
@@ -311,7 +311,7 @@ class Index extends CommonIndex
                 //今日维修工单数量
                 $today['workorder_count_2']=$workOrderModel->where($where)->count();
                 $where = [
-                    'factory_id' => $storeId,
+                    'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 2,
                 ];
