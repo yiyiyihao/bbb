@@ -216,7 +216,8 @@ class Order extends FormBase
         ];
     }
     function _getOrder(){
-        return 'O.update_time DESC';
+//         return 'O.update_time DESC';
+        return 'O.add_time DESC';
     }
     function _getWhere(){
         $params = $this->request->param();

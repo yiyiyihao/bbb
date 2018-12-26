@@ -75,6 +75,19 @@ class Myorder extends commonOrder
     {
         $this->error('NO ACCESS');
     }
+    public function getorder()
+    {
+        $params = $this->request->param();
+        $sn = isset($params['sn']) ? trim($params['sn']) : '';
+        if (!$sn){
+            $this->error(lang('param_error'));
+        }
+        $order = db('order')->field('pay_status')->where(['order_sn' => $sn])->find();
+        if (!$order){
+            $this->error(lang('订单不存在'));
+        }
+        $this->success('', FALSE, ['pay_status' => $order['pay_status']]);
+    }
     public function pay()
     {
         $params = $this->request->param();
