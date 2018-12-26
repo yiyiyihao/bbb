@@ -63,6 +63,8 @@ class Index extends CommonIndex
                 $where = [
                     'store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
+                    'order_status'  => 1,
+                    'pay_status'    => 1,
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //今日订单数
@@ -73,6 +75,8 @@ class Index extends CommonIndex
                 //累计订单数据统计
                 $where = [
                     'store_id' => $storeId,
+                    'order_status'  => 1,
+                    'pay_status'    => 1,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
@@ -92,6 +96,7 @@ class Index extends CommonIndex
                 //累计商户数据统计
                 $where = [
                     'factory_id' => $storeId,
+                    'is_del'    => 0,
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
@@ -189,6 +194,8 @@ class Index extends CommonIndex
                     'S.store_type'=> 3,
                     'O.user_store_id'=> $storeId,
                     'O.add_time' => ['>=', $beginToday],
+                    'order_status'  => 1,
+                    'pay_status'    => 1,
                 ];
                 $join=[
                     ['store_dealer SD','SD.store_id = O.user_store_id'],
@@ -211,40 +218,21 @@ class Index extends CommonIndex
                 
                 //今日新增零售商数量
                 $where = [
-                    'factory_id'=> $storeId,
                     'add_time'  => ['>=', $beginToday],
                     'store_type'=> STORE_DEALER,
-                    'is_del'    => 0,
+                    'S.is_del'    => 0,
+                    'SD.ostore_id' => $storeId,
                 ];
-                $today['dealer_count'] = $storeModel->where($where)->count();
+                $today['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
                 
-                //累计商户数据统计
+                //累计零售商数量统计
                 $where = [
-                    'factory_id' => $storeId,
+                    'S.is_del'     => 0,
+                    'SD.ostore_id' => $storeId,
+                    'store_type'=> STORE_DEALER,
                 ];
-                $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
-                $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
-                $field .= ', count(if(store_type = '.STORE_SERVICE.', true, NULL)) as service_count';
-                $field .= ', sum(if(store_type = '.STORE_CHANNEL.' OR store_type = '.STORE_SERVICE.', security_money, 0)) as security_money_total';
-                $totalStore = $storeModel->field($field)->where($where)->find();
-                //累计渠道商数量
-                $total['channel_count'] = $totalStore && isset($totalStore['channel_count']) ? intval($totalStore['channel_count']) : 0;
-                //累计零售商数量
-                $total['dealer_count'] = $totalStore && isset($totalStore['dealer_count']) ? intval($totalStore['dealer_count']) : 0;
-                //累计服务商数量
-                $total['service_count'] = $totalStore && isset($totalStore['service_count']) ? intval($totalStore['service_count']) : 0;
+                $total['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
                 
-                //今日订单金额(渠道下的零售商订单金额)
-                //累计订单金额(渠道下的零售商订单金额)
-                
-                //今日新增零售商数量
-                $where = [
-                    'factory_id' => $storeId,
-                    'store_type' => STORE_DEALER,
-                    'add_time' => ['>=',$beginToday],
-                    'is_del'=> 0,
-                ];
-                $today['channel_count']=$storeModel->where($where)->count();
                 //累计新增零售商数量
                 $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
@@ -258,6 +246,8 @@ class Index extends CommonIndex
                 $where = [
                     'user_store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
+                    'order_status'  => 1,
+                    'pay_status'    => 1,
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //今日订单数
@@ -268,6 +258,8 @@ class Index extends CommonIndex
                 //累计订单数据统计
                 $where = [
                     'user_store_id' => $storeId,
+                    'order_status'  => 1,
+                    'pay_status'    => 1,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
@@ -427,7 +419,10 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
+                    ['order_status','=',1],
+                    ['pay_status','=',1],
                 ];
+                
                 if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
                     $where[]=['store_id','=',$storeId];
                 }else{
@@ -461,6 +456,8 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
+                    ['order_status','=',1],
+                    ['pay_status','=',1],
                 ];
                 if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
                     $where[]=['store_id','=',$storeId];
@@ -520,6 +517,8 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
+                    ['order_status','=',1],
+                    ['pay_status','=',1],
                 ];
                 if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
                     $where[]=['store_id','=',$storeId];
@@ -555,6 +554,8 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
+                    ['order_status','=',1],
+                    ['pay_status','=',1],
                 ];
                 if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
                     $where[]=['store_id','=',$storeId];
