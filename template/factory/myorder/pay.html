@@ -16,7 +16,15 @@
                             <label>请在<span>{$order.cancel_countdown}</span>分钟内完成支付,超时订单会自动取消</label>
                         </div>
                     </div> -->
-					 <div class="form-group">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$order.order_sn}</span>
+                        </div>
+                    </div>
+					<div class="form-group">
                         <div class="label">
                             <label>应付金额</label>
                         </div>
@@ -24,24 +32,9 @@
                         	<span class="field-text">{$order['real_amount']} 元</span>
                         </div>
                     </div>
-                    {if condition="$step == 1"}
-					<div class="form-group">
-                        <div class="label">
-                            <label>选择支付方式</label>
-                        </div>
-                        <div class="field">
-                            {if condition="$payments"}
-                                <div class="button-group radio">
-                            	{volist name="payments" id="vo"}
-                                    <label class="button{if $i==1} active icon-wechat{else/} icon-alipay{/if}"><input name="pay_code" value="{$vo['pay_code']}"{if $i==1} checked="checked"{/if} type="radio"> {$vo['name']}</label>
-                            	<!--<a {if ($vo['pay_code'] == 'alipay_page')}target="_blank"{/if} href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>-->
-                            	{/volist}                                
-                                </div>
-                            {/if}
-                        </div>
-                    </div>
-                    {elseif condition="isset($code_url)"/}
-                    <div class="form-group">
+                    {if $step == 1 && $order['pay_status'] ==0}
+                    {elseif isset($code_url)/}
+                    <div class="form-group waitpay">
                         <div class="label">
                             <label>扫码支付</label>
                         </div>
@@ -49,41 +42,73 @@
                             <div id="qrcode"></div>
                         </div>
                     </div>
+                    {elseif $step == 3  && $order['pay_status'] ==0/}
+                    <div class="form-group waitpay">
+                        <div class="label">
+                            <label></label>
+                        </div>
+                        <div class="field">
+                            <p class="field-text">正在等待支付结果...</p>
+                            <span class="field-text">您可以<a>重新选择支付方式</a> 或者 <a>取消订单</a></span>
+                        </div>
+                    </div>
                     {/if}
+                    <div class="form-group paydone {if $order['pay_status'] !=1}hide{/hide}">
+                        <div class="label">
+                            <label></label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">订单支付成功</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            {if is_null($Think.get.step)}
             <div class="panel-foot">
                 <div class="form-button">
-                    <span class="button bg-main icon-pay-setting" id="dopay"> 去付款</span>
+                    <a href="{:url('/myorder/index')}" class="button bg-main icon-back"> 回到列表</a>
                 </div>
             </div>
-            {/if}
         </div>
     </div>
 </form>
 <script>
-    Do.ready('base', 'qrcode', function () {
+    Do.ready('base','dialog', 'qrcode', function () {
         //表单综合处理
         $('#form').FormPage();
-		$("#dopay").click(function(){
-			var url = "{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2])}";
-			var pay_code = $("input[type='radio'][name='pay_code']:checked").val();
-			url += "/pay_code/"+pay_code;
-			if(pay_code=='alipay_page'){
-				layer.confirm('付款完成？', {
-				  icon : 3,
-				  btn: ['已付款', '取消'] //可以无限个按钮
-				}, function(index, layero){
-				  //已付款 TODO 验证是否已经支付成功
-				}, function(index){
-				  //取消 关闭当前页面
-				});
-				window.open(url, '_blank').location;
+		{if $order['pay_status'] !=1}
+		var orderSn = "{$order.order_sn}";
+		var flag = false;
+		function checkOrderStatus(){
+			var checkUrl = '{:url("/myorder/getorder")}'+'/sn/'+orderSn;
+			var re = false;
+			$.ajax({ 
+			  type : "get", 
+			  url : checkUrl, 
+			  async : false, 
+			  success : function(data){ 
+				if(data.code == 1){
+					var payData = data.data;
+					re = payData.pay_status;
+				}else{
+					layer.msg(data.msg);
+				}
+			  } 
+			});
+			return re;
+		}
+		//定时检查订单状态
+		var interval = setInterval(function(){
+			if(flag) {
+				//提示支付成功
+				layer.msg("支付成功");
+				$(".paydone").show();
+				$(".waitpay").hide();
+				clearInterval(interval);
 			}else{
-				window.location.href = url;
-			}
-		})
+				flag = checkOrderStatus();
+			};
+		}, 1000);
+		{/if}
 		{if isset($code_url)}
 		$('#qrcode').qrcode({width: 180,height: 180,text: "{$code_url}",foreground: '#666'});
 		{/if}

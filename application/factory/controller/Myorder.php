@@ -112,13 +112,12 @@ class Myorder extends commonOrder
             $this->error('订单数据异常');
         }
         $sku = $oSkus[0];//单次仅购买一个产品
-        $payments = $this->model->getOrderPayments($detail['store_id'], 1);
         $this->assign('order', $detail);
         if ($step == 1) {
+            $payments = $this->model->getOrderPayments($detail['store_id'], 1);
             $this->assign('payments', $payments);
             $this->assign('skus', $oSkus);
-            return $this->fetch();
-        }else{
+        }elseif($step == 2){
             $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
             if (!$payCode) {
                 $this->error('请选择支付方式');
@@ -137,8 +136,10 @@ class Myorder extends commonOrder
             }elseif ($payCode == 'alipay_page' && $result){
                 $this->redirect($result,302);
             }
-            return $this->fetch();
+        }else{
+            //等待支付结果界面
         }
+        return $this->fetch();
     }
     function _getWhere(){
         $params = $this->request->param();

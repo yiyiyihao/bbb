@@ -1,6 +1,6 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
     <div class="tab admin-tab">
-        <div class="panel admin-box active">
+        <div class="panel fixed-pannel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
                     <strong>确认采购订单</strong>
@@ -107,8 +107,27 @@
     </div>
 </form>
 <script>
-    Do.ready('base', function () {
+    Do.ready('base','dialog', function () {
         //表单综合处理
-        $('#form').FormPage();  
+        $('#form').FormPage({
+			returnFun:function(data){
+				var pay_code = $("input[type='radio'][name='pay_code']:checked").val();
+				layer.confirm(data.msg, {
+					btn: ['确定', '关闭'],
+				}, function(){
+					//TODO 处理验证订单是否成功支付
+					if(pay_code=='alipay_page'){
+						window.open(data.url, '_blank').location;
+						//当前页跳转到第三步
+						var url = '/myorder/pay/order_sn/'+data.data.order_sn+'/pay_code/alipay_page/step/3';
+						window.location.href = url;
+					}else{
+						window.location.href = data.url;
+					}
+				}, function(){
+					window.location.reload();
+				});
+			}
+		});
     }); 
 </script>

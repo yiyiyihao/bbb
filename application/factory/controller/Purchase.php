@@ -66,7 +66,7 @@ class Purchase extends FactoryForm
             if ($order === FALSE) {
                 $this->error($orderModel->error);
             }
-            $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]));
+            $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);
 //             $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
         }else{
             $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, FALSE, $params, $remark);
