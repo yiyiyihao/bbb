@@ -73,7 +73,7 @@ td,th{padding:0;}
 .button-block{display:block;width:100%;}
 .button-half{width:25%; text-align:center;}
 .button-full{ text-align:center; display:block; border:none; font-size:18px; cursor:pointer;}
-.button-large{padding:15px 20px;font-size:20px;line-height:24px;}
+.button-large{padding:15px 20px;font-size:24px;line-height:24px;}
 .button-big{padding:10px 15px;font-size:18px;line-height:22px;}
 .button-common{padding:5px 15px;font-size:14px;font-weight:normal;line-height:18px;}
 .button-small{padding:5px 10px;font-size:12px;font-weight:normal;line-height:18px;}
