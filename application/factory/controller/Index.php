@@ -92,6 +92,7 @@ class Index extends CommonIndex
                 //累计商户数据统计
                 $where = [
                     'factory_id' => $storeId,
+                    'is_del'    => 0,
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
@@ -221,6 +222,7 @@ class Index extends CommonIndex
                 //累计商户数据统计
                 $where = [
                     'factory_id' => $storeId,
+                    'is_del'    => 0,
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
