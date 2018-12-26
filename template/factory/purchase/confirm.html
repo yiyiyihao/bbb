@@ -30,6 +30,30 @@
 					    </table>
 					  </div>
 					  {/notempty}
+					  <div class="form-group">
+                        <div class="label">
+                            <label>应付金额</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$list['all_amount']} 元</span>
+                        </div>
+                    </div>
+					<div class="form-group">
+                        <div class="label">
+                            <label>选择支付方式</label>
+                        </div>
+                        <div class="field">
+                            {if condition="$payments"}
+                                <div class="button-group radio">
+                            	{volist name="payments" id="vo"}
+                                    <label class="button{if $i==1} active icon-wechat{else/} icon-alipay{/if}">
+                                    <input name="pay_code" value="{$vo['pay_code']}"{if $i==1} checked="checked"{/if} type="radio"> {$vo['name']}
+                                    </label>
+                            	{/volist}                                
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
 					 <!-- <div class="form-group">
                         <div class="label">
                             <label>客户姓名</label>

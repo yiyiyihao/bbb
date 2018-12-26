@@ -56,13 +56,24 @@ class Purchase extends FactoryForm
         if (IS_POST) {
             $num = isset($post['num']) ? intval($post['num']) : 0;
         }
-        $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, IS_POST, $params, $remark);
-        if ($result === FALSE) {
-            $this->error($orderModel->error);
-        }
+        $payments = $orderModel->getOrderPayments($sku['store_id'], 1);
         if (IS_POST) {
-            $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
+            $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
+            if (!$payCode) {
+                $this->error('请选择支付方式');
+            }
+            $order = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, IS_POST, $params, $remark);
+            if ($order === FALSE) {
+                $this->error($orderModel->error);
+            }
+            $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]));
+//             $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
         }else{
+            $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, FALSE, $params, $remark);
+            if ($result === FALSE) {
+                $this->error($orderModel->error);
+            }
+            $this->assign('payments', $payments);
             $this->assign('list', $result);
             return $this->fetch();
         }
