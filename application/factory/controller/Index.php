@@ -191,15 +191,15 @@ class Index extends CommonIndex
                 //累计订单数(渠道下的零售商订单数量)
                 $where = [
                     'S.is_del' => 0,
-                    'S.store_type'=> 3,
-                    'O.user_store_id'=> $storeId,
+                    'S.store_type'=> 2,
+                    'S.store_id'=> $storeId,
                     'O.add_time' => ['>=', $beginToday],
-                    'order_status'  => 1,
-                    'pay_status'    => 1,
+                    'O.order_status'  => 1,//正常
+                    'O.pay_status'    => 1,//已支付
                 ];
                 $join=[
-                    ['store_dealer SD','SD.store_id = O.user_store_id'],
-                    ['store S','S.store_id = SD.store_id'],
+                    ['store_dealer SD','O.user_store_id=SD.store_id'],
+                    ['store S','SD.ostore_id=S.store_id'],
                 ];
                 $field='count(*) as order_count, sum(real_amount) as order_amount';
                 $todayOrder = $orderModel->alias('O')->field($field)->join($join)->where($where)->find();
@@ -402,7 +402,7 @@ class Index extends CommonIndex
             'itemStyle'=>[],
             'smooth'   => 0.5
         ];
-        $orderModel=new \app\common\model\Order();
+        $model=new \app\common\model\Order();
 
         //$startTime='2018-12-14';
         //$endTime='2018-12-25';
@@ -422,14 +422,31 @@ class Index extends CommonIndex
                     ['order_status','=',1],
                     ['pay_status','=',1],
                 ];
-                
-                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                    //渠道商零售商数据据统计
+                    $where=[
+                        ['O.add_time','>=',$begin],
+                        ['O.add_time','<',$end],
+                        ['S.is_del','=',0],
+                        ['S.store_type','=',2],
+                        ['S.store_id','=',$storeId],
+                        ['O.order_status','=',1],
+                        ['O.pay_status','=',1],
+                    ];
+                    $join=[
+                        ['store_dealer SD','O.user_store_id=SD.store_id'],
+                        ['store S','SD.ostore_id=S.store_id'],
+                    ];
+                    $query = $model->alias('O')->join($join)->where($where);
+                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
+                    $query=$model->where($where);
                 }else{
                     $where[]=['user_store_id','=',$storeId];
+                    $query=$model->where($where);
                 }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
-                $query=$orderModel->where($where);
+
                 //以前数据加缓存7天
                 //if ($now != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
@@ -459,13 +476,30 @@ class Index extends CommonIndex
                     ['order_status','=',1],
                     ['pay_status','=',1],
                 ];
-                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                    //渠道商零售商数据据统计
+                    $where=[
+                        ['O.add_time','>=',$begin],
+                        ['O.add_time','<',$end],
+                        ['S.is_del','=',0],
+                        ['S.store_type','=',2],
+                        ['S.store_id','=',$storeId],
+                        ['O.order_status','=',1],
+                        ['O.pay_status','=',1],
+                    ];
+                    $join=[
+                        ['store_dealer SD','O.user_store_id=SD.store_id'],
+                        ['store S','SD.ostore_id=S.store_id'],
+                    ];
+                    $query = $model->alias('O')->join($join)->where($where);
+                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
+                    $query=$model->where($where);
                 }else{
                     $where[]=['user_store_id','=',$storeId];
+                    $query=$model->where($where);
                 }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-                $query=$orderModel->where($where);
                 //以前数据加缓存7天
                 //if ($today != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
@@ -500,7 +534,7 @@ class Index extends CommonIndex
             'itemStyle'=>[],
             'smooth'   => 0
         ];
-        $orderModel=new \app\common\model\Order();
+        $model=new \app\common\model\Order();
 
         //$startTime='2018-12-14';
         //$endTime='2018-12-25';
@@ -520,13 +554,32 @@ class Index extends CommonIndex
                     ['order_status','=',1],
                     ['pay_status','=',1],
                 ];
-                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+
+                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                    //渠道商零售商数据据统计
+                    $where=[
+                        ['O.add_time','>=',$begin],
+                        ['O.add_time','<',$end],
+                        ['S.is_del','=',0],
+                        ['S.store_type','=',2],
+                        ['S.store_id','=',$storeId],
+                        ['O.order_status','=',1],
+                        ['O.pay_status','=',1],
+                    ];
+                    $join=[
+                        ['store_dealer SD','O.user_store_id=SD.store_id'],
+                        ['store S','SD.ostore_id=S.store_id'],
+                    ];
+                    $query = $model->alias('O')->join($join)->where($where);
+                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
+                    $query=$model->where($where);
                 }else{
                     $where[]=['user_store_id','=',$storeId];
+                    $query=$model->where($where);
                 }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
-                $query=$orderModel->where($where);
+
                 //以前数据加缓存7天
                 //if ($now != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
@@ -557,13 +610,31 @@ class Index extends CommonIndex
                     ['order_status','=',1],
                     ['pay_status','=',1],
                 ];
-                if ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+
+                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                    //渠道商零售商数据据统计
+                    $where=[
+                        ['O.add_time','>=',$begin],
+                        ['O.add_time','<',$end],
+                        ['S.is_del','=',0],
+                        ['S.store_type','=',2],
+                        ['S.store_id','=',$storeId],
+                        ['O.order_status','=',1],
+                        ['O.pay_status','=',1],
+                    ];
+                    $join=[
+                        ['store_dealer SD','O.user_store_id=SD.store_id'],
+                        ['store S','SD.ostore_id=S.store_id'],
+                    ];
+                    $query = $model->alias('O')->join($join)->where($where);
+                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
+                    $query=$model->where($where);
                 }else{
                     $where[]=['user_store_id','=',$storeId];
+                    $query=$model->where($where);
                 }
                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-                $query=$orderModel->where($where);
                 //以前数据加缓存7天
                 //if ($today != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
