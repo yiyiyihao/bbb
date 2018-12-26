@@ -826,7 +826,7 @@ class Order extends Model
      */
     public function orderLog($order, $user, $action = '', $msg = '', $serviceId = 0)
     {
-        if($user){
+        if($user && $user['user_id'] > 0){
             $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
             $nickname = $nickname ? $nickname : '用户';
             if ($order['user_store_id'] == $user['store_id']) {

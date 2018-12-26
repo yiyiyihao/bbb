@@ -11,6 +11,7 @@ class Timer extends ApiBase
     public function __construct(){
         parent::__construct();
         $this->method = $this->request->action();
+        $this->_checkPostParams();
     }
     /**
      * 每分钟执行定时器
@@ -63,7 +64,7 @@ class Timer extends ApiBase
                 }
             }
             if ($cancelMap) {
-                $cancelSql = 'order_status != 0 AND pay_status = 0';
+                $cancelSql = 'order_status = 1 AND pay_status = 0';
                 $cancelSql .= ' AND ('.implode(' OR ', $cancelMap).')';
                 $orders = $orderModel->where($cancelSql)->select();
                 if ($orders) {
@@ -80,6 +81,7 @@ class Timer extends ApiBase
                         }
                     }
                     echo 'CANCEL:';
+                    pre($this->errorArray, 1);
                     pre($orders, 1);
                 }
             }
