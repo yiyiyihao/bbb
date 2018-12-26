@@ -86,7 +86,7 @@ class Myorder extends commonOrder
         if (!$order){
             $this->error(lang('订单不存在'));
         }
-        $this->success('', [], ['pay_status' => $order['pay_status']]);
+        $this->success('', FALSE, ['pay_status' => $order['pay_status']]);
     }
     public function pay()
     {
