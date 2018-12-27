@@ -73,7 +73,7 @@ class Timer extends ApiBase
                     foreach ($orders as $key => $value) {
                         $result = $orderModel->orderCancel($value['order_sn'], ['user_id' => 0, 'nickname' => '系统'], $remark);
                         if ($result === FALSE) {
-                            $this->errorArray[] = [
+                            $this->errorArray['cancel'][] = [
                                 'action'    => $remark,
                                 'order_sn'  => $value['order_sn'],
                                 'error'     => $orderModel->error,
@@ -94,7 +94,7 @@ class Timer extends ApiBase
                     foreach ($orders as $key => $value) {
                         $result = $orderModel->orderCloseRefund($value, FALSE, '自动关闭退货退款功能');
                         if ($result === FALSE) {
-                            $this->errorArray[] = [
+                            $this->errorArray['finish'][] = [
                                 'action'    => $remark,
                                 'order_sn'  => $value['order_sn'],
                                 'error'     => $orderModel->error,
@@ -102,6 +102,7 @@ class Timer extends ApiBase
                         }
                     }
                     echo 'FINISH:';
+                    pre($this->errorArray, 1);
                     pre($orders, 1);
                 }
             }
@@ -121,10 +122,18 @@ class Timer extends ApiBase
                 if ($workOrders) {
                     foreach ($workOrders as $key => $value) {
                         //自动评价+安装费返还
-                        $workOrderModel->worderAssess($value, FALSE, FALSE);
+                        $result = $workOrderModel->worderAssess($value, FALSE, FALSE);
+                        if ($result === FALSE) {
+                            $this->errorArray['assess'][] = [
+                                'action'    => '自动评价',
+                                'order_sn'  => $value['worder_sn'],
+                                'error'     => $workOrderModel->error,
+                            ];
+                        }
                     }
                 }
                 echo 'workOrders:';
+                pre($this->errorArray, 1);
                 pre($workOrders, 1);
             }
         }
@@ -149,6 +158,8 @@ class Timer extends ApiBase
             'return_params' => $result,
             'response_time' => $responseTime,
             'error'         => isset($data['errCode']) ? intval($data['errCode']) : 0,
+            'errmsg'        => $this->errorArray ? json_encode($this->errorArray) : '',
+            'show_time'     => date('Y-m-d H:i:s'),
         ];
         $apiLogId = db('apilog_timer')->insertGetId($addData);
         exit();
