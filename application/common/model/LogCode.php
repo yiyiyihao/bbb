@@ -8,7 +8,8 @@ class LogCode extends Model
 	protected $pk = 'code_id';
 	public $error;
 	private $codeTypes = [
-	    'bind_phone' => '绑定手机号',
+	    'register'     => '注册',
+	    'bind_phone'   => '绑定手机号',
 	    'change_phone' => '更换手机号',
 	];
 	//自定义初始化
@@ -116,7 +117,7 @@ class LogCode extends Model
             return FALSE;
         }
         //判断短信验证码是否存在
-        $exist = $this->where(['phone' => $phone, 'code' => $code, 'code_type' => $codeType])->order('add_time DESC')->find();
+        $exist = $this->where(['phone' => $phone, 'status' => 1, 'code' => $code, 'code_type' => $codeType])->order('add_time DESC')->find();
         if (!$exist) {
             $this->error = '验证码错误';
             return FALSE;

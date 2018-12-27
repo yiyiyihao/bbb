@@ -31,6 +31,51 @@ class Store extends Model
         }
         return parent::save($data, $where);
     }
+    
+    public function getStoreDetail($storeId = 0)
+    {
+        $info = $this->where(['store_id' => $storeId, 'is_del' => 0])->find();
+        if(!$info){
+            $this->error = '商户不存在';
+            return FALSE;
+        }
+        if ($info) {
+            switch ($info['store_type']) {
+                case 1:
+                    $model = 'factory';
+                    $groupId = GROUP_FACTORY;
+                    break;
+                case 2:
+                    $model = 'channel';
+                    $groupId = GROUP_FACTORY;
+                    break;
+                case 3:
+                    $model = 'dealer';
+                    $groupId = GROUP_FACTORY;
+                    break;
+                case 4:
+                    $model = 'servicer';
+                    $groupId = GROUP_FACTORY;
+                    break;
+                default:
+                    return FALSE;
+                    break;
+            }
+            $detail = model($model)->where(['store_id' => $info['store_id']])->find();
+            if ($detail) {
+                $info = $info->toArray();
+                $detail = $detail->toArray();
+                $info = array_merge($info, $detail);
+            }
+            $info['manager'] = db('user')->where(['store_id' => $info['store_id'], 'is_del' => 0, 'group_id' => $groupId])->find();
+            if ($info['store_type'] == STORE_DEALER) {
+                //获取渠道商名称
+                $info['channel_name'] = $this->where(['store_id' => $info['ostore_id']])->value('name');
+            }
+        }
+        return $info;
+    }
+    
     private static function _after($store, $storeId = 0)
     {
         if (!$store) {

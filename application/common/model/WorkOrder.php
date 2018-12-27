@@ -501,7 +501,7 @@ class WorkOrder extends Model
      * @param array $assessData 用户提交评价信息
      */
     public function worderAssess($worder = [], $user = [], $assessData = []){
-        if (!$worder || !$assessData) {
+        if (!$worder) {
             $this->error = '参数错误';
             return FALSE;
         }
@@ -511,6 +511,10 @@ class WorkOrder extends Model
                 'msg'   => '默认好评',
             ];
             $assessData['score'] = db('config')->where(['config_key' => CONFIG_WORKORDER_ASSESS, 'status' => 1, 'is_del' => 0])->column('config_id, 5 as config_value');
+        }
+        if (!$assessData) {
+            $this->error = '参数错误';
+            return FALSE;
         }
         if ($assessData['type'] == 1) {
             //判断当前工单是否存在首次评价

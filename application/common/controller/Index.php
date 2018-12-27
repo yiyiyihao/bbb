@@ -49,16 +49,52 @@ class Index extends CommonBase
     {
         $userModel = new \app\common\model\User();
         $user = $userModel->checkUser(ADMIN_ID, TRUE);
+//         pre($this->adminStore);
+        if ($this->adminUser['store_id']) {
+            $storeModel = new \app\common\model\Store();
+            $store = $storeModel->getStoreDetail($this->adminUser['store_id']);
+            if ($store === FALSE) {
+                $this->error($storeModel->error);
+            }
+            $types = [
+                STORE_DEALER => [
+                    'name' => '零售商',
+                ],
+                STORE_CHANNEL => [
+                    'name' => '渠道商',
+                ],
+                STORE_SERVICE => [
+                    'name' => '服务商',
+                ],
+            ];
+            $this->assign('name', $types[$store['store_type']]['name']);
+            $this->assign('info', $store);
+        }
         if (IS_POST){
             $params = $this->request->param();
+            //商户审核未通过可以修改现有商户信息
+            if ($this->adminUser['store_id'] && $store && $store['check_status'] != 1) {
+                $name = $params && isset($params['name']) ? trim($params['name']) : '';
+                $userName = $params && isset($params['user_name']) ? trim($params['user_name']) : '';
+                $where = ['name' => $name, 'is_del' => 0, 'store_id' => ['<>', $this->adminUser['store_id']], 'factory_id' => $this->adminUser['factory_id'], 'store_type' => $store['store_type']];
+                $exist = $storeModel->where($where)->find();
+                if($exist){
+                    $this->error('当前'.$types[$store['store_type']]['name'].'名称已存在');
+                }
+            }
             $realname = isset($params['realname']) && $params['realname'] ? trim($params['realname']) : '';
             $phone = isset($params['phone']) && $params['phone'] ? trim($params['phone']) : '';
             if (!$realname) {
                 $this->error('真实姓名不能为空');
             }
-            if (!$phone) {
-                $this->error('联系电话不能为空');
+            if (!$user['phone']) {
+                if (!$phone) {
+                    $this->error('联系电话不能为空');
+                }
+            }else{
+                unset($params['phone']);
             }
+            
             $params['user_id'] = $user['user_id'];
             $result = $userModel->checkFormat($this->adminUser['factory_id'], $params);
             if ($result === FALSE) {
@@ -68,6 +104,16 @@ class Index extends CommonBase
             if ($result === FALSE) {
                 $this->error($userModel->error);
             }else{
+                if ($this->adminUser['store_id'] && $store && $store['check_status'] != 1) {
+                    if ($store['check_status'] == 2) {
+                        $params['check_status'] = 0;
+                        $this->adminStore['check_status'] = intval($params['check_status']);
+                    }
+                    $this->adminStore['name'] = trim($params['name']);
+                    $params['store_type'] = $store['store_type'];
+                    $result = $storeModel->save($params, ['store_id' => $this->adminUser['store_id']]);
+                    session('admin_store', $this->adminStore);
+                }
                 if (isset($this->adminUser['realname'])) {
                     $flag = FALSE;
                     if ($realname != $this->adminUser['realname']) {
@@ -87,7 +133,7 @@ class Index extends CommonBase
                 $this->success('修改资料成功');
             }
         }else{
-            $this->assign('info', $user);
+            $this->assign('user', $user);
             return $this->fetch();
         }
     }
@@ -146,5 +192,5 @@ class Index extends CommonBase
             $this->assign('info', $user);
             return $this->fetch();
         }
-    }    
+    }
 }

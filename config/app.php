@@ -110,7 +110,7 @@ return [
     'api_domain'             => 'api',
     'websocket_ip'           => '127.0.0.1',
     //系统保留二级域名前缀
-    'system_keeps_domain'    => ['admin', 'api'],
+    'system_keeps_domain'    => ['admin', 'api', 'www', 'worker'],
     // 是否自动转换URL中的控制器和操作名
     'url_convert'            => true,
     // 默认的访问控制器层

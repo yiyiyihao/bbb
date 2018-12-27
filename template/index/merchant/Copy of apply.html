@@ -1,0 +1,351 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel fixed-pannel admin-box active">
+        	<div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">注册账号</a></li>
+                        <li><a href="#tab-2">选择类型</a></li>
+                        <li><a href="#tab-3">填写资料(零售商)</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>手机号码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="40" datatype="*" value="">
+                            <div class="input-note">注册成功后即可使用手机号登录</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>验证码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="code" name="code" size="12" datatype="*" value="">
+                            <a id="sendcode" class="input" href="javascript:;">获取验证码</a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>设置密码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="40" datatype="*" value="">
+                            <div class="input-note">(6~18位 数字或字母，不区分大小写)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>重复密码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="phone" name="phone" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label></label>
+                        </div>
+                        <div class="field">
+                            <input type="checkbox" class="input" id="allow" name="allow" value="">同意用户协议
+                        </div>
+                    </div>
+				</div>
+				<div class="tab-panel" id="tab-2">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商户类型</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                            {volist name="types" id="type"}
+                                <label class='button {if ($i == 1 )}active{/if}'>
+                                	<input name="type" value="{$key}" {if ($i == 1)}checked="checked"{/if} type="radio">{$type['name']}
+                                </label>
+                            {/volist}
+                            </div>
+                            <div class="input-note">请选择产品类别</div>
+                        </div>
+                    </div>
+				</div>
+				<div class="tab-panel" id="tab-3">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商户名称*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="dealer['name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系人姓名*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="dealer['user_name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>渠道商编号*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="dealer['store_no']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>已采购样品金额*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="dealer['sample_amount']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>公司法人身份证照片*</label>
+						</div>
+						<div class="field">
+							<div style="display: inline-block;">
+								<input type="hidden" class="input" id="dealer_idcard_font_img" name="dealer['idcard_font_img']" size="38" value="">
+				                <div class="dealer_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="dealer_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="dealer_idcard_font_img" preview="dealer_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传正面</span>
+				                </a>
+							</div>
+			                <div style="display: inline-block;" class="margin-left">
+			                	<input type="hidden" class="input" id="dealer_idcard_font_img" name="dealer['idcard_font_img']" size="38" value="">
+				                <div class="dealer_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="dealer_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="dealer_idcard_font_img" preview="dealer_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传背面</span>
+				                </a>
+			                </div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>签约合同 (带有双方公司名称)</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="dealer_signing_contract_img" name="dealer['signing_contract_img']" size="38" value="">
+			                <div class="dealer_signing_contract_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="dealer_signing_contract_img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="dealer_signing_contract_img" preview="dealer_signing_contract_img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传签约合同</span>
+			                </a>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>详细地址*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="dealer['name']" size="60" datatype="*" value="">
+                        </div>
+                    </div>
+				</div>
+				<div class="tab-panel" id="tab-4">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商户名称*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="channel['name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系人姓名*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="channel['user_name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>缴纳保证金金额*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="channel['security_money']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>公司法人身份证照片*</label>
+						</div>
+						<div class="field">
+							<div style="display: inline-block;">
+								<input type="hidden" class="input" id="channel_idcard_font_img" name="channel['idcard_font_img']" size="38" value="">
+				                <div class="channel_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="channel_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="channel_idcard_font_img" preview="channel_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传正面</span>
+				                </a>
+							</div>
+			                <div style="display: inline-block;" class="margin-left">
+			                	<input type="hidden" class="input" id="channel_idcard_font_img" name="channel['idcard_font_img']" size="38" value="">
+				                <div class="channel_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="channel_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="channel_idcard_font_img" preview="channel_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传背面</span>
+				                </a>
+			                </div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>公司营业执照</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="channel_license_img" name="channel['license_img']" size="38" value="">
+			                <div class="channel_license_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="channel_license_img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="channel_license_img" preview="channel_license_img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传公司营业执照</span>
+			                </a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>签约合同 (带有双方公司名称)</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="channel_signing_contract_img" name="channel['signing_contract_img']" size="38" value="">
+			                <div class="channel_signing_contract_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="channel_signing_contract_img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="channel_signing_contract_img" preview="channel_signing_contract_img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传签约合同</span>
+			                </a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>签约合影照片</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="channel_group_photo" name="channel['group_photo']" size="38" value="">
+			                <div class="channel_group_photo_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="channel_group_photo_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="channel_group_photo" preview="channel_group_photo_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传签约合同</span>
+			                </a>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>负责区域*</label>
+                        </div>
+                        <div class="field">
+                        	<div class="js-select-child" formlength="2" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="channel['region_id']" formvalue='' formstr="" validtype='*' notmsg='请选择负责区域'></div>
+                        </div>
+                    </div>
+				</div>
+				<div class="tab-panel" id="tab-5">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>服务商名称*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="servicer['name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系人姓名*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="servicer['user_name']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>缴纳保证金金额*</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="servicer['security_money']" size="40" datatype="*" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>公司法人身份证照片*</label>
+						</div>
+						<div class="field">
+							<div style="display: inline-block;">
+								<input type="hidden" class="input" id="servicer_idcard_font_img" name="servicer['idcard_font_img']" size="38" value="">
+				                <div class="servicer_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="servicer_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="servicer_idcard_font_img" preview="servicer_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传正面</span>
+				                </a>
+							</div>
+			                <div style="display: inline-block;" class="margin-left">
+			                	<input type="hidden" class="input" id="servicer_idcard_font_img" name="servicer['idcard_font_img']" size="38" value="">
+				                <div class="servicer_idcard_font_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="servicer_idcard_font_img_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="servicer_idcard_font_img" preview="servicer_idcard_font_img_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传背面</span>
+				                </a>
+			                </div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>公司营业执照</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="servicer_license_img" name="servicer['license_img']" size="38" value="">
+			                <div class="servicer_license_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="servicer_license_img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="servicer_license_img" preview="servicer_license_img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传公司营业执照</span>
+			                </a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>签约合同 (带有双方公司名称)</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="servicer_signing_contract_img" name="servicer['signing_contract_img']" size="38" value="">
+			                <div class="servicer_signing_contract_img_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="servicer_signing_contract_img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="servicer_signing_contract_img" preview="servicer_signing_contract_img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传签约合同</span>
+			                </a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="label">
+							<label>签约合影照片</label>
+						</div>
+						<div class="field">
+		                	<input type="hidden" class="input" id="servicer_group_photo" name="servicer['group_photo']" size="38" value="">
+			                <div class="servicer_group_photo_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="servicer_group_photo_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="servicer_group_photo" preview="servicer_group_photo_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传签约合同</span>
+			                </a>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>负责区域*</label>
+                        </div>
+                        <div class="field">
+                        	<div class="js-select-child" formlength="2" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="servicer['region_id']" formvalue='' formstr="" validtype='*' notmsg='请选择负责区域'></div>
+                        </div>
+                    </div>
+				</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'store_profile_', 'thumb_type' => 'profile_thumb_500'])}",
+        });
+    }); 
+</script>

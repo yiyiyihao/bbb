@@ -1,0 +1,42 @@
+{include file="common/socket" /}
+</body>
+</html>
+{notempty name="specialBulletins"}
+<script>
+Do.ready('dialog', function () {
+	{present name="specialBulletin"}
+	layer.open({
+	  type: 1,
+	  title: false,
+	  area: ['600px', '400px'], //宽高
+	  content: '<div class="admin-main">{$specialBulletin.content|raw}</div>',
+	  btn: ['已读','关闭'],
+	  yes: function(index, layero){
+		  var url = "{:url('/Bulletin/read',['id'=>$specialBulletin.bulletin_id])}";
+		  $.post(url,function(data){
+			if(data.code == 1){
+				layer.closeAll();
+			}
+			layer.msg(data.msg);
+		  })
+	  },btn2: function(index, layero){
+		  layero.close;
+	  }
+	});
+	{else}
+	layer.tab({
+	  //title: '公告提示',
+	  area: ['600px', '400px'],
+	  tab: [
+	  {volist name="specialBulletins" key="k" id="vo"}
+	  {
+		title: '公告{$k}', 
+		content: "{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}"
+	  },
+	  {/volist}
+	  ]
+	});
+	{/present}
+});
+</script>
+{/notempty}

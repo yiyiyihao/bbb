@@ -19,10 +19,10 @@ class CommonBase extends Base
     	parent::__construct();
     	$domain = Request::panDomain();
     	$adminDomain = config('app.admin_domain');
-    	$apiDomain = config('app.api_domain');
+    	$systemKeepsDomains = config('app.system_keeps_domain');
     	if($domain == $adminDomain){
     	    $this->initAdmin($domain);
-    	}elseif ($domain == $apiDomain){
+    	}elseif (!$domain || in_array($domain, $systemKeepsDomains)){
     	    return ;
     	}else{
     	    $this->initFactory($domain);
@@ -93,6 +93,16 @@ class CommonBase extends Base
             session('admin_factory', $factory);
         }
         $this->adminStore = $this->adminStore ? $this->adminStore : session('admin_store');
+        
+        $controller = strtolower($this->request->controller());
+        $action = strtolower($this->request->action());
+        $flag = !($controller == 'index' && $action == 'index') && !($controller == 'index' && $action == 'profile') && !($controller == 'login') && !($controller == 'upload') && !($controller == 'region');
+        if ($flag) {
+            $storeStatus = db('store')->where(['store_id' => $this->adminStore['store_id']])->value('check_status');
+            if ($storeStatus != 1) {
+                $this->redirect(url('index/profile'));
+            }
+        }
     }
     
     //页面初始化赋值

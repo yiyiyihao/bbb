@@ -209,7 +209,7 @@ class User extends Model
             if (isset($user['store'])&& $user['store']) {
                 $adminStore = $user['store'];
             }else{
-                $adminStore = db('store')->field('store_id, name, factory_id, store_type')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
+                $adminStore = db('store')->field('store_id, name, factory_id, store_type, store_no, check_status, status')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             }
             $storeType = $adminStore['store_type'];
             session('admin_store',$adminStore);
@@ -256,6 +256,8 @@ class User extends Model
      */
     public function logout($domain = 'admin'){
         session($domain.'_user', null);
+        session('admin_factory',null);
+        session('admin_store',null);
     }    
     
     /**

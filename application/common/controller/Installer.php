@@ -97,7 +97,7 @@ class Installer extends FormBase
             $remark = isset($params['remark']) ? trim($params['remark']) : '';
             $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
             if (!$checkStatus && !$remark) {
-                $this->error('清填写拒绝理由');
+                $this->error('请填写拒绝理由');
             }
             //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
             if ($checkStatus > 0) {

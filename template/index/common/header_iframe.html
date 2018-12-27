@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <title>{$title|default=''}</title>
+    <link rel="stylesheet" href="__PUBLIC__/base/css/iconfont.css">
+    <link rel="stylesheet" href="__PUBLIC__/base/css/common.css">
+    <link rel="stylesheet" href="__PUBLIC__/admin/css/admin.css">
+    <script src="__PUBLIC__/base/js/jquery.js"></script>
+    <script src="__PUBLIC__/base/js/pintuer.js"></script>
+    <script>
+    var Config = {
+        //基础配置
+        'baseDir' : '__PUBLIC__/base/js/',
+        'baseUrl' : '__ROOT__/',
+        'uploadUrl' : "{:url('Upload/upload')}",
+		'editorUploadUrl' : "{:url('Upload/editorupload')}",
+        //自定义配置
+        'libDir' : '__PUBLIC__/admin/js/',
+        };
+    </script>
+    <script src="__PUBLIC__/base/js/do.js"></script>
+    <script src="__PUBLIC__/base/js/config.js"></script>    
+    <script src="__PUBLIC__/admin/js/definition.js"></script>
+    {present name="_head_tags"}{$_head_tags|raw}{/present}
+</head>
+<body>
+{notempty name="subMenu"}
+<div class="main-tools">
+      <div class="bread-head">{$subMenu.info.name} <span class="small">{$subMenu.info.description}</span> </div>
+    	<div class="tools-function clearfix">
+        	<div class="bread-crumb">
+            	<a href="{:url('/index/home')}">主页</a> {notempty name="breadCrumb"}{foreach name="breadCrumb" item="crumb"}<i>/</i> {if condition="($crumb.url)"}<a href="{$crumb.url}">{$crumb.name}</a>{else /}<span>{$crumb.name}</span>{/if}{/foreach}{/notempty}
+            </div>
+            {notempty name="subMenu.add"}
+        	<div class="button-group float-right">
+              {notempty name="subMenu.add.name"} <a class="button button-small icon-plus" href="{$subMenu.add.url}"> {$subMenu.add.name}</a>
+              {else /}
+                <a class="button button-small bg-dot icon-plus dropdown-toggle"> 添加 <span class="downward"></span></a>
+                <ul class="drop-menu pull-right">
+                  {foreach name="subMenu.add" item="data"}
+                    <li><a href="{$data.url}">{$data.name}</a></li>
+                  {/foreach}
+                </ul>
+              {/notempty}
+            </div>
+      	    {/notempty}
+  			{/notempty}
+        </div>
+</div>
+{if isset($subMenu.showmenu) && $subMenu.showmenu}
+{notempty name="subMenu.menu"}
+<div class="main-submenu">
+{foreach name="subMenu.menu" item="data"}
+      {if condition="($data.url eq $self)"}<a class="button button-small bg-main" href="{$data.url}">{else /}<a class="button button-small bg-white" href="{$data.url}">{/if} {$data.name}</a>
+{/foreach}
+</div>
+{/notempty}
+{/if}
+<div class="admin-main duration-animate animation-upbit">

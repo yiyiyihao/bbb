@@ -5,7 +5,7 @@ namespace app\common\controller;
 class Store extends FormBase
 {
     var $storeType;
-    var $groupId;
+    var $groupId = 0;
     var $adminType;
     public function __construct()
     {
@@ -24,6 +24,15 @@ class Store extends FormBase
                 }
             }
         }
+        $this->subMenu['showmenu'] = true;
+        $this->subMenu['menu'][] = [
+            'name' => '待审核申请',
+            'url' => url('index', ['status' => 0]),
+        ];
+        $this->subMenu['menu'][] = [
+            'name' => '已拒绝申请',
+            'url' => url('index', ['status' => 2]),
+        ];
         if (!$this->adminUser['store_id']){
             $this->_getFactorys();
         }
@@ -32,6 +41,9 @@ class Store extends FormBase
     public function manager()
     {
         $store = $this->_assignInfo();
+        if ($store['check_status'] != 1) {
+            $this->error('商户审核未通过');
+        }
         //判断当前厂商是否设置过管理员
         $userModel = new \app\common\model\User();
         $info = $userModel->where(['admin_type' => $this->adminType, 'store_id' => $store['store_id'], 'is_del' => 0])->find();
@@ -90,8 +102,68 @@ class Store extends FormBase
     public function resetpwd()
     {
         $params = $this->request->param();
+        $user = db('user')->where(['user_id' => $params['id']])->find();
+        if (!$user) {
+            $this->error('管理员不存在');
+        }
+        $info = $this->_assignInfo($user['store_id']);
+        if ($info['check_status'] != 1) {
+            $this->error('商户审核未通过');
+        }
+        $params = $this->request->param();
         $userController = new \app\common\controller\User();
         return $userController->resetpwd();
+    }
+    /**
+     * 商户详情
+     */
+    public function detail()
+    {
+        $info = $this->_assignInfo();
+        $this->assign('info', $info);
+        return $this->fetch('store/detail');
+    }
+    /**
+     * 商户审核
+     * @return mixed|string
+     */
+    public function check()
+    {
+        $info = $this->_assignInfo();
+        //只有厂商才有权限
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error('无操作权限');
+        }
+        $checkStatus = $info['check_status'];
+        //已拒绝不允许审核
+        if (in_array($checkStatus, [1, 2])) {
+            $this->error('操作已审核');
+        }
+        if ($info['factory_id'] != $this->adminUser['factory_id']) {
+            $this->error('无操作权限');
+        }
+        $params = $this->request->param();
+        if (IS_POST) {
+            $remark = isset($params['remark']) ? trim($params['remark']) : '';
+            $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
+            if (!$checkStatus && !$remark) {
+                $this->error('请填写拒绝理由');
+            }
+            $status = $checkStatus > 0 ? 1: 2;
+            $data = [
+                'check_status' => $status,
+                'admin_remark' => $remark,
+            ];
+            $result = $this->model->save($data, ['store_id' => $info['store_id']]);
+            if ($result !== FALSE) {
+                $this->success('操作成功', url('index', ['status' => $status]));
+            }else{
+                $this->error('操作失败');
+            }
+        }else{
+            $this->assign('info', $info);
+            return $this->fetch('store/check');
+        }
     }
     /**
      * 删除
@@ -205,6 +277,10 @@ class Store extends FormBase
             }
             $user = db('user')->where(['store_id' => $info['store_id'], 'is_del' => 0, 'group_id' => $this->groupId])->find();
             $this->assign('user', $user);
+            if ($info['store_type'] == STORE_DEALER) {
+                //获取渠道商名称
+                $info['channel_name'] = $this->model->where(['store_id' => $info['ostore_id']])->value('name');
+            }
         }
         $this->assign('info', $info);
         return $info;
@@ -324,16 +400,19 @@ class Store extends FormBase
         return 'S.sort_order ASC, S.add_time DESC';   
     }
     function _getWhere(){
+        $params = $this->request->param();
+        $status = isset($params['status']) ? intval($params['status']) : 1;
         $where = [
             'S.is_del'      => 0,
             'S.store_type'  => $this->storeType,
+            'S.check_status'=> $status,
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];
         }elseif ($this->adminUser['admin_type'] == ADMIN_DEALER && $this->storeType == STORE_DEALER){
             $where['AS.ostore_id'] = $this->adminUser['store_id'];
         }
-        $params = $this->request->param();
+        
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
@@ -361,10 +440,17 @@ class Store extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
-//         $table['actions']['button'][] = ['text'  => '管理员设置','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["username"] == ""']];
-        $table['actions']['button'][] = ['text'  => '管理员','action'=> 'manager', 'icon'  => 'user','bgClass'=> 'bg-green'];
-        $table['actions']['button'][] = ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != ""']];
-        $table['actions']['width']  = '300';
+        if ($table['actions']['button']) {
+            $table['actions']['button']= [
+                ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
+                ['text'  => '编辑','action'=> 'condition', 'icon'  => 'pencil','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$vo["check_status"] == 1']],
+                ['text'  => '删除','action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1']],
+                ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["check_status"] == 1']],
+                ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != "" && $vo["check_status"] == 1']],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'user-setting','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["username"] != "" && $vo["check_status"] == 0']],
+            ];
+            $table['actions']['width']  = '*';
+        }
         return $table;
     }
     /**
