@@ -113,21 +113,33 @@ class Index extends CommonIndex
                 $total['security_money_total'] = $totalStore && isset($totalStore['security_money_total']) ? floatval($totalStore['security_money_total']) : 0;
                 
                 //工单数量统计
-                $where = [
+                //$where = [
+                //    'factory_id' => $storeId,
+                //    'is_del' => 0,
+                //];
+                //$field = 'count(if(add_time >= '.$beginToday.', true, NULL)) as today_count, count(*) as total_count';
+                //$field .= ',count(if(work_order_type = 1 , true, NULL)) as workorder_1_count, count(if(work_order_type = 2 , true, NULL)) as workorder_2_count';
+                //$workOrderData = $workOrderModel->field($field)->where($where)->find();
+                $where=[
                     'factory_id' => $storeId,
                     'is_del' => 0,
+                    'add_time' => ['>=',$beginToday],
                 ];
-                $field = 'count(if(add_time >= '.$beginToday.', true, NULL)) as today_count, count(*) as total_count';
-                $field .= ',count(if(work_order_type = 1 , true, NULL)) as workorder_1_count, count(if(work_order_type = 2 , true, NULL)) as workorder_2_count';
-                $workOrderData = $workOrderModel->field($field)->where($where)->find();
                 //今日售后工单数量
-                $today['workorder_count'] = $workOrderData && isset($workOrderData['today_count']) ? intval($workOrderData['today_count']) : 0;
+                $today['workorder_count'] =$workOrderModel->where($where)->count() ;
                 //累计售后工单数量
-                $total['workorder_count'] = $workOrderData && isset($workOrderData['total_count']) ? intval($workOrderData['total_count']) : 0;
+                unset($where['add_time']);
+                $total['workorder_count'] = $workOrderModel->where($where)->count();
+                $where=[
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'work_order_type' => 1,
+                ];
                 //累计安装工单数量
-                $total['workorder_1_count'] = $workOrderData && isset($workOrderData['workorder_1_count']) ? intval($workOrderData['workorder_1_count']) : 0;
+                $total['workorder_1_count'] = $workOrderModel->where($where)->count();
+                $where['work_order_type']=2;
                 //累计维修工单数量
-                $total['workorder_2_count'] = $workOrderData && isset($workOrderData['workorder_2_count']) ? intval($workOrderData['workorder_2_count']) : 0;
+                $total['workorder_2_count'] = $workOrderModel->where($where)->count();
                 //累计工程师数量
                 $where = [
                     'factory_id' => $storeId,
