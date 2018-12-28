@@ -7,7 +7,7 @@ body {
 	background-image:-o-linear-gradient(to top left,#1278e1,#155a95);
 	background-image:-moz-linear-gradient(to top left,#1278e1,#155a95);
 	background-image:linear-gradient(to top left,#1278e1,#155a95); background-size:100% auto; background-repeat:no-repeat;}
-.login { position: absolute; top: 50%; max-width:1000px; max-height:600px; margin-top: -300px; left: 50%; margin-left: -500px; background:rgba(255,255,255,1); overflow:hidden;}
+.login { position: absolute; top: 50%; max-width:1000px; max-height:600px; margin-top: -300px; left: 50%; margin-left: -500px; background:rgba(255,255,255,1); overflow:hidden; border-radius:0 50px;}
 .login .login-box{ width:460px; height:100%; position:absolute; top:0px; right:0px; background:#fff; padding:50px;}
 .login .login-box h1{ font-size:40px; margin:30px 0;font-weight:bold;}
 .login .login-box .login-sub-title{ font-size:17px; margin:20px 0;}
