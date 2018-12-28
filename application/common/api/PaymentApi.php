@@ -104,7 +104,10 @@ class PaymentApi
                 }
                 break;
             case 'alipay_page'://支付宝网页支付
-                $this->config['return_url'] = $this->apiHost.'pay/order/sn/'.$outTradeNo;//异步通知地址
+//                 $this->config['return_url'] = $this->apiHost.'pay/order/sn/'.$outTradeNo;//异步通知地址
+                $host = $_SERVER['HTTP_HOST'];
+                $returnUrl = 'http://'.$host.'/myorder/pay/order_sn/'.$outTradeNo.'/pay_code/alipay_page/step/3/from/out';
+                $this->config['return_url'] = $returnUrl;
                 $this->config['notify_url'] = $this->apiHost.'pay/alipay/code/'.$this->payCode;//异步通知地址
                 $alipayApi = new \app\common\api\AlipayPayApi($order['store_id'], $this->payCode, $this->config);
                 $result = $alipayApi->pagePay($order, "GET");
