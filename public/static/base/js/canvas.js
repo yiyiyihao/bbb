@@ -23,6 +23,14 @@ ctx2.fillStyle = gradient2;
 ctx2.beginPath();
 ctx2.arc(half, half, half, 0, Math.PI * 2);
 ctx2.fill();
+window.onresize=resizeCanvas;
+function resizeCanvas(){
+	w = canvas.width=window.innerWidth;
+	h = canvas.height=window.innerHeight;
+	animation();
+}
+resizeCanvas();
+
 // End cache
 function random(min, max) {
 	if(arguments.length < 2) {
