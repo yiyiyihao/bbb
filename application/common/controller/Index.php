@@ -12,13 +12,13 @@ class Index extends CommonBase
     /**
      * 框架首页
      */
-    public function index()
+    public function index($template = '',$url = '')
     {
         $menuList = $this->getMenu();
 //         pre($menuList);
         $this->assign('menuList', $menuList);
         config('app_trace',false);
-        return $this->fetch();
+        return $this->fetch($template);
     }
     /**
      * 后台首页

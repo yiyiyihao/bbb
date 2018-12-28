@@ -2,13 +2,14 @@
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
 use app\common\service\Chart;
+use think\response\Redirect;
 
 class Index extends CommonIndex
 {
     function __construct(){
         parent::__construct();
     }
-    public function index()
+    public function index($template = '',$url = '')
     {
         //获取登录商家类型
         $storeType = $this->adminUser['store_type'];
@@ -40,8 +41,10 @@ class Index extends CommonIndex
         }
 //         pre($specialBulletins);
         $this->assign('specialBulletins', $specialBulletins);
-        
-        return parent::index();
+        if($url){
+            $this->assign('redirect',$url);
+        }
+        return parent::index($template);
     }
     public function home()
     {
