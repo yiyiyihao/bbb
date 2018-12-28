@@ -19,6 +19,7 @@ class Myorder extends commonOrder
         $this->orderSkuModel = db('order_sku');
         $this->orderSkuServiceModel = new \app\common\model\OrderService();
     }
+    
     public function return()
     {
         $params = $this->request->param();
@@ -138,6 +139,13 @@ class Myorder extends commonOrder
             }
         }else{
             //等待支付结果界面
+            if(isset($params['from']) && $params['from'] == 'out'){
+                unset($params['from']);
+                $url = url('',$params);
+                $controller = controller('index');
+                return $controller->index("admin@index\index",$url);
+                die();
+            }
         }
         return $this->fetch();
     }

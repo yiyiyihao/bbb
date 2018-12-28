@@ -71,6 +71,9 @@ function initMenu(data){
 		$("#backHome").click(function(){
 			$('#siderbar-nav a:first').click();
 		})
+		if(Config.redirect != ''){
+			$('.admin-iframe').attr('src',Config.redirect);
+		}
 	}
 	
 	$('.admin-head').on('click','.sideflag',function(){

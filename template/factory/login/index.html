@@ -16,7 +16,8 @@ if(self!=top){top.location = self.location;}
 </script>
 {present name="_head_tags"}{$_head_tags|raw}{/present}
 </head>
-<body>
+<body style="overflow:hidden;">
+<canvas id="canvas"></canvas>
 <div class="login">
 	<div class="bannerBox">
     	<ul>
@@ -54,5 +55,6 @@ $(".button-login").click(function(){
 	$("#form").submit();
 })
 </script>
+<script src="__PUBLIC__/base/js/canvas.js"></script>
 </body>
 </html>
