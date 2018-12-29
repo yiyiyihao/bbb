@@ -36,19 +36,29 @@ class Storeaction extends FactoryForm
             $this->error('NO ACCESS');
         }
         $info = $this->_assignInfo();
-        if ($info['action_type'] == 'del') {
+        $flag = FALSE;
+        //判断操作的商户是否存在
+        $exist = db('store')->where(['store_id' => $info['to_store_id'], 'is_del' => 0])->find();
+        if (!$exist) {
+            $remark = '商户不存在或已删除[系统拒绝删除申请]';
+            $flag = TRUE;
+        }
+        if (!$flag && $info['action_type'] == 'del') {
             //判断零售商是否有订单数据
             $exist = db('order')->where(['user_store_id' => $info['to_store_id']])->find();
             if ($exist) {
                 $remark = '零售商有订单数据[系统拒绝删除申请]';
-                $data = [
-                    'check_status' => 2,
-                    'check_time'   => time(),
-                    'remark'       => $remark,
-                ];
-                $result = $this->model->where(['record_id' => $info['record_id']])->update($data);
-                $this->error($remark);
+                $flag = TRUE;
             }
+        }
+        if ($flag) {
+            $data = [
+                'check_status' => 2,
+                'check_time'   => time(),
+                'remark'       => $remark,
+            ];
+            $result = $this->model->where(['record_id' => $info['record_id']])->update($data);
+            $this->error($remark);
         }
         if (IS_POST) {
             $params = $this->request->param();
@@ -58,17 +68,21 @@ class Storeaction extends FactoryForm
                 $this->error('请填写拒绝理由');
             }
             $after = $info['after'];
-            if (!$after) {
+            if (!$after && $info['action_type'] != 'del') {
                 $this->error('参数错误');
             }
             $storeId = 0;
             if ($checkStatus == 1) {
                 $storeModel = new \app\common\model\Store();
-                $where = [];
-                if ($info['to_store_id']) {
-                    $where['store_id'] = $info['to_store_id'];
+                if ($info['action_type'] == 'del' && $info['to_store_id']) {
+                    $result = $storeModel->del($info['to_store_id'], $this->adminUser);
+                }else{
+                    $where = [];
+                    if ($info['to_store_id']) {
+                        $where['store_id'] = $info['to_store_id'];
+                    }
+                    $storeId = $storeModel->save($after, $where);
                 }
-                $storeId = $storeModel->save($after, $where);
             }
             $data = [
                 'check_status' => $checkStatus > 0 ? 1: 2,

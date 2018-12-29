@@ -61,7 +61,7 @@ class Store extends Model
                 $this->error = lang('NO_OPERATE_PERMISSION');
                 return FALSE;
                 //判断厂商下是否存在其它商户
-                $exist = $this->model->where(['factory_id' => $info['store_id'], 'is_del' => 0])->find();
+                $exist = $this->where(['factory_id' => $info['store_id'], 'is_del' => 0])->find();
                 $msg = '厂商下存在其它商户数据，不允许删除';
                 if (!$exist) {
                     //判断厂商是否有订单数据
@@ -85,7 +85,7 @@ class Store extends Model
                     return FALSE;
                 }
                 //判断渠道商下级是否存在经销商
-                $exist = $this->model->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SD.ostore_id' => $info['store_id']])->find();
+                $exist = $this->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SD.ostore_id' => $info['store_id']])->find();
                 $msg = '渠道商下存在零售商，不允许删除';
                 if (!$exist) {
                     //判断渠道商是否有订单数据
@@ -132,6 +132,12 @@ class Store extends Model
             //2.删除商户对应管理账户信息
             $user = db('user')->where(['store_id' => $info['store_id'], 'is_del' => 0])->update($data);
         }else{
+            //判断是否已存在未处理的编辑申请
+            $exist = db('store_action_record')->where(['to_store_id' => $info['store_id'], 'action_type' => 'del', 'check_status' => 0])->find();
+            if ($exist) {
+                $this->error = lang('存在待审核的删除操作');
+                return FALSE;
+            }
             $data = [
                 'action_store_id'   => $user['store_id'],
                 'action_user_id'    => $user['user_id'],

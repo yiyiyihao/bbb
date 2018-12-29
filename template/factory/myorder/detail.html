@@ -153,6 +153,7 @@
                             <input type="text" disabled="disabled" class="input" size="40" value="{if condition='$info["order"]["pay_time"]'}{$info['order']['pay_time']|date='Y-m-d H:i:s'}{/if}">
                         </div>
                     </div>
+                    {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
                     <div class="form-group">
                         <div class="label">
                             <label>产品总价</label>
@@ -169,6 +170,7 @@
                             <input type="text" disabled="disabled" class="input" size="40" value="{$info['order']['install_amount'] ?? ''}">
                         </div>
                     </div>
+                    {/if}
                     <div class="form-group">
                         <div class="label">
                             <label>物流费用</label>

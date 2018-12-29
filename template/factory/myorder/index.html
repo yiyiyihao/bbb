@@ -38,8 +38,10 @@
           <th width="100">下单账号</th>
           <th width="*">支付方式</th>
           <th width="*">第三方交易号</th>
+          {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
           <th width="*">产品金额</th>
           <th width="*">安装费</th>
+          {/if}
           <th width="*">订单金额</th>
           <!-- <th width="*">收货人姓名</th>
           <th width="*">收货人电话</th>
@@ -56,8 +58,10 @@
               <td>{$vo.nickname ?$vo.nickname: $vo['username']}</td>
               <td>{$vo['pay_code']}</td>
               <td>{$vo['pay_sn']}</td>
+              {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
               <td>{$vo.goods_amount}元</td>
               <td>{$vo.install_amount}元</td>
+              {/if}
               <td>{$vo.real_amount}元</td>
               <!-- <td>{$vo.address_name}</td>
               <td>{$vo.address_phone}</td>

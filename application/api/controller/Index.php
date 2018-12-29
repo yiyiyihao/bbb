@@ -509,6 +509,7 @@ class Index extends ApiBase
             }
         }
         $workOrderModel = model('work_order');
+        $this->postParams['install_price'] = $goods['install_price'];
         $this->postParams['work_order_type'] = 2;
         $this->postParams['post_user_id'] = $user['user_id'];
         $this->postParams['user_id'] = $user['user_id'];

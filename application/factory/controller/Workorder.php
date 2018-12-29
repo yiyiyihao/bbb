@@ -4,6 +4,7 @@ namespace app\factory\controller;
 class Workorder extends FactoryForm
 {
     var $types;
+    var $type = 1;
     var $statusList;
     var $orderTypes;
     public function __construct()
@@ -12,13 +13,43 @@ class Workorder extends FactoryForm
         $this->model = new \app\common\model\WorkOrder();
         $this->orderTypes = get_work_order_type();
         parent::__construct();
+        if (strtolower($this->request->action()) != 'index') {
+            $this->type = 2;
+            $this->subMenu['menu']['0'] = [
+                'name' => '维修工单列表',
+                'url' => url('lists'),
+            ];
+            $action = 'lists';
+        }else{
+            $this->subMenu['menu']['0']['name'] = '安装工单列表';
+            $action = 'index';
+        }
         $this->subMenu['showmenu'] = true;
         $this->statusList = get_work_order_status();
         foreach ($this->statusList as $key => $value) {
-            $this->subMenu['menu'][] = ['name'  => lang($value),'url'   => url('index', ['status' => $key])];
+            $this->subMenu['menu'][] = ['name'  => lang($value),'url'   => url($action, ['status' => $key])];
         }
         unset($this->subMenu['add']);
         $this->assign('orderTypes', $this->orderTypes);
+        $this->assign('type', $this->type);
+    }
+    //维修工单
+    public function lists()
+    {
+        $this->indextempfile = 'index';
+        return $this->index();
+    }
+    public function _afterList($list){
+        if ($list && $this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            foreach ($list as $key => $value) {
+                if ($value['work_order_type'] == 1 && $value['work_order_status'] == 4) {
+                    //判断安装工单是否存在维修中的记录
+                    $exist = $this->model->where(['parent_id' => $value['worder_id'], 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
+                }
+                $list[$key]['fix_id'] = isset($exist) && $exist ? $exist['worder_id']: 0;
+            }
+        }
+        return $list;
     }
     public function edit()
     {
@@ -179,10 +210,12 @@ class Workorder extends FactoryForm
         return 'WO';
     }
     function _getField(){
-        $field = 'I.*, WO.*, G.name as gname, GS.sku_name';
+        $field = 'I.*, WO.*, G.name as gname, GS.sku_name, I.phone as installer_phone';
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $field .= ',S.name';
         }
+//         状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        $field .= ', if(work_order_status >= 0, work_order_status, 5) as order_status';
         return $field;
     }
     function _getJoin()
@@ -197,7 +230,7 @@ class Workorder extends FactoryForm
     }
     function  _getOrder()
     {
-        return 'WO.add_time DESC';
+        return 'order_status ASC, WO.add_time DESC';
     }
     function _getWhere(){
         $params = $this->request->param();
@@ -207,7 +240,9 @@ class Workorder extends FactoryForm
         }
         $where = [
             'WO.is_del' => 0,
+            'work_order_type' => $this->type,
         ];
+        
         if (isset($params['status'])) {
             $where['WO.work_order_status'] = $status;
         }
@@ -223,15 +258,15 @@ class Workorder extends FactoryForm
             if($name){
                 $where['WO.user_name|WO.phone'] = ['like','%'.$name.'%'];
             }
+            $installerName = isset($params['installer_name']) ? trim($params['installer_name']) : '';
+            if($installerName){
+                $where['I.realname|I.phone'] = ['like','%'.$installerName.'%'];
+            }
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
                 $sname = isset($params['sname']) ? trim($params['sname']) : '';
                 if($sname){
                     $where['S.name'] = ['like','%'.$sname.'%'];
                 }
-            }
-            $type = isset($params['order_type']) ? intval($params['order_type']) : '';
-            if($type){
-                $where['order_type'] = $type;
             }
         }
         return $where;
@@ -291,10 +326,15 @@ class Workorder extends FactoryForm
             }
         }
         if ($type == 2) {
+            $wid = isset($params['wid']) ? intval($params['wid']) : 0;
+            $info = $this->model->where(['worder_id' => $wid, 'work_order_type' => 1, 'work_order_status' => 4])->find();
+            if (!$info) {
+                $this->error(lang('param_error'));
+            }
             //判断当前是否存在正在进行中的维修工单
-            $exist = $this->model->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
+            $exist = $this->model->where(['parent_id' => $wid, 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
             if ($exist) {
-                $this->error('当前产品存在维修中的工单，不允许添加');
+                $this->error('当前工单存在维修中的工单，不允许添加');
             }
         }
         $wid = isset($params['wid']) ? intval($params['wid']) : 0;

@@ -160,9 +160,14 @@ class Store extends FormBase
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             return parent::edit();
         }else{
+            $info = $this->_assignInfo();
+            //判断是否已存在未处理的编辑申请
+            $exist = db('store_action_record')->where(['to_store_id' => $info['store_id'], 'action_type' => 'edit', 'check_status' => 0])->find();
+            if ($exist) {
+                $this->error('存在待审核的编辑操作');
+            }
             $params = $this->request->param();
             if (IS_POST) {
-                $info = $this->_assignInfo();
                 $data = $this->_getData();
                 if (!isset($info['ostore_id']) || $info['ostore_id'] != $this->adminUser['store_id']) {
                     $this->error(lang('NO ACCESS'));
@@ -212,7 +217,7 @@ class Store extends FormBase
         if ($result === FALSE) {
             $this->error($this->model->error);
         }else{
-            if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
                 $this->success('删除商户操作提交，等待厂商审核');
             }else{
                 $this->success('删除成功');
