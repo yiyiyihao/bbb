@@ -3,8 +3,47 @@
 
 function time_to_date($time = 0)
 {
+    if (!$time) {
+        return '';
+    }
     $time = $time ? $time : time();
     return date('Y-m-d H:i:s', $time);
+}
+/**
+ * 审核状态
+ */
+function get_check_status($status = FALSE){
+    $statusList = [
+        0  => '待审核',
+        1  => '审核通过',
+        2  => '已拒绝',
+    ];
+    if ($status === FALSE) {
+        return $statusList;
+    }
+    if (isset($statusList[$status])) {
+        return $statusList[$status];
+    }else{
+        return '';
+    }
+}
+/**
+ * 操作类型
+ */
+function get_action_type($status = FALSE){
+    $statusList = [
+        'add'  => '新增',
+        'edit' => '编辑',
+        'del'  => '删除',
+    ];
+    if ($status === FALSE) {
+        return $statusList;
+    }
+    if (isset($statusList[$status])) {
+        return $statusList[$status];
+    }else{
+        return '';
+    }
 }
 /**
  * 获取订单安装状态
@@ -482,7 +521,6 @@ function get_store_config($storeId = 0, $merge = FALSE, $defaultKey = FALSE)
         $systemKey = 'system_'.$configKey;
         $default = get_system_config($systemKey);
         $sysConfig = $default['config_value'];
-        
         if ($sysConfig) {
             foreach ($sysConfig as $key => $value) {
                 if (!isset($config[$configKey][$key])) {

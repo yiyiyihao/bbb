@@ -61,7 +61,26 @@ class CommonBase extends Base
             //普通用户 //从登陆信息中取出权限配置
             $groupPurview = $this->adminUser['groupPurview'];
             //json转数组
-            $groupPurview   = json_decode($groupPurview,true);
+            $groupPurview   = $groupPurview ? json_decode($groupPurview,true) : [];
+            if ($this->adminUser && ($this->adminUser['admin_type'] == 0 && $this->adminUser['store_id'] == 0) || ($this->adminStore && $this->adminStore['check_status'] != 1)) {
+                $flag = (strtolower($this->request->controller()) == 'apply') || !(!($controller == 'login') && !($controller == 'upload') && !($controller == 'region'));
+                if (!$flag) {
+                    $storeId = $this->adminUser['store_id'];
+                    if ($storeId > 0) {
+                        $adminStore = db('store')->field('store_id, name, factory_id, store_type, store_no, check_status, status')->where(['store_id' => $storeId, 'is_del' => 0])->find();
+                        if ($adminStore['check_status'] == 1) {
+                            //重新执行登录
+                            $this->updateLogin($this->adminUser['user_id'], $this->adminFactory['domain']);
+                            $flag = TRUE;
+                        }
+                    }
+                    if (!$flag) {
+                        $this->redirect(url('apply/index'));
+                    }
+                }else{
+                    $groupPurview = [['module' => 'factory', 'controller' => 'apply', 'action' => 'index']];
+                }
+            }
             if(!empty($groupPurview)){
                 $authService    = new \app\admin\service\Auth();
                 $return         = $authService->check($this->request,$groupPurview);
@@ -93,16 +112,6 @@ class CommonBase extends Base
             session('admin_factory', $factory);
         }
         $this->adminStore = $this->adminStore ? $this->adminStore : session('admin_store');
-        
-        $controller = strtolower($this->request->controller());
-        $action = strtolower($this->request->action());
-        $flag = !($controller == 'index' && $action == 'index') && !($controller == 'index' && $action == 'profile') && !($controller == 'login') && !($controller == 'upload') && !($controller == 'region');
-        if ($flag) {
-            $storeStatus = db('store')->where(['store_id' => $this->adminStore['store_id']])->value('check_status');
-            if ($storeStatus != 1) {
-                $this->redirect(url('index/profile'));
-            }
-        }
     }
     
     //页面初始化赋值

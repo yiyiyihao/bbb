@@ -15,10 +15,10 @@ class User extends FormBase
     /**
      * 重置密码
      */
-    public function resetpwd($user = [])
+    public function resetpwd($userId = 0)
     {
         $params = $this->request->param();
-        $userId = isset($params['id']) ? intval($params['id']) : 0;
+        $userId = $userId ? $userId : (isset($params['id']) ? intval($params['id']) : 0);
         if (!$userId){
             $this->error(lang('ERROR'));
         }
@@ -48,7 +48,7 @@ class User extends FormBase
         if ($result){
             $informModel = new \app\common\model\LogInform();
             $extra = ['name' => $user['nickname'], 'password' => $password];
-            $result = $informModel->sendInform($this->adminUser['store_id'], 'sms', $user, 'reset_pwd', $extra);
+            $result = $informModel->sendInform($this->adminUser['factory_id'], 'sms', $user, 'reset_pwd', $extra);
             if ($result === FALSE) {
                 $this->error($informModel->error);
             }else {

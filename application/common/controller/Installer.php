@@ -38,15 +38,7 @@ class Installer extends FormBase
             'S.installer_id'    => $info['installer_id'],
         ];
         $scoreList  = $scoreModel->alias("S")->field("C.name,S.value")->join("config C","S.config_id = C.config_id")->where($where)->select();
-        /* $len = count($scoreList);
-        $totalScore = 0;
-        foreach ($scoreList as $k=>$v){
-            $totalScore += $v['value'];
-        }
-        $scoreList[] = [
-            'name'  =>  '综合评分',
-            'value' =>  round($totalScore/$len,1)
-        ]; */
+        
         $this->assign("scorelist",$scoreList);
         $this->assign("info",$info);
         //取得工程师服务工单列表
@@ -123,6 +115,13 @@ class Installer extends FormBase
             ];
             $result = $this->model->save($data, ['installer_id' => $info['installer_id']]);
             if ($result !== FALSE) {
+                //申请审核后通知工程师
+                $informModel = new \app\common\model\LogInform();
+                if ($status == 1) {
+                    $result = $informModel->sendInform($this->adminStore['factory_id'], 'sms', $info, 'installer_check_success');
+                }else{
+                    $result = $informModel->sendInform($this->adminStore['factory_id'], 'sms', $info, 'installer_check_fail');
+                }
                 $this->success('操作成功', url('index'));
             }else{
                 $this->error('操作失败');
@@ -263,7 +262,7 @@ class Installer extends FormBase
         $btnArray = [];
         $btnArray = [
 //             ['text'  => '审核', 'action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'],
-            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'pay-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser["admin_type"] == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
+            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser["admin_type"] == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
             ['text'  => '详情', 'action'=> 'detail','icon'  => 'detail','bgClass'=> 'bg-green'],
         ];
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);

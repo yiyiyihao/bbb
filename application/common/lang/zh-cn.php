@@ -23,6 +23,8 @@ return [
     'CHANNEL_GRADE'         =>  '渠道等级',
     'STORE_DEALER'          =>  '零售商',
     'STORE_SERVICER'        =>  '服务商',
+    'STORE_ACTION_RECORD'   =>  '商户操作',
+    'STORE'                 =>  '商户入驻申请',
     
     'GOODS'                 =>  '产品',
     'GOODS_CATE'            =>  '产品分类',

@@ -10,7 +10,10 @@
         	{if condition="$adminUser['admin_type'] != 1"}
             <li class="nav-item"><a href="{:url('bulletin/index')}" target="admin-iframe" title="系统消息"><span class="icon-bell"></span></a>{if $unread>0}<i class="badge-dot"></i> {/if}</li>
             {/if}
-            <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li>
+            {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+            <li class="nav-item"><a target="_blank" href="{:url('/merchant/apply', ['store_no' => $adminFactory['store_no']], true, 'www')}" title="入驻申请"><span class="icon-edit-normal"></span></a></li>
+            {/if}
+            <!-- <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li> -->
             {if condition="$adminUser['user_id'] == 1"}
             <li class="nav-item"><a href="{:url('clearcache')}" target="admin-iframe" title="清理缓存"><span class="icon-chear"></span></a></li>
             {/if}

@@ -13,6 +13,9 @@ class Index extends ApiBase
     public $mchKey;
     public $fromSource;
     public $factory;
+    public $userTypes;
+    
+    public $signData;
     public function __construct(){
         parent::__construct();
         $this->_checkPostParams();
@@ -39,6 +42,10 @@ class Index extends ApiBase
                 continue;
             }
         }
+        $this->userTypes = [
+            'installer' => '师傅端',
+            'user' => '用户端',
+        ];
     }
     public function index()
     {
@@ -104,19 +111,27 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['errcode'].':'.$result['errmsg']]);
         }else{
             $openid = $result && isset($result['openid']) ? trim($result['openid']) : '';
-            $this->_returnMsg(['third_openid' => $openid]);
+            $this->_returnMsg(['third_openid' => $openid, 'appid' => $wxproAppId]);
         }
     }
     //授权登录
     protected function authorized()
     {
-        $thirdType      = isset($this->postParams['third_type']) ? trim($this->postParams['third_type']) : '';
-        $thirdOpenid    = isset($this->postParams['third_openid']) ? trim($this->postParams['third_openid']) : '';
-        $nickname       = isset($this->postParams['nickname']) ? trim($this->postParams['nickname']) : '';
-        $avatar         = isset($this->postParams['avatar']) ? trim($this->postParams['avatar']) : '';
-        $gender         = isset($this->postParams['gender']) ? trim($this->postParams['gender']) : 0;
-        $unionid        = isset($this->postParams['unionid']) ? trim($this->postParams['unionid']) : '';
+        $userType   = isset($this->postParams['user_type']) ? trim($this->postParams['user_type']) : '';
+        $appid      = isset($this->postParams['appid']) ? trim($this->postParams['appid']) : '';
+        $thirdType  = isset($this->postParams['third_type']) ? trim($this->postParams['third_type']) : '';
+        $thirdOpenid= isset($this->postParams['third_openid']) ? trim($this->postParams['third_openid']) : '';
+        $nickname   = isset($this->postParams['nickname']) ? trim($this->postParams['nickname']) : '';
+        $avatar     = isset($this->postParams['avatar']) ? trim($this->postParams['avatar']) : '';
+        $gender     = isset($this->postParams['gender']) ? trim($this->postParams['gender']) : 0;
+        $unionid    = isset($this->postParams['unionid']) ? trim($this->postParams['unionid']) : '';
         
+        if (!$userType) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户类型不能为空']);
+        }
+        if (!isset($this->userTypes[$userType])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户类型错误']);
+        }
         $userModel = new \app\common\model\User();
         $result = $userModel->authorized($this->factory['store_id'], $this->postParams);
         if ($result === FALSE) {
@@ -181,10 +196,16 @@ class Index extends ApiBase
 //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '小程序表单提交标志(fromid)缺失']);
 //         }
         $userModel = new \app\common\model\User();
-        //验证手机号格式
-        $result = $userModel->checkPhone($this->factory['store_id'], $phone, TRUE);
+        //仅验证手机号格式
+        $result = $userModel->checkPhone($this->factory['store_id'], $phone, FALSE);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'msg' => $userModel->error]);
+        }
+        //判断手机号对应用户是否存在
+        $where = ['U.phone' => $phone, 'U.is_del' => 0, 'UD.user_type' => $user['user_type']];
+        $exist = $userModel->alias('U')->join('user_data UD', 'U.user_id = UD.user_id', 'INNER')->where($where)->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'msg' => '手机号已注册,请使用其它号码']);
         }
         $result = $userModel->bindPhone($user['openid'], $phone);
         if ($result === FALSE) {
@@ -282,7 +303,7 @@ class Index extends ApiBase
         $name = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
         $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
-        $regionName = isset($this->postParams['region_name']) ? $this->postParams['region_name'] : '';
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
         $addressDetail = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
         $isdefault = isset($this->postParams['isdefault']) ? intval($this->postParams['isdefault']) : 0;
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 1;
@@ -341,6 +362,8 @@ class Index extends ApiBase
         $rname = $this->_getParentName($regionId);
         $rname = $rname ? $rname : $regionName;
         $addressModel = db('UserAddress');
+//         $name = '哦哦哦';
+//         $addressDetail = '去去去去去去';
         $data = [
             'name'      => $name,
             'phone'     => $phone,
@@ -383,10 +406,26 @@ class Index extends ApiBase
         }
         $data['address_id'] = $addressId;
         if ($isdefault) {
-            $addressModel->where(['user_id' => $user['user_id'], 'is_del' => 0, 'address_id' => ['<>', $addressId], 'isdefault' => ['<>', 0]])->update(['isdefault' => 0, 'update_time' => time()]);
+            $where = [
+                'user_id'   => $user['user_id'],
+                'is_del'    => 0,
+                'address_id'=> ['<>', $addressId],
+                'isdefault' => 1,
+            ];
+            db('UserAddress')->where($where)->update(['isdefault' => 0, 'update_time' => time()]);
         }
         unset($data['add_time'], $data['update_time']);
         $this->_returnMsg(['msg' => '收货地址'.$msg.'成功', 'address' => $data]);
+    }
+   
+    //设置默认收货地址
+    protected function setDefaultAddress()
+    {
+        $user = $this->_checkOpenid();
+        $address = $this->_checkAddress($user['user_id']);
+        $result = db('UserAddress')->where(['user_id' => $user['user_id'], 'is_del'    => 0])->update(['isdefault' => 0, 'update_time' => time()]);
+        $result = db('UserAddress')->where(['address_id' => $address['address_id']])->update(['isdefault' => 1, 'update_time' => time()]);
+        $this->_returnMsg(['msg' => '设置默认地址成功']);
     }
     //删除用户收货地址
     protected function delUserAddress()
@@ -424,7 +463,7 @@ class Index extends ApiBase
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
 //         if ($user['installer']) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师不允许申请工单']);
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师不允许申请工单']);
 //         }
         $goods = $this->_checkGoods();
         $userName   = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
@@ -456,10 +495,18 @@ class Index extends ApiBase
 //         if (!$faultDesc) {
 //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '故障描述(fault_desc)缺失']);
 //         }
+        $storeModel = new \app\common\model\Store();
         //根据安装地址分配服务商
-        $storeId = model('servicer')->getStoreFromRegion($regionId);
+        $storeId = $storeModel->getStoreFromRegion($regionId);
         if(!$storeId){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '抱歉，您选择的区域暂无服务商']);
+            //获取当前地址的parent_id
+            $parentId = db('region')->where(['region_id' => $regionId])->value('parent_id');
+            if ($parentId) {
+                $storeId = $storeModel->getStoreFromRegion($parentId);
+            }
+            if(!$storeId){
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '抱歉，您选择的区域暂无服务商']);
+            }
         }
         $workOrderModel = model('work_order');
         $this->postParams['work_order_type'] = 2;
@@ -484,7 +531,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
         }
     }
-    //申请成为售后工程师
+    //申请成为服务工程师
     protected function applyBeInstaller()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
@@ -564,17 +611,16 @@ class Index extends ApiBase
         }
         $this->_returnMsg(['detail' => $installer]);
     }
-    //售后工程师售后工单列表
+    //服务工程师售后工单列表
     protected function getWorkOrderList()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         $orderType = isset($this->postParams['type']) ? intval($this->postParams['type']): '';
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']): FALSE;
+        $where = ['WO.is_del' => 0];
         if (!$installer) {
-            if (!get_work_order_status($status)) {
-                $status = FALSE;
-            }
+            $where['work_order_status'] = $status;
         }else{
             if (!get_work_order_installer_status($status)) {
                 $status = FALSE;
@@ -583,15 +629,21 @@ class Index extends ApiBase
         if ($orderType && !in_array($orderType, [1, 2])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单类型(work_order_type)错误']);
         }
-        $where = ['WO.is_del' => 0];
         $join = [
             ['goods G', 'G.goods_id = WO.goods_id', 'LEFT'],
-            ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
+//             ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
+            ['user_installer UG', 'UG.installer_id = WO.installer_id', 'LEFT'],
         ];
-        $field = 'WO.installer_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status, WO.add_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field = 'WO.installer_id,  WO.worder_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status';
+        $field.= ', IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
+        $field.= ', IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
+        $field.= ', IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
+        $field.= ', IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
+        $field.= ', IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
         $field .= ', G.name as sku_name';
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
+            $field .= ', UG.realname as installer_name, UG.phone as installer_phone';
         }else{
             if ($status >= -1 || $status === FALSE) {
                 $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
@@ -605,18 +657,18 @@ class Index extends ApiBase
             }
             $join[] = ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'];
             $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
+            if ($status !== FALSE && $status >= -1) {
+                $where['work_order_status'] = $status;
+            }
         }
         if ($orderType) {
             $where['work_order_type'] = $orderType;
-        }
-        if ($status !== FALSE && $status >= -1) {
-            $where['work_order_status'] = $status;
         }
         $order = 'WO.add_time ASC';
         $order = 'wstatus ASC,  WO.work_order_status ASC';
         $field .= ', if(WO.work_order_status > 0, 0, 1) as wstatus';
         
-        $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
+//         $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($list) {
             foreach ($list as $key => $value) {
@@ -624,6 +676,10 @@ class Index extends ApiBase
                 $list[$key]['work_order_type'] = $value['work_order_type'];
                 $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
                 $list[$key]['status_txt'] = get_work_order_installer_status($value['work_order_status']);
+                //判断当前工单是否有首次评价和追加评价
+                $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
+                $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
+                $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0  ? 1 : 0;
             }
         }
         $this->_returnMsg(['list' => $list]);
@@ -638,26 +694,38 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
         $where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
+        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
+        $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $join = [];
         if ($installer) {
-//             $where['WO.installer_id'] = $installer['installer_id'];
             $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+            $join = [
+                ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
+            ];
+            $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         }else{
             $where['WO.post_user_id'] = $user['user_id'];
         }
-        $join = [
-            ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
-        ];
-        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
-        $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
-        $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
         }
+        $detail['add_time'] = time_to_date($detail['add_time']);
+        $detail['dispatch_time'] = time_to_date($detail['dispatch_time']);
+        $detail['cancel_time'] = time_to_date($detail['cancel_time']);
+        $detail['receive_time'] = time_to_date($detail['receive_time']);
+        $detail['sign_time'] = time_to_date($detail['sign_time']);
+        $detail['finish_time'] = time_to_date($detail['finish_time']);
+        
         $detail['images'] = $detail['images']? explode(',', $detail['images']) : [];
         $detail['appointment'] = $detail['appointment'] ? date('Y-m-d H:i', $detail['appointment']) : '';
         $detail['work_order_type_txt'] = get_work_order_type($detail['work_order_type']);
         $detail['status_txt'] = get_work_order_installer_status($detail['work_order_status']);
+        
+        $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $detail['worder_id']])->find();
+        $detail['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
+        $detail['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0  ? 1 : 0;
+        
         if ($return) {
             return $detail;
         }
@@ -669,22 +737,25 @@ class Index extends ApiBase
             $workOrderModel = new \app\common\model\WorkOrder();
             $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
         }
-        //获取工程师工单日志
-        $logs = db('work_order_log')->field('worder_sn, action, msg, add_time')->where(['worder_id' => $detail['worder_id'], 'installer_id' => $user['installer']['installer_id']])->select();
+        $logs = [];
+        if ($user['installer']) {
+            //获取工程师工单日志
+            $logs = db('work_order_log')->field('worder_sn, action, msg, FROM_UNIXTIME(add_time)')->where(['worder_id' => $detail['worder_id'], 'installer_id' => $user['installer']['installer_id']])->select();
+        }
         $logs = $logs ? $logs : [];
         unset($detail['worder_id'], $detail['installer_id'], $detail['osku_id']);
         $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess, 'logs' => $logs]);
     }
-    //售后工程师拒绝接单
+    //服务工程师拒绝接单
     protected function refuseWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         if (!$installer) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
         }
         if (!$installer['status']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if (!$remark) {
@@ -715,16 +786,16 @@ class Index extends ApiBase
         }
         $this->_returnMsg(['reasons' => $reasons]);
     }
-    //售后工程师接单
+    //服务工程师接单
     protected function receiveWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         if (!$installer) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
         }
         if (!$installer['status']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
@@ -735,16 +806,16 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
     }
-    //售后工程师现场签到
+    //服务工程师现场签到
     protected function signWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         if (!$installer) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
         }
         if (!$installer['status']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
@@ -755,16 +826,33 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
     }
-    //工程师取消工单
-    protected function cancelWorkOrder()
+    //工程师完成工单
+    protected function finishWorkOrder()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         $installer = $user['installer'];
         if (!$installer) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
         }
         if ($installer && !$installer['status']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
+        }
+        $detail = $this->getWorkOrderDetail(TRUE);
+        $worderModel = new \app\common\model\WorkOrder();
+        $result = $worderModel->worderFinish($detail, $user);
+        if ($result !== FALSE) {
+            $this->_returnMsg(['msg' => '服务完成,等待评价']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
+        }
+    }
+    //客户取消工单
+    protected function cancelWorkOrder()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if ($installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师不允许取消工单']);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if (!$remark) {
@@ -775,26 +863,6 @@ class Index extends ApiBase
         $result = $worderModel->worderCancel($detail, $user, $remark);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '工单取消成功']);
-        }else{
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
-        }
-    }
-    //工程师完成工单
-    protected function finishWorkOrder()
-    {
-        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
-        $installer = $user['installer'];
-        if (!$installer) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是售后工程师']);
-        }
-        if ($installer && !$installer['status']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工程师已禁用,请联系服务商']);
-        }
-        $detail = $this->getWorkOrderDetail(TRUE);
-        $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->worderFinish($detail, $user);
-        if ($result !== FALSE) {
-            $this->_returnMsg(['msg' => '服务完成,等待评价']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -955,15 +1023,18 @@ class Index extends ApiBase
         if (!$openid) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
         }
-        $field = $field ? $field : 'UD.*, U.user_id, U.phone, U.status';
+        $field = $field ? $field.', UD.user_type' : 'UD.*, U.user_id, U.phone, U.status';
         $where = [
             'openid' => $openid, 
             'UD.factory_id' => $this->factory['store_id'],
         ];
         $user = db('user_data')->alias('UD')->join('user U', 'UD.user_id = U.user_id AND U.is_del = 0', 'LEFT')->field($field)->where($where)->find();
         if (!$user['user_id']) {
+            if (!isset($user['user_type']) || !$user['user_type']) {
+                $this->_returnMsg(['errCode' => 1, 'msg' => '用户不存在']);
+            }
             if ($verify) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在/未绑定手机号']);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '未绑定手机号']);
             }
             $user['openid'] = $openid;
         }else{
@@ -971,7 +1042,7 @@ class Index extends ApiBase
             if (isset($user['status']) && !$user['status']) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已禁用不允许登录']);
             }
-            if (isset($user['user_id']) && $installFlag) {
+            if (isset($user['user_id']) && $installFlag && $user['user_type'] == 'installer') {
                 $installer = $this->_checkInstaller($user['user_id']);
             }
             $user['installer'] = $installer;
@@ -1083,8 +1154,12 @@ class Index extends ApiBase
      * 处理接口返回信息
      */
     protected function _returnMsg($data, $echo = TRUE){
+        $data['sing_data'] = $this->signData;
         $result = parent::_returnMsg($data);
         $responseTime = $this->_getMillisecond() - $this->visitMicroTime;//响应时间(毫秒)
+        if (strlen($this->postParams['timestamp']) == 13) {
+//             $this->postParams['timestamp'] = substr($this->postParams['timestamp'], 0, 10);
+        }
         $addData = [
             'request_time'  => $this->requestTime,
             'request_source'=> $this->fromSource ? $this->fromSource : '',
@@ -1128,6 +1203,7 @@ class Index extends ApiBase
         }
         //去掉最后一个&字符
         $prestr = substr($prestr,0,count($prestr)-2);
+        $this->signData = $prestr;
         
         //字符串末端补充signkey签名密钥
         $prestr = $prestr . $signkey;
@@ -1165,9 +1241,9 @@ class Index extends ApiBase
             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误'));
         }
         if (strlen($timestamp) == 13) {
-            $this->postParams['timestamp'] = substr($timestamp, 0, 10);
+//             $this->postParams['timestamp'] = $timestamp = substr($timestamp, 0, 10);
         }
-        if($timestamp + 180 < time()) {//时间戳已过期(60秒内过期)
+        if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
         }
         if(!$this->signKey) {

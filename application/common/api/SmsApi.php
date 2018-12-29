@@ -30,8 +30,10 @@ class SmsApi
             'PhoneNumbers'  => trim($phone),
             'SignName'      => trim($this->config['sign_name']),
             'TemplateCode'  => trim($templateCode),
-            'TemplateParam' => $param,
         ];
+        if ($param) {
+            $params['TemplateParam'] = $param;
+        }
         if(!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
             $params["TemplateParam"] = json_encode($params["TemplateParam"], JSON_UNESCAPED_UNICODE);
         }

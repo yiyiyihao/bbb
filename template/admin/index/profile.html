@@ -1,198 +1,21 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
     <div class="tab admin-tab">
-        <div class="panel fixed-pannel admin-box active">
-        	<div class="panel-head">
+        <div class="panel admin-box active">
+            <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li {if ($info['check_status'] != 1)}class="active"{/if}><a class="tab-1" href="#tab-1">商户资料</a></li>
-                        <li {if ($info['check_status'] == 1)}class="active"{/if}><a class="tab-2" href="#tab-2">基本资料</a></li>
+                        <li class="active"><a href="#tab-1">修改资料</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
-				<div class="tab-panel {if ($info['check_status'] != 1)}active{/if}" id="tab-1">
-					{if ($info['check_status'] != 1)}
-					<div class="form-group">
-                        <div class="label">
-                            <label>审核状态</label>
-                        </div>
-                        <div class="field">
-                            <span class="field-text">{$info['check_status'] == 2 ?'已拒绝' : '待审核'}</span>
-                        </div>
-                    </div>
-                    {if ($info['check_status'] == 2)}
-                    <div class="form-group">
-                        <div class="label">
-                            <label>拒绝理由</label>
-                        </div>
-                        <div class="field">
-                            <span class="field-text">{$info['admin_remark'] ?? ''}</span>
-                        </div>
-                    </div>
-                    {/if}
-                    {/if}
-                    <div class="form-group">
-                        <div class="label">
-                            <label><span id="merchant_type">{$name}</span>名称</label>
-                        </div>
-                        <div class="field">
-                            {if ($info['check_status'] != 1)}
-                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
-                            {else/}
-                            <span class="field-text">{$info['name'] ?? ''}</span>
-                            {/if}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>联系人姓名</label>
-                        </div>
-                        <div class="field">
-                        	{if ($info['check_status'] != 1)}
-                            <input type="text" class="input" id="user_name" name="user_name" size="40" datatype="*" value="{$info['user_name'] ?? ''}">
-                            {else/}
-                            <span class="field-text">{$info['user_name'] ?? ''}</span>
-                            {/if}
-                        </div>
-                    </div>
-                    {if ($info['store_type'] == $Think.const.STORE_DEALER)}
-                    <div class="form-group">
-                        <div class="label">
-                            <label>所属渠道商</label>
-                        </div>
-                        <div class="field">
-                        	<span class="field-text">{$info['channel_name'] ?? ''}</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>已采购样品金额</label>
-                        </div>
-                        <div class="field">
-                            {if ($info['check_status'] != 1)}
-                            <input type="text" class="input" name="sample_amount" size="40" value="{$info['sample_amount'] ?? ''}">元
-                            {else/}
-                            <span class="field-text">{$info['sample_amount'] ?? ''}</span>元
-                            {/if}
-                        </div>
-                    </div>
-                    {else/}
-                    <div class="form-group">
-                        <div class="label">
-                            <label>已缴纳保证金金额</label>
-                        </div>
-                        <div class="field">
-                            {if ($info['check_status'] != 1)}
-                            <input type="text" class="input" name="security_money" size="40" value="{$info['security_money'] ?? ''}">
-                            {else/}
-                            <span class="field-text">{$info['security_money'] ?? ''}</span>元
-                            {/if}
-                        </div>
-                    </div>
-                    {/if}
-                    <div class="form-group">
-						<div class="label">
-							<label>公司法人身份证照片</label>
-						</div>
-						<div class="field">
-							<div style="display: inline-block;">
-				                <div class="idcard_font_img_preview" style="margin-bottom:10px;"><img src="{$info['idcard_font_img'] ?? '/static/base/images/default.png'}" id="idcard_font_img_preview" width="120"></div>
-				                {if ($info['check_status'] != 1)}
-				                <input type="hidden" class="input" id="idcard_font_img" name="idcard_font_img" size="38" value="{$info['idcard_font_img'] ?? ''}">
-				                <a class="button bg-main button-small js-img-upload" data="idcard_font_img" preview="idcard_font_img_preview" href="javascript:;" >
-				                	<span class="icon-upload"> 上传正面</span>
-				                </a>
-				                {/if}
-							</div>
-			                <div style="display: inline-block;" class="margin-left">
-				                <div class="idcard_back_img_preview" style="margin-bottom:10px;"><img src="{$info['idcard_back_img'] ?? '/static/base/images/default.png'}" id="idcard_back_img_preview" width="120"></div>
-				                {if ($info['check_status'] != 1)}
-				                <input type="hidden" class="input" id="idcard_back_img" name="idcard_back_img" size="38" value="{$info['idcard_back_img'] ?? ''}">
-				                <a class="button bg-main button-small js-img-upload" data="idcard_back_img" preview="idcard_back_img_preview" href="javascript:;" >
-				                	<span class="icon-upload"> 上传背面</span>
-				                </a>
-				                {/if}
-			                </div>
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="label">
-							<label>签约合同 (带有双方公司名称)</label>
-						</div>
-						<div class="field">
-			                <div class="signing_contract_img_preview" style="margin-bottom:10px;"><img src="{$info['signing_contract_img'] ?? '/static/base/images/default.png'}" id="signing_contract_img_preview" width="120"></div>
-			                {if ($info['check_status'] != 1)}
-			                <input type="hidden" class="input" id="signing_contract_img" name="signing_contract_img" size="38" value="{$info['signing_contract_img'] ?? ''}">
-			                <a class="button bg-main button-small js-img-upload" data="signing_contract_img" preview="signing_contract_img_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传签约合同</span>
-			                </a>
-			                {/if}
-						</div>
-					</div>
-					{if ($info['store_type'] != $Think.const.STORE_DEALER)}
-					<div class="form-group">
-						<div class="label">
-							<label>公司营业执照</label>
-						</div>
-						<div class="field">
-			                <div class="license_img_preview" style="margin-bottom:10px;"><img src="{$info['license_img'] ?? '/static/base/images/default.png'}" id="license_img_preview" width="120"></div>
-			                {if ($info['check_status'] != 1)}
-			                <input type="hidden" class="input" id="license_img" name="license_img" size="38" value="{$info['license_img'] ?? ''}">
-			                <a class="button bg-main button-small js-img-upload" data="license_img" preview="license_img_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传公司营业执照</span>
-			                </a>
-			                {/if}
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="label">
-							<label>签约合影照片</label>
-						</div>
-						<div class="field">
-			                <div class="group_photo_preview" style="margin-bottom:10px;"><img src="{$info['group_photo'] ?? '/static/base/images/default.png'}" id="group_photo_preview" width="120"></div>
-			                {if ($info['check_status'] != 1)}
-			                <input type="hidden" class="input" id="group_photo" name="group_photo" size="38" value="{$info['group_photo'] ?? ''}">
-			                <a class="button bg-main button-small js-img-upload" data="group_photo" preview="group_photo_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传签约合影</span>
-			                </a>
-			                {/if}
-						</div>
-					</div>
-					<div class="form-group">
-                        <div class="label">
-                            <label>负责区域</label>
-                        </div>
-                        <div class="field">
-                        	{if ($info['check_status'] != 1)}
-                        	<div class="js-select-child" formlength="2" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='请选择负责区域'></div>
-                            {else/}
-                            <span class="field-text">{$info.region_name|default=""}</span>
-                            {/if}
-                        </div>
-                    </div>
-					{else/}
-					<div class="form-group">
-                        <div class="label">
-                            <label>详细地址</label>
-                        </div>
-                        <div class="field">
-                        	{if ($info['check_status'] != 1)}
-                            <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" notmsg='请选择行政区域'></div>
-                        	<input type="text" class="input  mt5" name="address" size="60" value="{$info['address'] ?? ''}">
-                            {else/}
-                            <span class="field-text">{$info.region_name|default=""} {$info['address'] ?? ''}</span>
-                            {/if}
-                        </div>
-                    </div>
-                    {/if}
-				</div>
-            	<div class="tab-panel {if ($info['check_status'] == 1)}active{/if}" id="tab-2">
+                <div class="tab-panel active" id="tab-1">
                     <div class="form-group">
                         <div class="label">
                             <label>登录账号</label>
                         </div>
                         <div class="field">
-                        	<span class="field-text">{$user.username|default=''}</span>
+                        	<span class="field-text">{$adminUser.username|default=''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -208,25 +31,15 @@
                             <label>管理员角色</label>
                         </div>
                         <div class="field">
-                        	<span class="field-text">{$user['group']['name'] ?? '管理员'}</span>
+                        	<span class="field-text">{$info['group']['name'] ?? '管理员'}</span>
                         </div>
                     </div>
-                    {if ($info['check_status'] == 1)}
-                    <div class="form-group">
-                        <div class="label">
-                            <label>{:get_admin_type($adminUser['admin_type'])}编号</label>
-                        </div>
-                        <div class="field">
-                        	<span class="field-text">{$adminStore['store_no'] ?? '-'}</span>
-                        </div>
-                    </div>
-                    {/if}
                     <div class="form-group">
                         <div class="label">
                             <label>显示昵称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="nickname" name="nickname" size="40" value="{$user['nickname'] ?? ''}">
+                            <input type="text" class="input" id="nickname" name="nickname" size="40" value="{$info['nickname'] ?? ''}">
                             <div class="input-note">请填写账号昵称(别名)</div>
                         </div>
                     </div>
@@ -235,7 +48,7 @@
                             <label>真实姓名</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="realname" name="realname" size="40" value="{$user['realname'] ?? ''}">
+                            <input type="text" class="input" id="realname" name="realname" size="40" value="{$info['realname'] ?? ''}">
                             <div class="input-note">请填写负责人真实姓名</div>
                         </div>
                     </div>
@@ -244,15 +57,11 @@
                             <label>联系电话</label>
                         </div>
                         <div class="field">
-                        	{if ($user['phone'])}
-                        	<span class="field-text">{$user.phone|default=''}</span>
-                        	{else/}
-                            <input type="text" class="input" id="phone" name="phone" size="40" value="{$user['phone'] ?? ''}">
+                            <input type="text" class="input" id="phone" name="phone" size="40" value="{$info['phone'] ?? ''}">
                             <div class="input-note">请填写负责人联系电话</div>
-                            {/if}
                         </div>
                     </div>
-				</div>
+                </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
@@ -265,131 +74,9 @@
     </div>
 </form>
 <script>
-	var store_name = '零售商';
-	var step = 1;
-	var type = 3;
-	$('#prev').click(function(){
-		skip(0);
-	});
-	$('#next, #post').click(function(){
-		switch(step){
-			case 1:
-				var stype = $('input[name="type"]:checked').val();
-				if(!stype){
-					layer.msg('请选择入驻商户类型');
-					return false;
-				}
-				skip(1);
-				return false;
-			break;
-			case 2:
-				var name 		= $("#name").val().trim();
-				var user_name 	= $("#user_name").val().trim();
-				var channel_no 	= $("#channel_no").val().trim();
-				var region_id 	= $("#region_id").val().trim();
-				var region_name = $("#region_name").val().trim();
-				if(!name){
-					layer.msg(store_name+'名称不能为空');
-					return false;
-				}
-				if(!user_name){
-					layer.msg('联系人姓名不能为空');
-					return false;
-				}
-				if(type == 3 && !channel_no){
-					layer.msg('渠道商编号不能为空');
-					return false;
-				}
-				if(type != 3 && (!region_id || region_name)){
-					layer.msg('请选择负责区域');
-					return false;
-				}
-				if(type == 3){
-					var url = window.location.href + '?step=' + step;
-					$.post(url, {type:type, channel_no: channel_no, name:name}, function(data){
-						console.log(data);
-						if(data.code == 0){
-							layer.msg(data.msg);
-						}else{
-							skip(1);
-						}
-					});
-					return false;
-				}else{
-					skip(1);
-					return false;
-				}
-			break;
-			case 3:
-				var phone 		= $("#phone").val().trim();
-				var code 		= $("#code").val().trim();
-				var password 	= $("#password").val().trim();
-				var repassword 	= $("#repassword").val().trim();
-				var allow		= $("#allow").is(':checked');
-				if(!phone){
-					layer.msg('手机号不能为空');
-					return false;
-				}
-				if(!code){
-					layer.msg('验证码不能为空');
-					return false;
-				}
-				if(!password){
-					layer.msg('密码不能为空');
-					return false;
-				}
-				if(password != repassword){
-					layer.msg('两次密码输入不一致');
-					return false;
-				}
-				if(!allow){
-					layer.msg('请同意用户协议');
-					return false;
-				}
-				step ++;
-				$('#form').submit();
-			break;
-		}
-	});
-    $("input[name='type']").change(function(){
-    	type = $(this).val().trim();
-    	store_name = $(this).next('span').html();
-    	if(type != 3){
-    		$('.').hide();
-    		$('.hide').show();
-    	}else{
-    		$('.').show();
-    		$('.hide').hide();
-    	}
-    	$('#merchant_type').html(store_name);
-    });
-    function skip(flag = 0)
-	{
-		step = flag > 0 ? step+1 : step-1;
-		if(step <= 0){
-			step = 1;
-		}else if(step > 3){
-			step = 3;
-		}
-		if(step > 1){
-			$('#prev').show();
-		}else{
-			$('#prev').hide();
-		}
-		if(step == 3){
-			$('#next').hide();
-			$("#post").show();
-		}else{
-			$('#next').show();
-			$("#post").hide();
-		}
-		$('.tab-'+step).click();
-		$('input[name="step"]').val(step);
-	}
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage({
-        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'store_profile_', 'thumb_type' => 'profile_thumb_500'])}",
-        });
+        $('#form').FormPage();
+		
     }); 
 </script>

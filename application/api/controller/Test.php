@@ -71,6 +71,7 @@ class Test extends Base
             $params = array_merge($params, $request);
         }
         $params['timestamp'] = time();
+        $params['timestamp'] = time().'000';
         if ($params['method'] == 'postWorkOrder') {
             $params['images'] = 'http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png;http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png';
 //             $params['images'] = ['http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png', 'http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png'];
@@ -86,7 +87,6 @@ class Test extends Base
                 ],
             ]);
         }
-        
 //         $params ['sign'] = $this->generateSign($params, $params['signkey']);
         echo '<pre>';
         print_r($params);
@@ -177,6 +177,7 @@ class Test extends Base
         
         //字符串末端补充signkey签名密钥
         $prestr = $prestr . $signkey;
+        var_dump($prestr);
         //生成MD5为最终的数据签名
         $mySgin = md5($prestr);
         return $mySgin;

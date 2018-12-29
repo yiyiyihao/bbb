@@ -175,6 +175,9 @@ class WorkOrder extends Model
                     $this->_worderInstallerLog($worder, $worder['installer_id'], 'dispatch_other', 2);
                 }
             }
+            //分派工程师后通知工程师
+            $informModel = new \app\common\model\LogInform();
+            $result = $informModel->sendInform($user['factory_id'], 'sms', $installer, 'worder_dispatch_installer');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -465,7 +468,7 @@ class WorkOrder extends Model
         }
         $type = $worder['work_order_type'];
         //只有厂商和服务商有维修工单的取消权限
-        if ($type == 2 && $user['admin_type'] >0 && !in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+        if ($type == 2 && isset($user['admin_type']) && $user['admin_type']>0 && !in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->error = '无操作权限';
             return FALSE;
         }
@@ -488,6 +491,37 @@ class WorkOrder extends Model
         if ($result !== FALSE) {
             //操作日志记录
             $this->worderLog($worder, $user, 0, '取消工单', $remark);
+        }else{
+            $this->error = '系统异常';
+            return FALSE;
+        }
+    }
+    public function worderDrop($worder = [], $user = [], $remark = '')
+    {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return FALSE;
+        }
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($worder['work_order_status']) {
+            case 0:
+                $this->error = '工单待分派,不允许删除';
+                return FALSE;
+            case 1:
+                $this->error = '工单待接单,不允许删除';
+                return FALSE;
+            case 2:
+                $this->error = '工单待上门,不允许删除';
+                return FALSE;
+            case 3:
+                $this->error = '工程师服务中,不允许删除';
+                return FALSE;
+            default:
+                break;
+        }
+        $result = '';
+        if ($result !== FALSE) {
+            //操作日志记录
         }else{
             $this->error = '系统异常';
             return FALSE;

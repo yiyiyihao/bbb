@@ -1,0 +1,117 @@
+<div class="form-group">
+    <div class="label">
+        <label>操作商户名称</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['name'] ?? ''}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>操作类型</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:get_action_type($info['action_type'])}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>被操作商户名称</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['to_store_name'] ?? ''}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>审核状态</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:get_check_status($info['check_status'])}</span>
+    </div>
+</div>
+{if ($info['check_time'])}
+<div class="form-group">
+    <div class="label">
+        <label>审核时间</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:time_to_date($info['check_time'])}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>审核备注</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['remark'] ?? ''}</span>
+    </div>
+</div>
+{/if}
+<div class="panel-head">
+    <div class="tab-head">
+        <strong>{:get_action_type($info['action_type'])}内容信息</strong>
+    </div>
+</div>
+{notempty name="_fields"}
+{if ($before && $info['action_type'] == 'edit')}
+<div class="panel-head">
+    <div class="tab-head">
+        <strong>编辑前</strong>
+    </div>
+</div>
+{volist name="_fields" id="field"}
+	{if (isset($before[$key]) && isset($after[$key]) && $before && $info['action_type'] == 'edit')}
+	<div class="form-group">
+        <div class="label">
+            <label>{$field.name}</label>
+        </div>
+        <div class="field">
+		    <span class="field-text">
+		    	{switch field.type}
+				{case text}{$before[$key] ?? ''}{/case}
+		       	{case function}{php}echo call_user_func($field['function'],$before[$key]);{/php}{/case}
+		       	{case yesOrNo}{$before[$key]?'<span class="tag bg-green">'.$field['yes'].'</span>':'<span class="tag bg-gray">'.$field['no'].'</span>'}{/case}
+		       	{case icon}<span class="icon-{$before[$key]}"></span>{/case}
+		       	{case image}
+		       		{if ($before[$key])}
+		       		<img src="{$before[$key]|default='/static/base/images/default.png'}" width="{$td['width'] ?? 50}">
+		       		{/if}
+		       	{/case}
+		      	{/switch}
+		    </span>
+		</div>
+	</div>
+	{/if}
+{/volist}
+<div class="panel-head">
+    <div class="tab-head">
+        <strong>编辑后</strong>
+    </div>
+</div>
+{/if}
+{volist name="_fields" id="field"}
+   	{if (isset($after[$key]))}
+	<div class="form-group">
+        <div class="label">
+            <label>{$field.name}</label>
+        </div>
+        <div class="field">
+		    <span class="field-text">
+		    	{switch field.type}
+				{case text}{$after[$key] ?? ''}{/case}
+		       	{case function}{php}echo call_user_func($field['function'],$after[$key]);{/php}{/case}
+		       	{case yesOrNo}{$after[$key]?'<span class="tag bg-green">'.$field['yes'].'</span>':'<span class="tag bg-gray">'.$field['no'].'</span>'}{/case}
+		       	{case icon}<span class="icon-{$after[$key]}"></span>{/case}
+		       	{case image}
+		       		{if ($after[$key])}
+		       		<img src="{$after[$key]|default='/static/base/images/default.png'}" width="{$td['width'] ?? 50}">
+		       		{/if}
+		       	{/case}
+		      	{/switch}
+		    </span>
+		</div>
+	</div>
+    {/if}
+{/volist}
+{/notempty}

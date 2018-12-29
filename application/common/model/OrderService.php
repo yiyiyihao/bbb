@@ -308,7 +308,6 @@ class OrderService extends Model
             return FALSE;
         }
         $apiType = $config['api_type'];
-        $config = $config['config_json'] ? json_decode($config['config_json'], 1) : [];
         $storeId = $order['store_id'];
         switch ($apiType) {
             case 'alipay':
@@ -318,6 +317,7 @@ class OrderService extends Model
                     $this->error = $alipayApi->error;
                     return FALSE;
                 }
+                $remark = '支付宝原路退款';
             break;
             case 'wechat':
                 $wechatApi = new \app\common\api\WechatPayApi($storeId, $payCode);
@@ -326,6 +326,7 @@ class OrderService extends Model
                     $this->error = $wechatApi->error;
                     return FALSE;
                 }
+                $remark = '微信原路退款';
             break;
             default:
                 $this->error = lang('接口未开通');
@@ -393,7 +394,7 @@ class OrderService extends Model
         if ($refundCount >= $totalCount) {
             //3为订单关闭状态
             $result = $orderModel->save(['order_status' => 3, 'close_refund_status' => 2], ['order_id' => $service['order_id']]);
-            $orderModel->orderLog($order, $user, '订单关闭', '订单产品全部退款，系统自动关闭订单');
+            $orderModel->orderLog($order, [], '订单关闭', '订单产品全部退款，系统自动关闭订单');
         }else{
             //判断订单是否需要关闭退货退款
             $orderModel->orderCloseRefund($order);

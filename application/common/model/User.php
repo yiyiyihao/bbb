@@ -15,6 +15,8 @@ class User extends Model
     }
     public function authorized($factoryId, $params = [])
     {
+        $userType       = isset($params['user_type']) ? trim($params['user_type']) : '';
+        $appid          = isset($params['appid']) ? trim($params['appid']) : '';
         $thirdType      = isset($params['third_type']) ? trim($params['third_type']) : '';
         $thirdOpenid    = isset($params['third_openid']) ? trim($params['third_openid']) : '';
         $nickname       = isset($params['nickname']) ? trim($params['nickname']) : '';
@@ -23,6 +25,14 @@ class User extends Model
         $unionid        = isset($params['unionid']) ? trim($params['unionid']) : '';
         if (!$factoryId){
             $this->error = '厂商ID不能为空';
+            return FALSE;
+        }
+        if (!$userType){
+            $this->error = '用户类型不能为空';
+            return FALSE;
+        }
+        if (!$appid){
+            $this->error = '应用appid不能为空';
             return FALSE;
         }
         if (!$thirdType){
@@ -62,6 +72,8 @@ class User extends Model
             $params['factory_id']   = $factoryId;
             $params['user_id']      = $userId;
             $params['openid']       = $openid;
+            $params['user_type']    = $userType;
+            $params['appid']        = $appid;
             $udataId = $userDataModel->save($params);
         }else{
             $openid = $exist['openid'];
@@ -184,7 +196,7 @@ class User extends Model
             //重新取得用户信息
             $user = $this->checkUser($userId, TRUE);
         }
-        if ($user['admin_type'] <= 0) {
+        if ($user['admin_type'] <= 0 && $user['is_admin'] <= 0) {
             $this->error = lang('PERMISSION_DENIED');
             return FALSE;
         }
@@ -200,25 +212,32 @@ class User extends Model
             #TODO 获取系统设置权限
             $groupPurview = [];
         }
+        $adminStore = [];
         $storeType = 0;
         if ($user['admin_type'] != ADMIN_SYSTEM) {
-            if ($user['store_id'] <= 0) {
+            if ($user['is_admin'] <= 0) {
+                $this->error = lang('PERMISSION_DENIED');
+                return FALSE;
+            }
+            if ($user['store_id'] < 0) {
                 $this->error = lang('PERMISSION_DENIED');
                 return FALSE;
             }
             if (isset($user['store'])&& $user['store']) {
                 $adminStore = $user['store'];
-            }else{
+            }elseif ($user['store_id'] > 0){
                 $adminStore = db('store')->field('store_id, name, factory_id, store_type, store_no, check_status, status')->where(['store_id' => $user['store_id'], 'is_del' => 0])->find();
             }
-            $storeType = $adminStore['store_type'];
-            session('admin_store',$adminStore);
+            if ($adminStore) {
+                $storeType = $adminStore['store_type'];
+                session('admin_store',$adminStore);
+            }
         }
         //设置session
 		$adminUser = [
 		    'user_id'         => $user['user_id'],
 		    'admin_type'      => $user['admin_type'],
-		    'factory_id'      => $user['admin_type'] == 2 ? $user['store_id'] : (isset($adminStore) && $adminStore ? $adminStore['factory_id'] : 0),
+		    'factory_id'      => $user['factory_id'],
 		    'store_id'        => $user['store_id'],
 		    'store_type'      => $storeType,
 		    'group_id'        => $user['group_id'],

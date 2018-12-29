@@ -10,7 +10,8 @@ class Store extends FormBase
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
-        $this->model = $this->model ? $this->model : model($this->modelName);
+//         $this->model = $this->model ? $this->model : model($this->modelName);
+        $this->model = new \app\common\model\Store();
         parent::__construct();
         $this->_init();
         if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
@@ -24,15 +25,6 @@ class Store extends FormBase
                 }
             }
         }
-        $this->subMenu['showmenu'] = true;
-        $this->subMenu['menu'][] = [
-            'name' => '待审核申请',
-            'url' => url('index', ['status' => 0]),
-        ];
-        $this->subMenu['menu'][] = [
-            'name' => '已拒绝申请',
-            'url' => url('index', ['status' => 2]),
-        ];
         if (!$this->adminUser['store_id']){
             $this->_getFactorys();
         }
@@ -46,7 +38,7 @@ class Store extends FormBase
         }
         //判断当前厂商是否设置过管理员
         $userModel = new \app\common\model\User();
-        $info = $userModel->where(['admin_type' => $this->adminType, 'store_id' => $store['store_id'], 'is_del' => 0])->find();
+        $info = $userModel->where(['admin_type' => $this->adminType, 'is_admin' => 1, 'store_id' => $store['store_id'], 'is_del' => 0])->find();
         if ($info) {
             $name = '编辑'.lang($this->modelName).'管理员';
             $where = ['user_id' => $info['user_id']];
@@ -85,6 +77,8 @@ class Store extends FormBase
                 $params['admin_type'] = $this->adminType;
                 $params['store_id'] = $store['store_id'];
                 $params['group_id'] = $this->groupId;
+                $params['is_admin'] = 1;
+                $params['factory_id'] = $this->adminFactory['store_id'];
             }
             $result = $userModel->save($params, $where);
             if ($result) {
@@ -102,17 +96,23 @@ class Store extends FormBase
     public function resetpwd()
     {
         $params = $this->request->param();
-        $user = db('user')->where(['user_id' => $params['id']])->find();
-        if (!$user) {
-            $this->error('管理员不存在');
-        }
-        $info = $this->_assignInfo($user['store_id']);
+//         $user = db('user')->where(['user_id' => $params['id']])->find();
+//         if (!$user) {
+//             $this->error('管理员不存在');
+//         }
+        $info = $this->model->getStoreDetail($params['id']);
         if ($info['check_status'] != 1) {
             $this->error('商户审核未通过');
         }
-        $params = $this->request->param();
+        $manager = $info['manager'];
+        if (!$manager) {
+            $this->error('未添加管理员');
+        }
+        if (!$manager['phone']) {
+            $this->error('管理员未填写手机号');
+        }
         $userController = new \app\common\controller\User();
-        return $userController->resetpwd();
+        return $userController->resetpwd($manager['user_id']);
     }
     /**
      * 商户详情
@@ -121,125 +121,103 @@ class Store extends FormBase
     {
         $info = $this->_assignInfo();
         $this->assign('info', $info);
-        return $this->fetch('store/detail');
+        return $this->fetch('admin@store/detail');
     }
-    /**
-     * 商户审核
-     * @return mixed|string
-     */
-    public function check()
+    public function add()
     {
-        $info = $this->_assignInfo();
-        //只有厂商才有权限
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $this->error('无操作权限');
-        }
-        $checkStatus = $info['check_status'];
-        //已拒绝不允许审核
-        if (in_array($checkStatus, [1, 2])) {
-            $this->error('操作已审核');
-        }
-        if ($info['factory_id'] != $this->adminUser['factory_id']) {
-            $this->error('无操作权限');
-        }
-        $params = $this->request->param();
-        if (IS_POST) {
-            $remark = isset($params['remark']) ? trim($params['remark']) : '';
-            $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
-            if (!$checkStatus && !$remark) {
-                $this->error('请填写拒绝理由');
-            }
-            $status = $checkStatus > 0 ? 1: 2;
-            $data = [
-                'check_status' => $status,
-                'admin_remark' => $remark,
-            ];
-            $result = $this->model->save($data, ['store_id' => $info['store_id']]);
-            if ($result !== FALSE) {
-                $this->success('操作成功', url('index', ['status' => $status]));
-            }else{
-                $this->error('操作失败');
-            }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            return parent::add();
         }else{
-            $this->assign('info', $info);
-            return $this->fetch('store/check');
+            $params = $this->request->param();
+            if (IS_POST) {
+                $data = $this->_getData();
+                $data = [
+                    'action_store_id'   => $this->adminUser['store_id'],
+                    'action_user_id'    => ADMIN_ID,
+                    'to_store_id'       => 0,
+                    'to_store_name'     => isset($data['name']) ? trim($data['name']) : '',
+                    'action_type'       => 'add',
+                    'before'            => '',
+                    'after'             => $data ? json_encode($data): '',
+                    'modify'            => $data ? json_encode($data): '',
+                    'check_status'      => 0,
+                    'add_time'          => time(),
+                    'update_time'       => time(),
+                ];
+                $result = db('store_action_record')->insertGetId($data);
+                if ($result === FALSE) {
+                    $this->error('系统错误');
+                }else{
+                    $this->success('新增商户操作提交，等待厂商审核', url('store/index', ['status' => 0]));
+                }
+            }else{
+                return parent::add();
+            }
         }
     }
+    public function edit()
+    {
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            return parent::edit();
+        }else{
+            $params = $this->request->param();
+            if (IS_POST) {
+                $info = $this->_assignInfo();
+                $data = $this->_getData();
+                if (!isset($info['ostore_id']) || $info['ostore_id'] != $this->adminUser['store_id']) {
+                    $this->error(lang('NO ACCESS'));
+                }
+                $temp = [];
+                foreach ($info as $key => $value) {
+                    if (isset($data[$key]) && $data[$key] != $value && $key != 'update_time') {
+                        $temp[$key] = $data[$key];
+                    }
+                }
+                if ($temp) {
+                    $data = [
+                        'action_store_id'=> $this->adminUser['store_id'],
+                        'action_user_id'=> ADMIN_ID,
+                        'to_store_id'   => $info['store_id'],
+                        'to_store_name' => isset($info['name']) ? trim($info['name']) : '',
+                        'action_type'   => 'edit',
+                        'before'         => $info ? json_encode($info): '',
+                        'after'         => $data ? json_encode($data): '',
+                        'modify'        => $temp ? json_encode($temp): '',
+                        'check_status'  => 0,
+                        'add_time'      => time(),
+                        'update_time'    => time(),
+                    ];
+                    $result = db('store_action_record')->insertGetId($data);
+                    if ($result === FALSE) {
+                        $this->error('系统错误');
+                    }else{
+                        $this->success('编辑商户操作提交，等待厂商审核', url('store/index', ['status' => 0]));
+                    }
+                }else{
+                    $this->error('未修改商户信息');
+                }
+            }else{
+                return parent::edit();
+            }
+        }
+    }
+    
     /**
      * 删除
      */
-    function del(){
-        $info = $this->_assignInfo();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY, ADMIN_CHANNEL])) {
-            $this->error(lang('NO_OPERATE_PERMISSION'));
+    public function del(){
+        $params = $this->request->param();
+        $storeId = isset($params['id']) ? intval($params['id']): 0;
+        $result = $this->model->del($storeId, $this->adminUser);
+        if ($result === FALSE) {
+            $this->error($this->model->error);
+        }else{
+            if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+                $this->success('删除商户操作提交，等待厂商审核');
+            }else{
+                $this->success('删除成功');
+            }
         }
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
-            $this->error(lang('NO_OPERATE_PERMISSION'));
-        }
-        //判断商户类型
-        $storeType = $info['store_type'];
-        switch ($storeType) {
-            case STORE_FACTORY:
-                //判断厂商下是否存在其它商户
-                $exist = $this->model->where(['factory_id' => $info['store_id'], 'is_del' => 0])->find();
-                $msg = '厂商下存在其它商户数据，不允许删除';
-                if (!$exist) {
-                    //判断厂商是否有订单数据
-                    $exist = db('order')->where(['store_id' => $info['store_id']])->find();
-                    $msg = '厂商下有订单数据,不允许删除';
-                    if (!$exist) {
-                        //判断厂商下是否有安装工程师数据
-                        $exist = db('user_installer')->where(['factory_id' => $info['store_id']])->find();
-                        $msg = '厂商下存在安装工程师,不允许删除';
-                        if (!$exist) {
-                            //判断服务商是否有工单数据
-                            $exist = db('work_order')->where(['factory_id' => $info['store_id']])->find();
-                            $msg = '厂商下存在工单数据,不允许删除';
-                        }
-                    }
-                }
-                break;
-            case STORE_CHANNEL:
-                //判断渠道商下级是否存在经销商
-                $exist = $this->model->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SD.ostore_id' => $info['store_id']])->find();
-                $msg = '渠道商下存在零售商，不允许删除';
-                if (!$exist) {
-                    //判断渠道商是否有订单数据
-                    $exist = db('order')->where(['user_store_id' => $info['store_id']])->find();
-                    $msg = '渠道商下有订单数据,不允许删除';
-                }
-                break;
-            case STORE_DEALER:
-                //判断零售商是否有订单数据
-                $exist = db('order')->where(['user_store_id' => $info['store_id']])->find();
-                $msg = '零售商有订单数据,不允许删除';
-                break;
-            case STORE_SERVICE:
-                //判断服务商是否有安装工程师数据
-                $exist = db('user_installer')->where(['store_id' => $info['store_id']])->find();
-                $msg = '服务商下存在安装工程师,不允许删除';
-                if (!$exist) {
-                    //判断服务商是否有工单数据
-                    $exist = db('work_order')->where(['store_id' => $info['store_id']])->find();
-                    $msg = '服务商有工单数据,不允许删除';
-                }
-                break;
-            default:
-                $this->error(lang('ERROR'));
-            break;
-        }
-        if ($exist) {
-            $this->error($msg);
-        }
-        parent::del();
-    }
-    function _afterDel($info = [])
-    {
-        if ($info) {
-            //删除关联用户
-            $user = db('user')->where(['store_id' => $info['store_id'], 'is_del' => 0])->update(['update_time' => time(), 'is_del' => 1]);
-        }
-        return TRUE;
     }
     function _assignInfo($pkId = 0){
         $info = parent::_assignInfo();
@@ -266,7 +244,7 @@ class Store extends FormBase
                 if ($info['factory_id'] != $this->adminFactory['store_id']) {
                     $this->error(lang('NO ACCESS'));
                 }
-                if ($this->adminUser['admin_type'] != ADMIN_FACTORY && $this->adminStore['store_id'] != $detail['ostore_id']) {
+                if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL]) && $this->adminStore['store_id'] != $detail['ostore_id']) {
                     $this->error(lang('NO ACCESS'));
                 }
             }
@@ -298,8 +276,8 @@ class Store extends FormBase
             if ($this->adminUser['store_id']) {
                 $data['factory_id'] = $factoryId = $this->adminFactory['store_id'];
             }
-            if ($this->adminUser['admin_type'] > 2) {
-                $data['ostore_id'] = $factoryId = $this->adminStore['store_id'];
+            if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+                $data['ostore_id'] = $this->adminStore['store_id'];
             }
             if (!$factoryId) {
                 $this->error('请选择所属厂商');
@@ -309,8 +287,8 @@ class Store extends FormBase
             $this->error(lang($this->modelName).'名称不能为空');
         }
         $where = ['name' => $name, 'is_del' => 0, 'store_type' => $this->storeType];
-        if ($this->storeType != 1) {
-            $where['store_id'] = $factoryId;
+        if ($this->storeType != STORE_FACTORY) {
+            $where['factory_id'] = $factoryId;
         }
         if($pkId){
             $where['store_id'] = ['neq', $pkId];
@@ -340,6 +318,7 @@ class Store extends FormBase
         }
         if (!$pkId) {
             $data['config_json'] = '';
+            $data['check_status'] = 1;
         }
         $data['store_type'] = $this->storeType;
         if (isset($data['sample_amount']) && $data['sample_amount']) {
@@ -354,7 +333,7 @@ class Store extends FormBase
     function _getField(){
         $field = 'S.name, U.*, AS.*, S.*';
         if ($this->storeType == STORE_CHANNEL) {
-            $field .= ', CG.name as gname';
+//             $field .= ', CG.name as gname';
         }elseif ($this->storeType == STORE_DEALER){
             $field .= ', S2.name as cname';
         }
@@ -386,7 +365,7 @@ class Store extends FormBase
         }
         $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
         if ($this->storeType == STORE_CHANNEL) {
-            $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];
+//             $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];
         }elseif ($this->storeType == STORE_DEALER){
             $join[] = ['store S2', 'S2.store_id = AS.ostore_id', 'LEFT'];
         }
@@ -402,6 +381,9 @@ class Store extends FormBase
     function _getWhere(){
         $params = $this->request->param();
         $status = isset($params['status']) ? intval($params['status']) : 1;
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $status = 1;
+        }
         $where = [
             'S.is_del'      => 0,
             'S.store_type'  => $this->storeType,
@@ -409,7 +391,7 @@ class Store extends FormBase
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_DEALER && $this->storeType == STORE_DEALER){
+        }elseif ($this->adminUser['admin_type'] == ADMIN_CHANNEL && $this->storeType == STORE_DEALER){
             $where['AS.ostore_id'] = $this->adminUser['store_id'];
         }
         
@@ -444,10 +426,10 @@ class Store extends FormBase
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
                 ['text'  => '编辑','action'=> 'condition', 'icon'  => 'pencil','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$vo["check_status"] == 1']],
-                ['text'  => '删除','action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1']],
+                ['text'  => '删除','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1']],
                 ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["check_status"] == 1']],
                 ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != "" && $vo["check_status"] == 1']],
-                ['text'  => '审核','action'=> 'condition', 'icon'  => 'user-setting','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["username"] != "" && $vo["check_status"] == 0']],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["username"] != "" && $vo["check_status"] == 0']],
             ];
             $table['actions']['width']  = '*';
         }
@@ -457,7 +439,7 @@ class Store extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
-        $array = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
+        $array = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
         if ($this->storeType != STORE_FACTORY) {
             if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
 //                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
@@ -468,14 +450,17 @@ class Store extends FormBase
         }else{
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
-        if ($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
-            $this->assign('channels', $channels);
-            $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
+        if ($this->storeType == STORE_DEALER && in_array($this->storeType, [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+            if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+                $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
+                $this->assign('channels', $channels);
+                $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
+            }
             $array2= ['title'=>'已采购样品金额名称','type'=>'text','name'=>'sample_amount','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写已采购样品金额'];
             $array4 = ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array8 = ['title'=>'选择区域','type'=>'region','length'=>3,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择区域'];
         }
         if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
             $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
@@ -484,7 +469,14 @@ class Store extends FormBase
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array6 = ['title'=>'营业执照','type'=>'uploadImg','name'=>'license_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
-            $array7 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            $array8 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+        }
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $status = ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
+                ['text'=>'可用','value'=>'1'],
+                ['text'=>'禁用','value'=>'0'],
+            ]];
+            $sort = ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''];
         }
         $field = [
             $array, $array1,
@@ -494,11 +486,8 @@ class Store extends FormBase
             ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'mobile','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系电话'],
             $array2,$array3,$array4,$array5,$array6,$array7,$array8,
             ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'],
-            ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
-                ['text'=>'可用','value'=>'1'],
-                ['text'=>'禁用','value'=>'0'],
-            ]],
-            ['title'=>'排序','type'=>'text','name'=>'sort_order','size'=>'20','datatype'=>'','default'=>'1','notetext'=>''],
+            $status,
+            $sort,
         ];
         return array_filter($field);
     }

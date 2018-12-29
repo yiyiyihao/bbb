@@ -77,7 +77,7 @@ class LogCode extends Model
             }else{
                 $this->error = isset($result['Message']) ? $result['Message'] : '';
                 $data['status'] = 0;
-                $data['result'] = $result['Message'];
+                $data['result'] = '验证码发送失败('.trim($result['Message']).')';
             }
             $this->save($data, ['code_id' => $codeId]);
             return $data;

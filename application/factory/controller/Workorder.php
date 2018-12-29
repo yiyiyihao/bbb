@@ -329,12 +329,13 @@ class Workorder extends FactoryForm
             $this->error('工单当前状态不允许编辑');
         }
         if (!$info || $info['region_id'] != $regionId) {
+            $storeModel = new \app\common\model\Store();
             //根据安装地址分配服务商
-            $storeID = model('servicer')->getStoreFromRegion($regionId);
-            if(!$storeID){
+            $storeId = $storeModel->getStoreFromRegion($regionId);
+            if(!$storeId){
                 $this->error('该区域暂无服务商');
             }
-            $data['store_id'] = $storeID;
+            $data['store_id'] = $storeId;
         }
         if (!$info && !$type) {
             $this->error('请选择工单类型');

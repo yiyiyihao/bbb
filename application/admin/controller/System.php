@@ -81,6 +81,29 @@ class System extends AdminForm
         }
     }
     public function sms(){
+        $templates = [
+            'send_code' => [
+                'name'      => '验证码模版CODE',
+                'content'   => '您的验证码为：${code}，该验证码 5 分钟内有效，请勿泄漏于他人',
+            ], 
+            'reset_pwd' => [
+                'name'      => '重置密码模版CODE',
+                'content'   => '您好，您的密码已经重置为${password}，请及时登录并修改密码。',
+            ], 
+            'worder_dispatch_installer' => [
+                'name'      => '服务工程师被分派工单模版CODE',
+                'content'   => '收到新的服务工单，请进入智享家师傅端小程序接单。',
+            ], 
+            'installer_check_fail' => [
+                'name'      => '注册服务工程师审核失败模版CODE',
+                'content'   => '尊敬的${name}：您好，非常抱歉，您申请的智享家服务工程师未通过审核，请进入智享家师傅端小程序查看详情。',
+            ], 
+            'installer_check_success' => [
+                'name'      => '注册服务工程师审核通过模版模版CODE',
+                'content'   => '尊敬的${name}：您好，恭喜您已通过智享家服务工程师的注册审核，请等待系统分派工单吧。',
+            ], 
+            
+        ];
         $configKey = 'system_sms';
         $info = $this->model->where(['config_key' => $configKey, 'is_del' => 0, 'status' => 1])->find();
         $config = $info && $info['config_value'] ? json_decode($info['config_value'], 1) : [];
@@ -97,6 +120,9 @@ class System extends AdminForm
                         }
                     }else{
                         $config[$key] = trim($value);
+                    }
+                    if (isset($templates[$key])) {
+                        $config[$key]['template_content'] = $templates[$key]['content'];
                     }
                 }
                 $configJson = $config ? json_encode($config): '';
@@ -119,6 +145,7 @@ class System extends AdminForm
             }
             $this->success('配置成功');
         }else{
+            $this->assign('templates', $templates);
             $this->assign('config', $config);
             return $this->fetch();
         }

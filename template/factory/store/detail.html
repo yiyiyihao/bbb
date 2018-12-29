@@ -1,0 +1,31 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active">
+                        	<a href="#tab-1">商户申请详情</a>
+                        </li>
+                        <li><a href="#tab-2">管理员信息</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                {include file="store/_detail" /}
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <a href="{:url('index')}" class="button bg-main">返回列表</a>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>

@@ -152,13 +152,14 @@ class Service extends FactoryForm
         }
     }
     function _getField(){
-        return ' S.*, (if(U.realname != "", U.realname, if(U.nickname != "", U.nickname, U.username))) as username, S1.name as sname, S1.mobile,OS.sku_name';
+        return ' S.*, O.pay_code, (if(U.realname != "", U.realname, if(U.nickname != "", U.nickname, U.username))) as username, S1.name as sname, S1.mobile,OS.sku_name';
     }
     function _getAlias(){
         return 'S';
     }
     function _getJoin(){
         return [
+            ['order O', 'S.order_id = O.order_id', 'LEFT'],
             ['order_sku OS', 'S.osku_id = OS.osku_id', 'LEFT'],
             ['store S1', 'S1.store_id = S.user_store_id', 'LEFT'],
             ['user U', 'S.user_id = U.user_id', 'LEFT'],
@@ -222,7 +223,7 @@ class Service extends FactoryForm
         $table['actions']['button'][] = ['text'  => '详情查看', 'action'=> 'detail', 'icon'  => 'setting','bgClass'=> 'bg-main'];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $table['actions']['button'][] = [
-                'text'  => '审核', 'action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-yellow',
+                'text'  => '审核', 'action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-yellow',
                 'condition' => [
                     'action' => 'check',
                     'rule' => '$vo["service_status"] == 0'
@@ -243,6 +244,13 @@ class Service extends FactoryForm
                     'rule' => '$vo["service_status"] != 0'
                 ]
             ];
+//             $table['actions']['button'][] = [
+//                 'text'  => '重新申请', 'action'=> 'condition', 'icon'  => 'hand','bgClass'=> 'bg-gray',
+//                 'condition' => [
+//                     'action' => 'myorder/return',
+//                     'rule' => '$vo["service_status"] == -1'
+//                 ]
+//             ];
             $table['actions']['button'][] = [
                 'text'  => '退货',
                 'action'=> 'condition',
@@ -250,7 +258,7 @@ class Service extends FactoryForm
                 'bgClass'=> 'bg-yellow',
                 'condition' => [
                     'action' => 'delivery',
-                    'rule' => '$vo["service_status"] == 0'
+                    'rule' => '$vo["service_status"] == 1'
                 ]
             ];
         }

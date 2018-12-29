@@ -104,7 +104,6 @@ class PaymentApi
                 }
                 break;
             case 'alipay_page'://支付宝网页支付
-//                 $this->config['return_url'] = $this->apiHost.'pay/order/sn/'.$outTradeNo;//异步通知地址
                 $host = $_SERVER['HTTP_HOST'];
                 $returnUrl = 'http://'.$host.'/myorder/pay/order_sn/'.$outTradeNo.'/pay_code/alipay_page/step/3/from/out';
                 $this->config['return_url'] = $returnUrl;
