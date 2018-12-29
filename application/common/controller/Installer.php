@@ -140,6 +140,16 @@ class Installer extends FormBase
         }
         parent::del();
     }
+    
+    public function _afterList($list){
+        foreach ($list as $key => $value) {
+            $list[$key]['is_working'] = 0;
+            //判断工程师是否有工单
+            $exist = db('work_order')->where(['installer_id' => $value['installer_id']])->find();
+            $list[$key]['is_working'] = $exist ? 1: 0;
+        }
+        return $list;
+    }
     function _assignInfo($pkId = 0)
     {
         $info = parent::_assignInfo();
@@ -259,8 +269,10 @@ class Installer extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
+        unset($table['actions']['button'][1]);
         $btnArray = [];
         $btnArray = [
+            ['text'  => '删除', 'action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["is_working"]==0']],
 //             ['text'  => '审核', 'action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'],
             ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser["admin_type"] == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
             ['text'  => '详情', 'action'=> 'detail','icon'  => 'detail','bgClass'=> 'bg-green'],
