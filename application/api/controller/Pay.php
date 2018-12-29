@@ -56,14 +56,14 @@ class Pay extends ApiBase
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
-                /* $push = new \app\common\service\PushBase();
+                $push = new \app\common\service\PushBase();
                 $data = [
                     'type'          => 'order',
                     'orderSn'       => $orderSn,
                     'paidAmount'    => $paidAmount,
                 ];
                 //发送给店铺下所有管理用户
-                $push->sendToGroup('store'.$order['store_id'], json_encode($data)); */
+                $push->sendToGroup('store'.$order['store_id'], json_encode($data));
                 $this->_returnMsg(['msg' => '支付成功', 'order_sn' => $orderSn]);
             }
         }else{
