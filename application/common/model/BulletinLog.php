@@ -28,9 +28,9 @@ class BulletinLog extends Model
 	        return FALSE;
 	    }
 	    $where = [
-	        'store_type' => $user['store_type'],
 	        'bulletin_id'    => $bulletin['bulletin_id'],
 	        'publish_status' => 1,
+	        'store_type = 0 OR store_type = '. $user['store_type'],
 	        'visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', to_store_ids))',
 	    ];
 	    //判断当前用户是否有当前公告的阅读权限
