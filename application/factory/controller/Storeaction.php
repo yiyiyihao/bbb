@@ -11,17 +11,15 @@ class Storeaction extends FactoryForm
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
             $this->error('NO ACCESS');
         }
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $this->subMenu['showmenu'] = true;
-            $this->subMenu['menu'][] = [
-                'name' => '待审核操作申请',
-                'url' => url('index', ['status' => 0]),
-            ];
-            $this->subMenu['menu'][] = [
-                'name' => '已拒绝操作申请',
-                'url' => url('index', ['status' => 2]),
-            ];
-        }
+        $this->subMenu['showmenu'] = true;
+        $this->subMenu['menu'][] = [
+            'name' => '待审核操作申请',
+            'url' => url('index', ['status' => 0]),
+        ];
+        $this->subMenu['menu'][] = [
+            'name' => '已拒绝操作申请',
+            'url' => url('index', ['status' => 2]),
+        ];
         $action = strtolower($this->request->action());
         if (in_array($action, ['add', 'edit', 'del'])) {
             $this->error('NO ACCESS');

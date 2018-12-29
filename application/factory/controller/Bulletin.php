@@ -12,6 +12,18 @@ class Bulletin extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
     }
+    public function _afterList($list){
+        if ($list && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            foreach ($list as $key => $value) {
+                $list[$key]['is_read'] = 1;
+                //判断当前登录用户是否已读
+                $exist = db('bulletin_log')->where(['bulletin_id' => $value['bulletin_id'], 'user_id' => ADMIN_ID, 'is_read' => 1])->find();
+                $list[$key]['is_read'] = $exist ? 1: 0;
+            }
+        }
+        return $list;
+    }
+    
     /**
      * 设置公告已读
      */
@@ -140,27 +152,7 @@ class Bulletin extends FactoryForm
     }
     function _getOrder()
     {
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            return 'is_top DESC, is_read ASC, sort_order ASC, add_time DESC';
-        }else{
-            return 'is_top DESC, sort_order ASC, add_time DESC';
-        }
-    }
-    function _getField()
-    {
-        $field = 'B.*';
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $field .= ', ifnull(BR.bulletin_id, 0) is_read';
-        }
-        return $field;
-    }
-    function _getJoin()
-    {
-        $join = [];
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $join[] = ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id ', 'LEFT'];
-        }
-        return $join;
+        return 'is_top DESC, sort_order ASC, add_time DESC';
     }
     function _getAlias()
     {
@@ -172,10 +164,10 @@ class Bulletin extends FactoryForm
             'B.is_del' => 0,
         ];
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $where['B.store_id'] = $this->adminUser['factory_id'];
             $where['B.publish_status'] = 1;
             $where[] = 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))';
             $where[] = 'B.store_type = 0 OR B.store_type = '.$this->adminUser['store_type'];
-            $where[] = 'BR.is_del IS NULL OR BR.is_del = 0';
         }else{
             $where['B.store_id'] = $this->adminUser['store_id'];
         }
