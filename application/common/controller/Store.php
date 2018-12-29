@@ -148,7 +148,7 @@ class Store extends FormBase
                 if ($result === FALSE) {
                     $this->error('系统错误');
                 }else{
-                    $this->success('新增商户操作提交，等待厂商审核', url('store/index', ['status' => 0]));
+                    $this->success('新增商户操作提交，等待厂商审核', url('storeaction/index', ['status' => 0]));
                 }
             }else{
                 return parent::add();
@@ -191,7 +191,7 @@ class Store extends FormBase
                     if ($result === FALSE) {
                         $this->error('系统错误');
                     }else{
-                        $this->success('编辑商户操作提交，等待厂商审核', url('store/index', ['status' => 0]));
+                        $this->success('编辑商户操作提交，等待厂商审核', url('storeaction/index', ['status' => 0]));
                     }
                 }else{
                     $this->error('未修改商户信息');
