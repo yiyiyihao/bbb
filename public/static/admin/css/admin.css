@@ -41,7 +41,7 @@ body{ background:#f5f5f5;}
 .nav-tab-box li{ line-height:30px; padding:10px; color:#666; font-size:14px;}
 .nav-tab-box li.msgBox .text-dot{ width:10px; height:10px; background:#FF5722; border-radius:50%; display:inline-block;}
 .nav-tab-box li p{ color:#9a9a9a;}
-.nav-tab-box li p a{ display:inline; line-height:inherit; font-size:14px; color:#666;}
+.nav-tab-box li p a{ display:block; line-height:inherit; font-size:14px; color:#666; text-align: right; padding:0;}
 .nav-tab-box li .nav-time{ color:#9a9a9a; font-size:12px;}
 .nav-tab-bottom{ line-height:40px; text-align:center; width:100%; margin:0; padding:0; border-top:1px solid #ededed;}
 .nav-nickname{ min-width:70px; display:inline-block; padding:0 10px 0 0;}

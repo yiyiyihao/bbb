@@ -23,7 +23,7 @@
                     {volist name="bulletins" id="vo" empty="<li class='empty icon-message-squre'> 暂无公告消息</li>"}
                     <li>
                     	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span> {$vo.name|default=''}
-                    	<p>{$vo.description} <a href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}">>查看详情</a></p>
+                    	<p>{$vo.description} <a href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}">>>查看详情</a></p>
                         <span class="nav-time">{$vo.publish_time|date='Y-m-d'}</span>
                     </li>
                     {/volist}
