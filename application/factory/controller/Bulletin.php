@@ -15,7 +15,6 @@ class Bulletin extends FactoryForm
     public function _afterList($list){
         if ($list && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
             foreach ($list as $key => $value) {
-                $list[$key]['is_read'] = 1;
                 //判断当前登录用户是否已读
                 $exist = db('bulletin_log')->where(['bulletin_id' => $value['bulletin_id'], 'user_id' => ADMIN_ID, 'is_read' => 1])->find();
                 $list[$key]['is_read'] = $exist ? 1: 0;
