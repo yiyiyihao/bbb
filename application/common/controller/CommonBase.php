@@ -119,7 +119,7 @@ class CommonBase extends Base
         $server = isset($_SERVER['REDIRECT_URL']) ? $_SERVER['REDIRECT_URL'] : $_SERVER['REQUEST_URI'];
         $self = strip_tags($server);
         $this->assign('self', $self);
-        $this->assign('title', config('setting.title').lang('home_manager'));
+        $this->assign('title', '【'.get_store_type($this->adminUser['store_type']).'】 '.lang('home_manager'));
         $this->assign('adminUser', $this->adminUser);
         $this->assign('adminStore', $this->adminStore);
         $this->assign('adminFactory', $this->adminFactory);

@@ -40,3 +40,22 @@ Do.ready('dialog', function () {
 });
 </script>
 {/notempty}
+<script>
+$(function(){
+	$(".nav-tab-title li").click(function(){
+		var par = $(this).parent(".nav-tab-title");
+		var index = $(this).index();
+		if(!$(this).hasClass("tab-active")){
+			par.find("li.tab-active").removeClass("tab-active");
+			par.parents(".nav-tab-list").find(".nav-tab-box").addClass("hide");			
+			$(this).addClass("tab-active");
+			par.parents(".nav-tab-list").find(".nav-tab-box").eq(index).removeClass("hide");
+		}
+	})
+	$(".msgBox").click(function(){
+		var msgId = $(this).data("id");
+		//TODO 点击后将消息置为已读
+		$(this).find("p.hide").show();
+	})
+})
+</script>

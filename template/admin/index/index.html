@@ -7,8 +7,30 @@
             <li class="nav-item"><a href="javascript:;" title="返回首页" id="backHome"><span class="icon-home"></span></a></li>
         </ul>
         <ul class="nav-inline nav-right">
-        	{if condition="$adminUser['admin_type'] != 1"}
-            <li class="nav-item"><a href="{:url('bulletin/index')}" target="admin-iframe" title="系统消息"><span class="icon-bell"></span></a>{if $unread>0}<i class="badge-dot"></i> {/if}</li>
+        	{if condition="$adminUser['admin_type'] != 1 && $adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}
+            <li class="nav-item"><a title="系统消息"><span class="icon-bell"></span></a>{if $unread>0}<i class="badge-dot">{$unread}</i> {/if}
+            <div class="nav-tab-list animate">
+            	<ul class="nav-tab-title"><li class="icon-message"> 消息</li><li class="tab-active icon-tips"> 公告</li></ul>
+                <ul class="nav-tab-box hide">
+                    {volist name="messageList" id="vo" empty="<li class='empty icon-message-squre'> 暂无系统消息</li>"}
+                    	<li class="msgBox" data-id="{$vo.bulletin_id}">
+                            <div>{$vo.is_read?'':'<span class="text-dot"></span>'} {$vo.name|default=''}</div>
+                            <p class="hide">{$vo.description}</p>
+                        </li>
+                    {/volist}
+                </ul>
+                <ul class="nav-tab-box">
+                    {volist name="bulletins" id="vo" empty="<li class='empty icon-message-squre'> 暂无公告消息</li>"}
+                    <li>
+                    	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span> {$vo.name|default=''}
+                    	<p>{$vo.description} <a href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}">>查看详情</a></p>
+                        <span class="nav-time">{$vo.publish_time|date='Y-m-d'}</span>
+                    </li>
+                    {/volist}
+                </ul>
+                <a href="{:url('bulletin/index')}" target="admin-iframe" class="nav-tab-bottom">前往通知中心</a>
+            </div>
+            </li>
             {/if}
             {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
             <!-- <li class="nav-item"><a target="_blank" href="{:url('/merchant/apply', ['store_no' => $adminFactory['store_no']], true, 'www')}" title="入驻申请"><span class="icon-edit-normal"></span></a></li> -->
@@ -26,7 +48,7 @@
                 <li><a href="{:url('/login/logout')}"><span class="icon-exit"> 退出登录</span></a></li>
             </ul>
             </li>
-            <li class="nav-item"><a href="javascript:;" title="侧边栏展开"><span class="icon-dots"></span></a></li>
+            <!--<li class="nav-item"><a href="javascript:;" title="侧边栏展开"><span class="icon-dots"></span></a></li>-->
         </ul>
         <span id="top-bar" class="animate"></span>
     </div>

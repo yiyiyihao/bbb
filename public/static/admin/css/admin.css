@@ -24,15 +24,27 @@ body{ background:#f5f5f5;}
 .nav-left li a{ padding:0px 10px;}
 .nav-inline li.nav-item{display:inline-block;vertical-align:middle; position:relative;}
 .nav-inline li:hover{ background-color:rgba(255,255,255,.1);}
-.badge-dot{ position:absolute;border-radius:50%; top:50%; left:50%; margin:-10px auto auto 5px; display:inline-block; background:#FF5722; font-size:10px; font-style:normal; color:#fff; padding:5px; width:10px; height:10px; line-height:10px;}
+.badge-dot{ position:absolute;border-radius:50%; top:40%; left:50%; margin:-10px auto auto 5px; display:inline-block; background:#FF5722; font-size:10px; font-style:normal; color:#fff;height:20px; line-height:18px; text-align:center; padding:0 7px; border-radius:10px;}
 .nav-right li a{ padding:0 20px;}
 .nav-inline li a{font-size:16px; display:inline-block;line-height:50px;}
-.nav-inline .nav-a-list{ position:absolute; right:0; top:50px; z-index:10000; background:#fff; border:1px solid #ccc; border-top:none; border-radius:0 0 5px 5px; width:0; overflow:hidden; display:none;}
+.nav-inline .nav-a-list,.nav-inline .nav-tab-list{ position:absolute; right:0; top:50px; z-index:10000; background:#fff; border:1px solid #ccc; border-top:none; border-radius:0 0 5px 5px; width:0; overflow:hidden; display:none;}
 .nav-inline .nav-a-list a{ color:#666; font-size:13px;}
 .nav-inline .nav-a-list [class*='icon-']:before{ margin-right:5px;}
 .nav-inline li.nav-item:hover .nav-a-list{ width:100%; display:block;}
+.nav-inline li.nav-item:hover .nav-tab-list{ width:350px; display:block; right:-100px;}
 .nav-inline li.nav-item .nav-a-list li:hover{ background:#f6f6f6;}
-.nav-nickname{ min-width:70px; display:inline-block;}
+.nav-tab-title{ width:100%; display:block; overflow:hidden; border-bottom:1px solid #ededed;}
+.nav-tab-title li{ width:50%; float:left; background:#f8f8f8; text-align:center; line-height:40px; cursor:pointer;}
+.nav-tab-title li:hover{ background:#f6f6f6;}
+.nav-tab-title li.tab-active{ background:#fff;}
+.nav-tab-box .empty{ text-align:center; padding:50px 0; color:#888;}
+.nav-tab-box li{ line-height:30px; padding:10px; color:#666; font-size:14px;}
+.nav-tab-box li.msgBox .text-dot{ width:10px; height:10px; background:#FF5722; border-radius:50%; display:inline-block;}
+.nav-tab-box li p{ color:#9a9a9a;}
+.nav-tab-box li p a{ display:inline; line-height:inherit; font-size:14px; color:#666;}
+.nav-tab-box li .nav-time{ color:#9a9a9a; font-size:12px;}
+.nav-tab-bottom{ line-height:40px; text-align:center; width:100%; margin:0; padding:0; border-top:1px solid #ededed;}
+.nav-nickname{ min-width:70px; display:inline-block; padding:0 10px 0 0;}
 /* 后台左侧导航 */
 .admin-sidebar {width: 220px;position: fixed;top: 0px;bottom: 0;border-left: none;border-right: none;overflow-y: auto;	background:#333;}
 .admin-sidebar .admin-menu{margin:15px 0px; overflow:hidden;}

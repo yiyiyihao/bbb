@@ -14,6 +14,8 @@ class Index extends CommonIndex
         //获取登录商家类型
         $storeType = $this->adminUser['store_type'];
         //判断当前登录用户是否存在未查看的公告信息
+		//未读系统消息列表
+        $messageList    = [];
         $unReadCount = 0;
         $bulletins = $specialBulletins = [];
         if (in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
@@ -33,16 +35,20 @@ class Index extends CommonIndex
             $unReadCount    = count($bulletins);
             $unReadCount    = $unReadCount > 0 ? $unReadCount : '';
             
+            //未读系统消息列表
+            $messageList    = $bulletins;//[];#TODO 这里暂时取公告数据填充数据
             //获取需要开屏展示的公告列表
             $where['B.special_display'] = 1;
             $specialBulletins = $bulletinModel->field($field)->where($where)->whereNull('BR.bulletin_id')->select();
             if(count($specialBulletins) > 0 && count($specialBulletins) == 1){
                 $this->assign('specialBulletin', $specialBulletins[0]);
             }
+            $this->assign("unread",$unReadCount);
+            $this->assign('messageList', $messageList);
+//             pre($bulletins);
+            $this->assign('bulletins', $bulletins);
+            $this->assign('specialBulletins', $specialBulletins);
         }
-        $this->assign("unread",$unReadCount);
-        $this->assign('bulletins', $bulletins);
-        $this->assign('specialBulletins', $specialBulletins);
         if($url){
             $this->assign('redirect',$url);
         }
