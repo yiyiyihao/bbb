@@ -34,6 +34,16 @@
                         	<span class="field-text">{$info['group']['name'] ?? '管理员'}</span>
                         </div>
                     </div>
+                    {if ($adminStore['check_status'] == 1)}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商户编号</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$adminStore['store_no'] ?? ''}</span>
+                        </div>
+                    </div>
+                    {/if}
                     <div class="form-group">
                         <div class="label">
                             <label>显示昵称</label>
