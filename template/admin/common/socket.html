@@ -15,18 +15,58 @@ $(function(){
 		}else{
 			var data = eval("("+res.data+")");
 		}
+		
+		//未读提示框处理
+		function badgeNum(type){
+			var badgeObj = $(".badge-dot");
+			var badgeLen = badgeObj.length;
+			var num = 0;
+			if(badgeLen > 0) num = badgeObj.text();
+			switch(type){
+				case 1://增一
+				num += 1;
+				break;
+				case 0://清空
+				num = 0;
+				break;
+				case -1://减一
+				num -= 1;
+				break;
+			}
+			if(num > 0){
+				if(badgeLen > 0){
+					badgeObj.text(num);
+				}else{
+					var html = '<i class="badge-dot">'+num+'</i>';
+					$("#sysmsg").append(html);
+				}
+			}else{
+				if(badgeLen > 0){
+					badgeObj.remove();
+				}
+			}
+		}
+		
 		//处理收到通知消息
 		function noticeMsg(){
-			layer.open({
-			  type: 1,
-			  title: '公告提醒',
-			  area: ['600px', '400px'], //宽高
-			  content: '<div class="admin-main">'+data.title+'</div>',
-			  btn: ['关闭'],
-			  yes: function(layero, index){
-				  layer.close(layero);
-			  }
-			});
+			if($("#sysnotice").length > 0){
+				//如果有公告权限,则提示通知
+				//是否使用浏览器通知提示
+				
+				//更新消息数+1
+				badgeNum(1);
+				//加入公告列表	
+				var html = '<li class="noticeBox">'
+                    	 + '<span class="text-red">[未读]</span> '+data.title
+                    	 + '<p>'+data.desc+' <a target="admin-iframe" href="/bulletin/detail/id/'+data.id+'">>>查看详情</a></p>'
+                         + '<span class="nav-time">'+data.time+'</span>'
+                         + '</li>';
+				if($("#sysnotice .noticeBox").length == 0){
+					$("#sysnotice").html(html);
+				}else{
+					$("#sysnotice").append(html);
+				}
+			}
 		}
 		//处理收到推送消息
 		function messageMsg(){
@@ -42,10 +82,10 @@ $(function(){
 		}
 		switch (data.type){
 			case 'login':
-			console.log(data);
+			//console.log(data);
 			break;
 			case 'notice':
-			console.log(data);
+			//console.log(data);
 			noticeMsg();
 			break;
 			case 'message':

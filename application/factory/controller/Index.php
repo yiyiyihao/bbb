@@ -18,6 +18,7 @@ class Index extends CommonIndex
         $messageList    = [];
         $unReadCount = 0;
         $bulletins = $specialBulletins = [];
+        //取得公告消息
         if (in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
             $bulletinModel = db('bulletin');
             $where = [
@@ -29,26 +30,27 @@ class Index extends CommonIndex
             $join = [
                 ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.ADMIN_ID, 'LEFT']
             ];
-            $field  = "B.*, BR.*";
+            $field  = "B.*,BR.is_read";
             //未读公告列表
             $bulletins      = $bulletinModel->field($field)->alias('B')->join($join)->where($where)->select();
             $unReadCount    = count($bulletins);
-            $unReadCount    = $unReadCount > 0 ? $unReadCount : '';
-            
-            //未读系统消息列表
-            $messageList    = $bulletins;//[];#TODO 这里暂时取公告数据填充数据
             //获取需要开屏展示的公告列表
             $where['B.special_display'] = 1;
             $specialBulletins = $bulletinModel->field($field)->where($where)->whereNull('BR.bulletin_id')->select();
-            if(count($specialBulletins) > 0 && count($specialBulletins) == 1){
+            /* if(count($specialBulletins) > 0 && count($specialBulletins) == 1){
                 $this->assign('specialBulletin', $specialBulletins[0]);
-            }
-            $this->assign("unread",$unReadCount);
-            $this->assign('messageList', $messageList);
-//             pre($bulletins);
+            } */
             $this->assign('bulletins', $bulletins);
             $this->assign('specialBulletins', $specialBulletins);
         }
+        //取得系统消息 #TODO
+        if(in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE, ADMIN_FACTORY])) {
+            $messageList = [];
+            $unReadCount += count($messageList);
+            $this->assign('messageList', $messageList);
+        }
+        $unReadCount    = $unReadCount > 0 ? $unReadCount : '';
+        $this->assign("unread",$unReadCount);
         if($url){
             $this->assign('redirect',$url);
         }

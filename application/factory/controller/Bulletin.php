@@ -104,6 +104,8 @@ class Bulletin extends FactoryForm
                 'title' => $info['name'],
                 'desc'  => $info['description'],
                 'content'=>$info['content'],
+                'id'    => $info['bulletin_id'],
+                'time'  => date('Y-m-d',time()),
             ];
             //发送给群组内在线的人,如果store_type == 0 代表发给所有角色
             $group = $info['store_type'] == 0 ? 'factory'.$info['store_id'] : $info['store_type'];

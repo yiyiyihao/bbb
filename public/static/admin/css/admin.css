@@ -37,8 +37,10 @@ body{ background:#f5f5f5;}
 .nav-tab-title li{ width:50%; float:left; background:#f8f8f8; text-align:center; line-height:40px; cursor:pointer;}
 .nav-tab-title li:hover{ background:#f6f6f6;}
 .nav-tab-title li.tab-active{ background:#fff;}
+.nav-tab-box{ padding:10px 0;}
 .nav-tab-box .empty{ text-align:center; padding:50px 0; color:#888;}
-.nav-tab-box li{ line-height:30px; padding:10px; color:#666; font-size:14px;}
+.nav-tab-box li{ line-height:30px; padding:0 10px; color:#666; font-size:14px; border-bottom:1px dotted #ddd;}
+.nav-tab-box li:last-child{ border-bottom:none;}
 .nav-tab-box li.msgBox .text-dot{ width:10px; height:10px; background:#FF5722; border-radius:50%; display:inline-block;}
 .nav-tab-box li p{ color:#9a9a9a;}
 .nav-tab-box li p a{ display:block; line-height:inherit; font-size:14px; color:#666; text-align: right; padding:0;}

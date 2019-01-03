@@ -4,18 +4,26 @@
 {notempty name="specialBulletins"}
 <script>
 Do.ready('dialog', function () {
-	{present name="specialBulletin"}
+	var winW = $(window).width();
+	var winH = $(window).height();
+	var offsetX = winW/2 - 300;
+	var offsetY = winH/2 - 200;
+	{present name="specialBulletins"}
+	{volist name="specialBulletins" key="k" id="vo"}
+	offsetX += 40;
+	offsetY += 40;
 	layer.open({
 	  type: 1,
-	  title: false,
+	  title: '{$vo.name}',
 	  area: ['600px', '400px'], //宽高
-	  content: '<div class="admin-main">{$specialBulletin.content|raw}</div>',
-	  btn: ['已读','关闭'],
+	  offset: [offsetY+'px', offsetX+'px'],
+	  content: '<div class="admin-main">{$vo.content|raw}</div>',
+	  btn: ['标记已读','关闭'],
 	  yes: function(index, layero){
-		  var url = "{:url('/Bulletin/read',['id'=>$specialBulletin.bulletin_id])}";
+		  var url = "{:url('/Bulletin/read',['id'=>$vo.bulletin_id])}";
 		  $.post(url,function(data){
 			if(data.code == 1){
-				layer.closeAll();
+				layero.close;
 			}
 			layer.msg(data.msg);
 		  })
@@ -23,19 +31,7 @@ Do.ready('dialog', function () {
 		  layero.close;
 	  }
 	});
-	{else}
-	layer.tab({
-	  //title: '公告提示',
-	  area: ['600px', '400px'],
-	  tab: [
-	  {volist name="specialBulletins" key="k" id="vo"}
-	  {
-		title: '公告{$k}', 
-		content: "{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}"
-	  },
-	  {/volist}
-	  ]
-	});
+	{/volist}
 	{/present}
 });
 </script>
