@@ -51,13 +51,13 @@
                             {notempty name="list"}
                             {volist name="list" id="vo" key="key"}
                             <tr>
-                                <td>{$vo.article_id}</td>
-                                <td>{if !empty($vo.cover_img)}<img src="{$vo.cover_img}">{/if}</td>
+                                <td>{$vo.id}</td>
+                                <td><img src="{$vo.cover_img|default='/static/base/images/default.png'}"  width="120"></td>
                                 <td>{$vo.title}</td>
                                 <td>{$vo.summary}</td>
                                 <td>{$vo.update_time|date="Y-m-d H:i"}</td>
                                 <td>{if $vo.status}已发布{else /}未发布{/if}</td>
-                                <td><a class="button button-small icon-bell bg-blue" href="{:url('publish',['id'=>$vo.article_id])}">发布</a>  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.article_id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del',['id'=>$vo.article_id])}">删除</a></td>
+                                <td><a class="button button-small icon-bell bg-blue" href="{:url('publish',['id'=>$vo.id])}">发布</a>  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del',['id'=>$vo.id])}">删除</a></td>
                             </tr>
                             {/volist}
                             {/notempty}

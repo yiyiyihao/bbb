@@ -11,14 +11,6 @@
         <div class="tab-body">
             <div class="tab-panel active" id="tab-1">
                 <div class="panel admin-box">
-                    <div  class="table-responsive">
-                        <div class="tools-function clearfix">
-                            <div class="button-group">
-                                <a class="button button-small icon-plus" href="{:url('add_menu')}">新增导航</a>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="table-responsive">
                         <table id="table1" class="table table-hover ">
                             <tbody>
@@ -35,9 +27,9 @@
                             <tr>
                                 <td>{$key}</td>
                                 <td>{$vo.name}</td>
-                                <td>{$vo.page_type==0?"链接":"单页--"}{$vo.title??''}</td>
+                                <td>{$vo.page_type==0?"单页--":"链接"}{$vo.title??''}</td>
                                 <td>{$vo.sort}</td>
-                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a></td>
+                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>{if $vo.id>10} <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a>{/if}  </td>
                             </tr>
                             {/volist}
                             {/notempty}
@@ -66,9 +58,9 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="float-left" style="width: 70%" id="table-right">
-                            <h4>二级导航管理</h4>
-                            <div style="width: 150px; padding: 10px 0px;"><a id="creat_2nd_nav" href="javascript:;" data-url="{:url('add_menu')}" data-pid="0" class="button icon-plus">新增导航</a></div>
+                        <div class="float-left" style="width: 80%" id="table-right">
+                            <h4 style="line-height:40px;">二级导航管理 <a id="creat_2nd_nav" href="javascript:;" data-url="{:url('add_menu')}" data-pid="0" class="icon-plus"></a></h4>
+
                             <table  class="table table-hover ">
                                 <thead>
                                     <tr>
@@ -81,11 +73,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>1</td>
-                                        <td>555</td>
-                                        <td>6666</td>
-                                        <td>999</td>
-                                        <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="##">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="##">删除</a></td>
+                                        <td colspan="5" align="center">请选择所属的一级菜单</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -108,9 +96,15 @@
 
         $('#table_left td').click(function () {
             let pid=$(this).attr('data-id');
-            $('#creat_2nd_nav').attr('data-pid',pid);
+            let nav=$('#creat_2nd_nav');
+            nav.attr('data-pid',pid);
+            let url=nav.attr('data-url');
+            nav.attr('href',url+'/pid/'+pid);
+
+            $(this).parent('tr').addClass('current');
+            $(this).parent('tr').siblings().removeClass('current');
+
             $.post('',{pid:pid},function (data) {
-                console.log(data);
                 if (data.length==0){
                     $('#table-right tbody').html('<tr><td colspan="5" align="center">暂无数据</td></tr>');
                     return;
@@ -129,10 +123,15 @@
                 return;
             });
         });
+    });
+
+    Do.ready('dialog',function(){
         $('#creat_2nd_nav').click(function () {
-            url=$(this).attr('data-url');
             pid=$(this).attr('data-pid');
-            window.location.href=url+'/pid/'+pid;
+            if (pid==0) {
+                layer.alert("请先选择一级导航");
+                return false;
+            }
         });
     });
 </script>

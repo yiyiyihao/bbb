@@ -58,13 +58,13 @@
                         </div>
                         <div class="field checkgroup">
                             <div class="button-group">
-                                <div class="checkbox data-all">
-                                    <input type="checkbox" class="top"  name="menu_id[]" value="1" >
-                                    <i class="icon-check"></i><span>88</span>
+                                <div class="checkbox data-all {if isset($data['is_top']) && $data['is_top']}checked{/if}">
+                                    <input type="checkbox" class="top" {if isset($data['is_top']) && $data['is_top']}checked{/if} name="is_top" value="1" >
+                                    <i class="icon-check"></i><span>首页</span>
                                 </div>
-                                <div class="checkbox data-all">
-                                    <input type="checkbox" class="top"  name="menu_id[]" value="2" >
-                                    <i class="icon-check"></i><span>666</span>
+                                <div class="checkbox data-all checked">
+                                    <input type="checkbox" class="top" checked  name="menu_id" value="2" >
+                                    <i class="icon-check"></i><span>公司动态</span>
                                 </div>
                                 <div class="input-note"></div>
                             </div>

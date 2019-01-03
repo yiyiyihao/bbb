@@ -25,6 +25,10 @@ class Site extends FactoryForm
         $this->store_id = $this->adminUser['store_id'];
     }
 
+
+
+
+
     //导航图管理
     public function index()
     {
@@ -148,18 +152,26 @@ class Site extends FactoryForm
     //导航列表
     public function menu()
     {
+        $this->initSysMenu();
         $parent_id=input('pid',0,'intval');
         $query=WebMenu::alias('m')
             ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
-            ->where('m.parent_id',$parent_id);
+            ->where('m.parent_id',$parent_id)
+            ->where('m.is_del',0);
         $list = $query->select();
         if (IS_AJAX) {
             return json($list);
         }
         $this->assign('list', $list);
+        $this->subMenu['add'] = [
+            'name' => '新增导航',
+            'url' => url('add_menu'),
+        ];
         return $this->fetch();
     }
+
+
 
     //新建|编辑导航
     public function add_menu()
@@ -184,10 +196,7 @@ class Site extends FactoryForm
                 $menu->sort = $menu->id;
                 $menu->save();
             }
-            if ($bool) {
-                return $this->success('保存成功', url('menu'));
-            }
-            return $this->success('保存失败');
+            return $this->success('保存成功', url('menu'));
         }
 
         if (!empty($id)) {
@@ -227,6 +236,10 @@ class Site extends FactoryForm
         }
         $data = $model->select();
         $this->assign('list', $data);
+        $this->subMenu['add'] = [
+            'name' => '新增单页',
+            'url' => url('add_page'),
+        ];
         return $this->fetch();
     }
 
@@ -239,16 +252,9 @@ class Site extends FactoryForm
             $page = empty($id) ? (new WebPage) : (WebPage::get($id));
             $title = $this->request->param('title');
             $content = $this->request->param('content');
-            $url = $this->request->param('url');
-            $type = (int)$this->request->param('type');
+            $page->content = trim($content);
             $page->title = trim($title);
-            if ($type == 0) {
-                $page->url = $url;
-            } else {
-                $page->content = trim($content);
-            }
             $page->store_id = $this->store_id;
-            $page->type = $type;
             $page->save();
             return $this->success('保存成功', 'page');
         }
@@ -267,7 +273,7 @@ class Site extends FactoryForm
     public function getPages()
     {
         $type = $this->request->param('type', 0, 'intval');
-        $pages = WebPage::field('id,title,type,url')->where([
+        $pages = WebPage::field('id,title')->where([
             'store_id' => $this->store_id,
             'is_del' => 0,
         ])->select()->toArray();
@@ -288,6 +294,24 @@ class Site extends FactoryForm
         $result->is_del = 1;
         $result->save();
         return $this->success("删除成功", url('page'));
+    }
+
+
+    //初始化厂商系统菜单
+    public function initSysMenu()
+    {
+        $menus=config('sysmenu.');
+        foreach ($menus as $v){
+            $menu=WebMenu::get($v['id']);
+            if (empty($menu)) {
+                $menu=new WebMenu;
+                $v['store_id']=$this->store_id;
+                $menu->save($v);
+            }elseif($menu->is_del==1){
+                $menu->is_del=0;
+                $menu->save();
+            }
+        }
     }
 
 

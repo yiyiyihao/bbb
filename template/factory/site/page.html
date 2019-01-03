@@ -11,8 +11,7 @@
             <div class="tab-panel active" id="tab-1">
                 <div class="panel admin-box">
                     <div class="table-tools clearfix ">
-                        <div class="float-left"><a href="{:url('add_page')}" class="button icon-plus bg-main button-full">新增页面</a></div>
-                        <div class="float-right">
+                        <div class="float-left">
                             <form method="get" action="">
                                 <div class="form-inline">
                                     <div class="form-group">
@@ -42,7 +41,7 @@
                             <tr>
                                 <td>{$key}</td>
                                 <td>{$vo.title}</td>
-                                <td>{if $vo.type==0}链接{else /}单页{/if}</td>
+                                <td>单页</td>
                                 <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_page',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_page',['id'=>$vo.id])}">删除</a></td>
                             </tr>
                             {/volist}

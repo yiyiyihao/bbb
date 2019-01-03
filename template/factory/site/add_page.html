@@ -4,7 +4,7 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">页面编辑</a></li>
+                        <li class="active"><a href="#tab-1">{if isset($data['id'])}编辑{else /}新增{/if}单页</a></li>
                     </ul>
                 </div>
             </div>
@@ -22,37 +22,12 @@
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>显示页面</label>
-                        </div>
-                        <div class="field">
-                            <div class="button-group radio">
-                                <label class="button {if isset($data['type']) &&  $data['type']==1 || !isset($data['type']) }active{/if}">
-                                    <input name="type" value="1" type="radio"  {if isset($data['type']) &&  $data['type']==1 || !isset($data['type']) }checked="checked"{/if}>单页</label>
-                                <label class="button {notempty name='data'}{if $data.type==0}active{/if}{/notempty}">
-                                    <input name="type" value="0" type="radio" {notempty name="data"}{if $data.type==0}checked="checked"{/if}{/notempty}>链接</label>
-                            </div>
-                            <div class="input-note"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group {if isset($data['type']) &&  $data['type']==0}hide{/if}" id="content_box">
-                        <div class="label">
                             <label>内容</label>
                         </div>
                         <div class="field">
-		                  <textarea class="input js-editor" id="content" name="content" rows="20">
+		                  <textarea class="input js-editor" id="content" name="content" rows="20" datatype="*">
 		                  	{$data['content']? stripslashes($data['content']) : '' }
 		                  </textarea>
-                            <div class="input-note"></div>
-                        </div>
-                    </div>
-                    <div class="form-group {if isset($data['type']) && $data['type']==1 || !isset($data['type'])}hide{/if}" id="url_box">
-                        <div class="label">
-                            <label>链接</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" class="input" id="url" name="url" size="30" datatype="/^\s*$/|url"
-                                   value="{$data['url'] ?? ''}">
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -73,19 +48,6 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
-        $('input[type=radio]').click(function () {
-            v = $(this).val();
-            if (v == 0) {
-                $('#url_box').show();
-                $('#content_box').hide();
-            } else {
-                $('#url_box').hide();
-                $('#content_box').show();
-            }
-        });
-        $('#form').submit(function () {
-            $(this).children('.hide').remove();
-        });
 
 
     });

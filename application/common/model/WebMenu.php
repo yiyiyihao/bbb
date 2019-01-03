@@ -18,10 +18,6 @@ class WebMenu extends Model
     protected $updateTime = 'update_time';
     protected $autoWriteTimestamp = 'int';
 
-    // 定义全局的查询范围
-    protected function base($query)
-    {
-        $query->where('m.is_del', 0)->order('m.sort');
-    }
+
 
 }

@@ -13,7 +13,7 @@ use think\Model;
 
 class WebArticle extends Model
 {
-    protected $pk='article_id';
+    protected $pk='id';
     protected $type = [
         'menu_id' => 'array',
     ];

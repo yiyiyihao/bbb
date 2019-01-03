@@ -24,6 +24,7 @@ class Article extends FormBase
         $this->store_id = $this->adminUser['store_id'];
     }
 
+    //添加|编辑文章
     public function add()
     {
         $store_id = $this->store_id;
@@ -31,36 +32,21 @@ class Article extends FormBase
             'name' => '返回',
             'url' => url('index'),
         ];
-        $id = $this->request->param('id', 0, 'intval');
+        $id = input('id', 0, 'intval');
         if (IS_POST) {
-            $flag = null;
-            if (empty($id)) {
-                $article = new WebArticle;
-                $article->store_id = $store_id;
-                $article->menu_id = $this->request->post('id', 0, 'intval');
-                $article->title = $this->request->post('title');
-                $article->summary = $this->request->post('summary');
-                $article->content = $this->request->post('content');
-                $article->cover_img = $this->request->post('cover_img');
-                $article->add_time = time();
-                $article->update_time = time();
-                $flag = $article->save();
-            } else {
-                $article = WebArticle::where(['store_id' => $store_id])->find($id);
-                $article->store_id = $store_id;
-                $article->menu_id = $this->request->post('id', 0, 'intval');
-                $article->title = $this->request->post('title');
-                $article->summary = $this->request->post('summary');
-                $article->content = $this->request->post('content');
-                $article->cover_img = $this->request->post('cover_img');
-                $article->update_time = time();
-                $flag = $article->save();
-            }
-            if ($flag) {
-                $this->success("保存成功", 'index');
-            }
-            $this->error("保存失败");
-            return false;
+            $article=empty($id)?(new WebArticle):(WebArticle::get($id));
+            $data=[
+                'store_id'=>$store_id,
+                'menu_id'=>2,
+                'is_top'=>input('is_top')? 1:0,
+                'title'=>input('title'),
+                'summary'=>input('summary'),
+                'content'=>input('content'),
+                'cover_img'=>input('cover_img'),
+            ];
+            $article->save($data);
+            $this->success("保存成功", 'index');
+            return true;
         }
         $article = WebArticle::get($id);
         $this->assign('data', $article);
@@ -80,7 +66,7 @@ class Article extends FormBase
         $article = WebArticle::where([
             'is_del' => 0,
             'store_id' => $store_id,
-            'article_id' => $id,
+            'id' => $id,
         ])->find();
         if (empty($article)) {
             $this->error("文章不存在或已被删除");

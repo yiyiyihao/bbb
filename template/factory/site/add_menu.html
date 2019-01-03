@@ -27,16 +27,16 @@
                         </div>
                         <div class="field">
                             <div class="button-group radio">
-                                <label class="button {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}active{/if}">
+                                <label class="button {if isset($data['page_type']) && $data['page_type']==0 || !isset($data['page_type'])}active{/if}">
                                     <input name="page_type" value="1" type="radio"  {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}checked="checked"{/if}>单页</label>
-                                <label class="button {if isset($data['page_type']) && $data['page_type']==0}active{/if}">
+                                <label class="button {if isset($data['page_type']) && $data['page_type']==1}active{/if}">
                                     <input name="page_type" value="0" type="radio" >链接</label>
                             </div>
                             <div class="input-note"></div>
                         </div>
                     </div>
 
-                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==0}hide{/if}" id="page">
+                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==1}hide{/if}" id="page">
                         <div class="label">
                             <label>单页</label>
                         </div>
@@ -52,7 +52,7 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
-                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}hide{/if}" id="link">
+                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==0 || !isset($data['page_type'])}hide{/if}" id="link">
                         <div class="label">
                             <label>链接</label>
                         </div>
