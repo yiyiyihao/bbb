@@ -1,0 +1,140 @@
+<div class="tab admin-tab">
+    <div class="panel admin-box active">
+        <div class="panel-head">
+            <div class="tab-head">
+                <ul class="tab-nav">
+                    <li class="active"><a href="#tab-1">项部导航管理</a></li>
+                    <li><a href="#tab-2">底部导航管理</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="tab-body">
+            <div class="tab-panel active" id="tab-1">
+                <div class="panel admin-box">
+                    <div  class="table-responsive">
+                        <div class="tools-function clearfix">
+                            <div class="button-group">
+                                <a class="button button-small icon-plus" href="{:url('add_menu')}">新增导航</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="table1" class="table table-hover ">
+                            <tbody>
+                            <tr>
+                                <th width="80">序号</th>
+                                <th>导航名称</th>
+                                <th>显示页面</th>
+                                <th>排序</th>
+                                <th>操作</th>
+
+                            </tr>
+                            {notempty name="list"}
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td>{$key}</td>
+                                <td>{$vo.name}</td>
+                                <td>{$vo.page_type==0?"链接":"单页--"}{$vo.title??''}</td>
+                                <td>{$vo.sort}</td>
+                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a></td>
+                            </tr>
+                            {/volist}
+                            {/notempty}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel-foot table-foot clearfix">{$page|raw|default=''}</div>
+                </div>
+            </div>
+            <div class="tab-panel" id="tab-2">
+                <div class="panel admin-box">
+                    <div class="table-tools clearfix">
+                        <div class="float-left" style="padding-right: 10px;width: 15%" id="table_left">
+                            <table  class="table table-hover">
+                                <tbody>
+                                <tr>
+                                    <th>一级导航管理 <a href="{:url('add_menu')}"><span class="icon-plus"></span></a></th>
+                                </tr>
+                                {notempty name="list"}
+                                {volist name="list" id="vo" key="key"}
+                                <tr>
+                                    <td data-id="{$vo.id}"><a href="javascript:;">{$vo.name}</a></td>
+                                </tr>
+                                {/volist}
+                                {/notempty}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="float-left" style="width: 70%" id="table-right">
+                            <h4>二级导航管理</h4>
+                            <div style="width: 150px; padding: 10px 0px;"><a id="creat_2nd_nav" href="javascript:;" data-url="{:url('add_menu')}" data-pid="0" class="button icon-plus">新增导航</a></div>
+                            <table  class="table table-hover ">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>导航名称</th>
+                                        <th>显示页面</th>
+                                        <th>排序</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>555</td>
+                                        <td>6666</td>
+                                        <td>999</td>
+                                        <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="##">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="##">删除</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel-foot table-foot clearfix">{$page|raw|default=''}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+
+        $('#table_left td').click(function () {
+            let pid=$(this).attr('data-id');
+            $('#creat_2nd_nav').attr('data-pid',pid);
+            $.post('',{pid:pid},function (data) {
+                console.log(data);
+                if (data.length==0){
+                    $('#table-right tbody').html('<tr><td colspan="5" align="center">暂无数据</td></tr>');
+                    return;
+                }
+                let html='';
+                for (let i = 0; i <data.length ; i++) {
+                    html+='<tr>' +
+                            '<td>'+(i+1)+'</td>' +
+                            '<td>'+data[i].name+'</td>' +
+                            '<td>'+(data[i].page_type==0?"链接":"单页--")+(data[i].title?data[i].title:'')+'</td>' +
+                            '<td>999</td>' +
+                            '<td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="add_menu/id/'+data[i].id+'">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="del_menu/id/'+data[i].id+'">删除</a></td>\n' +
+                        '</tr>';
+                }
+                $('#table-right tbody').html(html);
+                return;
+            });
+        });
+        $('#creat_2nd_nav').click(function () {
+            url=$(this).attr('data-url');
+            pid=$(this).attr('data-pid');
+            window.location.href=url+'/pid/'+pid;
+        });
+    });
+</script>
+
+

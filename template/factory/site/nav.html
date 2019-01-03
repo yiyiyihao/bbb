@@ -1,0 +1,94 @@
+<form method="post" action="{:url('banner')}" class="form-x admin-form form-auto" id="form">
+    <input type="hidden" name="type" value="1">
+    <input type="hidden" name="group_id" value="{$group_id|default=''}">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">新增导航图</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1" style="padding-left: 2%">
+                    <div class="form-group" >
+                        <div>排列方式</div>
+                        <div class="field">
+                            <div class="button-group radio" id="img_group">
+                                <label class="button"><input name="img_group" value=1 type="radio">一行一图</label>
+                                <label class="button" ><input name="img_group" value=2 type="radio">一行两图</label>
+                                <label class="button"><input name="img_group" value=3 type="radio">一行三图</label>
+                                <label class="button active"><input name="img_group" value=4 type="radio">一行四图</label>
+                            </div>
+                        </div>
+                    </div>
+                    {for start='0' end='4' name="i"}
+                    <div class="form-group show" style="padding-bottom: 30px;" id="box_{$i}">
+                        <div class="field clearfix">
+                            <div class="float-left">
+                                <input type="hidden" class="input" id="banner_{$i}" name="banner[{$i}][img_url]" size="38" value="{$list[$i]['img_url']|default=''}">
+                                <div style="margin-bottom:10px;"><img src="{$list[$i]['img_url']|default='/static/base/images/default.png'}" id="banner_preview_{$i}" width="120"></div>
+                                <a class="button bg-main button-small js-img-upload" data="banner_{$i}" preview="banner_preview_{$i}" href="javascript:;" >
+                                    <span class="icon-upload">上传</span>
+                                </a>
+                                <div class="float-right"><a href="##" class="button-small float-right"><span class="icon-delete">删除</span></a></div>
+                            </div>
+                            <div class="float-left" style="padding-left:50px">
+                                <div style="padding-bottom: 10px;">链接</div>
+                                <div><input type="text" class="input" id="link_{$i}" name="banner[{$i}][link_url]" value="{$list[$i]['link_url']|default=''}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="banner[{$i}][id]" value="{$list[$i]['id']|default=''}">
+                    {/for}
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <button class="button bg-main" type="submit">保存</button>
+                <button class="button bg" type="reset">重置</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        $('#img_group input').click(function () {
+            console.log(66666);
+            img_len=$(this).val();
+            count=$('#tab-1 .show').children().length;
+            if (count < img_len) {
+                for (let i = 1; i <=img_len ; i++) {
+                    $(".form-group").eq(i).removeClass('hide').addClass('show');
+                }
+            }else if (count>img_len) {
+                diff=count-img_len;
+                for (i = 0;i <count-img_len ; i++) {
+                    $('#tab-1 .show').eq(-1).addClass('hide').removeClass('show');
+                }
+            }
+        });
+        $('#form').submit(function () {
+            $('#tab-1 .hide').remove();
+        });
+        $('.icon-delete').click(function () {
+            $(this).parents('.form-group').removeClass('show').addClass('hide');
+        });
+
+    });
+
+
+
+
+
+
+
+</script>

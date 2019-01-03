@@ -1,0 +1,91 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">新增内容</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>文章标题</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="title" name="title" size="30" datatype="*" value="{$data['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>文章内容</label>
+                        </div>
+                        <div class="field">
+		                  <textarea class="input js-editor" id="content" name="content" rows="20">
+		                  	{$data['content']? stripslashes($data['content']) : '' }
+		                  </textarea>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>摘要</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="summary" name="summary" size="30" datatype="*" value="{$data['summary'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>封面</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="cover_img" name="cover_img" size="38" value="{$data['cover_img']|default=''}">
+                            <div style="margin-bottom:10px;"><img src="{$data['cover_img']|default='/static/base/images/default.png'}" id="thumb_preview" width="120"></div>
+                            <a class="button bg-main button-small js-img-upload" data="cover_img" preview="thumb_preview" href="javascript:;" >
+                                <span class="icon-upload"> 上传</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>发布到</label>
+                        </div>
+                        <div class="field checkgroup">
+                            <div class="button-group">
+                                <div class="checkbox data-all">
+                                    <input type="checkbox" class="top"  name="menu_id[]" value="1" >
+                                    <i class="icon-check"></i><span>88</span>
+                                </div>
+                                <div class="checkbox data-all">
+                                    <input type="checkbox" class="top"  name="menu_id[]" value="2" >
+                                    <i class="icon-check"></i><span>666</span>
+                                </div>
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <button class="button bg-main" type="submit">保存</button>
+                <button class="button bg" type="reset">重置</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    });
+</script>

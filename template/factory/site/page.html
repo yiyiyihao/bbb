@@ -1,0 +1,70 @@
+<div class="tab admin-tab">
+    <div class="panel admin-box active">
+        <div class="panel-head">
+            <div class="tab-head">
+                <ul class="tab-nav">
+                    <li class="active"><a href="#tab-1">页面管理</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="tab-body">
+            <div class="tab-panel active" id="tab-1">
+                <div class="panel admin-box">
+                    <div class="table-tools clearfix ">
+                        <div class="float-left"><a href="{:url('add_page')}" class="button icon-plus bg-main button-full">新增页面</a></div>
+                        <div class="float-right">
+                            <form method="get" action="">
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="field">
+                                            <input type="text" class="input" id="title" name="title" size="40" value="{$_GET['title'] ?? ''}" placeholder="请输入标题名称">
+                                        </div>
+                                    </div>
+                                    <div class="form-button">
+                                        <button class="button" type="submit">搜索</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="table" class="table table-hover ">
+                            <tbody>
+                            <tr>
+                                <th width="80">序号</th>
+                                <th>单页名称 </th>
+                                <th>显示页面</th>
+                                <th width="230">操作</th>
+
+                            </tr>
+                            {notempty name="list"}
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td>{$key}</td>
+                                <td>{$vo.title}</td>
+                                <td>{if $vo.type==0}链接{else /}单页{/if}</td>
+                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_page',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_page',['id'=>$vo.id])}">删除</a></td>
+                            </tr>
+                            {/volist}
+                            {/notempty}
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel-foot table-foot clearfix">{$page|raw|default=''}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    });
+</script>
+
+

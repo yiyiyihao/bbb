@@ -1,0 +1,101 @@
+<form method="post"  class="form-x admin-form form-auto" id="form">
+    <input type="hidden" name="type" value="{$data['type']?? ''}">
+    <input type="hidden" name="pid" value="{:input('pid','')}">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">新增导航</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>导航名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="30" datatype="*" value="{$data['name']?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>显示页面</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <label class="button {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}active{/if}">
+                                    <input name="page_type" value="1" type="radio"  {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}checked="checked"{/if}>单页</label>
+                                <label class="button {if isset($data['page_type']) && $data['page_type']==0}active{/if}">
+                                    <input name="page_type" value="0" type="radio" >链接</label>
+                            </div>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==0}hide{/if}" id="page">
+                        <div class="label">
+                            <label>单页</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="page_id">
+                                <option value="">=请选择=</option>
+                                {notempty name="pages"}
+                                {volist name="pages" id="vo" key="key"}
+                                <option value="{$vo.id}" {if isset($data.page_id)&&  $vo.id==$data.page_id}selected{/if}>{$vo.title}</option>
+                                {/volist}
+                                {/notempty}
+                            </select>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}hide{/if}" id="link">
+                        <div class="label">
+                            <label>链接</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="url" placeholder="请输入链接地址" name="url" size="30" datatype="/^\s*$/|url" value="{$data['url'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <button class="button bg-main" type="submit">保存</button>
+                <button class="button bg" type="reset">重置</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+
+        $('input[type=radio]').click(function () {
+            v=$(this).val();
+            $.post('/site/getPages',{},function (e) {
+                html='<option value="">=请选择=</option>';
+                for (let i = 0; i <e.length ; i++) {
+                    html+='<option value="'+e[i].id+'">'+e[i].title+'</option>';
+                }
+                $('#page select').html(html);
+            });
+            if (v==1){
+                $('#page').removeClass('hide');
+                $('#link').addClass('hide');
+            }else{
+                $('#link').removeClass('hide');
+                $('#page').addClass('hide');
+            }
+        });
+    });
+</script>

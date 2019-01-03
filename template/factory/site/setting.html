@@ -1,0 +1,104 @@
+<form method="post" action="{:url('add')}" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">网站基本设置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>网站头部LOGO</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="logo" name="logo" size="38" value="{$data['logo']|default=''}">
+                            <div  style="margin-bottom:10px;"><img src="{$data['logo']|default='/static/base/images/default.png'}" id="logo_thumb_preview" width="120"></div>
+                            <a class="button bg-main button-small js-img-upload" data="logo" preview="logo_thumb_preview" href="javascript:;" >
+                                <span class="icon-upload"> 上传</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>版权信息</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="copyright" name="copyright" size="30" datatype="*" value="{$data['copyright']?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>备案号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="ICP" name="icp" size="30" datatype="*" value="{$data['icp'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>服务热线</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="hot_line" name="hot_line" size="30" datatype="*" value="{$data['hot_line'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>联系地址</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="address" name="address" size="30" datatype="*" value="{$data['address'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>登录页背景图</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="login_bg" name="login_bg" size="38" value="{$data['login_bg']|default=''}">
+                            <div  style="margin-bottom:10px;"><img src="{$data['login_bg']|default='/static/base/images/default.png'}" id="login_bg_thumb_preview" width="120"></div>
+                            <a class="button bg-main button-small js-img-upload" data="login_bg" preview="login_bg_thumb_preview" href="javascript:;" >
+                                <span class="icon-upload"> 上传</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>二维码</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="qrcode" name="qrcode" size="38" value="{$data['qrcode']|default=''}">
+                            <div  style="margin-bottom:10px;"><img src="{$data['qrcode']|default='/static/base/images/default.png'}" id="qrcode_thumb_preview" width="120"></div>
+                            <a class="button bg-main button-small js-img-upload" data="qrcode" preview="qrcode_thumb_preview" href="javascript:;" >
+                                <span class="icon-upload"> 上传</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <button class="button bg-main" type="submit">保存</button>
+                <button class="button bg" type="reset">重置</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    });
+</script>
