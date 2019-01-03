@@ -165,6 +165,9 @@ class Site extends FactoryForm
             'name' => '新增导航',
             'url' => url('add_menu'),
         ];
+        $sysMenu=config('sysmenu.');
+        $sysMenu=array_column($sysMenu,'name');
+        $this->assign('sysMenu',$sysMenu);
         return $this->fetch();
     }
 
