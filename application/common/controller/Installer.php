@@ -47,7 +47,7 @@ class Installer extends FormBase
         $join[] = ['user U', 'U.user_id = WO.post_user_id', 'LEFT'];
         $join[] = ['goods G', 'WO.goods_id = G.goods_id', 'LEFT'];
         $join[] = ['goods_sku GS', 'WO.sku_id = GS.sku_id', 'LEFT'];
-        $field  = 'U.username,WO.*, G.name as gname, GS.sku_name';
+        $field  = 'U.realname, U.phone as user_phone, U.nickname, U.username,WO.*, G.name as gname, GS.sku_name';
         $where = [
             'WO.is_del'         =>  0,
             'WO.installer_id'   =>  $info['installer_id'],

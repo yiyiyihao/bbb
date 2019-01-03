@@ -12,7 +12,6 @@ class CommonBase extends Base
     var $adminStore;
     var $adminFactory;//厂商二级域名登录赋值
     var $breadCrumb;
-    var $is_check_login = TRUE;//校验登陆
 	//公共预处理方法
 	public function __construct()
     {

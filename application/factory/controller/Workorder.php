@@ -202,8 +202,6 @@ class Workorder extends FactoryForm
     public function del()
     {
         $this->error(lang('NO ACCESS'));
-        #TODO 判断工单状态对应删除权限
-//         parent::del();    
     }
     function _getAlias()
     {

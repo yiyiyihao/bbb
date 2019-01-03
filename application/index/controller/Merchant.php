@@ -12,6 +12,9 @@ class Merchant extends Base
     //商家申请入驻
     public function apply()
     {
+        session_start();
+        pre($_COOKIE, 1);
+        pre($_SESSION);
         $params = $this->request->param();
         $step = isset($params['step']) ? intval($params['step']) : 1;
         $storeNo = isset($params['store_no']) ? $params['store_no'] : '';

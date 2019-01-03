@@ -33,8 +33,9 @@ class Security extends Store
     }
     function _getWhere(){
         $where = [
-            'S.is_del'      => 0,
-            'S.store_type'  => ['IN', [STORE_CHANNEL, STORE_SERVICE]],
+            'S.is_del'          => 0,
+            'S.check_status'    => 1,
+            'S.store_type'      => ['IN', [STORE_CHANNEL, STORE_SERVICE]],
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];

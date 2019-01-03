@@ -38,7 +38,7 @@
                             <div class="input-note">请选择产品类别</div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="label">
                             <label>产品类型</label>
                         </div>
@@ -50,7 +50,7 @@
                             </div>
                             <div class="input-note">请选择产品类型</div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <div class="label">
                             <label>产品名称</label>
@@ -64,8 +64,9 @@
 		                <div class="label">
 		                  <label>上传图片</label>
 		                </div>
-		                <div class="field"> <a class="button bg-main button-small js-multi-upload" data="imgs" id="image_upload" href="javascript:;" ><span class="icon-upload"> 批量上传</span></a>
-		                  <div class="input-note note">请上传不大于2M的图片,支持多图上传</div>
+		                <div class="field"> 
+		                	<a class="button bg-main button-small js-multi-upload" num="1" data="imgs" id="image_upload" href="javascript:;" ><span class="icon-upload"> 批量上传</span></a>
+		                  <div class="input-note note">请上传不大于2M的图片,支持多图上传(建议尺寸:500px*500px)</div>
 		                </div>
 		              </div>
 		              <div class="imagesBox form-group clearfix" id="imgs">
@@ -211,6 +212,7 @@
 			                <a class="button bg-main button-small js-img-upload" data="cate_thumb" preview="cate_thumb_preview" href="javascript:;" >
 			                	<span class="icon-upload"> 上传</span>
 			                </a>
+			                <div class="input-note">建议尺寸(92px*92px)</div>
 						</div>
 					</div>
 					<div class="form-group">

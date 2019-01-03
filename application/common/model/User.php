@@ -345,7 +345,7 @@ class User extends Model
                 return FALSE;
             }
             //检查登录用户名是否存在
-            $exist = $this->checkUsername($username);
+            $exist = $this->checkUsername($factoryId, $username);
             if ($exist) {
                 $this->error = '登录用户名已经存在';
                 return FALSE;
@@ -395,9 +395,9 @@ class User extends Model
      * @param string $username
      * @return number
      */
-    public function checkUsername($username = '')
+    public function checkUsername($factoryId = 0, $username = '')
     {
-        $exist = $this->where(['username' => $username, 'is_del' => 0])->find();
+        $exist = $this->where(['username' => $username, 'factory_id' => $factoryId, 'is_del' => 0])->find();
         return $exist ? 1: 0;
     }
 }

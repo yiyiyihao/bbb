@@ -10,7 +10,6 @@ class Store extends FormBase
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'store';
-//         $this->model = $this->model ? $this->model : model($this->modelName);
         $this->model = new \app\common\model\Store();
         parent::__construct();
         $this->_init();
@@ -25,10 +24,7 @@ class Store extends FormBase
                 }
             }
         }
-        if (!$this->adminUser['store_id']){
-            $this->_getFactorys();
-        }
-        $this->uploadUrl = url('Upload/upload', ['prex' => 'store_', 'thumb_type' => 'logo_thumb']);
+        $this->uploadUrl = url('Upload/upload', ['prex' => 'store_profile_', 'thumb_type' => 'profile_thumb']);
     }
     public function manager()
     {
@@ -446,12 +442,8 @@ class Store extends FormBase
     function _fieldData(){
         $array = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
         if ($this->storeType != STORE_FACTORY) {
-            if ($this->adminUser['admin_type'] != ADMIN_SYSTEM){
-//                 $array = ['title'=>'厂商名称','type'=>'text','name'=>'','size'=>'40','default'=> $this->adminFactory['name'], 'disabled' => 'disabled'];
-            }else{
-                $this->error(lang('NO_OPERATE_PERMISSION'));
-                $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
-            }
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+            $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
         }else{
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }

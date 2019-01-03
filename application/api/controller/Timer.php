@@ -18,6 +18,7 @@ class Timer extends ApiBase
      */
     public function minute()
     {
+        $this->_returnMsg(['time' => date('Y-m-d H:i:s')]);
         $thisTime = time();
         //获取系统默认配置
         $default = get_system_config('system_default');

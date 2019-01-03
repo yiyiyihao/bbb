@@ -1,0 +1,76 @@
+<style>
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+</style>
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active">
+                        	<a href="#tab-1">请求详情</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>接口名称</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['method'] ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>请求时间</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{:time_to_date($info['request_time'])}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>响应时间</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{:time_to_date($info['return_time'])}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>响应时长</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{$info['response_time']/1000}秒</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>请求参数</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{:pre(json_decode($info['request_params'],true), 1)}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>返回参数</label>
+                        </div>
+                        <div class="field">
+                        	<span class="field-text">{:pre(json_decode($info['return_params'],true), 1)}</span>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <a href="{:url('index')}" class="button bg-main">返回列表</a>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

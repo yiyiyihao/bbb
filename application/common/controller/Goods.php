@@ -272,9 +272,10 @@ class Goods extends FormBase
         if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
             $this->error('请选择产品类别');
         }
-        if (!$goodsType || !isset($this->goodsTypes[$goodsType])) {
-            $this->error('请选择产品类型');
-        }
+//         if (!$goodsType || !isset($this->goodsTypes[$goodsType])) {
+//             $this->error('请选择产品类型');
+//         }
+        $goodsType = $data['goods_type'] = 1;
         if ($goodsType == 1) {
             if ($installPrice <= 0) {
                 $this->error('请填写安装费用');
@@ -356,7 +357,7 @@ class Goods extends FormBase
         $this->assign('types', $types);
         $search = [
             ['type' => 'input', 'name' =>  'name', 'value' => '产品名称', 'width' => '30'],
-            ['type' => 'select', 'name' => 'goods_type', 'options'=>'types', 'default_option' => '==产品类型=='],
+//             ['type' => 'select', 'name' => 'goods_type', 'options'=>'types', 'default_option' => '==产品类型=='],
             ['type' => 'input', 'name' =>  'sn', 'value' => '产品编号', 'width' => '30'],
         ];
         return $search;

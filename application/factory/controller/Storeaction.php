@@ -40,14 +40,14 @@ class Storeaction extends FactoryForm
         //判断操作的商户是否存在
         $exist = db('store')->where(['store_id' => $info['to_store_id'], 'is_del' => 0])->find();
         if (!$exist) {
-            $remark = '商户不存在或已删除[系统拒绝删除申请]';
+            $remark = '商户不存在或已删除[系统拒绝申请]';
             $flag = TRUE;
         }
         if (!$flag && $info['action_type'] == 'del') {
             //判断零售商是否有订单数据
             $exist = db('order')->where(['user_store_id' => $info['to_store_id']])->find();
             if ($exist) {
-                $remark = '零售商有订单数据[系统拒绝删除申请]';
+                $remark = '零售商有订单数据[系统拒绝申请]';
                 $flag = TRUE;
             }
         }

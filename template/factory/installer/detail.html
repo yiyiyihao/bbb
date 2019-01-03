@@ -101,7 +101,7 @@
                                 <tr>
                                   <td>{$vo['worder_sn']}</td>
                                   <td>{$vo.user_name}<br>{$vo.phone}</td>
-                                  <td>{$vo.username}</td>
+                                  <td>{$vo.realname ?$vo.realname : $vo.nickname}<br>{$vo.user_phone}</td>
                                   <td>{$vo.region_name}<br>{$vo.address}</td>
                                   <td>{$orderTypes[$vo.work_order_type]}</td>
                                   <td>{$vo.gname}<br>{$vo.sku_name}</td>
