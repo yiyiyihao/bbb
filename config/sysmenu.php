@@ -4,8 +4,8 @@
  */
 
 return [
-    ['id' => 1, 'name' => '首页', 'sort' => 1],
-    ['id' => 2, 'name' => '公司动态', 'sort' => 2],
-    ['id' => 3, 'name' => '渠道入驻', 'sort' => 3],
-    ['id' => 4, 'name' => '零售网点', 'sort' => 4],
+    ['name' => '首页', 'url' => '', 'page_type' => 1],
+    ['name' => '公司动态', 'url' => '', 'page_type' => 1],
+    ['name' => '渠道入驻', 'url' => '', 'page_type' => 1],
+    ['name' => '零售网点', 'url' => '', 'page_type' => 1],
 ];

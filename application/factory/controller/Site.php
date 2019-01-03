@@ -26,9 +26,6 @@ class Site extends FactoryForm
     }
 
 
-
-
-
     //导航图管理
     public function index()
     {
@@ -153,12 +150,12 @@ class Site extends FactoryForm
     public function menu()
     {
         $this->initSysMenu();
-        $parent_id=input('pid',0,'intval');
-        $query=WebMenu::alias('m')
+        $parent_id = input('pid', 0, 'intval');
+        $query = WebMenu::alias('m')
             ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
-            ->where('m.parent_id',$parent_id)
-            ->where('m.is_del',0);
+            ->where('m.parent_id', $parent_id)
+            ->where('m.is_del', 0);
         $list = $query->select();
         if (IS_AJAX) {
             return json($list);
@@ -172,14 +169,13 @@ class Site extends FactoryForm
     }
 
 
-
     //新建|编辑导航
     public function add_menu()
     {
         $id = input('id', 0, ['trim', 'intval']);
         if (IS_POST) {
             $menu = empty($id) ? (new WebMenu) : WebMenu::alias('m')->get($id);
-            $data=[
+            $data = [
                 'name' => input('name'),
                 'type' => input('type', 0, 'trim,intval'),
                 'page_type' => input('page_type', 0, 'trim,intval'),
@@ -187,9 +183,9 @@ class Site extends FactoryForm
                 'page_id' => input('page_id', 0, 'trim,intval'),
                 'url' => input('url', '', 'trim'),
             ];
-            $parent_id=input('pid','');
+            $parent_id = input('pid', '');
             if ($parent_id !== '') {
-                $data['parent_id']=(int)$parent_id;
+                $data['parent_id'] = (int)$parent_id;
             }
             $bool = $menu->save($data);
             if (empty($id)) {
@@ -300,16 +296,22 @@ class Site extends FactoryForm
     //初始化厂商系统菜单
     public function initSysMenu()
     {
-        $menus=config('sysmenu.');
-        foreach ($menus as $v){
-            $menu=WebMenu::get($v['id']);
+        $menus = config('sysmenu.');
+        $store_id = $this->store_id;
+        foreach ($menus as $v) {
+            $menu = WebMenu::where([
+                'store_id' => $store_id,
+                'name' => $v['name'],
+            ])->find();
             if (empty($menu)) {
-                $menu=new WebMenu;
-                $v['store_id']=$this->store_id;
+                $menu = new WebMenu;
+                $v['store_id']=$store_id;
                 $menu->save($v);
-            }elseif($menu->is_del==1){
-                $menu->is_del=0;
+                $menu->sort = $menu->id;
                 $menu->save();
+            } else {
+                $v['is_del']=0;
+                $menu->save($v);
             }
         }
     }
