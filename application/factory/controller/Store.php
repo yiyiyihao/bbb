@@ -36,7 +36,7 @@ class Store extends FactoryForm
         $info = $this->_assignInfo();
         //只有厂商才有权限
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $checkStatus = $info['check_status'];
         //已拒绝不允许审核
@@ -44,7 +44,7 @@ class Store extends FactoryForm
             $this->error('操作已审核');
         }
         if ($info['factory_id'] != $this->adminUser['factory_id']) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $params = $this->request->param();
         if (IS_POST) {

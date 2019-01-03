@@ -427,7 +427,7 @@ class Store extends FormBase
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
                 ['text'  => '编辑','action'=> 'condition', 'icon'  => 'pencil','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$vo["check_status"] == 1']],
-                ['text'  => '删除','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1']],
+                ['text'  => '删除','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1 && (!isset($vo["unset_del"]) || $vo["unset_del"] != 1)']],
                 ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["check_status"] == 1']],
                 ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != "" && $vo["check_status"] == 1']],
                 ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["username"] != "" && $vo["check_status"] == 0']],
@@ -441,13 +441,10 @@ class Store extends FormBase
      */
     function _fieldData(){
         $array = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
-        if ($this->storeType != STORE_FACTORY) {
-            $this->error(lang('NO_OPERATE_PERMISSION'));
-            $array = ['title'=>'所属厂商','type'=>'select','options'=>'factorys','name' => 'factory_id', 'size'=>'40' , 'datatype'=>'', 'default'=>'','default_option'=>'==所属厂商==','notetext'=>'请选择所属厂商'];
-        }else{
+        if ($this->storeType == STORE_FACTORY) {
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
-        if ($this->storeType == STORE_DEALER && in_array($this->storeType, [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+        if ($this->storeType == STORE_DEALER && in_array($this->adminType, [ADMIN_FACTORY, ADMIN_CHANNEL])) {
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
                 $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
                 $this->assign('channels', $channels);
@@ -491,5 +488,15 @@ class Store extends FormBase
     function _init()
     {
         
+    }
+    function _afterList($list)
+    {
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $flag = $this->model->checkDel($value, $this->adminUser);
+                $list[$key]['unset_del'] = $flag === FALSE ? 1: 0;
+            }
+        }
+        return $list;
     }
 }

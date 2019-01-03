@@ -100,7 +100,7 @@ class Service extends FactoryForm
         $params = $this->request->param();
         $service = $this->_assignInfo();
         if ($service['service_status'] != 1) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         if (IS_POST) {
             $result = $this->serviceModel->serviceDelivery($service, $this->adminUser, $params);

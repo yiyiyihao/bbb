@@ -20,7 +20,7 @@
 							<label>工单类型</label>
 						</div>
 						<div class="field">
-							<input type="text" class="input" disabled="disabled" id="user_name" name="user_name" size="40" datatype="*" value="{$orderTypes[$info['work_order_type']] ?? ''}">
+							<span class="field-text">{$orderTypes[$info['work_order_type']] ?? ''}</span>
 						</div>
 					</div>
                     <div class="form-group">
@@ -28,7 +28,7 @@
                             <label>客户名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" disabled="disabled" id="user_name" name="user_name" size="40" datatype="*" value="{$info['user_name'] ?? ''}">
+                        	<span class="field-text">{$info['user_name'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -36,16 +36,15 @@
                             <label>客户联系电话</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" disabled="disabled" id="phone" name="phone" size="40" datatype="*" value="{$info['phone'] ?? ''}">
+                        	<span class="field-text">{$info['phone'] ?? ''}</span>
                         </div>
                     </div>
-                    <div class="form-group js-select-child" posturl="{:url('Region/getAjaxList')}" str="选择区域" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*' notmsg='请选择行政区域'></div>
                     <div class="form-group">
                         <div class="label">
                             <label>客户联系地址</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" disabled="disabled" id="address" name="address" size="60" datatype="*" value="{$info['address'] ?? ''}">
+                        	<span class="field-text">{$info['region_name'] ?? ''} {$info['address'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -53,7 +52,7 @@
                             <label>预约服务时间</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input js-time" disabled="disabled" id="appointment" name="appointment" size="40" value="{$info['appointment']|date='Y-m-d H:i'}">
+                        	<span class="field-text">{$info['appointment']|date='Y-m-d H:i'}</span>
                         </div>
                     </div>
 	                <div class="form-group fault_desc {if condition='!$info || $info.work_order_type != 2'}hide{/if}">
@@ -61,7 +60,7 @@
                             <label>故障详情</label>
                         </div>
                         <div class="field">
-                        	<textarea class="input" id="fault_desc" disabled="disabled" name="fault_desc" rows="6" cols="60">{$info['fault_desc'] ?? ''}</textarea>
+                        	<span class="field-text">{$info['fault_desc'] ?? ''}</span>
                         </div>
                     </div>
                     {if condition='$info && $info.images'}
@@ -85,7 +84,7 @@
                             <label>订单号</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['order_sn'] ?? ''}">
+                        	<span class="field-text">{$info['sub']['order_sn'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -93,7 +92,7 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['sku_name'] ?? ''}  {$info['sub']['sku_spec'] ?? ''} ">
+                        	<span class="field-text">{$info['sub']['sku_name'] ?? ''}  {$info['sub']['sku_spec'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -111,7 +110,7 @@
                             <label>产品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" disabled="disabled" class="input" size="40" value="{$info['sub']['name'] ?? ''}">
+                        	<span class="field-text">{$info['sub']['name'] ?? ''}</span>
                         </div>
                     </div>
                     <div class="form-group">

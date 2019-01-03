@@ -97,7 +97,7 @@ class Myorder extends commonOrder
         $detail = $this->model->checkOrder($orderSn, $this->adminUser);
         #TODO 下单用户才有支付权限
         if ($detail['user_id'] != ADMIN_ID) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $this->assign('step', $step);
         //获取厂商设置未支付订单取消时间

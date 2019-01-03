@@ -194,4 +194,8 @@ class Ugroup extends AdminForm
         $this->assign('storeTypes', $storeTypes);
         return $info;
     }
+    function _getOrder()
+    {
+        return 'group_type DESC, sort_order ASC';
+    }
 }

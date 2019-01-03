@@ -198,7 +198,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
-            $this->error = '无操作权限';
+            $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
@@ -247,7 +247,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
-            $this->error = '无操作权限';
+            $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
@@ -295,7 +295,7 @@ class WorkOrder extends Model
             return FALSE;
         }
         if ($worder['installer_id'] != $installer['installer_id']) {
-            $this->error = '无操作权限';
+            $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
@@ -469,7 +469,7 @@ class WorkOrder extends Model
         $type = $worder['work_order_type'];
         //只有厂商和服务商有维修工单的取消权限
         if ($type == 2 && isset($user['admin_type']) && $user['admin_type']>0 && !in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
-            $this->error = '无操作权限';
+            $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
         }
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)

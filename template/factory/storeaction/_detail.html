@@ -16,7 +16,7 @@
 </div>
 <div class="form-group">
     <div class="label">
-        <label>被操作商户名称</label>
+        <label>{:get_action_type($info['action_type'])}商户名称</label>
     </div>
     <div class="field">
     	<span class="field-text">{$info['to_store_name'] ?? ''}</span>
@@ -48,6 +48,7 @@
     </div>
 </div>
 {/if}
+{if ($info['action_type'] != 'del')}
 <div class="panel-head">
     <div class="tab-head">
         <strong>{:get_action_type($info['action_type'])}内容信息</strong>
@@ -115,3 +116,4 @@
     {/if}
 {/volist}
 {/notempty}
+{/if}

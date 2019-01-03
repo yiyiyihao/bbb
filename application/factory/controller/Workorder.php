@@ -172,7 +172,7 @@ class Workorder extends FactoryForm
         $type = $info['work_order_type'];
         //只有厂商和服务商有维修工单的查看权限
         if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
         if ($info === FALSE) {

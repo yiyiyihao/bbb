@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table id="table" class="table table-hover ">
+    <tbody>
+      <tr>
+        <th width="80">编号</th>
+        <th width="*">操作用户</th>
+        <th width="*">操作</th>
+        <th width="*">操作备注</th>
+        <th width="*">操作时间</th>
+      </tr>
+      {notempty name="info.logs"}
+        {volist name="info.logs" id="vo"}
+          <tr>
+            <td>{$i}</td>
+            <td>{$vo.nickname}</td>
+            <td>{$vo.action}</td>
+            <td>{$vo.msg|raw}</td>
+            <td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
+          </tr>
+        {/volist}
+      {/notempty}
+    </tbody>
+  </table>
+</div>

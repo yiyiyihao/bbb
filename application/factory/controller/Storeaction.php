@@ -134,11 +134,11 @@ class Storeaction extends FactoryForm
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['SAR.name'] = ['like','%'.$name.'%'];
+                $where['S.name'] = ['like','%'.$name.'%'];
             }
-            $uname = isset($params['uname']) ? trim($params['uname']) : '';
-            if($uname){
-                $where['SAR.user_name|SAR.mobile'] = ['like','%'.$uname.'%'];
+            $sname = isset($params['sname']) ? trim($params['sname']) : '';
+            if($sname){
+                $where['SAR.to_store_name'] = ['like','%'.$sname.'%'];
             }
         }
         return $where;
@@ -148,8 +148,8 @@ class Storeaction extends FactoryForm
      */
     function _searchData(){
         $search = [
-            ['type' => 'input', 'name' =>  'name', 'value' => lang($this->modelName).'名称', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'uname', 'value' => '联系人姓名/电话', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'name', 'value' => '操作商户名称', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'sname', 'value' => '被操作商户名称', 'width' => '30'],
         ];
         return $search;
     }

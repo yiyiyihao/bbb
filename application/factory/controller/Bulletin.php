@@ -144,6 +144,14 @@ class Bulletin extends FactoryForm
         if ($visibleRange == 0 && !$storeIds) {
             $this->error('请选择公告可见商户');
         }
+        $name = isset($params['name']) ? trim($params['name']) : '';
+        $content = isset($params['content']) ? trim($params['content']) : '';
+        if (!$name) {
+            $this->error('请填写公告标题');
+        }
+        if (!$content) {
+            $this->error('请填写公告内容');
+        }
         $params['to_store_ids'] = $visibleRange ? '' : implode(',', $storeIds);
         if (!$info) {
             $params['post_user_id'] = ADMIN_ID;

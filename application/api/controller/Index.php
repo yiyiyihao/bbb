@@ -29,6 +29,7 @@ class Index extends ApiBase
         $this->mchKey = isset($this->postParams['mchkey']) && $this->postParams['mchkey'] ? trim($this->postParams['mchkey']) : '';
         //客户端签名密钥
         $this->signKeyList = [
+            'H5'        => 'VO17NvGtExcc',
             'Applets'   => 'SjeGczso8Ya2',
             'TEST'      => 'ds7p7auqyjj8',
         ];
@@ -43,8 +44,9 @@ class Index extends ApiBase
             }
         }
         $this->userTypes = [
+            'manager'   => '管理员客户端',
             'installer' => '师傅端',
-            'user' => '用户端',
+            'user'      => '用户端',
         ];
     }
     public function index()
@@ -544,7 +546,7 @@ class Index extends ApiBase
         }
         $store = $this->_checkStore();
         if ($store['store_type'] != STORE_SERVICE){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您选择的商户不是服务商']);
         }
         $realname = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         $securityRecordNum = isset($this->postParams['security_record_num']) ? trim($this->postParams['security_record_num']) : '';
@@ -561,12 +563,6 @@ class Index extends ApiBase
         if (!$idcardBackImg){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '身份证背面(idcard_back_img)缺失']);
         }
-        /* if (!$securityRecordNum) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公安机关备案号(security_record_num)缺失']);
-        }
-        if (!$workTime) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '从业时间(work_time)缺失']);
-        } */
         $installerModel = new \app\common\model\UserInstaller();
         $phone = $user['phone'];
         $data = [
@@ -580,7 +576,6 @@ class Index extends ApiBase
         ];
         $checkStatus = -3;
         if ($user['installer']) {
-//             $data['check_status'] = $checkStatus = $user['installer']['check_status'] == -2 ? -1 : -3;
             $where = ['job_no' => $user['installer']['job_no']];
         }else{
             $where = [];

@@ -79,10 +79,10 @@ class Installer extends FormBase
             $this->error('操作已审核');
         }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $checkStatus != -1) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $checkStatus != -3) {
-            $this->error('无操作权限');
+            $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $params = $this->request->param();
         if (IS_POST) {

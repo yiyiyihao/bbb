@@ -529,6 +529,7 @@ class OrderService extends Model
         }
         $orderSkuModel = new \app\common\model\OrderSku();
         $service['sub'] = $orderSkuModel->getSubDetail($service['ossub_id'], FALSE, FALSE, TRUE);
+        $service['user'] = db('user')->find($service['user_id']);
         $service['imgs'] = $service['imgs'] ? json_decode($service['imgs'], 1) : [];
         return $service;
     }

@@ -1,0 +1,142 @@
+<div class="form-group">
+    <div class="label">
+        <label>订单号</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['order_sn'] ?? ''}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>产品名称</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['sub']['sku_name'] ?? ''}  {$info['sub']['sku_spec'] ?? ''}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>产品类型</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:goodstype($info['sub']['goods_type'])}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>支付金额</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['sub']['real_price'] ?? ''}元</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>买家姓名</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['user']['realname'] ?$info['user']['realname'] : ($info['user']['nickname'] ? $info['user']['nickname'] : $info['user']['username'])}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>联系方式</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['user']['phone'] ?? '-'}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>支付时间</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['sub']['pay_time']|date='Y-m-d H:i:s'}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>订单状态</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:get_order_status($info['sub'])['status_text']}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>安装状态</label>
+    </div>
+    <div class="field">
+    	{if condition="$info['sub']['work_order']"}
+    		<span class="field-text">{:get_work_order_status($info['sub']['work_order']['work_order_status'])}</span>
+        {else/}
+        	<span class="field-text">-</span>
+        {/if}
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>申请时间</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['add_time']|date='Y-m-d H:i:s'}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>售后状态</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{:get_service_status($info['service_status'])}</span>
+    </div>
+</div>
+<div class="form-group">
+    <div class="label">
+        <label>退款产品数量</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['num']}</span>
+    </div>
+</div> 
+<div class="form-group">
+    <div class="label">
+        <label>退款金额</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['refund_amount']}元</span>
+    </div>
+</div>     
+<div class="form-group">
+	<div class="label">
+  		<label>退款说明</label>
+	</div>
+	<div class="field">
+		<span class="field-text">{$info['remark']}</span>
+	</div>
+</div>
+<div class="form-group">
+    <div class="label">
+      <label>退款凭证</label>
+    </div>
+    <div class="field"> 
+    	{if condition="$info && isset($info['imgs'])"}
+    	<div class="imagesBox form-group clearfix" id="imgs">
+        {volist name="info.imgs" id="vo" mod="10"}
+      	<div class="media radius clearfix">
+            <img src="{$vo ?? ''}" >
+        </div>
+        {/volist}
+		</div>
+		{/if}
+    </div>
+</div>
+{if condition="$info['admin_remark']"}
+<div class="form-group">
+    <div class="label">
+        <label>操作备注</label>
+    </div>
+    <div class="field">
+    	<span class="field-text">{$info['admin_remark']}</span>
+    </div>
+</div>
+{/if}

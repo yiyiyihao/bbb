@@ -712,7 +712,7 @@ class Order extends Model
         }
         $oskuIds = array_column($skus, 'osku_id');
         if ($order['order_status'] != 1) {
-            $this->error = '无操作权限';
+            $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
         }
         if (!$order['pay_status']) {
