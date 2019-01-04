@@ -151,23 +151,33 @@ class Site extends FactoryForm
     {
         $this->initSysMenu();
         $parent_id = input('pid', 0, 'intval');
-        $query = WebMenu::alias('m')
+        $list_top = WebMenu::alias('m')
             ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
-            ->where('m.parent_id', $parent_id)
-            ->where('m.is_del', 0);
-        $list = $query->select();
-        if (IS_AJAX) {
-            return json($list);
-        }
-        $this->assign('list', $list);
+            ->where([
+                'm.parent_id' => $parent_id,
+                'm.is_del' => 0,
+                'm.store_id' => $this->store_id,
+                'm.type' => 0,
+            ])->order('sort')->select();
+        $list_bottom = WebMenu::alias('m')
+            ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
+            ->join('web_page p', 'm.page_id = p.id', 'left')
+            ->where([
+                'm.parent_id' => $parent_id,
+                'm.is_del' => 0,
+                'm.store_id' => $this->store_id,
+                'm.type' => 1,
+            ])->order('sort')->select();
+        $this->assign('list_top', $list_top);
+        $this->assign('list_bottom', $list_bottom);
         $this->subMenu['add'] = [
-            'name' => '新增导航',
+            'name' => '项部导航管理',
             'url' => url('add_menu'),
         ];
-        $sysMenu=config('sysmenu.');
-        $sysMenu=array_column($sysMenu,'name');
-        $this->assign('sysMenu',$sysMenu);
+        $sysMenu = config('sysmenu.');
+        $sysMenu = array_column($sysMenu, 'name');
+        $this->assign('sysMenu', $sysMenu);
         return $this->fetch();
     }
 
@@ -176,6 +186,7 @@ class Site extends FactoryForm
     public function add_menu()
     {
         $id = input('id', 0, ['trim', 'intval']);
+        $pid = input('pid', 0, ['trim', 'intval']);
         if (IS_POST) {
             $menu = empty($id) ? (new WebMenu) : WebMenu::alias('m')->get($id);
             $data = [
@@ -190,16 +201,18 @@ class Site extends FactoryForm
             if ($parent_id !== '') {
                 $data['parent_id'] = (int)$parent_id;
             }
-            $bool = $menu->save($data);
+            $menu->save($data);
             if (empty($id)) {
                 $menu->sort = $menu->id;
                 $menu->save();
             }
             return $this->success('保存成功', url('menu'));
         }
-
         if (!empty($id)) {
-            $data = WebMenu::alias('m')->get($id);
+            $data = WebMenu::alias('m')->field('m.*,pm.name p_name')->join('web_menu pm','pm.id=m.parent_id','left')->get($id);
+            $this->assign('data', $data);
+        }else if (!empty($pid)) {
+            $data = WebMenu::field('id parent_id,name p_name')->get($pid);
             $this->assign('data', $data);
         }
         $this->subMenu['add'] = [
@@ -308,12 +321,12 @@ class Site extends FactoryForm
             ])->find();
             if (empty($menu)) {
                 $menu = new WebMenu;
-                $v['store_id']=$store_id;
+                $v['store_id'] = $store_id;
                 $menu->save($v);
                 $menu->sort = $menu->id;
                 $menu->save();
             } else {
-                $v['is_del']=0;
+                $v['is_del'] = 0;
                 $menu->save($v);
             }
         }

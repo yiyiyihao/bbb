@@ -1,12 +1,12 @@
 <form method="post"  class="form-x admin-form form-auto" id="form">
     <input type="hidden" name="type" value="{$data['type']?? ''}">
-    <input type="hidden" name="pid" value="{:input('pid','')}">
+    <input type="hidden" name="pid" value="{$data['parent_id'] ?? input('pid','')}">
     <div class="tab admin-tab">
         <div class="panel admin-box active">
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">新增导航</a></li>
+                        <li class="active"><a href="#tab-1">{if input('id')}编辑{else/}新增{/if}导航</a></li>
                     </ul>
                 </div>
             </div>
@@ -23,14 +23,49 @@
                     </div>
                     <div class="form-group">
                         <div class="label">
+                            <label>导航位置</label>
+                        </div>
+                        <div class="field">
+                            {php}
+                                $bool=false;
+                                if(isset($data['type'])){
+                                    $bool=$data['type']==0?true:false;
+                                }else{
+                                    $bool=input('type')==0?true:false;
+                                }
+                            {/php}
+                            <input type="text" disabled class="input" value="{if $bool}顶部导航{else /}底部导航{/if}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>导航层级</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled class="input" value="{if isset($data['parent_id']) && $data['parent_id']==0 || !isset($data['parent_id'])}一级导航{else /}二级导航{/if}">
+                        </div>
+                    </div>
+                    {if isset($data['parent_id']) && $data['parent_id']!=0}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>上级层级</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" disabled class="input" value="{$data['p_name']}">
+                        </div>
+                    </div>
+                    {/if}
+
+                    <div class="form-group">
+                        <div class="label">
                             <label>显示页面</label>
                         </div>
                         <div class="field">
                             <div class="button-group radio">
                                 <label class="button {if isset($data['page_type']) && $data['page_type']==0 || !isset($data['page_type'])}active{/if}">
-                                    <input name="page_type" value="1" type="radio"  {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}checked="checked"{/if}>单页</label>
+                                    <input name="page_type" value="0" type="radio"  {if isset($data['page_type']) && $data['page_type']==1 || !isset($data['page_type'])}checked="checked"{/if}>单页</label>
                                 <label class="button {if isset($data['page_type']) && $data['page_type']==1}active{/if}">
-                                    <input name="page_type" value="0" type="radio" >链接</label>
+                                    <input name="page_type" value="1" type="radio" >链接</label>
                             </div>
                             <div class="input-note"></div>
                         </div>
@@ -89,7 +124,7 @@
                 }
                 $('#page select').html(html);
             });
-            if (v==1){
+            if (v==0){
                 $('#page').removeClass('hide');
                 $('#link').addClass('hide');
             }else{
