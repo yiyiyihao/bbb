@@ -34,7 +34,7 @@ class Index extends Base
 
     public function banner()
     {
-        $banner = WebBanner::field('img_url,link_url')->where([
+        $banner = WebBanner::field('id,img_url,link_url')->where([
             'type' => 0,
             'store_id' => $this->store_id
         ])->limit(8)->select();

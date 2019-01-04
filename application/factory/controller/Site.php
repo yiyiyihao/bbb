@@ -83,11 +83,12 @@ class Site extends FactoryForm
                 }
                 $banner->store_id = $this->store_id;
                 $banner->group_id = $group_id;
+                $banner->sort = $item['sort'];
                 $banner->img_url = $item['img_url'];
                 $banner->link_url = $item['link_url'];
                 $banner->type = $type;
                 $banner->save();
-                if (empty($item['id'])) {
+                if (empty($item['id']) && empty($item['sort'])) {
                     $banner->sort = $banner->id;
                     $banner->save();
                 }
