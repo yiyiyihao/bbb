@@ -169,6 +169,12 @@ class Site extends FactoryForm
                 'm.store_id' => $this->store_id,
                 'm.type' => 1,
             ])->order('sort')->select();
+            if ($list_bottom) {
+                $treeService = new \app\common\service\Tree();
+                $list_bottom = $treeService->getTree($list_bottom, 0, 'id');
+            }
+        
+            
         $this->assign('list_top', $list_top);
         $this->assign('list_bottom', $list_bottom);
 
