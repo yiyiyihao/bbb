@@ -53,6 +53,7 @@ class Workorder extends FactoryForm
     }
     public function edit()
     {
+        $this->subMenu['showmenu'] = false;
         $info = parent::_assignInfo();
         if ($info) {
             //派单之后不允许编辑
@@ -168,6 +169,7 @@ class Workorder extends FactoryForm
      */
     public function detail()
     {
+        $this->subMenu['showmenu'] = false;
         $info = $this->_assignInfo();
         $type = $info['work_order_type'];
         //只有厂商和服务商有维修工单的查看权限

@@ -119,9 +119,22 @@ class Store extends FormBase
         $this->assign('info', $info);
         return $this->fetch('admin@store/detail');
     }
+    private function _check()
+    {
+        $check = TRUE;
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $check = FALSE;
+        }else{
+            $config = get_store_config($this->adminUser['factory_id'], TRUE, 'default');
+            $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
+        }
+        return $check;
+    }
+    
     public function add()
     {
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+        $check = $this->_check();
+        if (!$check) {
             return parent::add();
         }else{
             $params = $this->request->param();
@@ -151,9 +164,24 @@ class Store extends FormBase
             }
         }
     }
+    private function _beforeUpdate()
+    {
+        $info = $this->_assignInfo();
+        //判断对象是否存在待处理的申请
+        $exist = db('store_action_record')->where(['to_store_id' => $info['store_id'], 'check_status' => 0])->find();
+        if ($exist) {
+            if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+                $this->error('当前商户存在待审核的操作记录,请前往审核', url('storeaction/check', ['id' => $exist['record_id']]));
+            }else{
+                $this->error('当前商户存在待审核的操作记录,请等待审核');
+            }
+        }
+    }
     public function edit()
     {
-        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+        $this->_beforeUpdate();
+        $check = $this->_check();
+        if (!$check) {
             return parent::edit();
         }else{
             $info = $this->_assignInfo();
@@ -209,7 +237,9 @@ class Store extends FormBase
     public function del(){
         $params = $this->request->param();
         $storeId = isset($params['id']) ? intval($params['id']): 0;
-        $result = $this->model->del($storeId, $this->adminUser);
+        $this->_beforeUpdate();
+        $check = $this->_check();
+        $result = $this->model->del($storeId, $this->adminUser, $check);
         if ($result === FALSE) {
             $this->error($this->model->error);
         }else{
@@ -423,6 +453,14 @@ class Store extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
+        if ($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+            foreach ($table as $key => $value) {
+                if (isset($value['value']) && $value['value'] == 'cname') {
+                    unset($table[$key]);
+                    break;
+                }
+            }
+        }
         if ($table['actions']['button']) {
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
@@ -444,7 +482,7 @@ class Store extends FormBase
         if ($this->storeType == STORE_FACTORY) {
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
-        if ($this->storeType == STORE_DEALER && in_array($this->adminType, [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+        if ($this->storeType == STORE_DEALER && in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
                 $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
                 $this->assign('channels', $channels);
@@ -495,6 +533,13 @@ class Store extends FormBase
             foreach ($list as $key => $value) {
                 $flag = $this->model->checkDel($value, $this->adminUser);
                 $list[$key]['unset_del'] = $flag === FALSE ? 1: 0;
+                if ($this->storeType == STORE_DEALER) {
+                    //计算订单金额 订单数量
+                    $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $value['store_id'], 'order_status' => 1, 'pay_status' => 1])->find();
+                    $list[$key]['order_num'] = $order ? intval($order['num']) : 0;
+                    $list[$key]['order_amount'] = $order ? floatval($order['amount']) : 0;
+                    $list[$key]['address'] = $value['region_name'].' '.$value['address'];
+                }
             }
         }
         return $list;

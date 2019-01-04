@@ -529,8 +529,13 @@ function get_store_config($storeId = 0, $merge = FALSE, $defaultKey = FALSE)
             }
         }
     }
-    if ($defaultKey && $configKey == 'default' && !isset($config[$configKey]['servicer_return_ratio'])) {
-        $config[$configKey]['servicer_return_ratio'] = 100;
+    if ($defaultKey && $configKey == 'default') {
+        if (!isset($config[$configKey]['servicer_return_ratio'])) {
+            $config[$configKey]['servicer_return_ratio'] = 100;
+        }
+        if (!isset($config[$configKey]['channel_operate_check'])) {
+            $config[$configKey]['channel_operate_check'] = 1;
+        }
     }
     if ($defaultKey === FALSE) {
         return $config;

@@ -34,7 +34,7 @@
                             <div class="input-note">请选择公告可见商户类型</div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="label">
                             <label>所有商户可见</label>
                         </div>
@@ -56,7 +56,7 @@
                             </div>
                             <div class="input-note">是否全部商户可见</div>
                         </div>
-                    </div>
+                    </div> -->
                     {if ($info && isset($info['stores']) && $info['stores'])}
                     <div class="form-group js-selectmul" posturl="{:url('channel/getAjaxList', ['store_type' => $info['store_type']])}" str="选择门店商户" searchName="请输入商户名称" formname="store_id" formvalue='{$info.stores ?? ""}'></div>
                     {else/}

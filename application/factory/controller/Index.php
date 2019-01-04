@@ -125,34 +125,6 @@ class Index extends CommonIndex
                 //累计保证金金额(渠道商+服务商)
                 $total['security_money_total'] = $totalStore && isset($totalStore['security_money_total']) ? floatval($totalStore['security_money_total']) : 0;
                 
-                //工单数量统计
-                //$where = [
-                //    'factory_id' => $storeId,
-                //    'is_del' => 0,
-                //];
-                //$field = 'count(if(add_time >= '.$beginToday.', true, NULL)) as today_count, count(*) as total_count';
-                //$field .= ',count(if(work_order_type = 1 , true, NULL)) as workorder_1_count, count(if(work_order_type = 2 , true, NULL)) as workorder_2_count';
-                //$workOrderData = $workOrderModel->field($field)->where($where)->find();
-                $where=[
-                    'factory_id' => $storeId,
-                    'is_del' => 0,
-                    'add_time' => ['>=',$beginToday],
-                ];
-                //今日售后工单数量
-                $today['workorder_count'] =$workOrderModel->where($where)->count() ;
-                //累计售后工单数量
-                unset($where['add_time']);
-                $total['workorder_count'] = $workOrderModel->where($where)->count();
-                $where=[
-                    'factory_id' => $storeId,
-                    'is_del' => 0,
-                    'work_order_type' => 1,
-                ];
-                //累计安装工单数量
-                $total['workorder_1_count'] = $workOrderModel->where($where)->count();
-                $where['work_order_type']=2;
-                //累计维修工单数量
-                $total['workorder_2_count'] = $workOrderModel->where($where)->count();
                 //累计工程师数量
                 $where = [
                     'factory_id' => $storeId,
@@ -193,6 +165,45 @@ class Index extends CommonIndex
                 $to=date('Y-m-d',$beginToday);
                 $this->assign('chart_overview',$this->orderOverView($from,$to,$storeId));
                 $this->assign('chart_amount',$this->orderAmount($from,$to,$storeId));
+                
+                
+                //工单数量统计
+                //1.今日提交安装工单数量
+                //2.今日上门安装工单数量
+                
+                //3.今日提交维修工单数量
+                //4.今日提交维修工单数量
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                    'add_time' => ['>=',$beginToday],
+                ];
+                $field = 'count(if(work_order_type = 1 && add_time >= '.$beginToday.', true, NULL)) as post_count_1';
+                $field .= ', count(if(work_order_type = 1 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_1';
+                $field .= ', count(if(work_order_type = 2 && add_time >= '.$beginToday.', true, NULL)) as post_count_2';
+                $field .= ', count(if(work_order_type = 2 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+                
+                $today['post_count_1'] = $workOrderData ? intval($workOrderData['post_count_1']) : 0;
+                $today['sign_count_1'] = $workOrderData ? intval($workOrderData['sign_count_1']) : 0;
+                $today['post_count_2'] = $workOrderData ? intval($workOrderData['post_count_2']) : 0;
+                $today['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
+                
+                
+                $where = [
+                    'factory_id' => $storeId,
+                    'is_del' => 0,
+                ];
+                $field = 'count(if(work_order_type = 1, true, NULL)) as post_count_1';
+                $field .= ', count(if(work_order_type = 1 && sign_time > 0, true, NULL)) as sign_count_1';
+                $field .= ', count(if(work_order_type = 2, true, NULL)) as post_count_2';
+                $field .= ', count(if(work_order_type = 2 && sign_time > 0, true, NULL)) as sign_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+                
+                $total['post_count_1'] = $workOrderData ? intval($workOrderData['post_count_1']) : 0;
+                $total['sign_count_1'] = $workOrderData ? intval($workOrderData['sign_count_1']) : 0;
+                $total['post_count_2'] = $workOrderData ? intval($workOrderData['post_count_2']) : 0;
+                $total['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
 
             break;
             case ADMIN_CHANNEL:
@@ -321,30 +332,34 @@ class Index extends CommonIndex
                     'is_del' => 0,
                     'work_order_type' => 1,
                     'add_time'=>['>=',$beginToday],
+                    'sign_time > 0',
                 ];
-                //今日安装工单数量
+                //今日上门安装工单数量
                 $today['workorder_count_1']=$workOrderModel->where($where)->count();
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 1,
+                    'sign_time > 0',
                 ];
-                //累计安装工单数量
+                //累计上门安装工单数量
                 $total['workorder_count_1']=$workOrderModel->where($where)->count();
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 2,
                     'add_time'=>['>=',$beginToday],
+                    'sign_time > 0',
                 ];
-                //今日维修工单数量
+                //今日上门维修工单数量
                 $today['workorder_count_2']=$workOrderModel->where($where)->count();
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
                     'work_order_type' => 2,
+                    'sign_time > 0',
                 ];
-                //累计维修工单数量
+                //累计上门维修工单数量
                 $total['workorder_count_2']=$workOrderModel->where($where)->count();
 
                 $from=date('Y-m-d',$beginToday-86400*6);

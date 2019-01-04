@@ -5,6 +5,7 @@ class Commission extends FactoryForm
 {
     public function __construct()
     {
+        $this->modelName = 'commission';
         parent::__construct();
         //渠道/服务商
         if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE])) {

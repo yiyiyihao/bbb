@@ -29,6 +29,7 @@ function initMenu(data){
 			$(this).parent('li').addClass('active');
 			$(".nav-box").addClass("fold");
 			$(this).parents(".nav-box").removeClass("fold");
+			$('#siderbar-nav .nav-box:first').removeClass("fold");
 			//记录打开位置TODO
 		});
 		//绑定菜单鼠标经过事件
@@ -56,6 +57,7 @@ function initMenu(data){
 			if($(this).parent().hasClass("fold")){
 				$(".nav-box").addClass("fold");			
 				$(this).parent().toggleClass("fold");
+				$('#siderbar-nav .nav-box:first').removeClass("fold");
 			}else{
 				$(this).parent().addClass("fold");
 			}

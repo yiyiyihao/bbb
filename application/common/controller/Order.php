@@ -39,10 +39,11 @@ class Order extends FormBase
     {
         $params = $this->request->param();
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
-        $this->subMenu['menu'][] = [
+        /* $this->subMenu['menu'][] = [
             'name' => '订单查看',
             'url' => url('detail', ['order_sn' => $orderSn]),
-        ];
+        ]; */
+        $this->subMenu['menu'] = [];
         $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, $this->config, TRUE, TRUE);
         if ($detail === false) {
             $this->error($this->model->error);

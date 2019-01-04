@@ -5,8 +5,8 @@ class Purchase extends FactoryForm
 {
     public function __construct()
     {
-        $this->modelName = 'goods';
-        $this->model = model($this->modelName);
+        $this->modelName = '采购';
+        $this->model = model('goods');
         parent::__construct();
         //渠道/零售商有采购功能
         if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {

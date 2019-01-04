@@ -45,6 +45,7 @@ class System extends adminSystem
                 $this->error('工单自动评价时间必须大于等于0');
             }
             $params['installer_check'] = isset($params['installer_check']) && intval($params['installer_check']) ? 1 : 0;
+            $params['channel_operate_check'] = isset($params['channel_operate_check']) && intval($params['channel_operate_check']) ? 1 : 0;
             
             $params['monthly_withdraw_start_date'] = isset($params['monthly_withdraw_start_date']) ? intval($params['monthly_withdraw_start_date']) : 0;
             if ($params['monthly_withdraw_start_date'] < 1 || $params['monthly_withdraw_start_date'] > 28) {

@@ -52,6 +52,7 @@ class Index extends CommonBase
         if (IS_POST){
             $params = $this->request->param();
             $realname = isset($params['realname']) && $params['realname'] ? trim($params['realname']) : '';
+            $nickname = isset($params['nickname']) && $params['nickname'] ? trim($params['nickname']) : '';
             $phone = isset($params['phone']) && $params['phone'] ? trim($params['phone']) : '';
             if (!$realname) {
                 $this->error('真实姓名不能为空');
@@ -77,6 +78,10 @@ class Index extends CommonBase
                 if ($realname != $this->adminUser['realname']) {
                     $flag = TRUE;
                     $this->adminUser['realname'] = $realname;
+                }
+                if ($nickname != $this->adminUser['nickname']) {
+                    $flag = TRUE;
+                    $this->adminUser['nickname'] = $nickname;
                 }
                 if ($phone != $this->adminUser['phone']) {
                     $flag = TRUE;

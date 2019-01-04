@@ -13,7 +13,7 @@
                             <input type="text" class="input" id="pay_no" name="pay_no" size="20" value="{$_GET['pay_no'] ?? ''}" placeholder="第三方交易号">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <div class="field">
                             <input type="text" class="input" id="name" name="name" size="20" value="{$_GET['name'] ?? ''}" placeholder="收货人">
                         </div>
@@ -22,7 +22,7 @@
                         <div class="field">
                             <input type="text" class="input" id="phone" name="phone" size="20" value="{$_GET['phone'] ?? ''}" placeholder="收货人电话">
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-button">
                         <button class="button" type="submit">搜索</button>
                     </div>
@@ -35,7 +35,7 @@
       <tbody>
         <tr>
           <th width="*">订单号</th>
-          <th width="100">下单账号</th>
+          <!-- <th width="100">下单账号</th> -->
           <th width="*">支付方式</th>
           <th width="*">第三方交易号</th>
           {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
@@ -55,8 +55,8 @@
           {volist name="list" id="vo" key="key"}
             <tr>
               <td>{$vo.order_sn}</td>
-              <td>{$vo.nickname ?$vo.nickname: $vo['username']}</td>
-              <td>{$vo['pay_code']}</td>
+              <!-- <td>{$vo.nickname ?$vo.nickname: $vo['username']}</td> -->
+              <td>{$vo['pay_name'] ?? ''}</td>
               <td>{$vo['pay_sn']}</td>
               {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
               <td>{$vo.goods_amount}元</td>

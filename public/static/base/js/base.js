@@ -66,6 +66,24 @@ $.ajaxSetup({
 
                 });
             });
+            /*$(table).find('.js-open').click(function (e) {
+                var obj = this;
+                var div = $(obj).parents('tr');
+                var url = $(obj).attr('href');
+                Do.ready('tips', 'dialog', function () {
+                	if(!url){
+                		layer.msg('地址错误');
+                    	return false;
+                    }
+                    var text = $(obj).attr('title');
+                    layer.open({
+                  	  type: 2,
+                  	  area: ['800px', '700px'], //宽高 
+                  	  content: url //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+                  	});
+                });
+                return false;
+            });*/
             //处理删除
             $(table).find('.js-del').click(function () {
                 var obj = this;
