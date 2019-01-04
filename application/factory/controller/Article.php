@@ -68,15 +68,16 @@ class Article extends FormBase
             'store_id' => $store_id,
             'id' => $id,
         ])->find();
+        if ($article->status){
+            $this->error('文章已经发布');
+            return false;
+        }
         if (empty($article)) {
             $this->error("文章不存在或已被删除");
             return false;
         }
         $article->status = 1;
-        if ($article->save()) {
-            $this->success("发布成功！", 'index');
-        }
-        $this->error("文章不存在或已被删除");
+        $this->success("发布成功！", 'index');
         return false;
     }
 
