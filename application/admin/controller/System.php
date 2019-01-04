@@ -36,7 +36,7 @@ class System extends AdminForm
             if ($data['workorder_auto_assess_day'] < 0) {
                 $this->error('工单自动评价天数必须大于0');
             }
-            $data['withdraw_min_amount'] = isset($params['withdraw_min_amount']) ? intval($params['withdraw_min_amount']) : 0;
+            $data['withdraw_min_amount'] = isset($params['withdraw_min_amount']) ? floatval($params['withdraw_min_amount']) : 0;
             if ($data['withdraw_min_amount'] <= 0) {
                 $this->error('单笔提现最小金额必须大于0');
             }

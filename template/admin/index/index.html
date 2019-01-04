@@ -7,14 +7,14 @@
             <li class="nav-item"><a href="javascript:;" title="返回首页" id="backHome"><span class="icon-home"></span></a></li>
         </ul>
         <ul class="nav-inline nav-right">
-        	{if condition="$adminUser['admin_type'] != 1"}
+        	{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_SYSTEM"}
             <li class="nav-item" id="sysmsg"><a title="系统消息"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
             <div class="nav-tab-list animate">
-            	<ul class="nav-tab-title">
-            		<!-- <li class="icon-message tab-active"> 消息</li> -->
+            	<!-- <ul class="nav-tab-title">
+            		<li class="icon-message tab-active"> 消息</li>
             		{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}<li class="icon-tips"> 公告</li>{/if}
-            		</ul>
-                <ul class="nav-tab-box" id="sysmessage">
+            	</ul> -->
+                <!-- <ul class="nav-tab-box" id="sysmessage">
                 	{if (isset($messageList) && $messageList)}
                     {volist name="messageList" id="vo" empty="<li class='empty icon-message-squre'> 暂无系统消息</li>"}
                     	<li class="msgBox" data-id="{$vo.bulletin_id}">
@@ -23,9 +23,9 @@
                         </li>
                     {/volist}
                     {/if}
-                </ul>
+                </ul> -->
                 {if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}
-                <ul class="nav-tab-box hide" id="sysnotice">
+                <ul class="nav-tab-box" id="sysnotice">
                     {volist name="bulletins" id="vo" empty="<li class='empty icon-message-squre'> 暂无公告消息</li>"}
                     <li class="noticeBox">
                     	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span> {$vo.name|default=''}

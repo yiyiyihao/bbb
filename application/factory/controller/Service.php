@@ -40,6 +40,17 @@ class Service extends FactoryForm
         ];
         $this->subMenu['showmenu'] = true;
     }
+    function _afterList($list)
+    {
+        if ($list) {
+            foreach ($list as $key => $value) {
+                if ($value['pay_code']) {
+                    $list[$key]['pay_name'] = db('payment')->where(['pay_code' => $value['pay_code'], 'is_del' => 0, 'store_id' => $value['store_id']])->value('name');
+                }
+            }
+        }
+        return $list;
+    }
     /**
      * 售后订单列表
      */
@@ -50,6 +61,7 @@ class Service extends FactoryForm
     }
     public function detail()
     {
+        $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $service = $this->_assignInfo();
         $service = $this->serviceModel->getServiceDetail($service['service_sn'], $this->adminUser, 0, TRUE);
@@ -74,6 +86,7 @@ class Service extends FactoryForm
     }
     public function check()
     {
+        $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $service = $this->_assignInfo();
         if ($service['service_status'] != 0) {
@@ -211,7 +224,7 @@ class Service extends FactoryForm
             ['type' => 'input', 'name' =>  'sn', 'value' => '订单编号', 'width' => '30'],
 //             ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==售后服务类型=='],
             ['type' => 'input', 'name' =>  'gname', 'value' => '产品名称', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'name', 'value' => '买家商户名称/账号/联系电话', 'width' => '30'],
+//             ['type' => 'input', 'name' =>  'name', 'value' => '买家商户名称/账号/联系电话', 'width' => '30'],
         ];
         return $search;
     }
@@ -220,6 +233,11 @@ class Service extends FactoryForm
      */
     function _tableData(){
         $table = parent::_tableData();
+        foreach ($table as $key => $value) {
+            if(in_array($value['value'], ['status', 'sort_order'])){
+                unset($table[$key]);
+            }
+        }
         $table['actions']['button'][] = ['text'  => '详情查看', 'action'=> 'detail', 'icon'  => 'setting','bgClass'=> 'bg-main'];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $table['actions']['button'][] = [

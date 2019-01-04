@@ -269,13 +269,14 @@ class Goods extends FormBase
         if (!$name) {
             $this->error('请输入产品名称');
         }
-        if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
-            $this->error('请选择产品类别');
-        }
+//         if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
+//             $this->error('请选择产品类别');
+//         }
 //         if (!$goodsType || !isset($this->goodsTypes[$goodsType])) {
 //             $this->error('请选择产品类型');
 //         }
         $goodsType = $data['goods_type'] = 1;
+        $goodsCate = $data['goods_cate'] = 1;
         if ($goodsType == 1) {
             if ($installPrice <= 0) {
                 $this->error('请填写安装费用');

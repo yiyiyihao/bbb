@@ -40,6 +40,9 @@ class Order extends Model
                     'status_text' => get_order_apply_status($applyStatus),
                     'count' => $worderCount,
                 ];
+                if ($value['pay_code']) {
+                    $list[$key]['pay_name'] = db('payment')->where(['pay_code' => $value['pay_code'], 'is_del' => 0, 'store_id' => $value['store_id']])->value('name');
+                }
             }
         }
         return $list;
@@ -497,7 +500,8 @@ class Order extends Model
             }
         }
         $this->orderTrack($order, 0, $remark);
-        return $this->orderLog($order, $user, '取消订单', $remark);
+        $this->orderLog($order, $user, '取消订单', $remark);
+        return TRUE;
     }
     public function createOrder($user, $from, $skuId, $num, $ordermit = FALSE, $addr = [], $remark = '')
     {

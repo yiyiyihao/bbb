@@ -23,7 +23,7 @@
 					          <th width="80">支付金额</th>
 					          <th width="120">安装状态</th>
 					          <th width="120">退货退款状态</th>
-					          <th width="*">物流信息</th>
+					          <!-- <th width="*">物流信息</th> -->
 					          <th width="*">操作</th>
 					        </tr>
 					        {notempty name="info.order.skus"}
@@ -38,7 +38,7 @@
 					              <td>{$vo.real_price}元</td>
 					              <td>-</td>
 					              <td>-</td>
-					              <td>-</td>
+					              <!-- <td>-</td> -->
 					              <td>
 					              	<span class='button-group'>
 					              	{if condition="$info['order']['order_type'] != 1"}
@@ -49,7 +49,7 @@
 					              	</span>
 					              </td>
 					            </tr>
-					            {notempty name="vo"}
+					            {if ($vo['subs'])}
 						          {volist name="vo.subs" id="v" key='k'}
 						            <tr>
 						              <td>|-{$k}</td>
@@ -61,13 +61,14 @@
 						              	{if condition="$vo.goods_type != 2"}
 						              	{if ($info['order']['pay_status'] == 1 && $v.work_order)}
 						              		{:get_work_order_status($v.work_order.work_order_status)}
+						              	{else/}	未申请
 						              	{/if}
 						              	{else/}
 						              		样品不安装
 						              	{/if}
 						              </td>
 						              <td>{:get_service_status($v.service.service_status)}</td>
-						              <td>{$v.delivery_name}<br>{$v.delivery_sn}</td>
+						              <!-- <td>{$v.delivery_name}<br>{$v.delivery_sn}</td> -->
 						              <td>
 						              	{if condition="$vo.goods_type != 2"}
 						              		{if condition="(!$v.service || $v.service.service_status == -2) && $info['order']['pay_status'] == 1 && (!$v.work_order || $v.work_order.work_order_status == -1)"}
@@ -90,7 +91,7 @@
 						              </td>
 						            </tr>
 						          {/volist}
-						        {/notempty}
+						        {/if}
 					          {/volist}
 					        {/notempty}
 					      </tbody>

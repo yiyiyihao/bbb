@@ -4,80 +4,115 @@
         	<div class="panel-body clearfix">
             	<div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>今日订单数量</h4>
+                        <h4>今日支付订单数量</h4>
                         <div class="item-num">{$today.order_count}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>今日订单金额</h4>
+                        <h4>今日支付订单金额</h4>
                         <div class="item-num">￥{$today.order_amount}</div>
                     </div>
                 </div>
                 <div class="xm3">
-                	<div class="num-item-box col-box">
-                        <h4>今日新增零售商</h4>
-                        <div class="item-num">{$today.dealer_count}</div>
-                    </div>  
-                </div>
-                <div class="xm3">
                     <div class="num-item-box col-box">
-                   		<h4>今日售后工单数量</h4>
-                       	<div class="item-num">{$today.workorder_count}</div>
+                        <h4>累计成功退款订单数</h4>
+                        <div class="item-num">{$total.refund_count|default=0}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>累计订单数量</h4>
+                        <h4>今日新增零售商数</h4>
+                        <div class="item-num">{$today.dealer_count}</div>
+                    </div>  
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>累计支付订单数量</h4>
                         <div class="item-num">{$total.order_count}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>累计订单金额</h4>
+                        <h4>累计支付订单金额</h4>
                         <div class="item-num">￥{$total.order_amount}</div>
                     </div>
-                </div>                
+                </div>
                 <div class="xm3">
-                	<div class="num-item-box col-box">
-                   		<h4>累计售后工程师数</h4>
-                       	<div class="item-num">{$total.installer_count}</div>
-                   	</div> 
+                    <div class="num-item-box col-box">
+                        <h4>累计成功退款金额</h4>
+                        <div class="item-num">￥{$total.refund_amount|default=0}</div>
+                    </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                   		<h4>累计售后工单数量</h4>
-                       	<div class="item-num">{$total.workorder_count}</div>
-                   	</div>
-                </div>
-                <div class="xm3">
-                	<div class="num-item-box col-box">
-                        <h4>累计零售商数量</h4>
+                        <h4>零售商总数</h4>
                         <div class="item-num">{$total.dealer_count}</div>
                     </div> 
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>累计渠道商数量</h4>
+                        <h4>渠道商总数</h4>
                         <div class="item-num">{$total.channel_count}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
-                        <h4>累计服务商数量</h4>
+                        <h4>服务商总数</h4>
                         <div class="item-num">{$total.service_count}</div>
                     </div>
-                </div>
+                </div>                
                 <div class="xm3">
-                    <div class="num-item-box col-box">
-                        <h4>累计退款订单数</h4>
-                        <div class="item-num">{$total.refund_count|default=0}</div>
-                    </div>
+                	<div class="num-item-box col-box">
+                   		<h4>售后工程师总数</h4>
+                       	<div class="item-num">{$total.installer_count}</div>
+                   	</div> 
                 </div>
-                <div class="xm3">
-                    <div class="num-item-box col-box">
-                        <h4>累计退款金额</h4>
-                        <div class="item-num">￥{$total.refund_amount|default=0}</div>
+            </div>
+        </div>
+    </div>
+    <div class="xm12">
+    	<div class="line-big col-space15">
+            <div class="xm12">
+                <div class="panel admin-dashboard boxShadow">
+                    <div class="panel-head"><span>工单概况</span></div>
+                    <div class="panel-body">
+                       <div class="panel-block flex-container">
+                       		<div class="flex-item num-item-box">
+                            	<h4>今日提交安装工单数量</h4>
+                                <div class="item-num">{$today.post_count_1}</div>
+                            </div>  
+                            <div class="flex-item num-item-box">
+                            	<h4>今日上门安装工单数量</h4>
+                                <div class="item-num">{$today.sign_count_1}</div>
+                            </div>
+                            <div class="flex-item num-item-box">
+                            	<h4>今日提交维修工单数量</h4>
+                                <div class="item-num">{$today.post_count_2}</div>
+                            </div>  
+                            <div class="flex-item num-item-box">
+                            	<h4>今日上门维修工单数量</h4>
+                                <div class="item-num">{$today.sign_count_2}</div>
+                            </div>    
+                       </div>
+                       <div class="panel-block flex-container">
+                       		<div class="flex-item num-item-box">
+                            	<h4>累计提交安装工单数量</h4>
+                                <div class="item-num">{$total.post_count_1}</div>
+                            </div>  
+                            <div class="flex-item num-item-box">
+                            	<h4>累计上门安装工单数量</h4>
+                                <div class="item-num">{$total.sign_count_1}</div>
+                            </div>                            
+                            <div class="flex-item num-item-box">
+                            	<h4>累计提交维修工单数量</h4>
+                                <div class="item-num">{$total.post_count_2}</div>
+                            </div>  
+                            <div class="flex-item num-item-box">
+                            	<h4>累计上门维修工单数量</h4>
+                                <div class="item-num">{$total.sign_count_2}</div>
+                            </div>  
+                       </div>
                     </div>
                 </div>
             </div>
@@ -85,7 +120,7 @@
     </div>
 	<div class="xm12">
     	<div class="line-big col-space15">
-            <div class="xm6">
+            <div class="xm12">
                 <div class="panel admin-dashboard boxShadow">
                     <div class="panel-head"><span>财务概况</span></div>
                     <div class="panel-body">
@@ -95,29 +130,12 @@
                                 <div class="item-num">￥{$total.security_money_total}</div>
                             </div>                            
                             <div class="flex-item num-item-box">
-                            	<h4>渠道商累计提现金额</h4>
+                            	<h4>渠道商累计成功提现金额</h4>
                                 <div class="item-num">￥{$total.channel_withdraw_amount}</div>
                             </div>
                             <div class="flex-item num-item-box">
-                            	<h4>服务商累计提现金额</h4>
+                            	<h4>服务商累计成功提现金额</h4>
                                 <div class="item-num">￥{$total.servicer_withdraw_amount}</div>
-                            </div>
-                       </div>
-                    </div>
-                </div>
-            </div>
-            <div class="xm6">
-                <div class="panel admin-dashboard boxShadow">
-                    <div class="panel-head"><span>工单概况</span></div>
-                    <div class="panel-body">
-                       <div class="panel-block flex-container">
-                       		<div class="flex-item num-item-box">
-                            	<h4>累计安装工单数量</h4>
-                                <div class="item-num">{$total.workorder_1_count}</div>
-                            </div>                            
-                            <div class="flex-item num-item-box">
-                            	<h4>累计维修工单数量</h4>
-                                <div class="item-num">{$total.workorder_2_count}</div>
                             </div>
                        </div>
                     </div>
@@ -141,11 +159,7 @@
             </div>
         </div>
     </div>
-    
-    
 </div>
-
-
 {php}
 $today = date('Y-m-d');
 //1天

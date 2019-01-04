@@ -616,7 +616,9 @@ class Index extends ApiBase
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']): FALSE;
         $where = ['WO.is_del' => 0];
         if (!$installer) {
-            $where['work_order_status'] = $status;
+            if (isset($this->postParams['status']) && trim($this->postParams['status']) != "") {
+                $where['work_order_status'] = $status;
+            }
         }else{
             if (!get_work_order_installer_status($status)) {
                 $status = FALSE;

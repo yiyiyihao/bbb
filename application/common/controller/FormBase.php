@@ -379,4 +379,31 @@ class FormBase extends CommonBase
     {
         return FALSE;
     }
+    
+    protected function actionLog($title = '', $user = [])
+    {
+        $request = $this->request;
+        
+        $action = strtolower($request->action());
+        $title = $title ? $title : lang($this->modelName).lang($action);
+        
+        $params = $request->param();
+        $data = [
+            'user_id'   => ADMIN_ID,
+            'user_name' => trim($this->adminUser['realname'] ? $this->adminUser['realname'] : ($this->adminUser['nickname'] ? $this->adminUser['nickname'] : $this->adminUser['username'])),
+            'admin_type'=> $this->adminUser['admin_type'],
+            'store_id'  => $this->adminUser['store_id'],
+            'module'    => strtolower($request->module()),
+            'controller'=> strtolower($request->controller()),
+            'action'    => $action,
+            'url'       => $request->host().$request->url(),
+            'add_time'  => time(),
+            
+            'request_method' => $request->method(),
+            'request_params' => $params ? json_encode($params) : '',
+            
+            'title' => $title,
+        ];
+        db('apilog_action')->insertGetId($data);
+    }
 }

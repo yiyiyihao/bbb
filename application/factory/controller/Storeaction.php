@@ -27,11 +27,13 @@ class Storeaction extends FactoryForm
     }
     public function detail()
     {
+        $this->subMenu['showmenu'] = false;
         $info = $this->_assignInfo();
         return $this->fetch();
     }
     public function check()
     {
+        $this->subMenu['showmenu'] = false;
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
             $this->error('NO ACCESS');
         }

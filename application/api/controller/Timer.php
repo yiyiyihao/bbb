@@ -18,7 +18,7 @@ class Timer extends ApiBase
      */
     public function minute()
     {
-        $this->_returnMsg(['time' => date('Y-m-d H:i:s')]);
+        $time = date('Y-m-d H:i:s');
         $thisTime = time();
         //获取系统默认配置
         $default = get_system_config('system_default');
@@ -113,13 +113,13 @@ class Timer extends ApiBase
                 $assessWhere = [
                     'work_order_type' => 1,
                     'work_order_status' => 4,
-                    'WOS.type IS NULL OR WOS.type <> 1',
+                    'assess_id IS NULL OR assess_id = 0',
                     $assessSql,
                 ];
                 $join = [
-                    ['work_order_assess WOS', 'WO.worder_id = WOS.worder_id', 'LEFT'],
+                    ['work_order_assess WOS', 'WO.worder_id = WOS.worder_id AND WOS.type = 1', 'LEFT'],
                 ];
-                $workOrders = $workOrderModel->field('WO.*')->alias('WO')->join($join)->where($assessWhere)->select();
+                $workOrders = $workOrderModel->field('WO.*, WOS.*')->alias('WO')->join($join)->where($assessWhere)->select();
                 if ($workOrders) {
                     foreach ($workOrders as $key => $value) {
                         //自动评价+安装费返还
@@ -138,7 +138,7 @@ class Timer extends ApiBase
                 pre($workOrders, 1);
             }
         }
-        $this->_returnMsg(['time' => date('Y-m-d H:i:s')]);
+        $this->_returnMsg(['time' => $time]);
     }
     
     protected function _checkPostParams()

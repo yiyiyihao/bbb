@@ -67,6 +67,13 @@ class Suborder extends commonOrder
         }
         return $where;
     }
+    function _afterList($list)
+    {
+        if ($list) {
+            $list = $this->model->getOrderList($list);
+        }
+        return $list;
+    }
     private function _buildmap($param = []){
         $params = $this->request->param();
         $map = [

@@ -35,6 +35,9 @@ class CommonBase extends Base
     	    //公共登录鉴权处理
     	    $this->commonInit($domain);
     	}
+    	if (ADMIN_ID) {
+    	    $this->actionLog();
+    	}
     }
     //公共登录处理初始化
     protected function commonInit($domain){
@@ -221,9 +224,45 @@ class CommonBase extends Base
                 'msg' => $userMod->error,
             ];
         }
+        $this->actionLog('登录后台', $userInfo);
         return [
             'error' => 0,
         ];;
+    }
+    /**
+     * 后台管理员登录操作日志记录
+     * @param string $content
+     * @param array $user
+     */
+    protected function actionLog($title = '', $user = [])
+    {
+        $request = $this->request;
+        $action = strtolower($request->action());
+        $title = $title ? $title : lang($action);
+        $user = $user ? $user : $this->adminUser;
+        $controller = strtolower($request->controller());
+        if ($controller == 'index' && $action == 'index') {
+            $title = '后台首页';
+        }
+        $params = $request->param();
+        $name = $user ? (trim($user['realname'] ? $user['realname'] : ($user['nickname'] ? $user['nickname'] : $user['username']))) : '';
+        $data = [
+            'user_id'   => ADMIN_ID,
+            'user_name'      => $name,
+            'admin_type'=> $user ? $user['admin_type'] : 0,
+            'store_id'  => $user ? $user['store_id'] : 0,
+            'module'    => strtolower($request->module()),
+            'controller'=> $controller,
+            'action'    => $action,
+            'url'       => $request->host().$request->url(),
+            'add_time'  => time(),
+            
+            'request_method' => $request->method(),
+            'request_params' => $params ? json_encode($params) : '',
+            
+            'title' => $title,
+        ];
+        db('apilog_action')->insertGetId($data);
     }
     
     //获取页面的面包屑

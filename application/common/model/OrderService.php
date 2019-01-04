@@ -161,6 +161,7 @@ class OrderService extends Model
         $action = $checkStatus ? '同意' : '拒绝';
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, $action.$types[$type], $remark, $service['service_id']);
+        
         return TRUE;
     }
     /**
@@ -266,10 +267,10 @@ class OrderService extends Model
                 $this->error = '售后申请未审核,不允许退款';
                 return FALSE;
             break;
-            case 1:
-                $this->error = '等待卖家退货,不允许退款';
-                return FALSE;
-            break;
+//             case 1:
+//                 $this->error = '等待卖家退货,不允许退款';
+//                 return FALSE;
+//             break;
             case 3:
                 $this->error = '已完成退款,不允许重复操作';
                 return FALSE;
@@ -387,7 +388,7 @@ class OrderService extends Model
             $result = $financeModel->financeChange($commission['store_id'], $params, '买家退款,收益退还');
         }
         $orderModel = new Order();
-        $orderModel->orderLog($order, $user, '卖家退款', $remark, $service['service_id']);
+        $orderModel->orderLog($order, $user, '卖家完成退款', $remark, $service['service_id']);
         //当订单下所有产品都已经完成退款时,当前订单改为已关闭状态
         $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->sum('num');
         $refundCount = db('order_sku_service')->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
