@@ -37,7 +37,7 @@ class Article extends FormBase
             $article=empty($id)?(new WebArticle):(WebArticle::get($id));
             $data=[
                 'store_id'=>$store_id,
-                'menu_id'=>2,
+                'sys_menu_id'=>2,//公司动态
                 'is_top'=>input('is_top')? 1:0,
                 'title'=>input('title'),
                 'summary'=>input('summary'),

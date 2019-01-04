@@ -3,9 +3,11 @@
 namespace app\api\controller;
 
 use app\common\model\Store;
+use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
+
 class Web extends ApiBase
 {
 
@@ -32,9 +34,19 @@ class Web extends ApiBase
     //零售商查询
     public function retailers()
     {
-        $a=db('region')->field('region_id id,parent_id,region_name name')->where('region_id','>',1)->where(['is_del'=>0])->all();
-        $b=getTree($a,0);
-        return json($b[0]['sub']);
+
+
+    }
+
+    public function company_dynamic()
+    {
+        $page = input('page', 1, 'intval');
+        $limit = input('limit', 10, 'intval');
+        $data=WebArticle::where([
+            
+        ])->page($page)->limit($limit)->select();
+
+
     }
 
 
