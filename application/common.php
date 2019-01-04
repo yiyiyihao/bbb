@@ -828,11 +828,11 @@ function curl_post($url, $post_data){
 }
 
 
-function getTree($data, $pid=0,$sub_name='sub',$parent_name='parent_id'){
+function getTree($data, $pid=0,$sub_name='sub',$parent_name='parent_id',$id_name='id'){
     $tree = '';
     foreach($data as $k => $v){
         if($v[$parent_name] == $pid){
-            $v[$sub_name] = getTree($data, $v['id']);
+            $v[$sub_name] = getTree($data, $v[$id_name],$sub_name,$parent_name,$id_name);
             $tree[] = $v;
             unset($data[$k]);//减少内存消耗
         }
