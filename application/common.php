@@ -405,7 +405,7 @@ function ch_order_status($ident) {
         'part_finish'   => '部分完成',
         'all_finish'    => '已完成',
         'receive'       => '已收货',
-        
+
         // 前台时间轴
         'time_cancel'   => '取消订单',
         'time_recycle'  => '回收订单',
@@ -515,7 +515,7 @@ function get_store_config($storeId = 0, $merge = FALSE, $defaultKey = FALSE)
     $factory = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
     $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
     $configKey = $defaultKey ? $defaultKey : 'default';
-    
+
     if ($merge) {
         //获取系统默认配置
         $systemKey = 'system_'.$configKey;
@@ -573,7 +573,7 @@ function del_file_by_dir($dir) {
         }
     }
     //6、循环外删除目录!!
-    rmdir($dir); 
+    rmdir($dir);
 }
 
 function array_implode($array = [])
@@ -637,7 +637,7 @@ function get_nonce_str($length = 32, $type = 1)
     }else{
         $chars = "0123456789";
     }
-    
+
     $str ="";
     for ( $i = 0; $i < $length; $i++ )  {
         $str .= substr($chars, mt_rand(0, strlen($chars)-1), 1);
@@ -825,4 +825,29 @@ function curl_post($url, $post_data){
     }
     //显示获得的数据
     return $json;
+}
+
+
+function getTree($data, $pid=0,$sub_name='sub',$parent_name='parent_id'){
+    $tree = '';
+    foreach($data as $k => $v){
+        if($v[$parent_name] == $pid){
+            $v[$sub_name] = getTree($data, $v['id']);
+            $tree[] = $v;
+            unset($data[$k]);//减少内存消耗
+        }
+    }
+    return $tree;
+}
+
+function returnMsg($errCode = 0, $errMsg = 'ok', $data = [])
+{
+    $arr = compact('errCode', 'errMsg', 'data');
+    if (empty($arr['data'])) {
+        unset($arr['data']);
+    }
+    $result = json_encode($arr);
+    header('Content-Type:application/json');
+    echo $result;
+    die();
 }

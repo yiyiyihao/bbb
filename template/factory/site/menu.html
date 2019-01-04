@@ -36,7 +36,7 @@
                                 <td>{$vo.name}</td>
                                 <td>{$type}</td>
                                 <td>{$vo.sort}</td>
-                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>{if !in_array($vo.name,$sysMenu)} <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a>{/if}  </td>
+                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>{if isset($vo.id)}  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>{if !in_array($vo.name,$sysMenu)} <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a>{/if} {/if} </td>
                             </tr>
                             {/volist}
                             {/notempty}

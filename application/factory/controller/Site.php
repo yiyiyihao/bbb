@@ -30,7 +30,10 @@ class Site extends FactoryForm
     public function index()
     {
         //轮播图
-        $slideShow = WebBanner::where('type', 0)->limit(8)->select();
+        $slideShow = WebBanner::where([
+            'type' => 0,
+            'store_id' => $this->store_id
+        ])->limit(8)->select();
         $this->assign('slideShow', $slideShow);
         $this->subMenu['add'] = [
             'name' => '新增图片',
@@ -61,6 +64,7 @@ class Site extends FactoryForm
     public function banner()
     {
         $type = $this->request->param('type', 0, 'intval');
+        $id = $this->request->param('id', 0, 'intval');
         if (IS_POST) {//处理表单
             $param = $this->request->param('banner');
             $group_id = $this->request->param('group_id', 0, 'intval');
@@ -77,6 +81,7 @@ class Site extends FactoryForm
                 } else {
                     $banner = WebBanner::find($item['id']);
                 }
+                $banner->store_id = $this->store_id;
                 $banner->group_id = $group_id;
                 $banner->img_url = $item['img_url'];
                 $banner->link_url = $item['link_url'];
@@ -153,7 +158,6 @@ class Site extends FactoryForm
     //导航列表
     public function menu()
     {
-        $this->initSysMenu();
         $parent_id = input('pid', 0, 'intval');
         $list_top = WebMenu::alias('m')
             ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
@@ -164,6 +168,7 @@ class Site extends FactoryForm
                 'm.store_id' => $this->store_id,
                 'm.type' => 0,
             ])->order('sort')->select();
+        $list_top = array_merge(config('sysmenu.'), $list_top->toArray());
         $list_bottom = WebMenu::alias('m')
             ->field('m.id,m.parent_id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
@@ -173,12 +178,12 @@ class Site extends FactoryForm
                 'm.store_id' => $this->store_id,
                 'm.type' => 1,
             ])->order('sort')->select();
-            if ($list_bottom) {
-                $treeService = new \app\common\service\Tree();
-                $list_bottom = $treeService->getTree($list_bottom, 0, 'id');
-            }
-        
-            
+        if ($list_bottom) {
+            $treeService = new \app\common\service\Tree();
+            $list_bottom = $treeService->getTree($list_bottom, 0, 'id');
+        }
+
+
         $this->assign('list_top', $list_top);
         $this->assign('list_bottom', $list_bottom);
 
@@ -201,7 +206,7 @@ class Site extends FactoryForm
         $pid = input('pid', 0, ['trim', 'intval']);
         if (IS_POST) {
             $menu = empty($id) ? (new WebMenu) : WebMenu::alias('m')->get($id);
-            $store_no=\app\common\model\Store::where('store_id',$this->store_id)->value('store_no');
+            $store_no = \app\common\model\Store::where('store_id', $this->store_id)->value('store_no');
             $data = [
                 'name' => input('name'),
                 'type' => input('type', 0, 'trim,intval'),
@@ -223,9 +228,9 @@ class Site extends FactoryForm
             return $this->success('保存成功', url('menu'));
         }
         if (!empty($id)) {
-            $data = WebMenu::alias('m')->field('m.*,pm.name p_name')->join('web_menu pm','pm.id=m.parent_id','left')->get($id);
+            $data = WebMenu::alias('m')->field('m.*,pm.name p_name')->join('web_menu pm', 'pm.id=m.parent_id', 'left')->get($id);
             $this->assign('data', $data);
-        }else if (!empty($pid)) {
+        } else if (!empty($pid)) {
             $data = WebMenu::field('id parent_id,name p_name')->get($pid);
             $this->assign('data', $data);
         }
@@ -320,32 +325,6 @@ class Site extends FactoryForm
         $result->is_del = 1;
         $result->save();
         return $this->success("删除成功", url('page'));
-    }
-
-
-    //初始化厂商系统菜单
-    public function initSysMenu()
-    {
-        $menus = config('sysmenu.');
-        $store_id = $this->store_id;
-        foreach ($menus as $v) {
-            $menu = WebMenu::where([
-                'store_id' => $store_id,
-                'name' => $v['name'],
-            ])->find();
-            if (empty($menu)) {
-                $store_no=\app\common\model\Store::where('store_id',$store_id)->value('store_no');
-                $menu = new WebMenu;
-                $v['store_id'] = $store_id;
-                $v['store_no'] =$store_no;
-                $menu->save($v);
-                $menu->sort = $menu->id;
-                $menu->save();
-            } else {
-                $v['is_del'] = 0;
-                $menu->save($v);
-            }
-        }
     }
 
 
