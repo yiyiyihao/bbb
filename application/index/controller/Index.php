@@ -29,19 +29,30 @@ class Index extends Base
 
     public function index()
     {
-        dump($this->store_id);
+
     }
 
+    //零售商查询
+    public function retailers()
+    {
+        $a=db('region')->field('region_id,parent_id,region_name')->where('region_id','>',1)->where(['is_del'=>0])->all();
+        $b=getTree($a,0,'sub','parent_id','region_id');
+        return json($b);
+    }
+
+
+    //轮播图
     public function banner()
     {
         $banner = WebBanner::field('id,img_url,link_url')->where([
             'type' => 0,
             'store_id' => $this->store_id
         ])->limit(8)->select();
-        return returnMsg(0,'ok',$banner);
+        return returnMsg(0, 'ok', $banner);
     }
 
 
+    //顶部导航
     public function nav_top()
     {
         $data = WebMenu::alias('m')
@@ -71,6 +82,7 @@ class Index extends Base
         return returnMsg(0, 'ok', array_merge($menu, $sysMenu));
     }
 
+    //底部导航
     public function nav_bottom()
     {
         $data = WebMenu::alias('m')
@@ -87,17 +99,16 @@ class Index extends Base
             $arr['parent_id'] = $item['parent_id'];
             $arr['url'] = $item['url'];
             if ($item['page_type'] == 0) {
-                $arr['url']=url('page/index', ['id' => $item['page_id']]);
+                $arr['url'] = url('page/index', ['id' => $item['page_id']]);
             }
             return $arr;
         }, $data);
         $result['list'] = getTree($data);
-        $config=WebConfig::where('store_id',$this->store_id)->value('value');
-        $config=json_decode($config,true);
-        unset($config['logo'],$config['login_bg']);
-        return returnMsg(0, 'ok', array_merge($config,$result));
+        $config = WebConfig::where('store_id', $this->store_id)->value('value');
+        $config = json_decode($config, true);
+        unset($config['logo'], $config['login_bg']);
+        return returnMsg(0, 'ok', array_merge($config, $result));
     }
-
 
 
 }

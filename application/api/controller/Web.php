@@ -34,19 +34,26 @@ class Web extends ApiBase
     //零售商查询
     public function retailers()
     {
-
+        $province = input('province');
+        $city = input('city');
+        $district = input('district');
+        if (empty($district) && empty($city)) {
+            
+        }
 
     }
 
+    //公司动态
     public function company_dynamic()
     {
         $page = input('page', 1, 'intval');
         $limit = input('limit', 10, 'intval');
-        $data=WebArticle::where([
-            
+        $data = WebArticle::field('id,title,update_time,summary,cover_img')->where([
+            'store_id' => $this->store_id,
+            'is_del' => 0,
+            'sys_menu_id' => 2,
         ])->page($page)->limit($limit)->select();
-
-
+        return returnMsg(0, 'ok', $data);
     }
 
 
