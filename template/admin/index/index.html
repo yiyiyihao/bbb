@@ -8,16 +8,21 @@
         </ul>
         <ul class="nav-inline nav-right">
         	{if condition="$adminUser['admin_type'] != 1"}
-            <li class="nav-item" id="sysmsg"><a title="系统消息"><span class="icon-bell"></span></a>{if $unread>0}<i class="badge-dot">{$unread}</i> {/if}
+            <li class="nav-item" id="sysmsg"><a title="系统消息"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
             <div class="nav-tab-list animate">
-            	<ul class="nav-tab-title"><li class="icon-message tab-active"> 消息</li>{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}<li class="icon-tips"> 公告</li>{/if}</ul>
+            	<ul class="nav-tab-title">
+            		<!-- <li class="icon-message tab-active"> 消息</li> -->
+            		{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}<li class="icon-tips"> 公告</li>{/if}
+            		</ul>
                 <ul class="nav-tab-box" id="sysmessage">
+                	{if (isset($messageList) && $messageList)}
                     {volist name="messageList" id="vo" empty="<li class='empty icon-message-squre'> 暂无系统消息</li>"}
                     	<li class="msgBox" data-id="{$vo.bulletin_id}">
                             <div>{$vo.is_read?'':'<span class="text-dot"></span>'} {$vo.name|default=''}</div>
                             <p class="hide">{$vo.description}</p>
                         </li>
                     {/volist}
+                    {/if}
                 </ul>
                 {if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}
                 <ul class="nav-tab-box hide" id="sysnotice">
