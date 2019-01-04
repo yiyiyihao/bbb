@@ -32,7 +32,6 @@
                             <tr>
                                 <th width="80">序号</th>
                                 <th>单页名称 </th>
-                                <th>导航类型</th>
                                 <th width="230">操作</th>
 
                             </tr>
@@ -41,7 +40,6 @@
                             <tr>
                                 <td>{$key}</td>
                                 <td>{$vo.title}</td>
-                                <td>单页</td>
                                 <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_page',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_page',['id'=>$vo.id])}">删除</a></td>
                             </tr>
                             {/volist}

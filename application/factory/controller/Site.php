@@ -33,13 +33,13 @@ class Site extends FactoryForm
         $slideShow = WebBanner::where('type', 0)->limit(8)->select();
         $this->assign('slideShow', $slideShow);
         //图片导航
-        $navShow = WebBanner::where('type', 1)->select();
-        $arr = [];
-        foreach ($navShow as $item) {
-            $arr[$item['group_id']] = isset($arr[$item['group_id']]) ? $arr[$item['group_id']] : [];
-            $arr[$item['group_id']][] = $item;
-        }
-        $this->assign('navShow', $arr);
+        //$navShow = WebBanner::where('type', 1)->select();
+        //$arr = [];
+        //foreach ($navShow as $item) {
+        //    $arr[$item['group_id']] = isset($arr[$item['group_id']]) ? $arr[$item['group_id']] : [];
+        //    $arr[$item['group_id']][] = $item;
+        //}
+        //$this->assign('navShow', $arr);
         return $this->fetch();
     }
 
@@ -161,16 +161,18 @@ class Site extends FactoryForm
                 'm.type' => 0,
             ])->order('sort')->select();
         $list_bottom = WebMenu::alias('m')
-            ->field('m.id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
+            ->field('m.id,m.parent_id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
             ->where([
-                'm.parent_id' => $parent_id,
+                //'m.parent_id' => $parent_id,
                 'm.is_del' => 0,
                 'm.store_id' => $this->store_id,
                 'm.type' => 1,
             ])->order('sort')->select();
         $this->assign('list_top', $list_top);
         $this->assign('list_bottom', $list_bottom);
+
+        //pre(getTree($list_bottom->toArray()));
         $this->subMenu['add'] = [
             'name' => '项部导航管理',
             'url' => url('add_menu'),
