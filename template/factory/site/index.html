@@ -44,7 +44,7 @@
                                 {volist name="slideShow" id="vo" key="key"}
                                 <tr>
                                     <td>{$key}</td>
-                                    <td>{if !empty($vo.img_url)}<img src="{$vo.img_url}">{/if}</td>
+                                    <td>{if !empty($vo.img_url)}<img src="{$vo.img_url}" height="60" width="120">{/if}</td>
                                     <td><a href="{$vo.link_url ?? ''}">{$vo.link_url?? ''}</a></td>
                                     <td><a href="##">↑</a> &nbsp;&nbsp;&nbsp;&nbsp;<a href="##">↓</a> </td>
                                     <td><a href="{:url('banner',['id'=>$vo.id])}" class="button button-small bg-main icon-edit">编辑</a> <a href="{:url('del',['id'=>$vo.id])}" class="button button-small icon-delete bg-red js-del">删除</a></td>
@@ -54,7 +54,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="panel-foot table-foot clearfix"><a href="{:url('banner')}" class="button button-small icon-plus bg-main">新增图片</a></div>
 
                     </div>
                 </div>

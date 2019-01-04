@@ -32,6 +32,10 @@ class Site extends FactoryForm
         //轮播图
         $slideShow = WebBanner::where('type', 0)->limit(8)->select();
         $this->assign('slideShow', $slideShow);
+        $this->subMenu['add'] = [
+            'name' => '新增图片',
+            'url' => url('banner'),
+        ];
         //图片导航
         //$navShow = WebBanner::where('type', 1)->select();
         //$arr = [];
@@ -197,11 +201,13 @@ class Site extends FactoryForm
         $pid = input('pid', 0, ['trim', 'intval']);
         if (IS_POST) {
             $menu = empty($id) ? (new WebMenu) : WebMenu::alias('m')->get($id);
+            $store_no=\app\common\model\Store::where('store_id',$this->store_id)->value('store_no');
             $data = [
                 'name' => input('name'),
                 'type' => input('type', 0, 'trim,intval'),
                 'page_type' => input('page_type', 0, 'trim,intval'),
                 'store_id' => $this->store_id,
+                'store_no' => $store_no,
                 'page_id' => input('page_id', 0, 'trim,intval'),
                 'url' => input('url', '', 'trim'),
             ];
@@ -328,8 +334,10 @@ class Site extends FactoryForm
                 'name' => $v['name'],
             ])->find();
             if (empty($menu)) {
+                $store_no=\app\common\model\Store::where('store_id',$store_id)->value('store_no');
                 $menu = new WebMenu;
                 $v['store_id'] = $store_id;
+                $v['store_no'] =$store_no;
                 $menu->save($v);
                 $menu->sort = $menu->id;
                 $menu->save();
