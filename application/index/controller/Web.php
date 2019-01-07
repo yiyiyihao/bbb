@@ -28,10 +28,11 @@ class Web extends Base
         }
         $this->store_id=$store_id;
         //放过所有跨域
+        header('Access-Control-Allow-Origin:*');
         //$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
         //header('Access-Control-Allow-Origin:' . $origin);
-        //header('Access-Control-Allow-Methods:POST');
-        //header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
         //$store_no = input('store_no', '0', 'intval');
         //if (empty($store_no)) {
         //    return $this->returnMsg(1, '参数错误');
