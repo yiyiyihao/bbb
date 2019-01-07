@@ -12,6 +12,7 @@ use app\common\model\WebConfig;
 use app\common\model\WebBanner;
 use app\common\model\WebMenu;
 use app\common\model\WebPage;
+use think\Request;
 
 class Site extends FactoryForm
 {
@@ -157,7 +158,7 @@ class Site extends FactoryForm
     }
 
     //导航列表
-    public function menu()
+    public function menu(Request $request)
     {
         $parent_id = input('pid', 0, 'intval');
         $list_top = WebMenu::alias('m')
@@ -169,7 +170,13 @@ class Site extends FactoryForm
                 'm.store_id' => $this->store_id,
                 'm.type' => 0,
             ])->order('sort')->select();
-        $list_top = array_merge(config('sysmenu.'), $list_top->toArray());
+        $sysmenu=config('sysmenu.');
+        $sysmenu=array_map(function ($item)use ($request){
+            $item['url']=str_replace($request->subDomain(),'www',$request->domain()).$item['url'];
+            return $item;
+        },$sysmenu);
+
+        $list_top = array_merge($sysmenu, $list_top->toArray());
         $list_bottom = WebMenu::alias('m')
             ->field('m.id,m.parent_id,m.page_id,m.url,m.sort,m.name,p.title,m.page_type')
             ->join('web_page p', 'm.page_id = p.id', 'left')
@@ -258,7 +265,7 @@ class Site extends FactoryForm
 
 
     //单页列表
-    public function page()
+    public function page(Request $request)
     {
         $title = $this->request->param('title', '', 'htmlspecialchars');
         $model = WebPage::where('store_id', $this->store_id);
@@ -266,6 +273,12 @@ class Site extends FactoryForm
             $model->where('title', 'like', '%' . trim($title) . '%');
         }
         $data = $model->select();
+        $data=$data->map(function ($item) use ($request) {
+            $domain=str_replace($request->subDomain(),'www',$request->domain());
+            $item['url']=url('page/index',['id'=>$item['id'],true,$domain]);
+            return $item;
+        });
+
         $this->assign('list', $data);
         $this->subMenu['add'] = [
             'name' => '新增单页',
