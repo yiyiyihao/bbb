@@ -127,11 +127,11 @@
             if (v==0){
                 $('#page').removeClass('hide');
                 $('#link').addClass('hide');
-                $('#url').attr('datatype','*');
                 $('#page_id').attr('datatype','n');
+                $('#url').removeAttr('datatype');
             }else{
                 $('#url').attr('datatype','/^(http|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&:/~\\+#]*[\\w\\-\\@?^=%&/~\\+#])?$/')
-                $('#page_id').attr('datatype','');
+                $('#page_id').removeAttr('datatype');
                 $('#link').removeClass('hide');
                 $('#page').addClass('hide');
             }

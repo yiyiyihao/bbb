@@ -33,7 +33,7 @@
                             <tr>
                                 <td>{$key}</td>
                                 <td>{$vo.title}</td>
-                                <td><a class="button button-small icon-bell bg-blue" href="##">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_page',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_page',['id'=>$vo.id])}">删除</a></td>
+                                <td><a class="button button-small icon-bell bg-blue" href="{$vo.url??''}" target="_blank">预览</a>  <a class="button button-small bg-main icon-edit" href="{:url('add_page',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" href="{:url('del_page',['id'=>$vo.id])}">删除</a></td>
                             </tr>
                             {/volist}
                             {/notempty}
