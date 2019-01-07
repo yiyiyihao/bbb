@@ -76,7 +76,7 @@
                             <label>单页</label>
                         </div>
                         <div class="field">
-                            <select class="input" name="page_id">
+                            <select class="input" name="page_id" datatype="n" id="page_id">
                                 <option value="">=请选择=</option>
                                 {notempty name="pages"}
                                 {volist name="pages" id="vo" key="key"}
@@ -92,7 +92,7 @@
                             <label>链接</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="url" placeholder="请输入链接地址" name="url" size="30" datatype="" value="{$data['url'] ?? ''}">
+                            <input type="text" class="input" id="url" placeholder="请输入http或https开头完整链接地址" name="url" size="60" datatype="/^(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?$/" value="{$data['url'] ?? ''}">
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -127,9 +127,11 @@
             if (v==0){
                 $('#page').removeClass('hide');
                 $('#link').addClass('hide');
-                $('#url').attr('datatype','')
-            }else{
                 $('#url').attr('datatype','*');
+                $('#page_id').attr('datatype','n');
+            }else{
+                $('#url').attr('datatype','/^(http|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&:/~\\+#]*[\\w\\-\\@?^=%&/~\\+#])?$/')
+                $('#page_id').attr('datatype','');
                 $('#link').removeClass('hide');
                 $('#page').addClass('hide');
             }

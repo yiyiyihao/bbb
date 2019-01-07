@@ -17,7 +17,7 @@ class Index extends Base
     {
         $store_no = input('store_no', '0', 'intval');
         if (empty($store_no)) {
-            return $this->returnMsg(1, '参数错误');
+            return returnMsg(1, '参数错误');
         }
         $store_id = Store::where('store_no', $store_no)->value('store_id');
         if (empty($store_id)) {

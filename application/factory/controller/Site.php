@@ -184,7 +184,6 @@ class Site extends FactoryForm
             $list_bottom = $treeService->getTree($list_bottom, 0, 'id');
         }
 
-
         $this->assign('list_top', $list_top);
         $this->assign('list_bottom', $list_bottom);
 
