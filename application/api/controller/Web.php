@@ -38,7 +38,7 @@ class Web extends ApiBase
         $city = input('city');
         $district = input('district');
         if (empty($district) && empty($city)) {
-            
+
         }
 
     }
@@ -126,5 +126,80 @@ class Web extends ApiBase
         return returnMsg(0, 'ok', array_merge($config, $result));
     }
 
+    /**
+     * 获取首页新闻
+     */
+    public function getTopNews()
+    {
+        $data = WebArticle::field('id,title,summary,update_time')->where([
+            'is_del' => 0,
+            'store_id' => $this->store_id,
+            'is_top' => 1,
+        ])->order('update_time desc')->limit(3)->select();
+        $data = $data->map(function ($item) {
+            $arr = $item;
+            if (mb_strlen($arr['summary']) > 120) {
+                $arr['summary'] = mb_substr($arr['summary'], 0, 120) . '...';
+            }
+            return $arr;
+        });
+        return returnMsg(0, 'ok', $data);
+    }
 
-}    
+
+    public function getRegion()
+    {
+        $id = input('id', 1, 'intval');
+        $model = db('region');
+        $data = $model->field('region_id id,region_name name')->where([
+            'is_del' => 0,
+            'parent_id' => $id,
+        ])->order('sort_order')->select();
+        return returnMsg(0, 'ok', $data);
+    }
+
+    public function getRetailer()
+    {
+        $where = [
+            'is_del' => 0,
+            'factory_id' => $this->store_id,];
+        $region_id = input('region_id', 0, 'intval');
+        $type = input('region_type', 0, 'intval');
+        $region = db('region');
+        if ($type == 3) {//区/县
+            $where['region_id'] = $region_id;
+        } else if ($type == 2) {//市
+            $region_arr = $region->where([
+                'parent_id' => $region_id
+            ])->column('region_id');
+            array_push($region_arr, $region_id);
+            $where['region_id'] = ['in', $region_arr];
+        } else if ($type == 1) {//省
+            //市
+            $region_arr=$region->alias('p')
+                ->field('c.region_id c_id,d.region_id d_id')
+                ->join([
+                    ['region c','p.region_id = c.parent_id'],
+                    ['region d','d.parent_id = c.region_id'],
+                ])->where([
+                    'p.region_id'=>$region_id,
+                    'p.is_del'=>0,
+                    'c.is_del'=>0,
+                    'd.is_del'=>0
+                ])->select();
+            $arr_1=array_unique(array_column($region_arr,'c_id'));//市
+            $arr_2=array_column($region_arr,'d_id');//区/县
+            $region_arr=array_merge($arr_1,$arr_2);
+            $where['region_id'] = ['in', $region_arr];
+        }
+
+        $data = Store::field('region_name,address,mobile')->where($where)->select();
+        $result = $data->map(function ($item) {
+            $item['region_name'] = str_replace(' ', '', $item['region_name']) . '店';
+            return $item;
+        });
+        return returnMsg(0, 'ok', $result);
+    }
+
+
+}
