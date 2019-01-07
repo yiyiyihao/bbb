@@ -144,6 +144,12 @@
         $('#form').FormPage(); 
 		$('#form').TableList(); 
 		init();		//初始化编辑
-		function init(){}
+		function init(){
+			var type = $('#type').val();
+			if(type != ''){
+				//模拟菜单点击
+				$(".js-type-select select").val(type).trigger("change");
+			}
+		}
     }); 
 </script>
