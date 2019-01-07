@@ -44,6 +44,8 @@ class FormBase extends CommonBase
         $alias  = $this->_getAlias();
         $join   = $this->_getJoin();
         $order  = $this->_getOrder();
+        $sort   = $this->_getSort();
+        $order  = $sort ? $sort : $order;
         //页面
         /* $this->assign('userrule',$this->adminUser['rule']);
         $action=strtolower($this->request->module().'/'.$this->request->controller().'/'.$this->request->action());
@@ -314,10 +316,27 @@ class FormBase extends CommonBase
         return;
     }
     /**
-     * 取得查询条件
+     * 取得排序条件
      */
     function _getOrder(){
         return 'sort_order ASC, add_time DESC';
+    }
+    /**
+     * 取得url排序条件
+     */
+    function _getSort(){
+        $sort = input('get.sort');
+        if($sort){
+            $sortArr = explode(',', $sort);
+        }else{
+            return;
+        }
+        $return = [];
+        foreach ($sortArr as $k=>$v){
+            $valArr = explode('|',$v);
+            $return[$valArr[0]] =  $valArr[1];
+        }
+        return $return;
     }
     /**
      * 获取提交数据

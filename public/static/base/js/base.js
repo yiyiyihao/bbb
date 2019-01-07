@@ -84,6 +84,49 @@ $.ajaxSetup({
                 });
                 return false;
             });*/
+			//处理排序
+			$(table).find('.js-sort').click(function(){
+				//获取当前页面URL
+				var url = window.location.href;
+				var sortstr;
+				var sortarr = [];
+				sortstr = $("#table").data('sort');
+				if(sortstr){
+					var temp = sortstr.split(",");
+					$.each(temp,function(i,e){
+						var arr = e.split("|");
+						sortarr[arr[0]] = arr[1];
+					})
+				}
+				var value = $(this).parent().data('sort');
+				var sorttype = $(this).data('sort');
+				var str = '';
+				if(url.indexOf("?")>0){
+					var sortNew = [];
+					sortNew[value] = sorttype;
+					if(sortarr[value]) sortarr[value] = sorttype;
+					sortNew = $.extend(sortNew, sortarr);		
+					for(var key in sortNew){
+						str += key+'|'+sortNew[key]+',';
+					}
+					//去掉最后逗号
+					str = (str.substring(str.length-1)==',')?str.substring(0,str.length-1):str;
+					if(url.indexOf("sort=")>0){
+						//替换掉url里sort里面的值
+						var reg = /sort=[^&]+/;
+						str = 'sort='+str;
+						url = url.replace(reg,str);
+						str = '';
+					}else{
+						str = '&sort='+str;
+					}
+				}else{
+					str = '?';
+					str += 'sort='+value+'|'+sorttype;
+				}
+				url += str;
+				window.location.href = url;
+			});
             //处理删除
             $(table).find('.js-del').click(function () {
                 var obj = this;

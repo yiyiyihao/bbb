@@ -1,9 +1,9 @@
 {notempty name="table"}
-<table id="table" class="table table-hover ">
+<table id="table" class="table table-hover" data-sort="{$Think.get.sort}">
   <tbody>
     <tr>
     	{volist name="table" id="tb"}
-        <th width="{$tb['width'] ?? 20}">{$tb.title}</th>
+        <th width="{$tb['width'] ?? 20}">{$tb.title}{if isset($tb['is_sort']) && $tb['is_sort'] == 1}<div class="sort_group" data-sort="{$tb['value'] ?? $tb['pk']}"><i class="sort-asc js-sort" data-sort="asc"></i><i class="sort-desc js-sort" data-sort="desc"></i></div>{/if}</th>
         {/volist}
     </tr>
     {notempty name="list"}
