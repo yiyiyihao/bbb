@@ -276,7 +276,7 @@ class Store extends Model
         //判断商户密钥是否存在
         $info = db('store')->where(['store_no' => $key])->find();
         if ($info){
-            return $this->_getMchKey();
+            return self::_getMchKey();
         }else{
             return $key;
         }
