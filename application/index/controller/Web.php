@@ -8,6 +8,7 @@ use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
+use think\facade\Session;
 
 class Web extends Base
 {
@@ -16,33 +17,34 @@ class Web extends Base
 
     public function initialize()
     {
-        //放过所有跨域
-        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-        header('Access-Control-Allow-Origin:' . $origin);
-        header('Access-Control-Allow-Methods:POST');
-        header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        $store_no = input('store_no', '0', 'intval');
-        if (empty($store_no)) {
-            return $this->returnMsg(1, '参数错误');
+        //dump(session('www_user'));
+
+        if (!Session::has('www_user.store_id')){
+            return returnMsg(10, '请先登陆');
         }
-        $store_id = Store::where('store_no', $store_no)->value('store_id');
+        $store_id=Session::get('www_user.store_id');
         if (empty($store_id)) {
-            return returnMsg(1, '厂商不存在');
+            return returnMsg(10, '请先登陆');
         }
-        $this->store_id = $store_id;
+        $this->store_id=$store_id;
+        //放过所有跨域
+        //$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+        //header('Access-Control-Allow-Origin:' . $origin);
+        //header('Access-Control-Allow-Methods:POST');
+        //header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        //$store_no = input('store_no', '0', 'intval');
+        //if (empty($store_no)) {
+        //    return $this->returnMsg(1, '参数错误');
+        //}
+        //$store_id = Store::where('store_no', $store_no)->value('store_id');
+        //if (empty($store_id)) {
+        //    return returnMsg(1, '厂商不存在');
+        //}
+        //$this->store_id = $store_id;
     }
 
-    //零售商查询
-    public function retailers()
-    {
-        $province = input('province');
-        $city = input('city');
-        $district = input('district');
-        if (empty($district) && empty($city)) {
 
-        }
 
-    }
 
     //公司动态
     public function company_dynamic()
@@ -159,6 +161,7 @@ class Web extends Base
         return returnMsg(0, 'ok', $data);
     }
 
+    //零售商查询
     public function getRetailer()
     {
         $where = [
@@ -177,20 +180,20 @@ class Web extends Base
             $where['region_id'] = ['in', $region_arr];
         } else if ($type == 1) {//省
             //市
-            $region_arr=$region->alias('p')
+            $region_arr = $region->alias('p')
                 ->field('c.region_id c_id,d.region_id d_id')
                 ->join([
-                    ['region c','p.region_id = c.parent_id'],
-                    ['region d','d.parent_id = c.region_id'],
+                    ['region c', 'p.region_id = c.parent_id'],
+                    ['region d', 'd.parent_id = c.region_id'],
                 ])->where([
-                    'p.region_id'=>$region_id,
-                    'p.is_del'=>0,
-                    'c.is_del'=>0,
-                    'd.is_del'=>0
+                    'p.region_id' => $region_id,
+                    'p.is_del' => 0,
+                    'c.is_del' => 0,
+                    'd.is_del' => 0
                 ])->select();
-            $arr_1=array_unique(array_column($region_arr,'c_id'));//市
-            $arr_2=array_column($region_arr,'d_id');//区/县
-            $region_arr=array_merge($arr_1,$arr_2);
+            $arr_1 = array_unique(array_column($region_arr, 'c_id'));//市
+            $arr_2 = array_column($region_arr, 'd_id');//区/县
+            $region_arr = array_merge($arr_1, $arr_2);
             $where['region_id'] = ['in', $region_arr];
         }
 

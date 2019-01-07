@@ -40,6 +40,8 @@ class Login extends CommonBase
                     'U.is_del'      => 0,
                 ];
                 $user = $userModel->where($map)->find();
+                //厂商官网登陆
+                $this->updateLogin($user,'www');
             }else{
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
@@ -54,6 +56,8 @@ class Login extends CommonBase
                 return $this->error(lang('PSW_ERROR'));
             }
             $result = $this->updateLogin($user,$domain);
+
+
             if(!$result['error']){
                 return $this->success(lang('LOGIN_SUCCESS'), "/", ['tipmsg'=>'正在登陆...'], 0);
             }else{

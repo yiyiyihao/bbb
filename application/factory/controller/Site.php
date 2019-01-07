@@ -275,7 +275,7 @@ class Site extends FactoryForm
         $data = $model->select();
         $data=$data->map(function ($item) use ($request) {
             $domain=str_replace($request->subDomain(),'www',$request->domain());
-            $item['url']=url('page/index',['id'=>$item['id'],true,$domain]);
+            $item['url']=$domain.url('page/index',['id'=>$item['id']]);
             return $item;
         });
 
