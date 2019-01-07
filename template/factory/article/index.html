@@ -50,7 +50,7 @@
                                 <td>{$vo.summary}</td>
                                 <td>{$vo.update_time|date="Y-m-d H:i"}</td>
                                 <td>{if $vo.status}已发布{else /}未发布{/if}</td>
-                                <td>{if $vo.status==0}<a class="button button-small icon-bell bg-blue" href="{:url('publish',['id'=>$vo.id])}">发布</a>{/if}  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" data-url="{:url('del')}" data-id="{$vo.id}" title="删除" href="##">删除</a></td>
+                                <td>{if $vo.status==0}<a class="button button-small icon-bell bg-blue" href="{:url('publish',['id'=>$vo.id])}">发布</a>{/if}  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></td>
                             </tr>
                             {/volist}
                             {/notempty}
