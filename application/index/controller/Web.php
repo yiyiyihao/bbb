@@ -132,7 +132,7 @@ class Web extends Base
      */
     public function getTopNews()
     {
-        $data = WebArticle::field('id,title,summary,update_time')->where([
+        $data = WebArticle::field('id,title,cover_img,summary,update_time')->where([
             'is_del' => 0,
             'store_id' => $this->store_id,
             'is_top' => 1,
