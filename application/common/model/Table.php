@@ -48,6 +48,7 @@ class Table extends Model
 	            case 1://字段取值
 	                $temp['type']      = 'text';
 	                $temp['value']     = $v['field'];
+	                $temp['is_sort']   = $v['is_sort'];
 	            break;
 	            case 2://函数处理
 	                $temp['type']      = 'function';
@@ -55,7 +56,9 @@ class Table extends Model
 	                $temp['value']     = $v['field'];
 	            break;
 	            case 3://索引
-	                $temp['type']      = 'index';	                
+	                $temp['type']      = 'index';
+	                $temp['is_sort']   = $v['is_sort'];
+	                $temp['pk']        = $pk;
 	            break;
 	            case 4://图标
 	                $temp['type']      = 'icon';
@@ -84,6 +87,7 @@ class Table extends Model
 	        'width'     => '60',
 	        'type'      => 'text',
 	        'sort'      => '270',
+	        'is_sort'   => 1,
 	        'value'     => 'sort_order',
 	    ];
 	    $tables['actions'] = [
