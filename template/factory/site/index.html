@@ -22,7 +22,7 @@
                                     <td><a target="_blank" href="{$vo.link_url ?? ''}">{$vo.link_url?? ''}</a></td>
                                     <!-- <td><a href="##">↑</a> &nbsp;&nbsp;&nbsp;&nbsp;<a href="##">↓</a> </td> -->
                                     <td>{$vo.sort ?? 1}</td>
-                                    <td><a href="{:url('banner',['id'=>$vo.id])}" class="button button-small bg-main icon-edit">编辑</a> <a href="{:url('del',['id'=>$vo.id])}" class="button button-small icon-delete bg-red js-del">删除</a></td>
+                                    <td><a href="{:url('banner',['id'=>$vo.id])}" class="button button-small bg-main icon-edit">编辑</a> <a  class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></td>
                                 </tr>
                                 {/volist}
                                 {/notempty}
@@ -40,5 +40,6 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
+        $('#form').Table({});
     });
 </script>

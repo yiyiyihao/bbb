@@ -1,4 +1,4 @@
-<div class="tab admin-tab">
+<div class="tab admin-tab" id="table">
     <div class="panel admin-box active">
         <div class="panel-head">
             <div class="tab-head">
@@ -36,7 +36,7 @@
                                 <td>{$vo.name}</td>
                                 <td>{$type}</td>
                                 <td>{$vo.sort}</td>
-                                <td><a class="button button-small icon-bell bg-blue" href="{$vo.url??''}" target="_blank">预览</a>{if isset($vo.id)}  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>{if !in_array($vo.name,$sysMenu)} <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a>{/if} {/if} </td>
+                                <td><a class="button button-small icon-bell bg-blue" href="{$vo.url??''}" target="_blank">预览</a>{if isset($vo.id)}  <a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a>{if !in_array($vo.name,$sysMenu)} <a class="button button-small icon-delete bg-red js-del"   url="{:url('del_menu')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a>{/if} {/if} </td>
                             </tr>
                             {/volist}
                             {/notempty}
@@ -73,7 +73,7 @@
                                 <td>{$vo.cname}</td>
                                 <td>{$type}</td>
                                 <td>{$vo.sort}</td>
-                                <td>{if $vo.parent_id==0 }<a class="button button-small icon-plus bg-sub" href="{:url('add_menu',['pid'=>$vo.id,'type'=>1])}">新增下级导航</a>  {/if}<a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a> <a class="button button-small icon-delete bg-red js-del" href="{:url('del_menu',['id'=>$vo.id])}">删除</a> </td>
+                                <td>{if $vo.parent_id==0 }<a class="button button-small icon-plus bg-sub" href="{:url('add_menu',['pid'=>$vo.id,'type'=>1])}">新增下级导航</a>  {/if}<a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a> <a class="button button-small icon-delete bg-red js-del"   url="{:url('del_menu')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a> </td>
                             </tr>
                             {/volist}
                             {/notempty}
@@ -93,9 +93,11 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
+        $('#table').Table({});
 
 
     });
+
 
     $('.tab-nav li').click(function () {
         t=$(this).attr('data-type');

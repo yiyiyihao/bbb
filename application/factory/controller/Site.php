@@ -33,7 +33,8 @@ class Site extends FactoryForm
         //轮播图
         $slideShow = WebBanner::where([
             'type' => 0,
-            'store_id' => $this->store_id
+            'store_id' => $this->store_id,
+            'is_del' => 0
         ])->limit(8)->select();
         $this->assign('slideShow', $slideShow);
         $this->subMenu['add'] = [
