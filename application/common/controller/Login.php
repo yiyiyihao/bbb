@@ -40,8 +40,6 @@ class Login extends CommonBase
                     'U.is_del'      => 0,
                 ];
                 $user = $userModel->where($map)->find();
-                //厂商官网登陆
-                $this->updateLogin($user,'www');
             }else{
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
