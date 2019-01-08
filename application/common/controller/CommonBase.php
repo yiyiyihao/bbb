@@ -215,9 +215,8 @@ class CommonBase extends Base
      * 更新用户信息
      */
     protected function updateLogin($userInfo = FALSE, $domain = 'admin'){
-        defined('ADMIN_ID') or define('ADMIN_ID', $this->isLogin());
         $userMod = new User();
-        $result = $userMod->setLogin($userInfo,ADMIN_ID,$domain);
+        $result = $userMod->setLogin($userInfo,$userInfo['user_id'],$domain);
         if ($result === false) {
             return [
                 'error' => 1,
@@ -247,7 +246,7 @@ class CommonBase extends Base
         $params = $request->param();
         $name = $user ? (trim($user['realname'] ? $user['realname'] : ($user['nickname'] ? $user['nickname'] : $user['username']))) : '';
         $data = [
-            'user_id'   => ADMIN_ID,
+            'user_id'   => ADMIN_ID ? ADMIN_ID : $user['user_id'],
             'user_name'      => $name,
             'admin_type'=> $user ? $user['admin_type'] : 0,
             'store_id'  => $user ? $user['store_id'] : 0,
