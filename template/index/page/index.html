@@ -1,1 +1,9 @@
-<p>{$data.content??''}</p>
+<div class="panel-body">
+    <h4>{$data.title??''}</h4>
+    <p>{$data.update_time?? ''}</p>
+    <div>{$data.content??''}</div>
+    {notempty name='data.cover_img'}
+    <div><img src="{$data.cover_img}"></div>
+    {/notempty}
+</div>
+

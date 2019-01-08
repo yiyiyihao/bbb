@@ -17,31 +17,28 @@ class Web extends Base
 
     public function initialize()
     {
-        //dump(session('www_user'));
-
-        if (!Session::has('www_user.store_id')){
-            return returnMsg(10, '请先登陆');
-        }
-        $store_id=Session::get('www_user.store_id');
-        if (empty($store_id)) {
-            return returnMsg(10, '请先登陆');
-        }
-        $this->store_id=$store_id;
+        //if (!Session::has('www_user.store_id')){
+        //    return returnMsg(10, '请先登陆');
+        //}
+        //$store_id=Session::get('www_user.store_id');
+        //if (empty($store_id)) {
+        //    return returnMsg(10, '请先登陆');
+        //}
+        //$this->store_id=$store_id;
         //放过所有跨域
-        header('Access-Control-Allow-Origin:*');
-        //$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-        //header('Access-Control-Allow-Origin:' . $origin);
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+        header('Access-Control-Allow-Origin:' . $origin);
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        //$store_no = input('store_no', '0', 'intval');
-        //if (empty($store_no)) {
-        //    return $this->returnMsg(1, '参数错误');
-        //}
-        //$store_id = Store::where('store_no', $store_no)->value('store_id');
-        //if (empty($store_id)) {
-        //    return returnMsg(1, '厂商不存在');
-        //}
-        //$this->store_id = $store_id;
+        $store_no = input('store_no', '0', 'intval');
+        if (empty($store_no)) {
+            return returnMsg(1, '参数错误');
+        }
+        $store_id = Store::where('store_no', $store_no)->value('store_id');
+        if (empty($store_id)) {
+            return returnMsg(1, '厂商不存在');
+        }
+        $this->store_id = $store_id;
     }
 
 
@@ -145,6 +142,7 @@ class Web extends Base
             if (mb_strlen($arr['summary']) > 120) {
                 $arr['summary'] = mb_substr($arr['summary'], 0, 120) . '...';
             }
+            $arr['url']=url('article/index',['id'=>$item['id']]);
             return $arr;
         });
         return returnMsg(0, 'ok', $data);

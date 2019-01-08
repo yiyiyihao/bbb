@@ -114,7 +114,6 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
-
         $('input[type=radio]').click(function () {
             v=$(this).val();
             $.post('/site/getPages',{},function (e) {
