@@ -3,11 +3,15 @@
 namespace app\index\controller;
 
 use app\common\controller\Base;
+use app\common\model\LogCode;
 use app\common\model\Store;
+use app\common\model\User;
 use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
+use think\Db;
+use think\facade\Request;
 use think\facade\Session;
 
 class Web extends Base
@@ -17,14 +21,6 @@ class Web extends Base
 
     public function initialize()
     {
-        //if (!Session::has('www_user.store_id')){
-        //    return returnMsg(10, '请先登陆');
-        //}
-        //$store_id=Session::get('www_user.store_id');
-        //if (empty($store_id)) {
-        //    return returnMsg(10, '请先登陆');
-        //}
-        //$this->store_id=$store_id;
         //放过所有跨域
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
         header('Access-Control-Allow-Origin:' . $origin);
@@ -40,8 +36,6 @@ class Web extends Base
         }
         $this->store_id = $store_id;
     }
-
-
 
 
     //公司动态
@@ -142,7 +136,7 @@ class Web extends Base
             if (mb_strlen($arr['summary']) > 120) {
                 $arr['summary'] = mb_substr($arr['summary'], 0, 120) . '...';
             }
-            $arr['url']=url('article/index',['id'=>$item['id']],false,true);
+            $arr['url'] = url('article/index', ['id' => $item['id']], false, true);
             return $arr;
         });
         return returnMsg(0, 'ok', $data);
@@ -202,6 +196,237 @@ class Web extends Base
             return $item;
         });
         return returnMsg(0, 'ok', $result);
+    }
+
+    public function sendCode()
+    {
+        $phone = input('phone');
+        if (empty($phone)) {
+            return returnMsg(1, '手机号不能为空');
+        }
+        if (!preg_match('/^1[0-9]{10}$/', $phone)) {
+            return returnMsg(1, '手机码码格式不正确');
+        }
+        $codeModel = new \app\common\model\LogCode();
+        $result = $codeModel->sendSmsCode($this->store_id, $phone, 'register');
+        if (!$result['status']) {
+            return returnMsg(1, $result['result']);
+        } else {
+            return returnMsg(0, '验证码发送成功,请注意留意短信');
+        }
+    }
+
+    //商户注册
+    public function applyStepOne()
+    {
+        $storeModel = new Store();
+        $factory = $storeModel->alias('S')
+            ->join('store_factory SF', 'SF.store_id = S.store_id', 'INNER')
+            ->where(['S.store_id' => $this->store_id, 'store_type' => STORE_FACTORY, 'is_del' => 0, 'status' => 1])
+            ->find();
+        if (empty($factory)) {
+            return returnMsg(1, lang('param_error'));
+        }
+        $factoryId = $factory['store_id'];
+        $allow = input('allow', '');
+        $phone = input('phone', '', 'trim');
+        $password = input('password', '', 'trim');
+        $rePassword = input('repassword', '', 'trim');
+        if (!$phone) {
+            return returnMsg(1, '请填写手机号码');
+        }
+        $code = input('code', '');
+        if (!$code) {
+            return returnMsg(1, '验证码不能为空');
+        }
+        if (!empty($password) || empty($rePassword)) {
+            return returnMsg(1, '密码及确认密码不能为空');
+        }
+        if ($password != $rePassword) {
+            return returnMsg(1, '两次输入密码不一致');
+        }
+        if (!$allow) {
+            return returnMsg(1, '请先同意用户协议');
+        }
+        $userModel = new User;
+        $result = $userModel->checkPhone($factoryId, $phone, TRUE);
+        if ($result === FALSE) {
+            return returnMsg(1, $userModel->error);
+        }
+        $extra = [
+            'password' => $password,
+        ];
+        $result = $userModel->checkFormat($factoryId, $extra);
+        if ($result === FALSE) {
+            return returnMsg(1, $userModel->error);
+        }
+        $codeModel = new LogCode;
+        $params['type'] = 'register';
+        $result = $codeModel->verifyCode($params);
+        //$result = TRUE;
+        if ($result === FALSE) {
+            return returnMsg(1, $codeModel->error);
+        } else {
+            //新增账号
+            $param['phone'] = $phone;
+            $param['username'] = $phone;
+            $param['admin_type'] = 0;
+            $param['factory_id'] = $factoryId;
+            $param['store_id'] = 0;
+            $param['is_admin'] = 1;
+            $param['password'] = $userModel->pwdEncryption($password);
+            $param['group_id'] = 0;
+            $userId = $userModel->save($param);
+            if ($userId === FALSE) {
+                return returnMsg(1, '系统异常，请重新提交');
+            } else {
+                return returnMsg(1, '注册成功,请完善资料');
+                //$this->success('注册成功,请完善资料', url('apply', ['store_no' => $storeNo, 'step' => 2, 'user_id' => $userId]));
+            }
+        }
+    }
+
+    //完善资料
+    public function applyStepTwo()
+    {
+        $storeModel = new Store();
+        $factory = $storeModel->alias('S')
+            ->join('store_factory SF', 'SF.store_id = S.store_id', 'INNER')
+            ->where(['S.store_id' => $this->store_id, 'store_type' => STORE_FACTORY, 'is_del' => 0, 'status' => 1])
+            ->find();
+        if (empty($factory)) {
+            return returnMsg(1, lang('param_error'));
+        }
+        $factoryId = $factory['store_id'];
+        $type = input('type', 0, 'intval');
+        if (!in_array($type, [2, 3, 4])) {
+            return returnMsg(1, '商户类型不正确，请重新选择');
+        }
+        $channelNo = input('channel_no', 0, 'trim');
+        $name = input('name', 0, 'trim');
+        $userName = input('user_name', 0, 'trim');
+        if (empty($name)) {
+            return returnMsg(1, '商户名称不能为空');
+        }
+        if (empty($userName)) {
+            return returnMsg(1, '联系人姓名不能为空');
+        }
+
+        $userId = input('user_id', 0, 'intval');
+        if (!$userId) {
+            return returnMsg(1, lang('param_error'));
+        }
+        //判断用户是否已绑定商户账号
+        $userModel = new User;
+        $user = $userModel->where(['user_id' => $userId, 'is_del' => 0])->find();
+        if (empty($user)) {
+            return returnMsg(1, '商户不存在或已被删除');
+        }
+        if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
+            return returnMsg(1, lang('param_error'));
+        }
+        if ($user['factory_id'] != $factory['store_id']) {
+            return returnMsg(1, '商户与厂商对应关系不正确');
+        }
+
+
+        $where = ['name' => $name, 'is_del' => 0, 'factory_id' => $factoryId, 'store_type' => $type];
+        $exist = $storeModel->where($where)->count();
+        $types = [
+            STORE_DEALER => [
+                'name' => '零售商',
+                'desc' => '适合拥有线下或线上销售渠道的商户',
+                'admin_type' => ADMIN_DEALER,
+                'group_id' => GROUP_DEALER,
+            ],
+            STORE_CHANNEL => [
+                'name' => '渠道商',
+                'desc' => '拥有一定的市场资源，有能力发展零售商的商户',
+                'admin_type' => ADMIN_CHANNEL,
+                'group_id' => GROUP_CHANNEL,
+            ],
+            STORE_SERVICE => [
+                'name' => '服务商',
+                'desc' => '拥有售后安装，维修能力或资源，能够提供售后服务的商户',
+                'admin_type' => ADMIN_SERVICE,
+                'group_id' => GROUP_SERVICE,
+            ],
+        ];
+        if ($exist > 0) {
+            return returnMsg(1, $types[$type]['name'] . '名称已存在');
+        }
+
+        $ostore_id=0;
+        if ($type == STORE_DEALER) {
+            if (!$channelNo) {
+                return returnMsg(1, '请填写渠道商编号');
+            }
+            $channel = $storeModel->where(['store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            if (!$channel) {
+                return returnMsg(1, '渠道商不存在或已删除');
+            }
+            $ostore_id = $channel['store_id'];
+        }
+
+        $sample_amount = input('sample_amount', 0);
+        if (Request::has('sample_amount')) {
+            $sample_amount = sprintf('%.2f', floatval($sample_amount));
+            if (strlen($sample_amount) > 11) {
+                $array = explode('.', $sample_amount);
+                $sample_amount = substr($array[0], 0, 8);
+                $sample_amount = $sample_amount . '.' . $array[1];
+            }
+        }
+        $security_money = input('security_money', 0);
+        if (Request::has('security_money')) {
+            $security_money = sprintf('%.2f', floatval($security_money));
+            if (strlen($security_money) > 11) {
+                $array = explode('.', $security_money);
+                $security_money = substr($array[0], 0, 8);
+                $security_money = $security_money . '.' . $array[1];
+            }
+        }
+        $data = [
+            'name' => $name,
+            'user_name' => $userName,
+            'store_type' => $type,
+            'factory_id' => $factoryId,
+            'mobile' => $user['phone'],
+            'config_json' => '',
+            'check_status' => 0,
+            'security_money' => $security_money,
+            'idcard_font_img' => input('idcard_font_img'),
+            'idcard_back_img' => input('idcard_back_img'),
+            'signing_contract_img' => input('signing_contract_img'),
+            'license_img' => input('license_img'),
+            'group_photo' => input('group_photo'),
+            'address' => input('address'),
+            'region_id' => input('region_id', 0, 'intval'),
+            'region_name' => input('region_name'),
+            'enter_type' => 1,
+        ];
+        $storeId = $storeModel->save($data);
+        if ($storeId === FALSE) {
+            return returnMsg(1, '资料更新失败,请登陆后操作');
+        } else {
+            $data = [
+                'admin_type' => $types[$type]['admin_type'],
+                'group_id' => $types[$type]['group_id'],
+                'store_id' => $storeId,
+            ];
+            if (!$user['realname']) {
+                $data['realname'] = $userName;
+            }
+            $userModel->save($data, ['user_id' => $userId]);
+            if ($type == STORE_DEALER) {//渠道商
+                $storeDealer=model('store_dealer')->save([
+                    'store_id'=>$storeId,
+                    'ostore_id'=>$ostore_id,
+                    'sample_amount'=>$sample_amount,
+                ]);
+            }
+            return returnMsg(1, '入驻申请成功,请登录后查看审核进度');
+        }
     }
 
 
