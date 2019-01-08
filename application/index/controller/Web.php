@@ -142,7 +142,7 @@ class Web extends Base
             if (mb_strlen($arr['summary']) > 120) {
                 $arr['summary'] = mb_substr($arr['summary'], 0, 120) . '...';
             }
-            $arr['url']=url('article/index',['id'=>$item['id']]);
+            $arr['url']=url('article/index',['id'=>$item['id']],false,true);
             return $arr;
         });
         return returnMsg(0, 'ok', $data);
