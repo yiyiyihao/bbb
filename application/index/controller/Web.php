@@ -30,7 +30,6 @@ class Web extends Base
 
         $domain=Request::subDomain();
         if ($domain === 'www') {
-            //$this->request->store_id=1;
             //www绑定到 万家安
             $this->factory_id=1;
             $this->store_id=1;
