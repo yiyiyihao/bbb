@@ -18,6 +18,7 @@ class Web extends Base
 {
 
     private $store_id;
+    private $factory_id;
 
     public function initialize()
     {
@@ -26,15 +27,14 @@ class Web extends Base
         header('Access-Control-Allow-Origin:' . $origin);
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        $store_no = input('store_no', '0', 'intval');
-        if (empty($store_no)) {
-            return returnMsg(1, '参数错误');
+
+        $domain=Request::subDomain();
+        if ($domain === 'www') {
+            //$this->request->store_id=1;
+            //www绑定到 万家安
+            $this->factory_id=1;
+            $this->store_id=1;
         }
-        $store_id = Store::where('store_no', $store_no)->value('store_id');
-        if (empty($store_id)) {
-            return returnMsg(1, '厂商不存在');
-        }
-        $this->store_id = $store_id;
     }
 
 
