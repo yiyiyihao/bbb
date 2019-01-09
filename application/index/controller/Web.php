@@ -238,7 +238,7 @@ class Web extends Base
         if (!$code) {
             return returnMsg(1, '验证码不能为空');
         }
-        if (!empty($password) || empty($rePassword)) {
+        if (empty($password) || empty($rePassword)) {
             return returnMsg(1, '密码及确认密码不能为空');
         }
         if ($password != $rePassword) {
