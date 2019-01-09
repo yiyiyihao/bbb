@@ -248,25 +248,23 @@ class Web extends Base
             return returnMsg(1, '请先同意用户协议');
         }
 
-        if (!isMobile($phone)) {
-            return returnMsg(1, '手机号码格式不正确');
-        }
         $userModel = new User;
-        //补充资料applyStepTwo时是否中断，是则跳过
-        $user = $userModel->where([
-            'username' => $phone,
-            'is_del' => 0,
-            'status' => 1,
-            'store_id' =>0,
-            'admin_type' =>0,
-            'group_id' =>0,
-        ])->find();
-        if (!empty($user)) {
-            return returnMsg(100, '请继续完善资料',['user_id'=>$user['user_id']]);
-        }
-
         $result = $userModel->checkPhone($factoryId, $phone, TRUE);
         if ($result === FALSE) {
+            //补充资料applyStepTwo时是否中断，是则跳过applyStepOne
+            if ($userModel->error=='手机号已存在') {
+                $user = $userModel->where([
+                    'username' => $phone,
+                    'is_del' => 0,
+                    'status' => 1,
+                    'store_id' =>0,
+                    'admin_type' =>0,
+                    'group_id' =>0,
+                ])->find();
+                if (!empty($user)) {
+                    return returnMsg(100, '请继续完善资料',['user_id'=>$user['user_id']]);
+                }
+            }
             return returnMsg(1, $userModel->error);
         }
         $extra = [

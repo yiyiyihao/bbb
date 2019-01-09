@@ -857,19 +857,3 @@ function returnMsg($errCode = 0, $errMsg = 'ok', $data = [])
     die();
 }
 
-/**
- * 手机号码格式验证
- * @param string $mobile
- * @return bool
- */
-function isMobile($mobile=''){
-    $bool=false;
-    if (empty($mobile)) {
-        return $bool;
-    }
-    $pattern='/^(13[0-9]|14[0|9]|15[0-9]|167[0-9]|17[0-9]|18[0-9]|19[0-9])\d{8}$/';
-    if (preg_match($pattern,$mobile)) {
-        $bool=true;
-    }
-    return $bool;
-}
