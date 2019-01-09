@@ -1,0 +1,212 @@
+<script>
+	var Config = {
+		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'goods_'])}",
+	};
+	$('input[name="goods_type"]').change(function(){
+		var goods_type = $(this).val();
+		$(".sample, .install").hide();
+		if(goods_type == 2){
+			$(".sample").show();
+		}else{
+			$(".install").show();
+		}
+	});
+	var next = true;
+	$("#dosubmit").click(function(){
+		next = false;
+	})
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+			'returnFun'	: function(data){
+				//跳转到属性编辑页面
+				if(next){
+					window.location.href = '{:url("detail")}/id/'+data.data;
+				}else{
+					layer.confirm(data.msg, {
+						btn: ['确定', '关闭'],
+					}, function(){
+						window.location.href = data.url;
+					}, function(){
+						window.location.reload();
+					});
+				}
+			},
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb_500'])}",
+            {present name="info['goods_id']"}
+            cookie: 'editgoods{$info.goods_id}',
+            num: {$info.imgnum}
+            {else /}
+            cookie: 'goodsUpload',
+            {/present}
+        });
+		$(".specList span").click(function(){
+			$(this).toggleClass("active");
+		})
+		//当属性库存变化时执行
+		$("#table").on("change","input[name='sku_stock[]']",function(){
+			changeStock();
+		})
+		//当属性价格变化时执行
+		$("#table").on("change","input[name='price[]']",function(){
+			changeMinPrice();
+		})
+		function changeMinPrice(){
+			var minPrice = $("#min_price").val();
+			$("input[name='price[]']").each(function(index, e) {
+                if($(e).val() != ''){
+					if(parseFloat($(e).val()) < minPrice){
+						minPrice = parseFloat($(e).val());
+					}
+				}
+            });
+			var flag = false;
+			if($("input[name='price[]']").length > 0){
+				flag = true;
+			}
+			$("#min_price").val(minPrice).attr("disabled",flag);
+		}
+		function changeStock(){
+			//计算所有属性库存总和
+			var totalStock = 0;
+			$("input[name='sku_stock[]']").each(function(index, e) {
+                if($(e).val() != ''){
+					totalStock += parseInt($(e).val());
+				}
+            });
+			var flag = false;
+			if(totalStock > 0){
+				flag = true;
+			}
+			$("#goods_stock").val(totalStock).attr("disabled",flag);
+		}
+		init();
+		function init(){			
+			var initGoodsSpecs = '{$info.specs_json|raw|default=''}';
+			if(initGoodsSpecs){
+				initGoodsSpecs = eval('(' + initGoodsSpecs + ')');
+				$(initGoodsSpecs).each(function(index, spec) {
+	                var _specId = spec.specid;
+					$(spec.list).each(function(i, val) {
+	                    //var vList = $(".fieldlist li>span[data-id='"+_specId+"']").next(".specList").find("span");
+						$(".fieldlist li>span[data-id='"+_specId+"']").next(".specList").find("span").each(function(j,text){
+							var _text = $(text).html();
+							if(_text == val){
+								$(text).trigger("click");
+							}
+						});
+	                });
+	            });
+			}
+		}
+		var selectSpec;
+		var _index = 0;
+		$("#create").click(function(){
+			_index = 0;
+			var len = $(".specList .active").length;
+			if(len > 0){
+				var goodsSn = $("#goods_sn").val();
+				if(goodsSn == ''){
+					layer.msg("请填写产品编码");
+					return;
+				}
+				$("#table tbody").find(".skubox").remove();
+				//layer.msg("创建中,请稍候……",{icon:16});
+				var sepcArr = [];
+				$(".fieldlist li").each(function(index, element) {
+                    var sLen = $(this).find(".active").length;
+					if(sLen > 0){
+						var specid = $(this).children("span").attr("data-id");
+						var specname = $(this).children("span").attr("data-spec");
+						var specList = [];
+						var valList = {};
+						$(this).find(".active").each(function(index, element) {                            
+							var value = $(this).text();
+							specList.push(value);
+                        });
+						valList.specid = specid;
+						valList.specname = specname;
+						valList.list = specList;
+						sepcArr.push(valList);
+					}
+                });
+				selectSpec = sepcArr;
+				var specsJson = JSON.stringify(sepcArr);
+				$("#specs_json").val(specsJson);
+				//debug(JSON.stringify(sepcArr));
+				combine(0,{},goodsSn);
+			}else{
+				layer.msg("未选择规格");
+			}
+		})
+		
+		/*属性笛卡尔组合*/		
+		function combine(index, current,goodsSn){
+			var len = selectSpec.length;
+			if(index < len-1){
+				var specItem = selectSpec[index];
+				var specId = specItem.specid;
+				var specName = specItem.specname;
+				var items = specItem.list;
+				if(items.length==0){
+					combine( index + 1, current,goodsSn);
+				}
+				for (var i = 0; i < items.length; i++){
+					if(!items[i])continue;
+					var newMap = {};
+					newMap = $.extend(newMap,current);
+					if(newMap['_str']){
+						newMap['_str'] += specName+':'+items[i]+' ';
+					}else{
+						newMap['_str'] = specName+':'+items[i]+' ';
+					}
+					newMap[specName] = items[i];
+					combine( index + 1, newMap,goodsSn);
+				}
+			}else if (index == len - 1){
+				var specItem = selectSpec[index];
+				var specId = specItem.specid;
+				var specName = specItem.specname;
+				var items = specItem.list;
+				if(items.length==0){
+					//result.push(current);
+				}
+				for (var i = 0; i < items.length; i++){
+					if(!items[i])continue;
+					var newMap = {};
+					newMap = $.extend(newMap,current);
+					_index++;
+					newMap['index'] = _index;
+					if(newMap['_str']){
+						newMap['_str'] += specName+':'+items[i]+' ';
+					}else{
+						newMap['_str'] = specName+':'+items[i]+' ';
+					}
+					newMap[specName] = items[i];										
+					var _json = JSON.stringify(newMap);
+					var _jsonObj =  eval('(' + _json + ')');
+					delete _jsonObj._str;
+					delete _jsonObj.index;
+					_json = JSON.stringify(_jsonObj);
+					newMap['_json'] = _json;
+					//debug(newMap);
+					//创建表单
+					createForm(newMap,goodsSn);
+				}
+			}
+		}
+		
+		function createForm(spec,goodsSn){
+			var price = $("#min_price").val();
+			price = price ? price : '';
+			var html = '<tr class="skubox"><td><input type="hidden" name="spec_json[]" value='+spec._json+' /><input class="input" type="text" name="sku_sn[]" value="'+goodsSn+'-'+spec.index+'" /></td>'+
+					   '<td>'+spec._str+'<input type="hidden" name="spec_name[]" value="'+spec._str+'" /></td><td><input class="input" type="text" name="price[]" size="10" value="'+price+'" /></td><td><input class="input" type="text" name="sku_stock[]" size="10" value="" /></td><td><span class="delSpec button button-small bg-red icon-delete"></span></td></tr>';
+			$("#table tbody").append(html);
+		}
+		$("#table").on("click",".delSpec",function(){
+			$(this).parent().parent().remove();
+			changeStock();
+			changeMinPrice();
+		})
+    }); 
+</script>

@@ -137,7 +137,7 @@ class FormBase extends CommonBase
                 $this->_afterAdd($pkId, $data);
                 $msg .= lang('SUCCESS');
                 $routes = $this->request->route();
-                $this->success($msg, url("index", $routes), TRUE);
+                $this->success($msg, url("index", $routes), $pkId);
             }else{
                 $msg .= lang('FAIL');
                 $this->error($msg);
@@ -184,7 +184,7 @@ class FormBase extends CommonBase
                     $this->_afterEdit($pkId, $data);
                     $msg .= lang('SUCCESS');
                     unset($routes['id']);
-                    $this->success($msg, url("index", $routes), TRUE);
+                    $this->success($msg, url("index", $routes), $pkId);
                 }else{
                     $msg .= lang('FAIL');
                     $this->error($msg);
