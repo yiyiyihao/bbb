@@ -281,7 +281,7 @@ class Web extends Base
             if ($userId === FALSE) {
                 return returnMsg(1, '系统异常，请重新提交');
             } else {
-                return returnMsg(1, '注册成功,请完善资料',['user_id'=>$userId]);
+                return returnMsg(0, '注册成功,请完善资料',['user_id'=>$userId]);
                 //$this->success('注册成功,请完善资料', url('apply', ['store_no' => $storeNo, 'step' => 2, 'user_id' => $userId]));
             }
         }
