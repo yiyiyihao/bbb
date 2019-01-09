@@ -420,7 +420,7 @@ class Web extends Base
                 $data['realname'] = $userName;
             }
             $userModel->save($data, ['user_id' => $userId]);
-            return returnMsg(1, '入驻申请成功,请登录后查看审核进度');
+            return returnMsg(0, '入驻申请成功,请登录后查看审核进度');
         }
     }
 
