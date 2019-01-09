@@ -324,7 +324,7 @@ class Web extends Base
             return returnMsg(1, '商户不存在或已被删除');
         }
         if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
-            return returnMsg(1, lang('param_error'));
+            return returnMsg(1,'该商户已经提交过资料');
         }
         if ($user['factory_id'] != $factory['store_id']) {
             return returnMsg(1, '商户与厂商对应关系不正确');
