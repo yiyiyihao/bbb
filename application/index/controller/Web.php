@@ -404,6 +404,7 @@ class Web extends Base
             'region_id' => input('region_id', 0, 'intval'),
             'region_name' => input('region_name'),
             'enter_type' => 1,
+            'sample_amount' => $sample_amount,
         ];
         $storeId = $storeModel->save($data);
         if ($storeId === FALSE) {
@@ -418,13 +419,6 @@ class Web extends Base
                 $data['realname'] = $userName;
             }
             $userModel->save($data, ['user_id' => $userId]);
-            if ($type == STORE_DEALER) {//渠道商
-                $storeDealer=model('store_dealer')->save([
-                    'store_id'=>$storeId,
-                    'ostore_id'=>$ostore_id,
-                    'sample_amount'=>$sample_amount,
-                ]);
-            }
             return returnMsg(1, '入驻申请成功,请登录后查看审核进度');
         }
     }
