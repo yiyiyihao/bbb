@@ -261,6 +261,8 @@ class Web extends Base
         }
         $codeModel = new LogCode;
         $params['type'] = 'register';
+        $params['code'] = $code;
+        $params['phone'] = $phone;
         $result = $codeModel->verifyCode($params);
         //$result = TRUE;
         if ($result === FALSE) {
