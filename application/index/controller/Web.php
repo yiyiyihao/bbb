@@ -28,11 +28,11 @@ class Web extends Base
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
 
-        $domain=Request::subDomain();
+        $domain = Request::subDomain();
         if ($domain === 'www') {
             //www绑定到 万家安
-            $this->factory_id=1;
-            $this->store_id=1;
+            $this->factory_id = 1;
+            $this->store_id = 1;
         }
     }
 
@@ -247,7 +247,24 @@ class Web extends Base
         if (!$allow) {
             return returnMsg(1, '请先同意用户协议');
         }
+
+        if (!isMobile($phone)) {
+            return returnMsg(1, '手机号码格式不正确');
+        }
         $userModel = new User;
+        //补充资料applyStepTwo时是否中断，是则跳过
+        $user = $userModel->where([
+            'username' => $phone,
+            'is_del' => 0,
+            'status' => 1,
+            'store_id' =>0,
+            'admin_type' =>0,
+            'group_id' =>0,
+        ])->find();
+        if (!empty($user)) {
+            return returnMsg(100, '请继续完善资料',['user_id'=>$user['user_id']]);
+        }
+
         $result = $userModel->checkPhone($factoryId, $phone, TRUE);
         if ($result === FALSE) {
             return returnMsg(1, $userModel->error);
@@ -281,7 +298,7 @@ class Web extends Base
             if ($userId === FALSE) {
                 return returnMsg(1, '系统异常，请重新提交');
             } else {
-                return returnMsg(0, '注册成功,请完善资料',['user_id'=>$userId]);
+                return returnMsg(0, '注册成功,请完善资料', ['user_id' => $userId]);
                 //$this->success('注册成功,请完善资料', url('apply', ['store_no' => $storeNo, 'step' => 2, 'user_id' => $userId]));
             }
         }
@@ -324,7 +341,7 @@ class Web extends Base
             return returnMsg(1, '商户不存在或已被删除');
         }
         if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
-            return returnMsg(1,'该商户已经提交过资料');
+            return returnMsg(1, '该商户已经提交过资料');
         }
         if ($user['factory_id'] != $factory['store_id']) {
             return returnMsg(1, '商户与厂商对应关系不正确');
@@ -357,7 +374,7 @@ class Web extends Base
             return returnMsg(1, $types[$type]['name'] . '名称已存在');
         }
 
-        $ostore_id=0;
+        $ostore_id = 0;
         if ($type == STORE_DEALER) {
             if (!$channelNo) {
                 return returnMsg(1, '请填写渠道商编号');
@@ -396,14 +413,14 @@ class Web extends Base
             'config_json' => '',
             'check_status' => 0,
             'security_money' => $security_money,
-            'idcard_font_img' => input('idcard_font_img','','trim'),
-            'idcard_back_img' => input('idcard_back_img','','trim'),
-            'signing_contract_img' => input('signing_contract_img','','trim'),
-            'license_img' => input('license_img','','trim'),
-            'group_photo' => input('group_photo','','trim'),
-            'address' => input('address','','trim'),
+            'idcard_font_img' => input('idcard_font_img', '', 'trim'),
+            'idcard_back_img' => input('idcard_back_img', '', 'trim'),
+            'signing_contract_img' => input('signing_contract_img', '', 'trim'),
+            'license_img' => input('license_img', '', 'trim'),
+            'group_photo' => input('group_photo', '', 'trim'),
+            'address' => input('address', '', 'trim'),
             'region_id' => input('region_id', 0, 'intval'),
-            'region_name' => input('region_name','','trim'),
+            'region_name' => input('region_name', '', 'trim'),
             'enter_type' => 1,
             'sample_amount' => $sample_amount,
         ];
