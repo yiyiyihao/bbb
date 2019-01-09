@@ -315,7 +315,7 @@ class Web extends Base
 
         $userId = input('user_id', 0, 'intval');
         if (!$userId) {
-            return returnMsg(1, lang('param_error'));
+            return returnMsg(11, lang('param_error'));
         }
         //判断用户是否已绑定商户账号
         $userModel = new User;
