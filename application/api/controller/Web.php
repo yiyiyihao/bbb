@@ -15,6 +15,7 @@ use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
+use app\factory\controller\Service;
 use think\facade\Request;
 
 
@@ -39,6 +40,8 @@ class Web extends BaseApi
             $this->store_id = 1;
         }
     }
+
+
 
 
     //公司动态
@@ -337,16 +340,23 @@ class Web extends BaseApi
         }
         //判断用户是否已绑定商户账号
         $userModel = new User;
-        $user = $userModel->alias('U')
-            ->field('U.*,S.check_status')
-            ->join('store S', 'S.store_id=U.store_id', 'left')
-            ->where(['U.user_id' => $userId, 'U.is_del' => 0,'U.status'=>1,'S.is_del' => 0,'S.status'=>1])
-            ->find();
+        $user = $userModel->where([
+            'user_id' => $userId,
+            'is_del' => 0,
+            'status' => 1,
+        ])->find();
         if (empty($user)) {
             return returnMsg(1, '商户不存在或已被删除');
         }
-        if ($user['check_status']==1) {
-            return returnMsg(1, '该商户已经通过审核');
+        if ($user['store_id'] > 0) {
+            $check_status=Store::where([
+                'store_id' => $user['store_id'],
+                'is_del' => 0,
+                'status' => 1,
+            ])->value('check_status');
+            if ($check_status==1){
+                return returnMsg(1, '该商户已经通过审核');
+            }
         }
         //if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
         //    return returnMsg(1, '该商户已经提交过资料');
@@ -415,7 +425,7 @@ class Web extends BaseApi
         $where = [];
         if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
             //存在商户审核信息则更新厂商申请资料，否则新增
-            $where['store_id']=$user['store_id'];
+            $where['store_id'] = $user['store_id'];
         }
         $data = [
             'name' => $name,
@@ -425,6 +435,7 @@ class Web extends BaseApi
             'mobile' => $user['phone'],
             'config_json' => '',
             'check_status' => 0,
+            'admin_remark' => '',
             'security_money' => $security_money,
             'idcard_font_img' => input('idcard_font_img', '', 'trim'),
             'idcard_back_img' => input('idcard_back_img', '', 'trim'),
@@ -438,7 +449,7 @@ class Web extends BaseApi
             'sample_amount' => $sample_amount,
             'ostore_id' => $ostore_id,
         ];
-        $storeId = $storeModel->save($data,$where);
+        $storeId = $storeModel->save($data, $where);
         if ($storeId === FALSE) {
             return returnMsg(1, '资料更新失败,请登陆后操作');
         } else {
