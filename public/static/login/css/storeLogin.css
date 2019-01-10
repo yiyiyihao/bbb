@@ -3,6 +3,7 @@ body {
 	
 	/*background-image:url(../images/bg.jpg); background-size:100% auto;*/color:#4d3d33;/*#1a64ab   #155a95*/
 }
+input:-webkit-autofill{-webkit-box-shadow: 0 0 0px 1000px #f6f6f6 inset;}
 #canvas{background-image:-webkit-linear-gradient(to top left,#1278e1,#155a95);
 	background-image:-o-linear-gradient(to top left,#1278e1,#155a95);
 	background-image:-moz-linear-gradient(to top left,#1278e1,#155a95);
