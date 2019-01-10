@@ -37,7 +37,7 @@ class UploadBase extends Base
             }else{
                 $oname = '_'.$oname;
             }
-            $name = date('YmdHis').$oname;
+            $name = date('YmdHis').get_nonce_str(6).$oname;
             $name = ($prex ? $prex : $this->prex).$name;
             $fileSize = $file->getInfo('size');
             $return = $this->qiniuUpload($filePath, $name, $fileSize, $thumbType);
