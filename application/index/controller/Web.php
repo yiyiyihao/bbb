@@ -440,7 +440,7 @@ class Web extends Base
             $data = [
                 'admin_type' => $types[$type]['admin_type'],
                 'group_id' => $types[$type]['group_id'],
-                'store_id' => $storeId,
+                'store_id' => $storeModel->store_id,
             ];
             if (!$user['realname']) {
                 $data['realname'] = $userName;
