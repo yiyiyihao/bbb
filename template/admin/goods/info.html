@@ -232,7 +232,7 @@
             <div class="panel-foot">
                 <div class="form-button">
                 	<input type="hidden" name="specs_json" id="specs_json" value='{$info.specs_json|default=''}' />
-                    {if isset($info)}
+                    {if isset($info['goods_id'])}
                     <button class="button bg-dot" id="dosubmit" type="submit">直接保存</button>
                     {/if}
                     <button class="button bg-main">下一步</button>
