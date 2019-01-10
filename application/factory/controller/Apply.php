@@ -148,7 +148,9 @@ class Apply extends CommonBase
             $this->assign('store_type', ($store ? $store['store_type'] : 3));
             $this->assign('store', $store);
             $this->assign('user', $user);
-            return $this->fetch();
+            //return $this->fetch();
+            //dump($store);
+            return $this->fetch('index2');
         }
     }
 }

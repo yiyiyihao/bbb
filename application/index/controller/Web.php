@@ -3,6 +3,7 @@
 namespace app\index\controller;
 
 use app\common\controller\Base;
+use app\common\model\Dealer;
 use app\common\model\LogCode;
 use app\common\model\Store;
 use app\common\model\User;
@@ -10,9 +11,7 @@ use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
-use think\Db;
 use think\facade\Request;
-use think\facade\Session;
 
 class Web extends Base
 {
@@ -120,9 +119,7 @@ class Web extends Base
         return returnMsg(0, 'ok', array_merge($config, $result));
     }
 
-    /**
-     * 获取首页新闻
-     */
+    //获取首页新闻
     public function getTopNews()
     {
         $data = WebArticle::field('id,title,cover_img,summary,update_time')->where([
@@ -141,7 +138,7 @@ class Web extends Base
         return returnMsg(0, 'ok', $data);
     }
 
-
+    //获得地区列表
     public function getRegion()
     {
         $id = input('id', 1, 'intval');
@@ -197,6 +194,7 @@ class Web extends Base
         return returnMsg(0, 'ok', $result);
     }
 
+    //发送信息
     public function sendCode()
     {
         $phone = input('phone');
@@ -252,17 +250,17 @@ class Web extends Base
         $result = $userModel->checkPhone($factoryId, $phone, TRUE);
         if ($result === FALSE) {
             //补充资料applyStepTwo时是否中断，是则跳过applyStepOne
-            if ($userModel->error=='手机号已存在') {
+            if ($userModel->error == '手机号已存在') {
                 $user = $userModel->where([
                     'username' => $phone,
                     'is_del' => 0,
                     'status' => 1,
-                    'store_id' =>0,
-                    'admin_type' =>0,
-                    'group_id' =>0,
+                    'store_id' => 0,
+                    'admin_type' => 0,
+                    'group_id' => 0,
                 ])->find();
                 if (!empty($user)) {
-                    return returnMsg(100, '请继续完善资料',['user_id'=>$user['user_id']]);
+                    return returnMsg(100, '请继续完善资料', ['user_id' => $user['user_id']]);
                 }
             }
             return returnMsg(1, $userModel->error);
@@ -334,20 +332,27 @@ class Web extends Base
         }
         //判断用户是否已绑定商户账号
         $userModel = new User;
-        $user = $userModel->where(['user_id' => $userId, 'is_del' => 0])->find();
+        $user = $userModel->alias('U')
+            ->field('U.*,S.check_status')
+            ->join('store S', 'S.store_id=U.store_id', 'left')
+            ->where(['U.user_id' => $userId, 'U.is_del' => 0,'U.status'=>1,'S.is_del' => 0,'S.status'=>1])
+            ->find();
         if (empty($user)) {
             return returnMsg(1, '商户不存在或已被删除');
         }
-        if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
-            return returnMsg(1, '该商户已经提交过资料');
+        if ($user['check_status']==1) {
+            return returnMsg(1, '该商户已经通过审核');
         }
+        //if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
+        //    return returnMsg(1, '该商户已经提交过资料');
+        //}
+
         if ($user['factory_id'] != $factory['store_id']) {
             return returnMsg(1, '商户与厂商对应关系不正确');
         }
 
-
-        $where = ['name' => $name, 'is_del' => 0, 'factory_id' => $factoryId, 'store_type' => $type];
-        $exist = $storeModel->where($where)->count();
+        //$where = ['name' => $name, 'is_del' => 0, 'factory_id' => $factoryId, 'store_type' => $type];
+        //$exist = $storeModel->where($where)->count();
         $types = [
             STORE_DEALER => [
                 'name' => '零售商',
@@ -368,9 +373,9 @@ class Web extends Base
                 'group_id' => GROUP_SERVICE,
             ],
         ];
-        if ($exist > 0) {
-            return returnMsg(1, $types[$type]['name'] . '名称已存在');
-        }
+        //if ($exist > 0) {
+        //    return returnMsg(1, $types[$type]['name'] . '名称已存在');
+        //}
 
         $ostore_id = 0;
         if ($type == STORE_DEALER) {
@@ -402,6 +407,11 @@ class Web extends Base
                 $security_money = $security_money . '.' . $array[1];
             }
         }
+        $where = [];
+        if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
+            //存在商户审核信息则更新厂商申请资料，否则新增
+            $where['store_id']=$user['store_id'];
+        }
         $data = [
             'name' => $name,
             'user_name' => $userName,
@@ -421,8 +431,9 @@ class Web extends Base
             'region_name' => input('region_name', '', 'trim'),
             'enter_type' => 1,
             'sample_amount' => $sample_amount,
+            'ostore_id' => $ostore_id,
         ];
-        $storeId = $storeModel->save($data);
+        $storeId = $storeModel->save($data,$where);
         if ($storeId === FALSE) {
             return returnMsg(1, '资料更新失败,请登陆后操作');
         } else {
@@ -435,8 +446,51 @@ class Web extends Base
                 $data['realname'] = $userName;
             }
             $userModel->save($data, ['user_id' => $userId]);
-            return returnMsg(0, '入驻申请成功,请登录后查看审核进度');
+            return returnMsg(0, '入驻申请成功,请登录后台查看审核进度');
         }
+    }
+
+    //查询商户信息
+    public function getStoreInfo()
+    {
+        $user_id = input('user_id', 0, 'intval');
+        if ($user_id <= 0) {
+            return returnMsg(0, lang('param_error'));
+        }
+        $storeModel = new Store();
+        //$field = 'U.user_id,S.*,S.store_type type';
+        $field = 'U.user_id,S.store_type type,S.`name`,S.user_name,S.mobile,S.address,S.idcard_font_img,S.idcard_back_img,S.license_img,S.signing_contract_img,S.security_money,S.group_photo,S.admin_remark,S.region_id,S.region_name,S.check_status,U.store_id';
+        $where = [
+            'U.is_del' => 0,
+            'U.status' => 1,
+            'S.is_del' => 0,
+            'S.status' => 1,
+            'U.user_id' => $user_id,
+        ];
+        $store = $storeModel->alias('S')
+            ->field($field)
+            ->join('user U', 'U.store_id = S.store_id')
+            ->where($where)
+            ->find();
+        if (empty($store)) {
+            return returnMsg(101, '商户不存在，请新重新注册');
+        }
+        if ($store['check_status'] == 1) {
+            return returnMsg(102, '商户已通过审核');
+        }
+        $store['channel_no'] = 0;
+        $store['sample_amount'] = 0;
+        if ($store['type'] == STORE_DEALER) {
+            $field = 'SD.sample_amount,S.store_no channel_no';
+            $arr = Dealer::alias('SD')->field($field)
+                ->join('store S', 'SD.ostore_id=S.store_id')
+                ->where('SD.store_id', $store['store_id'])
+                ->find();
+            $store['channel_no'] = isset($arr['channel_no']) ? $arr['channel_no'] : 0;
+            $store['sample_amount'] = isset($arr['sample_amount']) ? $arr['sample_amount'] : 0;
+        }
+        unset($store['check_status'],$store['store_id']);
+        return returnMsg(0, 'ok', $store);
     }
 
 
