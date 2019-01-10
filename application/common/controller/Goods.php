@@ -28,6 +28,42 @@ class Goods extends FormBase
         $this->assign('goodsTypes', goodstype());
         $this->assign('stockReduces', $this->stockReduces);
     }
+    
+    //商品详情管理
+    public function detail()
+    {
+        $params = $this->request->param();
+        $id = intval($params['id']);
+        if($id){
+            if(IS_POST){
+                $cate_thumb  = isset($params['cate_thumb']) ? trim($params['cate_thumb']) : '';
+                $description = isset($params['description']) ? trim($params['description']) : '';
+                $content     = isset($params['content']) ? trim($params['content']) : '';
+                $data = [
+                    'cate_thumb'    => $cate_thumb,
+                    'description'   => $description,
+                    'content'       => $content,
+                    'update_time'   => time(),
+                ];
+                $where['goods_id'] = $id;
+                $result = $this->model->where($where)->update($data);
+                $msg = lang('EDIT').lang($this->modelName);
+                if($result){
+                    $msg .= lang('SUCCESS');
+                    $this->success($msg, url("index"), $id);
+                }else{
+                    $msg .= lang('FAIL');
+                    $this->error($msg);
+                }
+            }else{
+                parent::_assignInfo();
+                return $this->fetch();
+            }
+        }else{
+            $this->error("参数错误");
+        }
+    }
+    
     //产品属性管理
     public function spec()
     {
@@ -224,7 +260,25 @@ class Goods extends FormBase
         $this->assign('info', $info);
         $store = new \app\common\controller\Store();
         $store->_getFactorys();
+        $this->_assignSpec($id);
         return $info;
+    }
+    
+    function _assignSpec($id = 0){
+        //取得规格参数表
+        $specList = db('goods_spec')->where(array('status' => 1, 'is_del' => 0, 'store_id' => $this->adminStore['store_id']))->order("sort_order")->select();
+        if ($specList) {
+            foreach ($specList as $k=>$v){
+                $specList[$k]['spec_value'] = explode(',', $v['value']);
+            }
+        }
+        $this->assign("specList",$specList);
+        if($id){
+            //取得属性详情
+            $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->adminStore['store_id'] ,'spec_json' => ['neq', ""]];
+            $skuList = db('goods_sku')->where($where)->order("sku_id")->select();
+            $this->assign("skuList",$skuList);
+        }
     }
     function _getData()
     {
@@ -242,6 +296,13 @@ class Goods extends FormBase
         $installPrice = isset($params['install_price']) ? floatval($params['install_price']): 0;
         $samplePurchaseLimit = isset($params['sample_purchase_limit']) ? intval($params['sample_purchase_limit']): 0;
         $stockReduceTime = isset($params['stock_reduce_time']) ? intval($params['stock_reduce_time']): 0;
+        
+        $specJson   = isset($params['spec_json']) ? $params['spec_json'] : [];
+        $specPrice  = isset($params['price']) ? $params['price'] : [];
+        $skuSn      = isset($params['sku_sn']) ? $params['sku_sn'] : [];
+        $specName   = isset($params['spec_name']) ? $params['spec_name'] : [];
+        $specSku    = isset($params['sku_stock']) ? $params['sku_stock'] : [];
+        
         if (!$cateId) {
             $this->error('请选择产品分类');
         }
@@ -291,6 +352,22 @@ class Goods extends FormBase
         if (!$stockReduceTime || !isset($this->stockReduces[$stockReduceTime])) {
             $this->error('请选择库存计数类型');
         }
+        if(!empty($specJson)  && is_array($specJson)){
+            foreach ($specJson as $k => $v){
+                $price = floatval($specPrice[$k]);
+                $stock = intval($specSku[$k]);
+                $ssn    = trim($skuSn[$k]);
+                if ($price < 0) {
+                    $this->error('第'.($k+1).'行,产品价格小于0');
+                }
+                if ($stock < 0) {
+                    $this->error('第'.($k+1).'行,产品库存小于0');
+                }
+                if ($ssn == '') {
+                    $this->error('第'.($k+1).'行,产品编码为空');
+                }
+            }
+        }
         if ($pkId) {
             $skuinfo = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
             if ($skuinfo) {
@@ -305,48 +382,136 @@ class Goods extends FormBase
             $data['imgs'] = $data['imgs'] ? array_unique($data['imgs']) : [];
             $data['imgs'] =  $data['imgs']? json_encode($data['imgs']) : '';
         }
+        $data['content'] = '';
         return $data;
     }
+    
+    function _goodsSpec($id = 0, $data = []){
+        $dataSet    = [];
+        $specSns    = isset($data['sku_sn']) ? $data['sku_sn'] : [];
+        $minPrice   = $maxPrice = $goodsStock = 0;
+        $skuIds     = isset($data['skuid']) ? $data['skuid'] : [];
+        if(!empty($specSns) && is_array($specSns)){
+            $specJson   = $data['spec_json'];
+            $specPrice  = $data['price'];
+            $specName   = $data['spec_name'];
+            $specSku    = $data['sku_stock'];
+            //清空当前产品属性
+            $where = ['goods_id' => $id, 'is_del' => 0];
+            if ($skuIds) {
+                $where['sku_id'] = ['NOT IN', $skuIds];
+            }
+            db('goods_sku')->where($where)->update(['is_del' => 1, 'update_time' => time()]);
+            foreach ($specSns as $k => $v){
+                $price = floatval($specPrice[$k]);
+                $stock = intval($specSku[$k]);
+                $minPrice = !$minPrice ? $price : min($minPrice, $price);
+                $maxPrice = !$maxPrice ? $price : max($maxPrice, $price);
+                $specValue = [];
+                if ($specJson[$k]) {
+                    $spec = json_decode($specJson[$k], true);
+                    if ($spec) {
+                        foreach ($spec as $k1 => $v1) {
+                            $specValue[] = $v1;
+                        }
+                    }
+                }
+                $skuData = [
+                    'goods_cate'    => intval($data['goods_cate']),
+                    'goods_type'    => $data['goods_type'],
+                    'sku_name'      => $specName[$k],
+                    'sku_sn'        => trim($v),
+                    'spec_json'     => $specJson[$k],
+                    'sku_stock'     => $stock,
+                    'spec_value'    => $specValue ? implode(';', $specValue) : '',
+                    'price'         => $price,
+                    'install_price' => floatval($data['install_price']),
+                    'stock_reduce_time'     => intval($data['stock_reduce_time']),
+                    'sample_purchase_limit' => intval($data['sample_purchase_limit']),
+                ];
+                if ($skuIds) {
+                    db('goods_sku')->where(['sku_id' => $skuIds[$k]])->update($skuData);
+                }else{
+                    $skuData['store_id'] = $data['store_id'];
+                    $skuData['goods_id'] = $id;
+                    $dataSet[] = $skuData;
+                }
+                $goodsStock += $stock;
+            }
+            if ($dataSet && !$skuIds) {
+                $result = db('goods_sku')->insertAll($dataSet);
+                if ($result === false) {
+                    $this->error('系统错误');
+                }
+            }
+            //更新产品属性
+            $goodsData = array(
+                'specs_json'    => trim($data['specs_json']),
+                'min_price'     => $minPrice,
+                'max_price'     => $maxPrice,
+                'goods_stock'   => $goodsStock,
+            );
+            $this->model->where(['goods_id' => $id])->update($goodsData);
+//             $this->success("产品属性修改成功!", url("index"), TRUE);
+            return true;
+        }
+    }
+    
     function _afterAdd($pkId = 0, $data = []){
         if ($pkId) {
-            //添加产品属性
-            $skuData = [
-                'goods_cate'    => intval($data['goods_cate']),
-                'goods_type'    => intval($data['goods_type']),
-                'goods_id'      => $pkId,
-                'sku_sn'        => trim($data['goods_sn']),
-                'sku_name'      => '',
-                'spec_json'     => '',
-                'sku_stock'     => intval($data['goods_stock']),
-                'price'         => floatval($data['min_price']),
-                'install_price' => floatval($data['install_price']),
-                'store_id'      => intval($data['store_id']),
-                'stock_reduce_time'     => intval($data['stock_reduce_time']),
-                'sample_purchase_limit' => intval($data['sample_purchase_limit']),
-            ];
-            $skuId = db('goods_sku')->insertGetId($skuData);
+            if(isset($data['spec_json']) && $data['spec_json'] != ''){
+                $this->_goodsSpec($pkId,$data);
+            }else{
+                //添加默认产品属性
+                $skuData = [
+                    'goods_cate'    => intval($data['goods_cate']),
+                    'goods_type'    => intval($data['goods_type']),
+                    'goods_id'      => $pkId,
+                    'sku_sn'        => trim($data['goods_sn']),
+                    'sku_name'      => '',
+                    'spec_json'     => '',
+                    'sku_stock'     => intval($data['goods_stock']),
+                    'price'         => floatval($data['min_price']),
+                    'install_price' => floatval($data['install_price']),
+                    'store_id'      => intval($data['store_id']),
+                    'stock_reduce_time'     => intval($data['stock_reduce_time']),
+                    'sample_purchase_limit' => intval($data['sample_purchase_limit']),
+                ];
+                $skuId = db('goods_sku')->insertGetId($skuData);
+            }
         }
         return TRUE;
     }
     function _afterEdit($pkId = 0, $data = []){
         if ($pkId) {
-            //修改产品属性
-            $update = [
-                'goods_cate'    => intval($data['goods_cate']),
-                'goods_type'    => intval($data['goods_type']),
-                'install_price' => floatval($data['install_price']),
-                'stock_reduce_time'     => intval($data['stock_reduce_time']),
-                'sample_purchase_limit' => intval($data['sample_purchase_limit']),
-            ];
-            $result = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1])->update($update);
-            $update = [
-                'sku_sn'    => $data['goods_sn'],
-                'price'     => $data['min_price'],
-            ];
-            if (isset($data['goods_stock'])) {
-                $update['sku_stock'] = trim($data['goods_stock']);
+            if(isset($data['spec_json']) && $data['spec_json'] != ''){
+                $this->_goodsSpec($pkId,$data);
+            }else{
+                //修改产品属性
+                $update = [
+                    'goods_cate'    => intval($data['goods_cate']),
+                    'goods_type'    => intval($data['goods_type']),
+                    'install_price' => floatval($data['install_price']),
+                    'stock_reduce_time'     => intval($data['stock_reduce_time']),
+                    'sample_purchase_limit' => intval($data['sample_purchase_limit']),
+                ];
+                $result = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1])->update($update);            
+                
+                //更新产品属性
+                $goodsData = array(
+                    'specs_json'    => '',
+                    'max_price'     => $data['min_price'],
+                );
+                $this->model->where(['goods_id' => $pkId])->update($goodsData);
+                db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'spec_json' => ['neq', ""]])->update(['is_del' => 1, 'update_time' => time()]);
+                $update = [
+                    'sku_sn'        => $data['goods_sn'],
+                    'is_del'        => 0,
+                    'sku_stock'     => intval($data['goods_stock']),
+                    'price'         => $data['min_price'],
+                ];
+                db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 1, 'spec_json' => ['eq', ""]])->update($update);
             }
-            $result = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['eq', ""]])->update($update);
         }
         return TRUE;
     }

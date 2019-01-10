@@ -1,0 +1,63 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel fixed-pannel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">产品详情</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+            	<div class="tab-panel active" id="tab-1">
+            		<div class="form-group">
+						<div class="label">
+							<label>小程序商品分类图片</label>
+						</div>
+						<div class="field">
+							<input type="hidden" class="input" id="cate_thumb" name="cate_thumb" size="38" value="{$info['cate_thumb']|default=''}"  datatype="*">
+			                <div class="cate_thumb_preview" style="margin-bottom:10px;"><img src="{$info['cate_thumb']|default='/static/base/images/default.png'}" id="cate_thumb_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="cate_thumb" preview="cate_thumb_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传</span>
+			                </a>
+			                <div class="input-note">建议尺寸(92px*92px)</div>
+						</div>
+					</div>
+					<div class="form-group">
+			            <div class="label">
+			              <label>产品描述</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="description" name="description" rows="5" datatype="*" cols="60">{$info['description'] ?? ''}</textarea>
+			              <div class="input-note"></div>
+			            </div>
+			          </div>
+			          <div class="form-group">
+		                <div class="label">
+		                  <label>产品详情</label>
+		                </div>
+		                <div class="field">
+		                  <textarea class="input js-editor" id="content" name="content" rows="30">
+		                  	{$info.content|raw|default=''}
+		                  </textarea>
+		                  <div class="input-note">请输入产品详情</div>
+		                </div>
+		              </div>
+				</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">提交</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+})
+</script>

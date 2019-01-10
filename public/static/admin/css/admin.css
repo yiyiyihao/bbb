@@ -107,8 +107,8 @@ body{ background:#f5f5f5;}
 .imagesBox .media{ float:left; margin:10px 0 10px 10px; position:relative;}
 .imagesBox .media:hover{box-shadow:2px 2px 5px rgba(0,0,0,.3);}
 .imagesBox .media img{ width:183px;}
-.imagesBox .media .media-del{ position:absolute; color:#fff; right:10px; top:10px; width:20px; height:20px; line-height:20px; text-align:center; background:rgba(225,85,85,.8)}
-.imagesBox .media span{ position:absolute; bottom:0; text-align:center; height:30px; color:#fff;background:rgba(225,85,85,.8); width:100%; line-height:30px; display:none;}
+.imagesBox .media .media-del{ position:absolute; color:#fff; right:10px; top:10px; width:20px; height:20px; line-height:20px; text-align:center; background:rgba(1,150,136,.8)}
+.imagesBox .media span{ position:absolute; bottom:0; text-align:center; height:30px; color:#fff;background:rgba(1,150,136,.8); width:100%; line-height:30px; display:none;}
 .imagesBox .media:hover span{ display:block;}
 .imagesBox .media span.uptofirst:hover{ cursor:pointer;}
 .district_name span{ display:inline-block; max-width:200px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;}

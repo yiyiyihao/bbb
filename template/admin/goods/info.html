@@ -5,7 +5,6 @@
                 <div class="tab-head">
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">基本信息</a></li>
-                        <li><a href="#tab-2">产品详情</a></li>
                     </ul>
                 </div>
             </div>
@@ -25,32 +24,6 @@
 							<div class="input-note">请选择产品类型</div>
 						</div>
 					</div>
-                    <!-- <div class="form-group">
-                        <div class="label">
-                            <label>产品类别</label>
-                        </div>
-                        <div class="field">
-                            <div class="button-group radio">
-                            {volist name="goodsCates" id="goodsCate"}
-                                <label class='button{if (!$info && $i == 1 ) ||(isset($info['goods_cate']) && $info['goods_cate'] == $key)} active{/if}'><input name="goods_cate" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['goods_cate']) && $info['goods_cate'] == $key)}checked="checked"{/if} type="radio">{$goodsCate}</label>
-                            {/volist}
-                            </div>
-                            <div class="input-note">请选择产品类别</div>
-                        </div>
-                    </div> -->
-                    <!-- <div class="form-group">
-                        <div class="label">
-                            <label>产品类型</label>
-                        </div>
-                        <div class="field">
-                            <div class="button-group radio">
-                            {volist name="goodsTypes" id="goodsType"}
-                                <label class='button{if (!$info && $i == 1 ) || (isset($info['goods_type']) && $info['goods_type'] == $key)} active{/if}'><input name="goods_type" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['goods_type']) && $info['goods_type'] == $key)}checked="checked"{/if} type="radio">{$goodsType}</label>
-                            {/volist}
-                            </div>
-                            <div class="input-note">请选择产品类型</div>
-                        </div>
-                    </div> -->
                     <div class="form-group">
                         <div class="label">
                             <label>产品名称</label>
@@ -98,6 +71,24 @@
 		                  </div>
 	                </div>
 	                <div class="form-group">
+		                <div class="label">
+		                  <label>产品售价</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写产品售价！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		            </div>
+                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
+		                <div class="label">
+		                  <label>安装费用</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写产品安装费用！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		              </div>
+	                <div class="form-group">
                         <div class="label">
                             <label>产品编码</label>
                         </div>
@@ -106,24 +97,61 @@
                             <div class="input-note">产品编码请不要填写特殊字符</div>
                         </div>
                     </div>
-	                <div class="form-group">
-		                <div class="label">
-		                  <label>产品售价</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写产品售价！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
-		              <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
-		                <div class="label">
-		                  <label>安装费用</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" nullmsg="请填写产品安装费用！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
+                    <div class="form-group">
+                        <div class="label">
+                          <label>规格列表</label>
+                        </div>
+                        <div class="field">
+                          <div class="field-text">
+                            <ul class="fieldlist">
+                                {volist name="specList" id="vo"}
+                                <li>
+                                    <span data-id="{$vo.spec_id}" data-spec="{$vo.name}">{$vo.name}</span> : 
+                                    <div class="specList"> 
+                                    {volist name="vo['spec_value']" id="val"}
+                                    <span data-spec="{$vo.name}" data-id="{$vo.spec_id}">{$val}</span>
+                                    {/volist} 
+                                    </div>
+                                </li> 
+                                {/volist}
+                            </ul>
+                            <span class="button bg-main" id="create">生成</span>
+                          </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                          <label></label>
+                        </div>
+                        <div class="field">                
+                          <div class="table-responsive" style="padding:10px 0;">
+                              <table id="table" class="table table-hover ">
+                                <tbody>
+                                  <tr>
+                                    <th width="200">产品编码</th>
+                                    <th width="*">产品规格</th>
+                                    <th width="100">产品价格</th>
+                                    <th width="100">库存</th>
+                                    <th width="80">操作</th>
+                                  </tr>
+                                  {if isset($skuList)}
+                                  {volist name="skuList" id="vo" empty=""}
+                                    <tr class="skubox">
+                                        <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value={$vo.spec_json} />
+                                        <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" /></td>
+                                        <td>{$vo.sku_name}<input type="hidden" name="spec_name[]" value="{$vo.sku_name}" /></td>
+                                        <td><input class="input" type="text" name="price[]" size="10" value="{$vo.price}" /></td>
+                                        <td><input class="input" type="text" name="sku_stock[]" size="10" value="{$vo.sku_stock}" /></td>
+                                        <td><span class="delSpec button button-small bg-red icon-delete"></span></td>
+                                    </tr>
+                                  {/volist}
+                                  {/if}
+                                </tbody>
+                              </table>
+                          </div>    
+                        </div>
+                    </div>
+		              
 		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
                         <div class="label">
                             <label>样品限购数量</label>
@@ -200,46 +228,14 @@
                         </div>
                     </div>                    
                 </div>
-            	
-            	<div class="tab-panel" id="tab-2">
-            		<div class="form-group">
-						<div class="label">
-							<label>小程序商品分类图片</label>
-						</div>
-						<div class="field">
-							<input type="hidden" class="input" id="cate_thumb" name="cate_thumb" size="38" value="{$info['cate_thumb']|default=''}">
-			                <div class="cate_thumb_preview" style="margin-bottom:10px;"><img src="{$info['cate_thumb']|default='/static/base/images/default.png'}" id="cate_thumb_preview" width="120"></div>
-			                <a class="button bg-main button-small js-img-upload" data="cate_thumb" preview="cate_thumb_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传</span>
-			                </a>
-			                <div class="input-note">建议尺寸(92px*92px)</div>
-						</div>
-					</div>
-					<div class="form-group">
-			            <div class="label">
-			              <label>产品描述</label>
-			            </div>
-			            <div class="field">
-			              <textarea class="input" id="description" name="description" rows="5" cols="60">{$info['description'] ?? ''}</textarea>
-			              <div class="input-note"></div>
-			            </div>
-			          </div>
-			          <div class="form-group">
-		                <div class="label">
-		                  <label>产品详情</label>
-		                </div>
-		                <div class="field">
-		                  <textarea class="input js-editor" id="content" name="content" rows="30">
-		                  	{$info.content|raw|default=''}
-		                  </textarea>
-		                  <div class="input-note">请输入产品详情</div>
-		                </div>
-		              </div>
-				</div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
-                    <button class="button bg-main" type="submit">保存</button>
+                	<input type="hidden" name="specs_json" id="specs_json" value='{$info.specs_json|default=''}' />
+                    {if isset($info)}
+                    <button class="button bg-dot" id="dosubmit" type="submit">直接保存</button>
+                    {/if}
+                    <button class="button bg-main">下一步</button>
                     <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
                 </div>
@@ -247,29 +243,4 @@
         </div>
     </div>
 </form>
-<script>
-	var Config = {
-		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'goods_'])}",
-	};
-	$('input[name="goods_type"]').change(function(){
-		var goods_type = $(this).val();
-		$(".sample, .install").hide();
-		if(goods_type == 2){
-			$(".sample").show();
-		}else{
-			$(".install").show();
-		}
-	});
-    Do.ready('base', function () {
-        //表单综合处理
-        $('#form').FormPage({
-        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb_500'])}",
-            {present name="info['goods_id']"}
-            cookie: 'editgoods{$info.goods_id}',
-            num: {$info.imgnum}
-            {else /}
-            cookie: 'goodsUpload',
-            {/present}
-        });
-    }); 
-</script>
+{include file="goods/infoscript" /}
