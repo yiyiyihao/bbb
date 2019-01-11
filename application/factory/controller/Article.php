@@ -77,6 +77,7 @@ class Article extends FormBase
             return false;
         }
         $article->status = 1;
+        $article->save();
         $this->success("发布成功！", 'index');
         return false;
     }
