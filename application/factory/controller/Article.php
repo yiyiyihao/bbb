@@ -45,7 +45,7 @@ class Article extends FormBase
                 'cover_img' => input('cover_img'),
             ];
             if (empty($data['content'])) {
-                $this->error("文章详情不能为空");
+                $this->error("文章正文不能为空");
             }
             if (empty($data['summary'])) {
                 $data['summary'] = sub_str($data['content'], 120);

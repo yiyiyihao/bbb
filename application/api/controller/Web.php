@@ -95,7 +95,7 @@ class Web extends BaseApi
                 'url' => $item['url'],
             ];
         }, $sysMenu);
-        return returnMsg(0, 'ok', array_merge($menu, $sysMenu));
+        return returnMsg(0, 'ok', array_merge( $sysMenu,$menu));
     }
 
     //底部导航
