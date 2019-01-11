@@ -15,6 +15,7 @@ use app\common\model\WebArticle;
 use app\common\model\WebBanner;
 use app\common\model\WebConfig;
 use app\common\model\WebMenu;
+use app\common\model\WebPage;
 use app\factory\controller\Service;
 use think\facade\Request;
 
@@ -513,6 +514,14 @@ class Web extends BaseApi
     {
         $id = input('id', '', 'intval');
         $data = WebArticle::field('title,summary,content,cover_img,update_time')->where(['is_del' => 0])->get($id);
+        return returnMsg(0, 'ok', $data);
+    }
+
+    //页面详情
+    public function getPageInfo()
+    {
+        $id = input('id', '', 'intval');
+        $data = WebPage::field('title,content,update_time')->where(['is_del' => 0])->get($id);
         return returnMsg(0, 'ok', $data);
     }
 
