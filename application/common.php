@@ -857,3 +857,30 @@ function returnMsg($errCode = 0, $errMsg = 'ok', $data = [])
     die();
 }
 
+function sub_str($str, $length = 0, $append = '...') {
+    $str = trim($str);
+    $strlength = strlen($str);
+
+    if ($length == 0 || $length >= $strlength) {
+        return $str;
+    } elseif ($length < 0) {
+        $length = $strlength + $length;
+        if ($length < 0) {
+            $length = $strlength;
+        }
+    }
+
+    if ( function_exists('mb_substr') ) {
+        $newstr = mb_substr($str, 0, $length, 'utf-8');
+    } elseif ( function_exists('iconv_substr') ) {
+        $newstr = iconv_substr($str, 0, $length, 'utf-8');
+    } else {
+        $newstr = substr($str, 0, $length);
+    }
+
+    if ($append && $str != $newstr) {
+        $newstr .= $append;
+    }
+    return $newstr;
+}
+

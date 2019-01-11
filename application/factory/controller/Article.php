@@ -34,16 +34,23 @@ class Article extends FormBase
         ];
         $id = input('id', 0, 'intval');
         if (IS_POST) {
-            $article=empty($id)?(new WebArticle):(WebArticle::get($id));
-            $data=[
-                'store_id'=>$store_id,
-                'sys_menu_id'=>2,//公司动态
-                'is_top'=>input('is_top')? 1:0,
-                'title'=>input('title'),
-                'summary'=>input('summary'),
-                'content'=>input('content'),
-                'cover_img'=>input('cover_img'),
+            $article = empty($id) ? (new WebArticle) : (WebArticle::get($id));
+            $data = [
+                'store_id' => $store_id,
+                'sys_menu_id' => 2,//公司动态
+                'is_top' => input('is_top') ? 1 : 0,
+                'title' => input('title'),
+                'summary' => trim(strip_tags(input('summary'))),
+                'content' => trim(strip_tags(input('content'))),
+                'cover_img' => input('cover_img'),
             ];
+            if (empty($data['content'])) {
+                $this->error("文章详情不能为空");
+            }
+            if (empty($data['summary'])) {
+                $data['summary'] = sub_str($data['content'], 120);
+            }
+
             $article->save($data);
             $this->success("保存成功", 'index');
             return true;
@@ -68,7 +75,7 @@ class Article extends FormBase
             'store_id' => $store_id,
             'id' => $id,
         ])->find();
-        if ($article->status){
+        if ($article->status) {
             $this->error('文章已经发布');
             return false;
         }

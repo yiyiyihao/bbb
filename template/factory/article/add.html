@@ -15,7 +15,7 @@
                             <label>文章标题</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="title" name="title" size="30" datatype="*" value="{$data['title'] ?? ''}">
+                            <input type="text" class="input" id="title" name="title" size="120" datatype="*" value="{$data['title'] ?? ''}">
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -35,7 +35,9 @@
                             <label>摘要</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="summary" name="summary" size="30" datatype="*" value="{$data['summary'] ?? ''}">
+                            <textarea class="input" style="width: 100%;" id="summary" name="summary" rows="5" datatype="*" value="{$data['summary'] ?? ''}">
+		                  	{$data['summary']? stripslashes($data['summary']) : '' }
+		                  </textarea>
                             <div class="input-note"></div>
                         </div>
                     </div>

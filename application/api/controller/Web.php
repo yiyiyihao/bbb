@@ -21,7 +21,6 @@ use think\facade\Request;
 
 class Web extends BaseApi
 {
-
     private $store_id;
     private $factory_id;
 
@@ -33,15 +32,15 @@ class Web extends BaseApi
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
 
-        $domain = Request::subDomain();
-        if ($domain === 'www') {
-            //www绑定到 万家安
-            $this->factory_id = 1;
-            $this->store_id = 1;
-        }
+        $this->factory_id = 1;
+        $this->store_id = 1;
+        //$domain = Request::subDomain();
+        //if ($domain === 'www') {
+        //    //www绑定到 万家安
+        //    $this->factory_id = 1;
+        //    $this->store_id = 1;
+        //}
     }
-
-
 
 
     //公司动态
@@ -349,12 +348,12 @@ class Web extends BaseApi
             return returnMsg(1, '商户不存在或已被删除');
         }
         if ($user['store_id'] > 0) {
-            $check_status=Store::where([
+            $check_status = Store::where([
                 'store_id' => $user['store_id'],
                 'is_del' => 0,
                 'status' => 1,
             ])->value('check_status');
-            if ($check_status==1){
+            if ($check_status == 1) {
                 return returnMsg(1, '该商户已经通过审核');
             }
         }
@@ -505,9 +504,10 @@ class Web extends BaseApi
             $store['channel_no'] = isset($arr['channel_no']) ? $arr['channel_no'] : 0;
             $store['sample_amount'] = isset($arr['sample_amount']) ? $arr['sample_amount'] : 0;
         }
-        unset($store['check_status'],$store['store_id']);
+        unset($store['check_status'], $store['store_id']);
         return returnMsg(0, 'ok', $store);
     }
+
     //新闻详情
     public function newsInfo()
     {
@@ -515,5 +515,6 @@ class Web extends BaseApi
         $data = WebArticle::field('title,summary,content,cover_img,update_time')->where(['is_del' => 0])->get($id);
         return returnMsg(0, 'ok', $data);
     }
+
 
 }
