@@ -572,7 +572,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 0
+            'smooth'   => 0.5
         ];
         $model=new \app\common\model\Order();
 
@@ -792,7 +792,7 @@ class Index extends CommonIndex
             'name'     =>'',
             'type'     =>'line',
             'itemStyle'=>[],
-            'smooth'   => 0
+            'smooth'   => 0.5
         ];
         $model=db('store_service_income');
 

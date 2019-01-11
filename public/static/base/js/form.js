@@ -96,9 +96,10 @@ $.fn.Form = function (options) {
 					}
 				},
 				callback: function (data) {
-					var msg = data.data.tipmsg ? data.data.tipmsg : '正在处理中,请稍等 ...';
-					layer.msg(msg, {icon: 16});
+					//var msg = data.data.tipmsg ? data.data.tipmsg : '正在处理中,请稍等 ...';
+					var loadlayer = layer.load("0 rotate");
 					if (data.code == 1) {
+						//layer.close(loadlayer);
 						//成功返回
 						if ($.isFunction(options.returnFun)) {
 							options.returnFun(data);
