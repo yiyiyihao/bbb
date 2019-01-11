@@ -508,5 +508,12 @@ class Web extends BaseApi
         unset($store['check_status'],$store['store_id']);
         return returnMsg(0, 'ok', $store);
     }
+    //新闻详情
+    public function newsInfo()
+    {
+        $id = input('id', '', 'intval');
+        $data = WebArticle::field('title,summary,content,cover_img,update_time')->where(['is_del' => 0])->get($id);
+        return returnMsg(0, 'ok', $data);
+    }
 
 }

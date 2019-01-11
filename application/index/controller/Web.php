@@ -36,7 +36,6 @@ class Web extends Base
     }
 
 
-
     //公司动态
     public function company_dynamic()
     {
@@ -342,12 +341,12 @@ class Web extends Base
             return returnMsg(1, '商户不存在或已被删除');
         }
         if ($user['store_id'] > 0) {
-            $check_status=Store::where([
+            $check_status = Store::where([
                 'store_id' => $user['store_id'],
                 'is_del' => 0,
                 'status' => 1,
             ])->value('check_status');
-            if ($check_status==1){
+            if ($check_status == 1) {
                 return returnMsg(1, '该商户已经通过审核');
             }
         }
@@ -500,6 +499,14 @@ class Web extends Base
         }
         unset($store['check_status'], $store['store_id']);
         return returnMsg(0, 'ok', $store);
+    }
+
+    //新闻详情
+    public function newsInfo()
+    {
+        $id = input('id', '', 'intval');
+        $data = WebArticle::field('title,summary,content,cover_img,update_time')->where(['is_del' => 0])->get($id);
+        return returnMsg(0, 'ok', $data);
     }
 
 
