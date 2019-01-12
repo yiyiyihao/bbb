@@ -67,6 +67,28 @@ class Test extends Base
         pre($store);
     }
     
+    public function getopenid(){
+        $request = $this->request->param();
+        $appid = 'wxd3bbb9c41f285e8d';
+        $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
+        $code = $request['code'];
+        $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.$appid.'&secret='.$appsecret.'&code='.$code.'&grant_type=authorization_code';
+        $request = curl_post($url,[]);
+        if($request['errcode'] == 0){
+            $return = [
+                'errCode' => 0,
+                'openid'  => $request['openid'],
+            ];
+        }else{
+            $return = $request;
+        }
+        return $this->ajaxJsonReturn($return);
+        //正确的话返回access_token 和openid
+        /**
+         * { "access_token":"ACCESS_TOKEN","expires_in":7200,"refresh_token":"REFRESH_TOKEN","openid":"OPENID","scope":"SCOPE" }
+         */
+    }
+    
     public function getscope(){
         $appid = 'wxd3bbb9c41f285e8d';
         $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
