@@ -173,7 +173,7 @@ class Site extends FactoryForm
             ])->order('sort')->select();
         $sysmenu=config('sysmenu.');
         $sysmenu=array_map(function ($item)use ($request){
-            $item['url']=str_replace($request->subDomain(),'www',$request->domain()).$item['url'];
+            $item['url']=str_replace($request->subDomain(),'www',$request->domain()).'/#'.$item['url'];
             return $item;
         },$sysmenu);
 
