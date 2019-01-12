@@ -276,14 +276,14 @@ class Site extends FactoryForm
         $data = $model->select();
         $data=$data->map(function ($item) use ($request) {
             $domain=str_replace($request->subDomain(),'www',$request->domain());
-            $item['url']=$domain.url('page/index',['id'=>$item['id']]);
+            $item['url']=$domain.'#'.url('page/index',['id'=>$item['id']]);
             return $item;
         });
 
         $this->assign('list', $data);
         $this->subMenu['add'] = [
             'name' => '新增单页',
-            'url' => url('add_page'),
+            'url'  => url('add_page'),
         ];
         return $this->fetch();
     }
