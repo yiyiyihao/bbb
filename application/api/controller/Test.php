@@ -4,6 +4,14 @@ use app\common\controller\Base;
 
 class Test extends Base
 {
+    public function initialize()
+    {
+        //放过所有跨域
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+        header('Access-Control-Allow-Origin:' . $origin);
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
+    }
     public function test(){
         $orderModel = new \app\common\model\Order();
         $user = db('user')->where(['user_id' => 5])->find();
@@ -58,6 +66,46 @@ class Test extends Base
         }
         pre($store);
     }
+    
+    public function getscope(){
+        $appid = 'wxd3bbb9c41f285e8d';
+        $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
+        $uri   = urlEncode('http://m.smarlife.cn');
+        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.$appid.'&redirect_uri='.$uri.'&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+        $return = [
+            'errCode' => 0,
+            'url'   => $scopeUrl,
+        ];
+        return $this->ajaxJsonReturn($return);
+    }
+    
+    public function jspay(){
+        $return = [
+            'errCode' => 0,
+            'msg'   => '请求成功',
+        ];
+        $config = [
+            'app_id'        =>  'wxd3bbb9c41f285e8d',
+            'mch_id'        =>  '1520990381',
+            'mch_key'       =>  'cugbuQVsnihCoQEx3MXD2WYlYtdoQJCH',
+            'notify_url'    =>  'https://api.smarlife.cn/test/jsnotify',
+        ];
+        $order = [
+            'openid'        => 'o5hVy1rH9Z4QNpH7X5ytgYulAhdQ',
+            'order_sn'      => get_nonce_str(32),
+            'real_amount'   => '0.01',
+        ];
+        $wechatApi = new \app\common\api\WechatPayApi(1, 'wechat_js', $config);
+        $result = $wechatApi->wechatUnifiedOrder($order);
+        if($result){
+            $return['params'] = $result;
+        }else{
+            $return['errCode'] = 1;
+            $return['error'] = $wechatApi->error;
+        }
+        return $this->ajaxJsonReturn($return);
+    }
+    
     public function index()
     {
         $request = $this->request->param();
