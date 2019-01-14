@@ -32,10 +32,10 @@
 </div>
 <div class="form-group">
     <div class="label">
-        <label>会员账号</label>
+        <label>商户名称</label>
     </div>
     <div class="field">
-    	<span class="field-text">{$info['user']['nickname'] ? $info['user']['nickname']: $info['user']['username']}</span>
+    	<span class="field-text">{$info['store']['name'] ?? ''}</span>
     </div>
 </div>
 <div class="form-group">
@@ -62,7 +62,7 @@
     	<span class="field-text">{$info['order']['real_amount'] ?? ''}元</span>
     </div>
 </div>
-{if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
+<!-- {if ($adminUser['admin_type'] != $Think.const.ADMIN_DEALER)}
 <div class="form-group">
     <div class="label">
         <label>产品总价</label>
@@ -79,7 +79,7 @@
     	<span class="field-text">{$info['order']['delivery_amount'] ?? ''}元</span>
     </div>
 </div>
-{/if}
+{/if} -->
 <!-- <div class="form-group">
     <div class="label">
         <label>收货人姓名</label>

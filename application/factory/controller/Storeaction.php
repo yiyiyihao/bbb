@@ -20,6 +20,7 @@ class Storeaction extends FactoryForm
             'name' => '已拒绝操作申请',
             'url' => url('index', ['status' => 2]),
         ];
+        $this->subMenu['menu']['0']['name'] = '全部';
         $action = strtolower($this->request->action());
         if (in_array($action, ['add', 'edit', 'del'])) {
             $this->error('NO ACCESS');
@@ -149,10 +150,11 @@ class Storeaction extends FactoryForm
      * 列表搜索配置
      */
     function _searchData(){
-        $search = [
-            ['type' => 'input', 'name' =>  'name', 'value' => '操作商户名称', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'sname', 'value' => '被操作商户名称', 'width' => '30'],
-        ];
+        $search = [];
+        if ($this->adminUser['admin_type']== ADMIN_FACTORY) {
+            $search[] = ['type' => 'input', 'name' =>  'name', 'value' => '操作商户名称', 'width' => '30'];
+        }
+        $search[] = ['type' => 'input', 'name' =>  'sname', 'value' => '被操作商户名称', 'width' => '30'];
         return $search;
     }
     /**
@@ -160,6 +162,16 @@ class Storeaction extends FactoryForm
      */
     function _tableData(){
         $table = parent::_tableData();
+        if ($table) {
+            foreach ($table as $key => $value) {
+                if ($this->adminUser['admin_type'] != ADMIN_FACTORY && isset($value['value']) && $value['value'] == 'name') {
+                    unset($table[$key]);
+                }
+                if (isset($value['value']) && in_array($value['value'], ['sort_order', 'status'])) {
+                    unset($table[$key]);
+                }
+            }
+        }
         if ($table['actions']['button']) {
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],

@@ -33,6 +33,14 @@ class Finance extends FactoryForm
         }
         $this->assign('wstatusList', get_withdraw_status());
     }
+    public function detail()
+    {
+        $info = $this->_assignInfo();
+        //获取提现商户名称
+        $info['name'] = db('store')->where(['store_id' => $info['from_store_id']])->value('name');
+        $this->assign('info', $info);
+        return $this->fetch();
+    }
     /**
      * 厂商审核操作
      */
@@ -62,6 +70,7 @@ class Finance extends FactoryForm
                 'withdraw_status' => $withdrawStatus,
                 'transfer_no' => $checkStatus ? $transferNo : '',
                 'remark' => $remark,
+                'img' => (isset($params['img']) ? trim($params['img']) : ''),
             ];
             $result = $this->model->update($data);
             if ($result) {
@@ -253,10 +262,10 @@ class Finance extends FactoryForm
         $where = [
             'SW.is_del' => 0,
         ];
-        if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
-            $where['SW.from_store_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_FACTORY){
+        if($this->adminUser['admin_type'] == ADMIN_FACTORY){
             $where['SW.store_id'] = $this->adminUser['store_id'];
+        }else{
+            $where['SW.from_store_id'] = $this->adminUser['store_id'];
         }
         $params = $this->request->param();
         if ($params) {

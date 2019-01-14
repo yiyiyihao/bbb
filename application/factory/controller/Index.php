@@ -32,11 +32,11 @@ class Index extends CommonIndex
             ];
             $field  = "B.*,BR.is_read";
             //未读公告列表
-            $bulletins      = $bulletinModel->field($field)->alias('B')->join($join)->where($where)->select();
-            $unReadCount    = count($bulletins);
+            $bulletins      = $bulletinModel->field($field)->alias('B')->join($join)->where($where)->limit(0, 5)->order('is_top DESC, publish_time DESC')->select();
+            $unReadCount    = $bulletinModel->field($field)->alias('B')->where($where)->count();
             //获取需要开屏展示的公告列表
             $where['B.special_display'] = 1;
-            $specialBulletins = $bulletinModel->field($field)->where($where)->whereNull('BR.bulletin_id')->select();
+            $specialBulletins = $bulletinModel->field($field)->where($where)->limit(0, 5)->whereNull('BR.bulletin_id')->order('publish_time DESC')->select();
             /* if(count($specialBulletins) > 0 && count($specialBulletins) == 1){
                 $this->assign('specialBulletin', $specialBulletins[0]);
             } */
@@ -76,7 +76,7 @@ class Index extends CommonIndex
                 $where = [
                     'store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
-                    'order_status'  => 1,
+                    'order_status'  => ['<>', 2],
                     'pay_status'    => 1,
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -88,7 +88,7 @@ class Index extends CommonIndex
                 //累计订单数据统计
                 $where = [
                     'store_id' => $storeId,
-                    'order_status'  => 1,
+                    'order_status'  => ['<>', 2],
                     'pay_status'    => 1,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -154,7 +154,7 @@ class Index extends CommonIndex
                     'store_id' => $storeId,
                     'service_status' => 3,
                 ];
-                $field='count(*) count,sum(refund_amount) amount';
+                $field='count(distinct(order_id)) count,sum(refund_amount) amount';
                 $refund=$orderSku->field($field)->where($where)->find();
                 //累计退款订单数
                 $total['refund_count']=$refund['count'];
@@ -230,7 +230,7 @@ class Index extends CommonIndex
                     'S.store_type'=> 2,
                     'S.store_id'=> $storeId,
                     'O.add_time' => ['>=', $beginToday],
-                    'O.order_status'  => 1,//正常
+                    'O.order_status'  => ['<>', 2],
                     'O.pay_status'    => 1,//已支付
                 ];
                 $join=[
@@ -282,7 +282,7 @@ class Index extends CommonIndex
                 $where = [
                     'user_store_id' => $storeId,
                     'add_time' => ['>=', $beginToday],
-                    'order_status'  => 1,
+                    'order_status'  => ['<>', 2],
                     'pay_status'    => 1,
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -294,7 +294,7 @@ class Index extends CommonIndex
                 //累计订单数据统计
                 $where = [
                     'user_store_id' => $storeId,
-                    'order_status'  => 1,
+                    'order_status'  => ['<>', 2],
                     'pay_status'    => 1,
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
@@ -312,55 +312,48 @@ class Index extends CommonIndex
             case ADMIN_SERVICE:
                 $tpl = 'servicer';
                 //今日佣金收益
-                $commissionModel=new \app\common\model\StoreCommission();
                 $join=[
                     ['store S','C.store_id = S.store_id','INNER'],
                 ];
                 $where=[
+                    'C.is_del'  => 0,
                     'S.store_id'=>$storeId,
-                    'C.commission_status'=>['IN',[0,1]],
+                    'C.income_status'=>['IN',[0,1]],
                     'C.add_time'=>['>=',$beginToday],
                 ];
-                $today['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
+                $today['commission_amount']=db('store_service_income')->alias('C')->join($join)->where($where)->sum('C.install_amount');
                 //累计佣金收益
-                unset($where['C.add_time']);
-                $total['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
-
+                $total['commission_amount']=db('store_finance')->where(['store_id' => $storeId])->value('total_amount');
 
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
-                    'work_order_type' => 1,
-                    'add_time'=>['>=',$beginToday],
-                    'sign_time > 0',
+                    'add_time' => ['>=',$beginToday],
                 ];
-                //今日上门安装工单数量
-                $today['workorder_count_1']=$workOrderModel->where($where)->count();
+                $field = 'count(if(work_order_type = 1 && add_time >= '.$beginToday.', true, NULL)) as post_count_1';
+                $field .= ', count(if(work_order_type = 1 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_1';
+                $field .= ', count(if(work_order_type = 2 && add_time >= '.$beginToday.', true, NULL)) as post_count_2';
+                $field .= ', count(if(work_order_type = 2 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+                
+                $today['post_count_1'] = $workOrderData ? intval($workOrderData['post_count_1']) : 0;
+                $today['sign_count_1'] = $workOrderData ? intval($workOrderData['sign_count_1']) : 0;
+                $today['post_count_2'] = $workOrderData ? intval($workOrderData['post_count_2']) : 0;
+                $today['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
+                
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
-                    'work_order_type' => 1,
                     'sign_time > 0',
                 ];
+                $field = 'count(if(work_order_type = 1, true, NULL)) as workorder_count_1';
+                $field .= ', count(if(work_order_type = 2, true, NULL)) as workorder_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+                
                 //累计上门安装工单数量
-                $total['workorder_count_1']=$workOrderModel->where($where)->count();
-                $where = [
-                    'store_id' => $storeId,
-                    'is_del' => 0,
-                    'work_order_type' => 2,
-                    'add_time'=>['>=',$beginToday],
-                    'sign_time > 0',
-                ];
-                //今日上门维修工单数量
-                $today['workorder_count_2']=$workOrderModel->where($where)->count();
-                $where = [
-                    'store_id' => $storeId,
-                    'is_del' => 0,
-                    'work_order_type' => 2,
-                    'sign_time > 0',
-                ];
+                $total['workorder_count_1'] = $workOrderData ? intval($workOrderData['workorder_count_1']) : 0;
                 //累计上门维修工单数量
-                $total['workorder_count_2']=$workOrderModel->where($where)->count();
+                $total['workorder_count_2'] = $workOrderData ? intval($workOrderData['workorder_count_2']) : 0;
 
                 $from=date('Y-m-d',$beginToday-86400*6);
                 $to=date('Y-m-d',$beginToday);
@@ -459,7 +452,7 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['order_status','=',1],
+                    ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
@@ -470,7 +463,7 @@ class Index extends CommonIndex
                         ['S.is_del','=',0],
                         ['S.store_type','=',2],
                         ['S.store_id','=',$storeId],
-                        ['O.order_status','=',1],
+                        ['order_status','<>',2],
                         ['O.pay_status','=',1],
                     ];
                     $join=[
@@ -513,7 +506,7 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['order_status','=',1],
+                    ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
@@ -524,7 +517,7 @@ class Index extends CommonIndex
                         ['S.is_del','=',0],
                         ['S.store_type','=',2],
                         ['S.store_id','=',$storeId],
-                        ['O.order_status','=',1],
+                        ['order_status','<>',2],
                         ['O.pay_status','=',1],
                     ];
                     $join=[
@@ -591,7 +584,7 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['order_status','=',1],
+                    ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
 
@@ -603,7 +596,7 @@ class Index extends CommonIndex
                         ['S.is_del','=',0],
                         ['S.store_type','=',2],
                         ['S.store_id','=',$storeId],
-                        ['O.order_status','=',1],
+                        ['order_status','<>',2],
                         ['O.pay_status','=',1],
                     ];
                     $join=[
@@ -647,7 +640,7 @@ class Index extends CommonIndex
                 $where=[
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
-                    ['order_status','=',1],
+                    ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
 
@@ -812,6 +805,7 @@ class Index extends CommonIndex
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
                     ['store_id','=',$storeId],
+                    ['income_status', '<>', 2],
                 ];
                 $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
                 $query=$model->where($where);
@@ -819,7 +813,7 @@ class Index extends CommonIndex
                 //if ($now != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
                 //}
-                $data[$i]['value']=$query->sum('income_amount');
+                $data[$i]['value']=$query->sum('install_amount');
 
                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
@@ -842,6 +836,7 @@ class Index extends CommonIndex
                     ['add_time','>=',$begin],
                     ['add_time','<',$end],
                     ['store_id','=',$storeId],
+                    ['income_status', '<>', 2],
                 ];
                 $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
                 $query=$model->where($where);
@@ -849,7 +844,7 @@ class Index extends CommonIndex
                 //if ($today != $data[$i]['time']) {
                 //    $query->cache($key,86400*7);
                 //}
-                $data[$i]['value']=$query->sum('income_amount');
+                $data[$i]['value']=$query->sum('install_amount');
 
                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值

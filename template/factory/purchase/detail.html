@@ -22,7 +22,7 @@
                             <h3 class="goodsTitle">{$info.name}</h3>
                             <p class="subTitle">{$info.description}</p>
                             <div class="priceBox">
-                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$info.min_price}</i></span></p>
+                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$info.min_price+$info.install_price}</i></span></p>
                             </div>
                             <div class="specBox">
                                 <p><b>库存</b><span id="saleSku">{$info.goods_stock}</span><span id="skuText"></span></p>

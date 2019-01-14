@@ -161,7 +161,8 @@ class OrderService extends Model
         $action = $checkStatus ? '同意' : '拒绝';
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, $action.$types[$type], $remark, $service['service_id']);
-        
+        //审核成功直接退款
+        $this->serviceRefund($service, $user, $params);
         return TRUE;
     }
     /**

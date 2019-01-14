@@ -361,43 +361,45 @@ class WorkOrder extends Model
         }
         $result = $this->save(['work_order_status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
-            //确认完成，服务商服务费入账
-            $where = [
-                'is_del'    => 0,
-                'worder_id' => $worder['worder_id'],
-                'order_sn'  => $worder['order_sn'],
-                'osku_id'   => $worder['osku_id'],
-            ];
-            $incomeModel = db('store_service_income');
-            $exist = $incomeModel->where($where)->find();
-            if (!$exist) {
-                $config = get_store_config($worder['factory_id'], TRUE);
-                $returnRatio = isset($config['servicer_return_ratio']) ? floatval($config['servicer_return_ratio']) : 0;
-                $amount = $worder['install_price'];
-                $data = [
-                    'store_id'      => $worder['store_id'],
-                    'worder_id'     => $worder['worder_id'],
-                    'worder_sn'     => $worder['worder_sn'],
-                    'order_sn'      => $worder['order_sn'],
-                    'osku_id'       => $worder['osku_id'],
-                    'goods_id'      => $worder['goods_id'],
-                    'sku_id'        => $worder['sku_id'],
-                    'installer_id'  => $worder['installer_id'],
-                    'install_amount'=> $amount,
-                    'return_ratio'  => $returnRatio > 0 ? $returnRatio : 0,
-                    'income_status' => 0,
-                    'add_time'      => time(),
-                    'update_time'   => time(),
+            if ($worder['work_order_type'] == 1) {
+                //确认完成，服务商服务费入账(只有安装工单)
+                $where = [
+                    'is_del'    => 0,
+                    'worder_id' => $worder['worder_id'],
+                    'order_sn'  => $worder['order_sn'],
+                    'osku_id'   => $worder['osku_id'],
                 ];
-                $logId = $incomeModel->insertGetId($data);
-                if ($logId) {
-                    //修改商户账户收益信息
-                    $financeModel = new \app\common\model\StoreFinance();
-                    $params = [
-                        'pending_amount'=> $amount,
-                        'total_amount'  => $amount,
+                $incomeModel = db('store_service_income');
+                $exist = $incomeModel->where($where)->find();
+                if (!$exist) {
+                    $config = get_store_config($worder['factory_id'], TRUE, 'default');
+                    $returnRatio = isset($config['servicer_return_ratio']) ? floatval($config['servicer_return_ratio']) : 0;
+                    $amount = $worder['install_price'];
+                    $data = [
+                        'store_id'      => $worder['store_id'],
+                        'worder_id'     => $worder['worder_id'],
+                        'worder_sn'     => $worder['worder_sn'],
+                        'order_sn'      => $worder['order_sn'],
+                        'osku_id'       => $worder['osku_id'],
+                        'goods_id'      => $worder['goods_id'],
+                        'sku_id'        => $worder['sku_id'],
+                        'installer_id'  => $worder['installer_id'],
+                        'install_amount'=> $amount,
+                        'return_ratio'  => $returnRatio > 0 ? $returnRatio : 0,
+                        'income_status' => 0,
+                        'add_time'      => time(),
+                        'update_time'   => time(),
                     ];
-                    $result = $financeModel->financeChange($worder['store_id'], $params, '工单完成,计算收益', $worder['worder_sn']);
+                    $logId = $incomeModel->insertGetId($data);
+                    if ($logId) {
+                        //修改商户账户收益信息
+                        $financeModel = new \app\common\model\StoreFinance();
+                        $params = [
+                            'pending_amount'=> $amount,
+                            'total_amount'  => $amount,
+                        ];
+                        $result = $financeModel->financeChange($worder['store_id'], $params, '工单完成,计算收益', $worder['worder_sn']);
+                    }
                 }
             }
             //增加工程师服务次数
@@ -539,6 +541,27 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        $status = $worder['work_order_status'];
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($status) {
+            case 0:
+                $this->error = '工单已取消,不允许评价';
+                return FALSE;
+            case 0:
+                $this->error = '工单待分派,不允许评价';
+                return FALSE;
+            case 1:
+                $this->error = '工单待接单,不允许评价';
+                return FALSE;
+            case 2:
+                $this->error = '工单待上门,不允许评价';
+                return FALSE;
+            case 3:
+                $this->error = '工程师服务中,不允许评价';
+                return FALSE;
+            default:
+                break;
+        }
         if (!$user) {
             $assessData = [
                 'type'  => 1,
@@ -550,6 +573,13 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        //判断评价是否存在
+        $log = db('work_order_assess')->where(['worder_id' => $worder['worder_id'], 'type' => $assessData['type']])->find();
+        if ($log) {
+            $this->error = '不能重复评价';
+            return FALSE;
+        }
+        /* //判断当前工单是否存在首次评价
         if ($assessData['type'] == 1) {
             //判断当前工单是否存在首次评价
             $log = db('work_order_assess')->where(['worder_id' => $worder['worder_id'], 'type' => 1])->find();
@@ -557,14 +587,14 @@ class WorkOrder extends Model
                 $this->error = '工单已评价';
                 return FALSE;
             }
-        }
+        } */
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
             'worder_id'     =>  $worder['worder_id'],
             'worder_sn'     =>  $worder['worder_sn'],
             'installer_id'  =>  $worder['installer_id'],
             'post_user_id'  =>  $user ? $user['user_id'] : 0,
-            'nickname'      =>  $nickname ? $nickname : '系统',
+            'nickname'      =>  $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
             'type'          =>  $assessData['type'],//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
             'msg'           =>  $assessData['msg'],
             'add_time'      =>  time(),

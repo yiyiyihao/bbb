@@ -96,7 +96,7 @@ class Purchase extends FactoryForm
                             'status'    => 1,
                             'data'      => array(
                                 'skuid' => $skuInfo['sku_id'],
-                                'price' => $skuInfo['price'],
+                                'price' => ($skuInfo['price'] + $skuInfo['install_price']),
                                 'sku'   => $skuInfo['sku_stock'],
                             )
                         );

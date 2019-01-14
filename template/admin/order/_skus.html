@@ -11,7 +11,7 @@
         <th width="80">支付金额</th>
         <th width="120">安装状态</th>
         <th width="120">退货退款状态</th>
-        <th width="*">物流状态</th>
+        <!-- <th width="*">物流状态</th> -->
         <th width="*">操作</th>
       </tr>
       {notempty name="info.order.skus"}
@@ -26,7 +26,7 @@
             <td>{$vo.real_price}元</td>
             <td>-</td>
             <td>-</td>
-            <td>-</td>
+            <!-- <td>-</td> -->
             <td>
             	<span class='button-group'>
             		{if ($adminUser['admin_type'] == $Think.const.ADMIN_FACTORY)}
@@ -59,14 +59,14 @@
              		样品不安装
              	{/if}
              </td>
-             <td>{:get_service_status($v.service.service_status)}</td>
-             <td>
+             <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td>
+             <!-- <td>
              	{if ($v.odelivery_id)}
              	物流单号:{$v.delivery_sn}({$v.delivery_name})
              	{elseif(!$v.odelivery_id && $v['delivery_status'] != 0)/}
              	已发货
              	{/if}
-             </td>
+             </td> -->
              <td>
              </td>
            </tr>

@@ -15,6 +15,7 @@ class Myorder extends commonOrder
         if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
             $this->error('NO ACCESS');
         }
+        $this->subMenu['menu']['0']['name'] = '全部';
         unset($this->subMenu['add']);
         $this->orderSkuModel = db('order_sku');
         $this->orderSkuServiceModel = new \app\common\model\OrderService();
@@ -22,6 +23,7 @@ class Myorder extends commonOrder
     
     public function return()
     {
+        $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
         $ossubId = isset($params['ossub_id']) ? intval($params['ossub_id']) : 0 ;
@@ -30,8 +32,8 @@ class Myorder extends commonOrder
         if ($order === FALSE) {
             $this->error($this->model->error);
         }
-        if ($order['close_refund_status'] != 0) {
-            $this->error('不允许退货退款');
+        if ($order['close_refund_status'] == 2) {
+            $this->error('超时不允许退货退款');
         }
         $orderSkuModel = new \app\common\model\OrderSku();
         $ossub = $orderSkuModel->getSubDetail($ossubId, FALSE, FALSE, TRUE);

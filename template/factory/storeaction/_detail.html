@@ -1,3 +1,4 @@
+{if ($adminUser['admin_type']== $Think.const.ADMIN_FACTORY)}
 <div class="form-group">
     <div class="label">
         <label>操作商户名称</label>
@@ -6,6 +7,7 @@
     	<span class="field-text">{$info['name'] ?? ''}</span>
     </div>
 </div>
+{/if}
 <div class="form-group">
     <div class="label">
         <label>操作类型</label>

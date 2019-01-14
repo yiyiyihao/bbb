@@ -75,8 +75,9 @@
               <td>{$vo['remark']}</td>
               <td>
               	{if condition="$vo['withdraw_status'] == 0"}
-              	<a href="{:url('check', ['id' => $vo['log_id']])}" class="button bg-main">审核</a>
+              	<a href="{:url('check', ['id' => $vo['log_id']])}" class="button button-small icon-check bg-yellow">审核</a>
               	{/if}
+              	<a href="{:url('detail', ['id' => $vo['log_id']])}"  class="button button-small icon-detail bg-main"> 查看详情</a>
               </td>
             </tr>
           {/volist}

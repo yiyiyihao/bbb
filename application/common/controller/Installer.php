@@ -213,12 +213,12 @@ class Installer extends FormBase
         return 'UI';
     }
     function _getField(){
-        return 'UI.*, S.name as sname, SF.name as fname, UD.udata_id';
+        return 'UI.*, S.name as sname, SF.name as fname';
     }
     function _getJoin()
     {
         return [
-            ['user_data UD', 'UD.user_id = UI.user_id AND UD.third_type = "wechat_applet" AND UD.is_del = 0', 'LEFT'],
+//             ['user_data UD', 'UD.user_id = UI.user_id AND UD.third_type = "wechat_applet" AND UD.is_del = 0', 'LEFT'],
             ['store SF', 'SF.store_id = UI.factory_id', 'LEFT'],
             ['store S', 'S.store_id = UI.store_id', 'LEFT'],
         ];

@@ -294,6 +294,45 @@ class Store extends FormBase
         $this->assign('info', $info);
         return $info;
     }
+    function _afterList($list)
+    {
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $flag = $this->model->checkDel($value, $this->adminUser);
+                $list[$key]['unset_del'] = $flag === FALSE ? 1: 0;
+                switch ($this->storeType) {
+                    case STORE_DEALER:
+                        //计算订单金额 订单数量
+                        $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $value['store_id'], 'pay_status' => 1])->find();
+                        $list[$key]['order_num'] = $order ? intval($order['num']) : 0;
+                        $list[$key]['order_amount'] = $order ? floatval($order['amount']) : 0;
+                        $list[$key]['address'] = $value['region_name'].' '.$value['address'];
+                        break;
+                    case STORE_CHANNEL:
+                        //所属零售商数量
+                        $where = [
+                            'S.store_type'  => STORE_DEALER,
+                            'S.is_del'      => 0,
+                            'S.check_status'=> 1,
+                            'SD.ostore_id'  => $value['store_id'],
+                        ];
+                        $join = [
+                            ['store_dealer SD', 'S.store_id = SD.store_id', 'INNER'],
+                        ];
+                        $list[$key]['dealer_count'] = db('store')->alias('S')->join($join)->where($where)->count();
+                        break;
+                    case STORE_SERVICE:
+                        //服务次数
+                        $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
+                        break;
+                    default:
+                        ;
+                        break;
+                }
+            }
+        }
+        return $list;
+    }
     function _getData()
     {
         $data = parent::_getData();
@@ -363,13 +402,22 @@ class Store extends FormBase
     }
     function _getField(){
         $field = 'S.name, U.*, AS.*, S.*';
-        if ($this->storeType == STORE_CHANNEL) {
-//             $field .= ', CG.name as gname';
-        }elseif ($this->storeType == STORE_DEALER){
-            $field .= ', S2.name as cname';
-        }
         if ($this->storeType != STORE_FACTORY) {
             $field .= ', S1.name as sname';
+            if ($this->storeType == STORE_DEALER){
+                $field .= ', S2.name as cname';
+            }
+            switch ($this->storeType) {
+                case STORE_DEALER:
+                    break;
+                case STORE_CHANNEL:
+                case STORE_SERVICE:
+                    $field .= ', SF.*';
+                    break;
+                default:
+                    ;
+                    break;
+            }
         }
         return $field;
     }
@@ -395,10 +443,17 @@ class Store extends FormBase
                 break;
         }
         $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
-        if ($this->storeType == STORE_CHANNEL) {
-//             $join[] = ['channel_grade CG', 'CG.cgrade_id = AS.cgrade_id', 'LEFT'];
-        }elseif ($this->storeType == STORE_DEALER){
-            $join[] = ['store S2', 'S2.store_id = AS.ostore_id', 'LEFT'];
+        switch ($this->storeType) {
+            case STORE_DEALER:
+                $join[] = ['store S2', 'S2.store_id = AS.ostore_id', 'LEFT'];
+            break;
+            case STORE_SERVICE:
+            case STORE_CHANNEL:
+                $join[] = ['store_finance SF', 'SF.store_id = S.store_id', 'LEFT'];
+            break;
+            default:
+                ;
+            break;
         }
         if ($this->storeType != STORE_FACTORY) {
             $join[] = ['store S1', 'S.factory_id = S1.store_id', 'LEFT'];
@@ -478,8 +533,9 @@ class Store extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
-        $array = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = [];
+        $array = $logo = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = $array9 = [];
         if ($this->storeType == STORE_FACTORY) {
+            $logo = ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
         if ($this->storeType == STORE_DEALER && in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
@@ -493,6 +549,7 @@ class Store extends FormBase
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array8 = ['title'=>'选择区域','type'=>'region','length'=>3,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择区域'];
+            $array9 = ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'];
         }
         if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
             $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
@@ -513,11 +570,10 @@ class Store extends FormBase
         $field = [
             $array, $array1,
             ['title'=>lang($this->modelName).'名称','type'=>'text','name'=>'name','size'=>'40','datatype'=>'*','default'=>'','notetext'=>lang($this->modelName).'名称请不要填写特殊字符'],
-            ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''],
+            $logo,
             ['title'=>lang($this->modelName).'联系人姓名','type'=>'text','name'=>'user_name','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系人姓名'],
             ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'mobile','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系电话'],
-            $array2,$array3,$array4,$array5,$array6,$array7,$array8,
-            ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'],
+            $array2,$array3,$array4,$array5,$array6,$array7,$array8,$array9,           
             $status,
             $sort,
         ];
@@ -526,22 +582,5 @@ class Store extends FormBase
     function _init()
     {
         
-    }
-    function _afterList($list)
-    {
-        if ($list) {
-            foreach ($list as $key => $value) {
-                $flag = $this->model->checkDel($value, $this->adminUser);
-                $list[$key]['unset_del'] = $flag === FALSE ? 1: 0;
-                if ($this->storeType == STORE_DEALER) {
-                    //计算订单金额 订单数量
-                    $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $value['store_id'], 'order_status' => 1, 'pay_status' => 1])->find();
-                    $list[$key]['order_num'] = $order ? intval($order['num']) : 0;
-                    $list[$key]['order_amount'] = $order ? floatval($order['amount']) : 0;
-                    $list[$key]['address'] = $value['region_name'].' '.$value['address'];
-                }
-            }
-        }
-        return $list;
     }
 }

@@ -16,12 +16,12 @@ class Workorder extends FactoryForm
         if (strtolower($this->request->action()) != 'index') {
             $this->type = 2;
             $this->subMenu['menu']['0'] = [
-                'name' => '维修工单列表',
+                'name' => '全部',
                 'url' => url('lists'),
             ];
             $action = 'lists';
         }else{
-            $this->subMenu['menu']['0']['name'] = '安装工单列表';
+            $this->subMenu['menu']['0']['name'] = '全部';
             $action = 'index';
         }
         $this->subMenu['showmenu'] = true;
@@ -42,11 +42,17 @@ class Workorder extends FactoryForm
     public function _afterList($list){
         if ($list && $this->adminUser['admin_type'] == ADMIN_FACTORY) {
             foreach ($list as $key => $value) {
+                $exist = [];
                 if ($value['work_order_type'] == 1 && $value['work_order_status'] == 4) {
                     //判断安装工单是否存在维修中的记录
                     $exist = $this->model->where(['parent_id' => $value['worder_id'], 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
                 }
                 $list[$key]['fix_id'] = isset($exist) && $exist ? $exist['worder_id']: 0;
+                
+                //判断当前工单是否有首次评价和追加评价
+                $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
+                $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
+                $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0  ? 1 : 0;
             }
         }
         return $list;
@@ -74,6 +80,7 @@ class Workorder extends FactoryForm
     }
     public function add()
     {
+        $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $type = isset($params['type']) ? intval($params['type']) : 0;
         //只有渠道和零售商可以新增安装工单
@@ -89,6 +96,7 @@ class Workorder extends FactoryForm
     //指派售后工程师
     public function dispatch()
     {
+        $this->subMenu['showmenu'] = false;
         if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
             $this->error(lang('NO ACCESS'));
         }
@@ -111,7 +119,7 @@ class Workorder extends FactoryForm
                 //发送给服务商在线管理员
                 $push->sendToUid(md5($installerId), json_encode($sendData));
                 #TODO 发送服务通知/短信给工程师
-                $this->success('售后工程师指派成功', url('index'));
+                $this->success('售后工程师指派成功', url('index', ['type' => $info['work_order_type']]));
             }else{
                 $this->error('操作失败:'.$this->model->error);
             }
@@ -124,7 +132,11 @@ class Workorder extends FactoryForm
      * 评价工单
      */
     public function assess(){
+        $this->subMenu['showmenu'] = false;
         $info = $this->_assignInfo();
+        if ($info['work_order_status'] != 4) {
+            $this->error(lang('NO ACCESS'));
+        }
         if (IS_POST) {
             $params = $this->request->param();
             $data = [
@@ -138,7 +150,7 @@ class Workorder extends FactoryForm
             if ($assessId === FALSE) {
                 $this->error($this->model->error);
             }else{
-                $this->success('工单评价成功', url('index'));
+                $this->success('工单评价成功', url('index', ['type' => $info['work_order_type']]));
             }
         }else{
             //检查工单是否评论过
@@ -215,7 +227,7 @@ class Workorder extends FactoryForm
             $field .= ',S.name';
         }
 //         状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
-        $field .= ', if(work_order_status >= 0, work_order_status, 5) as order_status';
+//         $field .= ', if(work_order_status >= 0, work_order_status, 5) as order_status';
         return $field;
     }
     function _getJoin()
@@ -230,7 +242,8 @@ class Workorder extends FactoryForm
     }
     function  _getOrder()
     {
-        return 'order_status ASC, WO.add_time DESC';
+//         return 'order_status ASC, WO.add_time DESC';
+        return 'WO.add_time DESC';
     }
     function _getWhere(){
         $params = $this->request->param();
@@ -254,6 +267,10 @@ class Workorder extends FactoryForm
             $where['WO.post_store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {
+            $sn = isset($params['sn']) ? trim($params['sn']) : '';
+            if($sn){
+                $where['WO.worder_sn'] = ['like','%'.$sn.'%'];
+            }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
                 $where['WO.user_name|WO.phone'] = ['like','%'.$name.'%'];
@@ -315,7 +332,7 @@ class Workorder extends FactoryForm
         if (!$ossub['pay_status']) {
             $this->error('订单未支付，不允许添加工单');
         }
-        if($ossub['service'] && ($ossub['service']['service_status'] != -1 || $ossub['service']['service_status'] != -2)){
+        if($ossub['service'] && ($ossub['service']['service_status'] != -1 && $ossub['service']['service_status'] != -2)){
             $this->error('产品存在退款申请，不允许提交工单');
         }
         if ($type == 1) {

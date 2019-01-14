@@ -28,6 +28,17 @@ class Goods extends FormBase
         $this->assign('goodsTypes', goodstype());
         $this->assign('stockReduces', $this->stockReduces);
     }
+    function _afterList($list)
+    {
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $list[$key]['min_price'] = $value['min_price'] + $value['install_price'];
+                $list[$key]['max_price'] = $value['max_price'] + $value['install_price'];
+            }
+        }
+        return $list;
+    }
+    
     
     //商品详情管理
     public function detail()

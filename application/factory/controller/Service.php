@@ -38,6 +38,7 @@ class Service extends FactoryForm
                 'url' => url($action, ['status' => 4]),
             ]
         ];
+        $this->subMenu['menu']['0']['name'] = '全部';
         $this->subMenu['showmenu'] = true;
     }
     function _afterList($list)
@@ -259,7 +260,7 @@ class Service extends FactoryForm
                 'text'  => '取消', 'action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-gray',
                 'condition' => [
                     'action' => 'cancel',
-                    'rule' => '$vo["service_status"] != 0'
+                    'rule' => '$vo["service_status"] != -2 && $vo["service_status"] != -1 && $vo["service_status"] != 3'
                 ]
             ];
 //             $table['actions']['button'][] = [

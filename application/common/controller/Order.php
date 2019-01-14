@@ -28,12 +28,7 @@ class Order extends FormBase
             'name' => '已关闭',
             'url' => url('index', ['order_status' => 3]),
         ];
-        
-        $config = $this->config = get_store_config($this->adminFactory['store_id'], TRUE);
-        //判断商户是否可提现
-        if ($config && isset($config['order_return_day']) && $config['order_return_day'] > 0) {
-            $this->config['returnTime'] = $config['order_return_day'] * 24 * 60 * 60;
-        }
+        $this->subMenu['menu']['0']['name'] = '全部';
     }
     public function detail()
     {
@@ -43,8 +38,8 @@ class Order extends FormBase
             'name' => '订单查看',
             'url' => url('detail', ['order_sn' => $orderSn]),
         ]; */
-        $this->subMenu['menu'] = [];
-        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, $this->config, TRUE, TRUE);
+        $this->subMenu['showmenu'] = false;
+        $detail = $this->model->getOrderDetail($orderSn, $this->adminUser, TRUE, TRUE);
         if ($detail === false) {
             $this->error($this->model->error);
         }
@@ -66,6 +61,7 @@ class Order extends FormBase
     //支付订单
     public function pay()
     {
+        $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $orderSn = isset($params['order_sn']) ? trim($params['order_sn']) : '';
         if (IS_POST) {
@@ -200,20 +196,22 @@ class Order extends FormBase
     function _afterList($list)
     {
         if ($list) {
-            $list = $this->model->getOrderList($list);
+            $flag = in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER]) ? TRUE : FALSE;
+            $list = $this->model->getOrderList($list, $flag);
         }
         return $list;
     }
     
     function _getField(){
-        return '(if(U.realname != "", U.realname, U.nickname)) as nickname, U.username, O.*';
+        return 'S.name as sname, O.*';
     }
     function _getAlias(){
         return 'O';
     }
     function _getJoin(){
         return [
-            ['user U', 'O.user_id = U.user_id', 'LEFT'],
+//             ['user U', 'O.user_id = U.user_id', 'LEFT'],
+            ['store S', 'S.store_id = O.user_store_id', 'LEFT'],
         ];
     }
     function _getOrder(){
@@ -234,6 +232,10 @@ class Order extends FormBase
             $payNo = isset($params['pay_no']) ? trim($params['pay_no']) : '';
             if($payNo){
                 $where['O.pay_sn'] = ['like','%'.$payNo.'%'];
+            }
+            $sname = isset($params['sname']) ? trim($params['sname']) : '';
+            if($sname){
+                $where['S.name'] = ['like','%'.$sname.'%'];
             }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){

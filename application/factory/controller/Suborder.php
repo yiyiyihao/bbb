@@ -12,6 +12,7 @@ class Suborder extends commonOrder
         if ($this->adminUser['admin_type'] != ADMIN_CHANNEL) {
             $this->error('NO ACCESS');
         }
+        $this->subMenu['menu']['0']['name'] = '全部';
         unset($this->subMenu['add']);
     }
     public function cancel()
@@ -55,6 +56,10 @@ class Suborder extends commonOrder
             $payNo = isset($params['pay_no']) ? trim($params['pay_no']) : '';
             if($payNo){
                 $where['O.pay_sn'] = ['like','%'.$payNo.'%'];
+            }
+            $sname = isset($params['sname']) ? trim($params['sname']) : '';
+            if($sname){
+                $where['S.name'] = ['like','%'.$sname.'%'];
             }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){

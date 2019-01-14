@@ -12,7 +12,7 @@ class Order extends commonOrder
     {
         $this->subMenu['menu'] = [
             [
-                'name' => '财务订单',
+                'name' => '全部',
                 'url' => url('finance'),
             ],
             [
@@ -30,5 +30,13 @@ class Order extends commonOrder
             
         ];
         return $this->index();
+    }
+    function _afterList($list)
+    {
+        if ($list) {
+            $orderModel = new \app\common\model\Order();
+            $list = $orderModel->getOrderList($list);
+        }
+        return $list;
     }
 }

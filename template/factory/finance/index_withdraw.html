@@ -69,6 +69,7 @@
           <th width="*">提现账户信息</th>
           <th width="*">提现状态</th>
           <th width="*">备注</th>
+          <th></th>
         </tr>
         {notempty name="list"}
           {volist name="list" id="vo" key="key"}
@@ -89,6 +90,9 @@
               	{elseif condition="$vo['withdraw_status'] == -1"/}
               	拒绝理由 :  {$vo['remark']}
               	{/if}
+              </td>
+              <td>
+              	<a href="{:url('detail', ['id' => $vo['log_id']])}"  class="button button-small icon-detail bg-main"> 查看详情</a>
               </td>
             </tr>
           {/volist}

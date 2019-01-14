@@ -10,32 +10,8 @@
                 </div>
             </div>
             <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
-                    <div class="form-group">
-                        <div class="label">
-                            <label>提现金额</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="20"  disabled="disabled" class="input" value="{$info['amount']}元">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>提现商户类型</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="20"  disabled="disabled" class="input" value="{:get_store_type($info.from_store_type)}">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>提现商户名称</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="40"  disabled="disabled" class="input" value="{$info['name']}">
-                        </div>
-                    </div>
-                    <div class="form-group">
+            	{include file="finance/_detail" /}
+                <div class="form-group">
                         <div class="label">
                             <label>审核结果</label>
                         </div>
@@ -57,6 +33,19 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group allowed">
+						<div class="label">
+							<label>转账凭证</label>
+						</div>
+						<div class="field">
+							<input type="hidden" class="input" id="img" name="img" size="38" value="{$info['img']|default=''}">
+			                <div class="img_preview" style="margin-bottom:10px;"><img src="{$info['img']|default='/static/base/images/default.png'}" id="img_preview" width="120"></div>
+			                <a class="button bg-main button-small js-img-upload" data="img" preview="img_preview" href="javascript:;" >
+			                	<span class="icon-upload"> 上传</span>
+			                </a>
+			                <div class="input-note"></div>
+						</div>
+					</div>
                     <div class="form-group">
                         <div class="label">
                             <label>备注</label>
@@ -68,33 +57,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="tab-panel" id="tab-2">
-                	<div class="form-group">
-                        <div class="label">
-                            <label>收款人姓名</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="20" disabled="disabled" class="input" value="{$info['realname'] ?? ''}">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>到账银行名称</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="20" disabled="disabled" class="input" value="{$info['bank_name'] ?? ''}">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>到账银行卡号</label>
-                        </div>
-                        <div class="field">
-                            <input type="text" size="40" disabled="disabled"  class="input" value="{$info['bank_no'] ?? ''}">
-                        </div>
-                    </div>
-                </div>
             <div class="panel-foot">
                 <div class="form-button">
                     <button class="button bg-main" type="submit">保存</button>

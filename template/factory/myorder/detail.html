@@ -67,26 +67,28 @@
 						              		样品不安装
 						              	{/if}
 						              </td>
-						              <td>{:get_service_status($v.service.service_status)}</td>
+						              <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td>
 						              <!-- <td>{$v.delivery_name}<br>{$v.delivery_sn}</td> -->
 						              <td>
-						              	{if condition="$vo.goods_type != 2"}
-						              		{if condition="(!$v.service || $v.service.service_status == -2) && $info['order']['pay_status'] == 1 && (!$v.work_order || $v.work_order.work_order_status == -1)"}
-							              		<a href="{:url('workorder/add', ['ossub_id' => $v['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
-							              	{elseif ($v.work_order)/}
-							              		<a href="{:url('workorder/detail', ['id' => $v.work_order.worder_id])}" class="button button-small bg-red js-open" title="查看安装工单">查看安装工单</a>
+						              	{if ($info['order']['order_status'] == 1)}	
+							              	{if condition="$vo.goods_type != 2"}
+							              		{if condition="(!$v.service || $v.service.service_status == -2)  && $info['order']['pay_status'] == 1 && (!$v.work_order || $v.work_order.work_order_status == -1)"}
+								              		<a href="{:url('workorder/add', ['ossub_id' => $v['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
+								              	{elseif ($v.work_order)/}
+								              		<a href="{:url('workorder/detail', ['id' => $v.work_order.worder_id])}" class="button button-small bg-red js-open" title="查看安装工单">查看安装工单</a>
+								              	{/if}
 							              	{/if}
-						              	{/if}
-						              	{if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
-						              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
-						              	{elseif ($v.service)/}
-						              		{if ($v.service.service_status == -2 || $v.service.service_status == -1)}
-						              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id'], 'sid' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="重新申请退货退款">重新申请退货退款</a>
-						              		{elseif ($v.service.service_status == 1)/}
-						              		<a href="{:url('service/delivery', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="填写退货信息">填写退货信息</a>
-						              		{else/}
-						              		<a href="{:url('service/detail', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="查看退货退款">查看退货退款</a>
-						              		{/if}
+							              	{if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
+							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
+							              	{elseif ($v.service)/}
+							              		{if ($v.service.service_status == -2 || $v.service.service_status == -1)}
+							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id'], 'sid' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="重新申请退货退款">重新申请退货退款</a>
+							              		{elseif ($v.service.service_status == 1)/}
+							              		<a href="{:url('service/delivery', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="填写退货信息">填写退货信息</a>
+							              		{else/}
+							              		<a href="{:url('service/detail', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="查看退货退款">查看退货退款</a>
+							              		{/if}
+							              	{/if}
 						              	{/if}
 						              </td>
 						            </tr>

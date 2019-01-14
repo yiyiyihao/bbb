@@ -39,6 +39,7 @@ class Commission extends FactoryForm
             $join[] = ['store S', 'S.store_id = C.from_store_id', 'LEFT'];
         }else{
             $join[] = ['user_installer UI', 'UI.installer_id = C.installer_id', 'LEFT'];
+//             $join[] = ['work_order WO', 'WO.worder_id = C.worder_id AND WO.work_order_type = 1', 'INNER'];
         }
         $join[] = ['goods G', 'G.goods_id = C.goods_id', 'LEFT'];
         return $join;
@@ -98,5 +99,17 @@ class Commission extends FactoryForm
             ];
         }
         return $search;
+    }
+    function _tableData(){
+        $table = parent::_tableData();
+        if ($table) {
+            foreach ($table as $key => $value) {
+                if (isset($value['value']) && in_array($value['value'], ['sort_order', 'status'])) {
+                    unset($table[$key]);
+                }
+            }
+            unset($table['actions']);
+        }
+        return $table;
     }
 }
