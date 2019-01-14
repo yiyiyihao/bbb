@@ -26,9 +26,9 @@ RETURN [
     'STORE_ACTION_RECORD'   =>  '商户操作',
     'STORE'                 =>  '商户入驻申请',
     
-    'GOODS'                 =>  '产品',
-    'GOODS_CATE'            =>  '产品分类',
-    'GOODS_SPEC'            =>  '产品规格',
+    'GOODS'                 =>  '商品',
+    'GOODS_CATE'            =>  '商品分类',
+    'GOODS_SPEC'            =>  '商品规格',
     'PAYMENT'               =>  '支付',
     
     'AUTH_RULE'             =>  '权限节点',
@@ -77,7 +77,7 @@ RETURN [
     'LOGOUT'                =>  '退出登录',
     'PROFILE'               =>  '基本资料',
     'PASSWORD'              =>  '修改密码',
-    'GETSPEC'               =>  ' 获取产品规格',
+    'GETSPEC'               =>  ' 获取商品规格',
     'GETORDER'              =>  ' 获取订单状态',
     'CLEARCACHE'            =>  '清理缓存',
     'GETAJAXLIST'           =>  ' 异步获取数据',

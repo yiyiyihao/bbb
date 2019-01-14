@@ -13,24 +13,24 @@
                 	<!-- {include file="common/factory" /} -->
                     <div class="form-group">
 						<div class="label">
-							<label>产品分类</label>
+							<label>商品分类</label>
 						</div>
 						<div class="field">
-							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择产品分类！">
+							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择商品分类！">
 								{foreach name="cates" item="cate" key="key"}
 									<option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option> 
 								{/foreach}
 							</select>
-							<div class="input-note">请选择产品类型</div>
+							<div class="input-note">请选择商品类型</div>
 						</div>
 					</div>
                     <div class="form-group">
                         <div class="label">
-                            <label>产品名称</label>
+                            <label>商品名称</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
-                            <div class="input-note">产品名称请不要填写特殊字符</div>
+                            <div class="input-note">商品名称请不要填写特殊字符</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -72,10 +72,10 @@
 	                </div>
 	                <div class="form-group">
 		                <div class="label">
-		                  <label>产品售价</label>
+		                  <label>商品售价</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写产品售价！"> 元
+		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
 		                  <div class="input-note"></div>
 		                </div>
 		            </div>
@@ -84,17 +84,17 @@
 		                  <label>安装费用</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写产品安装费用！"> 元
+		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
 		                  <div class="input-note"></div>
 		                </div>
 		              </div>
 	                <div class="form-group">
                         <div class="label">
-                            <label>产品编码</label>
+                            <label>商品编码</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}">
-                            <div class="input-note">产品编码请不要填写特殊字符</div>
+                            <div class="input-note">商品编码请不要填写特殊字符</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -128,9 +128,9 @@
                               <table id="table" class="table table-hover ">
                                 <tbody>
                                   <tr>
-                                    <th width="200">产品编码</th>
-                                    <th width="*">产品规格</th>
-                                    <th width="100">产品价格</th>
+                                    <th width="200">商品编码</th>
+                                    <th width="*">商品规格</th>
+                                    <th width="100">商品价格</th>
                                     <th width="100">库存</th>
                                     <th width="80">操作</th>
                                   </tr>
@@ -158,15 +158,15 @@
                         </div>
                         <div class="field">
                             <input type="number" min="0" class="input" id="sample_purchase_limit" name="sample_purchase_limit" value="{$info['sample_purchase_limit'] ?? ''}">
-                            <div class="input-note">单个用户样品限购数量(只有样品类型的产品才有此设置  样品不需要安装费设置)</div>
+                            <div class="input-note">单个用户样品限购数量(只有样品类型的商品才有此设置  样品不需要安装费设置)</div>
                         </div>
                     </div>
 		              <div class="form-group">
 		                <div class="label">
-		                  <label>产品库存</label>
+		                  <label>商品库存</label>
 		                </div>
 		                <div class="field">
-		                  <input type="number" min="0" class="input" id="goods_stock" name="goods_stock" size="12" value="{$info.goods_stock|default=0}" nullmsg="请填写产品库存！" {if condition="$info && isset($info['skuinfo']) && $info['skuinfo']"}disabled="disabled"{/if}>
+		                  <input type="number" min="0" class="input" id="goods_stock" name="goods_stock" size="12" value="{$info.goods_stock|default=0}" nullmsg="请填写商品库存！" {if condition="$info && isset($info['skuinfo']) && $info['skuinfo']"}disabled="disabled"{/if}>
 		                  <div class="input-note"></div>
 		                </div>
 		              </div>

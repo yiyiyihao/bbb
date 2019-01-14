@@ -118,6 +118,16 @@ class UserInstaller extends Model
     private function _getJobNo()
     {
         $no = get_nonce_str(8, 2);
+        
+        //工程师工号：0+“年月日”+“4位随机数字”
+        $key = '0'.date('ymd').get_nonce_str(4, 2);
+        //判断当日新增工程师数量是否超过9999个
+        $beginToday = mktime(0,0,0,date('m'),date('d'),date('Y')); //今日开始时间戳
+        $exist = $this->where(['add_time' => ['>=', $beginToday]])->count();
+        if ($exist >= 9999) {
+            return FALSE;
+        }
+        
         //判断售后工程师工号是否存在
         $info = $this->where(['job_no' => $no])->find();
         if ($info){

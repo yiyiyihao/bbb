@@ -87,11 +87,11 @@ class Bulletin extends FactoryForm
         }
     }
     //发布
-    public function publish(){
+    public function publish($pkId = 0){
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY){
             $this->error(lang('NO ACCESS'));
         }
-    	$info = $this->_assignInfo();
+        $info = $this->_assignInfo($pkId);
     	//判断是否已经发布
     	if ($info['publish_status'] > 0) {
     	    $this->error('公告已经发布，不能重复操作');
@@ -138,6 +138,7 @@ class Bulletin extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
         $params = parent::_getData();
+        $publishStatus = input('get.publish_status', 0, 'intval');
         $info = $this->_assignInfo();
         $visibleRange = isset($params['visible_range'])  ? intval($params['visible_range']): 1;
         $storeIds = isset($params['store_id'])  ? $params['store_id']: [];
@@ -157,7 +158,20 @@ class Bulletin extends FactoryForm
             $params['post_user_id'] = ADMIN_ID;
             $params['store_id'] = $this->adminUser['store_id'];
         }
+        if ($publishStatus) {
+            $params['publish_time'] = time();
+        }
         return $params;
+    }
+    function _afterAdd($pkId = 0, $data = []){
+        if (isset($data['publish_time']) && $data['publish_time'] > 0) {
+            $this->publish($pkId);   
+        }
+    }
+    function _afterEdit($pkId = 0, $data = []){
+        if (isset($data['publish_time']) && $data['publish_time'] > 0) {
+            $this->publish($pkId);
+        }
     }
     function _getOrder()
     {

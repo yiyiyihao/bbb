@@ -1,7 +1,7 @@
 <?php
 namespace app\common\controller;
 use think\Request;
-//产品管理
+//商品管理
 class Goods extends FormBase
 {
     public $goodsTypes;
@@ -13,11 +13,11 @@ class Goods extends FormBase
         $this->model = new \app\common\model\Goods();
         parent::__construct();
         $this->goodsCates = [
-            1 => '标准产品',
-            2 => '产品零配件',
+            1 => '标准商品',
+            2 => '商品零配件',
         ];
         $this->goodsTypes = [
-            1 => '普通产品',
+            1 => '普通商品',
             2 => '样品',
         ];
         $this->stockReduces = [
@@ -75,7 +75,7 @@ class Goods extends FormBase
         }
     }
     
-    //产品属性管理
+    //商品属性管理
     public function spec()
     {
         $params = $this->request->param();
@@ -85,16 +85,16 @@ class Goods extends FormBase
             'url'   => url('spec', ['id' => $id]),
         ];
         if($id){
-            //取得产品详情
+            //取得商品详情
             $where = ['goods_id' => $id, 'is_del' => 0];
             if ($this->adminUser['store_id']) {
                 $where['store_id'] = $this->adminUser['store_id'];
             }
             $goodsInfo = $this->model->where($where)->find();
             if (!$goodsInfo) {
-                $this->error('产品不存在或删除');
+                $this->error('商品不存在或删除');
             }
-            $name = '编辑产品规格属性';
+            $name = '编辑商品规格属性';
             if(IS_POST){
                 $dataSet    = [];
                 $specSns    = isset($params['sku_sn']) ? $params['sku_sn'] : [];
@@ -108,7 +108,7 @@ class Goods extends FormBase
                     if (!$specJson) {
                         $this->error('规格异常');
                     }
-                    //清空当前产品属性
+                    //清空当前商品属性
                     $where = ['goods_id' => $id, 'is_del' => 0];
                     if ($skuIds) {
                         $where['sku_id'] = ['NOT IN', $skuIds];
@@ -120,10 +120,10 @@ class Goods extends FormBase
                         $minPrice = !$minPrice ? $price : min($minPrice, $price);
                         $maxPrice = !$maxPrice ? $price : max($maxPrice, $price);
                         if ($price < 0) {
-                            $this->error('第'.($k+1).'行,产品价格小于0');
+                            $this->error('第'.($k+1).'行,商品价格小于0');
                         }
                         if ($stock < 0) {
-                            $this->error('第'.($k+1).'行,产品库存小于0');
+                            $this->error('第'.($k+1).'行,商品库存小于0');
                         }
                         $specValue = [];
                         if ($specJson[$k]) {
@@ -162,7 +162,7 @@ class Goods extends FormBase
                             $this->error('系统错误');
                         }
                     }
-                    //更新产品属性
+                    //更新商品属性
                     $goodsData = array(
                         'specs_json'    => trim($params['specs_json']),
                         'min_price'     => $minPrice,
@@ -170,9 +170,9 @@ class Goods extends FormBase
                         'goods_stock'   => $goodsStock,
                     );
                     $this->model->where(['goods_id' => $id])->update($goodsData);
-                    $this->success("产品属性修改成功!", url("index"), TRUE);
+                    $this->success("商品属性修改成功!", url("index"), TRUE);
                 }else{
-                    //更新产品属性
+                    //更新商品属性
                     $goodsData = array(
                         'specs_json'    => '',
                         'max_price'     => $goodsInfo['min_price'],
@@ -185,7 +185,7 @@ class Goods extends FormBase
                         'price'         => $goodsInfo['min_price'],
                     ];
                     db('goods_sku')->where(['goods_id' => $id, 'is_del' => 1, 'spec_json' => ['eq', ""]])->update($update);
-                    $this->success("产品属性修改成功!", url("index"), TRUE);
+                    $this->success("商品属性修改成功!", url("index"), TRUE);
                 }
             }else{
                 $this->assign("goods", $goodsInfo);
@@ -296,7 +296,7 @@ class Goods extends FormBase
         $data = parent::_getData();
         $goodsSn = $data['goods_sn'];
 //         if (!$goodsSn) {
-//             $this->error('产品编码不能为空');
+//             $this->error('商品编码不能为空');
 //         }
         $params = $this->request->param();
         $pkId = isset($params['id']) ? intval($params['id']): 0;
@@ -315,7 +315,7 @@ class Goods extends FormBase
         $specSku    = isset($params['sku_stock']) ? $params['sku_stock'] : [];
         
         if (!$cateId) {
-            $this->error('请选择产品分类');
+            $this->error('请选择商品分类');
         }
         if ($this->adminUser['store_id']) {
             $data['store_id'] = $this->adminUser['store_id'];
@@ -335,17 +335,17 @@ class Goods extends FormBase
             $where['store_id'] = $data['store_id'];
             $exist = $this->model->where($where)->find();
             if ($exist) {
-                $this->error('产品编码已存在，请重新填写');
+                $this->error('商品编码已存在，请重新填写');
             }
         }
         if (!$name) {
-            $this->error('请输入产品名称');
+            $this->error('请输入商品名称');
         }
 //         if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
-//             $this->error('请选择产品类别');
+//             $this->error('请选择商品类别');
 //         }
 //         if (!$goodsType || !isset($this->goodsTypes[$goodsType])) {
-//             $this->error('请选择产品类型');
+//             $this->error('请选择商品类型');
 //         }
         $goodsType = $data['goods_type'] = 1;
         $goodsCate = $data['goods_cate'] = 1;
@@ -369,13 +369,13 @@ class Goods extends FormBase
                 $stock = intval($specSku[$k]);
                 $ssn    = trim($skuSn[$k]);
                 if ($price < 0) {
-                    $this->error('第'.($k+1).'行,产品价格小于0');
+                    $this->error('第'.($k+1).'行,商品价格小于0');
                 }
                 if ($stock < 0) {
-                    $this->error('第'.($k+1).'行,产品库存小于0');
+                    $this->error('第'.($k+1).'行,商品库存小于0');
                 }
                 if ($ssn == '') {
-                    $this->error('第'.($k+1).'行,产品编码为空');
+                    $this->error('第'.($k+1).'行,商品编码为空');
                 }
             }
         }
@@ -407,7 +407,7 @@ class Goods extends FormBase
             $specPrice  = $data['price'];
             $specName   = $data['spec_name'];
             $specSku    = $data['sku_stock'];
-            //清空当前产品属性
+            //清空当前商品属性
             $where = ['goods_id' => $id, 'is_del' => 0];
             if ($skuIds) {
                 $where['sku_id'] = ['NOT IN', $skuIds];
@@ -455,7 +455,7 @@ class Goods extends FormBase
                     $this->error('系统错误');
                 }
             }
-            //更新产品属性
+            //更新商品属性
             $goodsData = array(
                 'specs_json'    => trim($data['specs_json']),
                 'min_price'     => $minPrice,
@@ -463,7 +463,7 @@ class Goods extends FormBase
                 'goods_stock'   => $goodsStock,
             );
             $this->model->where(['goods_id' => $id])->update($goodsData);
-//             $this->success("产品属性修改成功!", url("index"), TRUE);
+//             $this->success("商品属性修改成功!", url("index"), TRUE);
             return true;
         }
     }
@@ -473,7 +473,7 @@ class Goods extends FormBase
             if(isset($data['spec_json']) && $data['spec_json'] != ''){
                 $this->_goodsSpec($pkId,$data);
             }else{
-                //添加默认产品属性
+                //添加默认商品属性
                 $skuData = [
                     'goods_cate'    => intval($data['goods_cate']),
                     'goods_type'    => intval($data['goods_type']),
@@ -498,7 +498,7 @@ class Goods extends FormBase
             if(isset($data['spec_json']) && $data['spec_json'] != ''){
                 $this->_goodsSpec($pkId,$data);
             }else{
-                //修改产品属性
+                //修改商品属性
                 $update = [
                     'goods_cate'    => intval($data['goods_cate']),
                     'goods_type'    => intval($data['goods_type']),
@@ -508,7 +508,7 @@ class Goods extends FormBase
                 ];
                 $result = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1])->update($update);            
                 
-                //更新产品属性
+                //更新商品属性
                 $goodsData = array(
                     'specs_json'    => '',
                     'max_price'     => $data['min_price'],
@@ -533,9 +533,9 @@ class Goods extends FormBase
         $types = goodstype();
         $this->assign('types', $types);
         $search = [
-            ['type' => 'input', 'name' =>  'name', 'value' => '产品名称', 'width' => '30'],
-//             ['type' => 'select', 'name' => 'goods_type', 'options'=>'types', 'default_option' => '==产品类型=='],
-            ['type' => 'input', 'name' =>  'sn', 'value' => '产品编号', 'width' => '30'],
+            ['type' => 'input', 'name' =>  'name', 'value' => '商品名称', 'width' => '30'],
+//             ['type' => 'select', 'name' => 'goods_type', 'options'=>'types', 'default_option' => '==商品类型=='],
+            ['type' => 'input', 'name' =>  'sn', 'value' => '商品编号', 'width' => '30'],
         ];
         return $search;
     }
@@ -545,7 +545,7 @@ class Goods extends FormBase
     function _tableData(){
         $table = parent::_tableData();
         $btnArray = [];
-        $btnArray = ['text'  => '产品规格','action'=> 'spec', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
+        $btnArray = ['text'  => '商品规格','action'=> 'spec', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
         $table['actions']['button'][] = $btnArray;
         $table['actions']['width']  = '240';
         foreach ($table as $key => $value) {

@@ -27,7 +27,12 @@ class Store extends Model
     public function save($data = [], $where = [], $sequence = null){
         if (!$where) {
             //获取商户编号
-            $data['store_no'] = self::_getMchKey();
+            $storeNo = self::_getMchKey($data['store_type']);
+            if ($storeNo === FALSE) {
+                $this->error === '商户编号生成数量限制(每日)';
+                return FALSE;
+            }
+            $data['store_no'] = $storeNo;
         }
         return parent::save($data, $where);
     }
@@ -270,13 +275,21 @@ class Store extends Model
         }
         return $model;
     }
-    private static function _getMchKey()
+    private static function _getMchKey($storeType = 1)
     {
         $key = get_nonce_str(10, 2);
-        //判断商户密钥是否存在
+        //商户编号：商户类型+“年月日”+“4位随机数字”
+        $key = $storeType.date('ymd').get_nonce_str(4, 2);
+        //判断当日新增商户数量是否超过9999个
+        $beginToday = mktime(0,0,0,date('m'),date('d'),date('Y')); //今日开始时间戳
+        $exist = db('store')->where(['store_type' => $storeType, 'add_time' => ['>=', $beginToday]])->count();
+        if ($exist >= 9999) {
+            return FALSE;
+        }
+        //判断商户编号是否存在
         $info = db('store')->where(['store_no' => $key])->find();
         if ($info){
-            return self::_getMchKey();
+            return self::_getMchKey($storeType);
         }else{
             return $key;
         }

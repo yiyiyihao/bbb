@@ -68,7 +68,27 @@ class Test extends Base
     }
     
     public function getopenid(){
-        $request = $this->request->param();
+        $wechatApi = new \app\common\api\WechatApi(0, 'h5');
+        $code = '';
+        $result = $wechatApi->getOauthOpenid($code, TRUE);
+        if ($result === FALSE) {
+            die($wechatApi->error);
+        }
+        $userModel = new \app\common\model\User();
+        $params = [
+            'user_type'     => 'user',
+            'appid'         => $result['appid'],
+            'third_openid'  => $result['openid'],
+            'nickname'      => isset($result['nickname']) ? trim($result['nickname']) : '',
+            'avatar'        => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
+            'gender'        => isset($result['sex']) ? intval($result['sex']) : 0,
+            'unionid'       => isset($result['unionid']) ? trim($result['unionid']) : '',
+        ];
+        $oauth = $userModel->authorized(1, $params);
+        pre($oauth);
+        
+        
+        /* $request = $this->request->param();
         $appid = 'wxd3bbb9c41f285e8d';
         $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
         $code = $request['code'];
@@ -82,13 +102,12 @@ class Test extends Base
         }else{
             $return = $request;
         }
-        return $this->ajaxJsonReturn($return);
+        return $this->ajaxJsonReturn($return); */
         //正确的话返回access_token 和openid
         /**
          * { "access_token":"ACCESS_TOKEN","expires_in":7200,"refresh_token":"REFRESH_TOKEN","openid":"OPENID","scope":"SCOPE" }
          */
     }
-    
     public function getscope(){
         $appid = 'wxd3bbb9c41f285e8d';
         $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';

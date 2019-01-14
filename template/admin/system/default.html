@@ -4,14 +4,35 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">订单设置</a></li>
+                    	<li class="active"><a href="#tab-0">(H5)微信公众账号配置</a></li>
+                        <li><a href="#tab-1">订单设置</a></li>
                         <li><a href="#tab-2">工单配置</a></li>
                         <li><a href="#tab-5">财务设置</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
+            	<div class="tab-panel active" id="tab-0">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>APPID</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="h5_appid" name="h5_appid" datatype="*" value="{$config['h5_appid'] ?? ''}">
+                            <div class="input-note">请填写智享家微信公众账号的APPID</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>AppSecret</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="60" class="input" id="h5_appid" name="h5_appsecret" datatype="*" value="{$config['h5_appsecret'] ?? ''}">
+                            <div class="input-note">请填写智享家微信公众账号的AppSecret</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-1">
                 	<div class="form-group">
                         <div class="label">
                             <label>待支付订单取消时间</label>

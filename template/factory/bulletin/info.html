@@ -167,8 +167,12 @@
             </div>
             <div class="panel-foot">
                 <div class="form-button">
-                    <button class="button bg-main" type="submit">保存</button>
-                    <button class="button bg" type="reset">重置</button>
+                	<a id="save"  class="button bg-main" href="javascript:;">保存草稿</a>
+                    <!-- <button class="button bg-main" type="submit">保存草稿</button> -->
+                    {if condition="!isset($info['publish_status']) || !$info['publish_status']"}
+                    <a id="submit"  class="button bg-yellow" href="javascript:;">确认发布</a>
+                    {/if}
+                    <!-- <button class="button bg" type="reset">重置</button> -->
                     <div id="tips"></div>
                 </div>
             </div>
@@ -177,9 +181,10 @@
 </form>
 <script>
     Do.ready('base', function () {
+    	var url = window.location.href;
         //表单综合处理
         $('#form').FormPage();
-        $("input[name='visible_range'], input[name='store_type']").change(function(){
+        /* $("input[name='visible_range'], input[name='store_type']").change(function(){
         	var range = $('input[name="visible_range"]:checked').val();
         	var type = $('input[name="store_type"]:checked').val();
         	if(range == 0){
@@ -201,6 +206,19 @@
 					'hide'		: 1,
 				});
 			}
+        }); */
+        $("#submit").click(function(){
+			layer.confirm('确定要发布当前公告?(注意:发布后不允许撤回)', {
+				btn: ['确定', '关闭'],
+			}, function(){
+				layer.closeAll();
+				var action = url+'?publish_status=1'; 
+			 	$('#form').attr("action", action).submit();
+			}, function(){
+			});
+        });
+        $("#save").click(function(){
+		 	$('#form').attr("action", url).submit();
         });
     }); 
 </script>

@@ -24,6 +24,14 @@ class System extends AdminForm
             if (!$params) {
                 $this->error('参数异常');
             }
+            $data['h5_appid'] = isset($params['h5_appid']) ? trim($params['h5_appid']) : '';
+            if (!$data['h5_appid']) {
+                $this->error('智享家微信公众账号的APPID不能为空');
+            }
+            $data['h5_appsecret'] = isset($params['h5_appsecret']) ? trim($params['h5_appsecret']) : '';
+            if (!$data['h5_appsecret']) {
+                $this->error('智享家微信公众账号的AppSecret不能为空');
+            }
             $data['order_cancel_minute'] = isset($params['order_cancel_minute']) ? intval($params['order_cancel_minute']) : 0;
             if ($data['order_cancel_minute'] < 1) {
                 $this->error('待支付订单取消时间必须大于0');
