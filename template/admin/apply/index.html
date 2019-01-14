@@ -9,7 +9,7 @@
                         {if $store['check_status']==2}
                         <div class=""><img src="/static/base/images/approval_fail.png"  width="200px" alt=""></div>
                         <div class="text-red panel-body">{$store['admin_remark'] ?? ''}</div>
-                        <div><a href="###" class="button bg-yellow button-big">重新提交审核</a></div>
+                        <div><a href="{$url_repost}" class="button bg-yellow button-big">重新提交审核</a></div>
                         {else if $store['check_status']=='0' /}
                         <div class=""><img src="/static/base/images/approval_default.png"  width="200px" alt=""></div>
                         <div class="text-green panel-body">您的信息正在审核中，请耐心等待</div>
