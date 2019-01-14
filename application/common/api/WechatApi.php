@@ -52,12 +52,12 @@ class WechatApi
             $this->error = 'errcode:'.$result['errcode'].'; errmsg:'.$result['errmsg'];
             return FALSE;
         }
+        $oauthToken = $result['access_token'];
+        $openid = $result['openid'];
         $return = [
             'openid'    => $openid,
             'appid'     => $appid,
         ];
-        $oauthToken = $result['access_token'];
-        $openid = $result['openid'];
         if ($flag) {
             $userinfo = $this->getOauthUserInfo($oauthToken, $openid);
             if ($userinfo === FALSE) {
