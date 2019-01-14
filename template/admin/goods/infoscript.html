@@ -52,10 +52,11 @@
 			changeMinPrice();
 		})
 		function changeMinPrice(){
-			var minPrice = $("#min_price").val();
+			//var minPrice = $("#min_price").val();
+			var minPrice = 0;
 			$("input[name='price[]']").each(function(index, e) {
                 if($(e).val() != ''){
-					if(parseFloat($(e).val()) < minPrice){
+					if(parseFloat(minPrice) == 0 || parseFloat($(e).val()) < minPrice){
 						minPrice = parseFloat($(e).val());
 					}
 				}
