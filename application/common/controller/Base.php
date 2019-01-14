@@ -81,7 +81,7 @@ class Base extends Controller
     	if (is_string($resources))
     	{
     		$items = explode(',', $resources);
-    		array_walk($items, create_function('&$val, $key', '$val = trim($val);'));
+    		array_walk($items, function($val){return $val = trim($val);});
     		foreach ($items as $path)
     		{
     			$return[] = array('path' => $path, 'attr' => '');
