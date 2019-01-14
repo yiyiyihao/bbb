@@ -71,24 +71,6 @@
 		                  </div>
 	                </div>
 	                <div class="form-group">
-		                <div class="label">
-		                  <label>商品售价</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		            </div>
-                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
-		                <div class="label">
-		                  <label>安装费用</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
-	                <div class="form-group">
                         <div class="label">
                             <label>商品编码</label>
                         </div>
@@ -99,7 +81,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label">
-                          <label>规格列表</label>
+                          <label>规格明细</label>
                         </div>
                         <div class="field">
                           <div class="field-text">
@@ -151,6 +133,24 @@
                           </div>    
                         </div>
                     </div>
+                    <div class="form-group">
+		                <div class="label">
+		                  <label>商品最低售价</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		            </div>
+                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
+		                <div class="label">
+		                  <label>安装费用</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		              </div>
 		              
 		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
                         <div class="label">
@@ -235,7 +235,7 @@
                     {if isset($info['goods_id'])}
                     <button class="button bg-dot" id="dosubmit" type="submit">直接保存</button>
                     {/if}
-                    <button class="button bg-main">下一步</button>
+                    <button id="next" class="button bg-main" {if (!isset($info['goods_id']) || !$info['specs_json'])}disabled="disabled"{/if}>下一步</button>
                     <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
                 </div>

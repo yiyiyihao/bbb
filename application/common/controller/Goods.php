@@ -295,9 +295,9 @@ class Goods extends FormBase
     {
         $data = parent::_getData();
         $goodsSn = $data['goods_sn'];
-//         if (!$goodsSn) {
-//             $this->error('商品编码不能为空');
-//         }
+        if (!$goodsSn) {
+            $this->error('商品编码不能为空');
+        }
         $params = $this->request->param();
         $pkId = isset($params['id']) ? intval($params['id']): 0;
         $cateId = isset($params['cate_id']) ? intval($params['cate_id']): 0;
@@ -313,7 +313,6 @@ class Goods extends FormBase
         $skuSn      = isset($params['sku_sn']) ? $params['sku_sn'] : [];
         $specName   = isset($params['spec_name']) ? $params['spec_name'] : [];
         $specSku    = isset($params['sku_stock']) ? $params['sku_stock'] : [];
-        
         if (!$cateId) {
             $this->error('请选择商品分类');
         }
@@ -340,6 +339,9 @@ class Goods extends FormBase
         }
         if (!$name) {
             $this->error('请输入商品名称');
+        }
+        if (!$specJson) {
+            $this->error('请选择商品规格');
         }
 //         if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
 //             $this->error('请选择商品类别');
