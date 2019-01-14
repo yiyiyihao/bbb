@@ -68,7 +68,7 @@ class Test extends Base
     }
     
     public function getopenid(){
-        $wechatApi = new \app\common\api\WechatApi(0, 'h5');
+        $wechatApi = new \app\common\api\WechatApi(FALSE, 'h5');
         $code = '';
         $result = $wechatApi->getOauthOpenid($code, TRUE);
         if ($result === FALSE) {
@@ -121,28 +121,31 @@ class Test extends Base
     }
     
     public function jspay(){
-        $return = [
-            'errCode' => 0,
-            'msg'   => '请求成功',
-        ];
         $config = [
             'app_id'        =>  'wxd3bbb9c41f285e8d',
             'mch_id'        =>  '1520990381',
             'mch_key'       =>  'cugbuQVsnihCoQEx3MXD2WYlYtdoQJCH',
             'notify_url'    =>  'https://api.smarlife.cn/test/jsnotify',
         ];
+        $wechatApi = new \app\common\api\WechatPayApi(1, 'wechat_js', $config);
+        $return = [
+            'errCode' => 0,
+            'msg'   => '请求成功',
+        ];
+        $factoryId = 1;
         $order = [
             'openid'        => 'o5hVy1rH9Z4QNpH7X5ytgYulAhdQ',
             'order_sn'      => get_nonce_str(32),
             'real_amount'   => '0.01',
+            'store_id'      => $factoryId,
         ];
-        $wechatApi = new \app\common\api\WechatPayApi(1, 'wechat_js', $config);
-        $result = $wechatApi->wechatUnifiedOrder($order);
+        $paymentApi = new \app\common\api\PaymentApi($factoryId, 'wechat_js');
+        $result = $paymentApi->init($order);
         if($result){
             $return['params'] = $result;
         }else{
             $return['errCode'] = 1;
-            $return['error'] = $wechatApi->error;
+            $return['error'] = $paymentApi->error;
         }
         return $this->ajaxJsonReturn($return);
     }

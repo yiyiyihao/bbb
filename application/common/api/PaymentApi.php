@@ -20,11 +20,30 @@ class PaymentApi
                 'code' => 'wechat_native',
                 'name' => '微信扫码支付',
                 'desc' => '用户打开"微信扫一扫“，扫描商户的二维码后完成支付',
-                'display_type' => 1,//支付显示客户端1:PC端 2微信小程序端 3APP客户端
+                'display_type' => 1,//支付显示客户端1:PC端 2微信小程序端 3APP客户端 4微信H5
                 'api_type'     => 'wechat',
                 'config' => [
                     'app_id' => [
                         'desc' => '微信支付分配的公众账号ID（企业号corpid即为此appId）',
+                    ],
+                    'mch_id' => [
+                        'desc' => '微信支付分配的商户号',
+                    ],
+                    'mch_key' => [
+                        'name' => '微信支付密钥',
+                        'desc' => '微信商户平台(pay.weixin.qq.com)-->账户设置-->API安全-->密钥设置',
+                    ],
+                ],
+            ],
+            'wechat_js' => [
+                'code' => 'wechat_js',
+                'name' => '微信公众号支付',
+                'desc' => '用户通过微信扫码、关注公众号等方式进入商家H5页面，并在微信内调用JSSDK完成支付',
+                'display_type' => 4,
+                'api_type'     => 'wechat',
+                'config' => [
+                    'app_id' => [
+                        'desc' => '微信支付分配的公众账号ID',
                     ],
                     'mch_id' => [
                         'desc' => '微信支付分配的商户号',
@@ -65,7 +84,8 @@ class PaymentApi
             $this->config = $payment && $payment['config_json'] ? json_decode($payment['config_json'], TRUE): [];
         }
         $this->payCode = strtolower($payCode);
-        $this->apiHost = 'http://zxjapi.zhidekan.me/';
+//         $this->apiHost = 'http://zxjapi.zhidekan.me/';
+        $this->apiHost = 'http://api.smarlife.cn/';
     }
     /**
      * 初始化支付数据

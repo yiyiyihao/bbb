@@ -80,6 +80,7 @@ class Payment extends FactoryForm
             1 => 'PC端',
             2 => '微信小程序端',
             3 => 'APP客户端',
+            4 => '微信公众号H5',
         ];
         if ($list) {
             foreach ($list as $key => $value) {
