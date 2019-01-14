@@ -84,8 +84,10 @@ class Web extends BaseApi
         $menu = $data->map(function ($item) {
             $arr['name'] = $item['name'];
             $arr['url'] = $item['url'];
+            $arr['page_type'] = $item['page_type'];
             if ($item['page_type'] == 0) {
-                $arr['url'] = url('page/index', ['id' => $item['page_id']]);
+                //$arr['url'] = url('page/index', ['id' => $item['page_id']]);
+                $arr['url'] = '/page?id=' . $item['page_id'];
             }
             return $arr;
         })->toArray();
@@ -94,9 +96,10 @@ class Web extends BaseApi
             return [
                 'name' => $item['name'],
                 'url' => $item['url'],
+                'page_type' => 0,
             ];
         }, $sysMenu);
-        return returnMsg(0, 'ok', array_merge( $sysMenu,$menu));
+        return returnMsg(0, 'ok', array_merge($sysMenu, $menu));
     }
 
     //底部导航
@@ -115,8 +118,10 @@ class Web extends BaseApi
             $arr['name'] = $item['name'];
             $arr['parent_id'] = $item['parent_id'];
             $arr['url'] = $item['url'];
+            $arr['page_type'] = $item['page_type'];
             if ($item['page_type'] == 0) {
-                $arr['url'] = url('page/index', ['id' => $item['page_id']]);
+                //$arr['url'] = url('page/index', ['id' => $item['page_id']]);
+                $arr['url'] = '/page?id=' . $item['page_id'];
             }
             return $arr;
         }, $data);
