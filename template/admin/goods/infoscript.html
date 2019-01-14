@@ -65,7 +65,7 @@
 			if($("input[name='price[]']").length > 0){
 				flag = true;
 			}
-			$("#min_price").val(minPrice).attr("disabled",flag);
+			$("#min_price").val(minPrice).attr("readonly",flag);
 		}
 		function changeStock(){
 			//计算所有属性库存总和
@@ -79,7 +79,7 @@
 			if(totalStock > 0){
 				flag = true;
 			}
-			$("#goods_stock").val(totalStock).attr("disabled",flag);
+			$("#goods_stock").val(totalStock).attr("readonly",flag);
 		}
 		init();
 		function init(){			
@@ -134,7 +134,7 @@
 				selectSpec = sepcArr;
 				var specsJson = JSON.stringify(sepcArr);
 				$("#specs_json").val(specsJson);
-				$("#min_price").attr('disabled', 'disabled');
+				$("#min_price").attr('readonly', true);
 				$("#next").removeAttr('disabled');
 				//debug(JSON.stringify(sepcArr));
 				combine(0,{},goodsSn);
