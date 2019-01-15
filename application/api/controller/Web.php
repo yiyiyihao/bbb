@@ -168,6 +168,7 @@ class Web extends BaseApi
     {
         $where = [
             'is_del' => 0,
+            'store_type'    => ADMIN_DEALER,
             'factory_id' => $this->store_id,];
         $region_id = input('region_id', 0, 'intval');
         $type = input('region_type', 0, 'intval');
@@ -199,7 +200,7 @@ class Web extends BaseApi
             $where['region_id'] = ['in', $region_arr];
         }
 
-        $data = Store::field('region_name,address,mobile')->where($where)->select();
+        $data = Store::field('name as region_name,address,mobile')->where($where)->select();
         $result = $data->map(function ($item) {
             $item['region_name'] = str_replace(' ', '', $item['region_name']) . '店';
             return $item;
