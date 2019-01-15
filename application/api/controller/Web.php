@@ -168,7 +168,7 @@ class Web extends BaseApi
     {
         $where = [
             'is_del' => 0,
-            'store_type'    => ADMIN_DEALER,
+            'store_type'    => STORE_DEALER,
             'factory_id' => $this->store_id,];
         $region_id = input('region_id', 0, 'intval');
         $type = input('region_type', 0, 'intval');
