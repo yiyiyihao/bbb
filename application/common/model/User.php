@@ -90,7 +90,7 @@ class User extends Model
                 $udataId = $userDataModel->save($data, ['udata_id' => $exist['udata_id']]);
             }
         }
-        return ['openid' => $openid, 'user_id' => $userId];
+        return ['openid' => $openid, 'user_id' => $userId,'udata_id'=>$userDataModel->udata_id];
     }
     public function bindPhone($openid, $phone)
     {
