@@ -78,6 +78,8 @@
 								              		<a href="{:url('workorder/detail', ['id' => $v.work_order.worder_id])}" class="button button-small bg-red js-open" title="查看安装工单">查看安装工单</a>
 								              	{/if}
 							              	{/if}
+							            {/if}
+							            {if ($info['order']['order_status'] != 2)}
 							              	{if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
 							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
 							              	{elseif ($v.service)/}

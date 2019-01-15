@@ -70,7 +70,9 @@
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'finance_', 'thumb_type' => 'workorder_thumb_'])}",
+        });
         $('input[name="check_status"]').click(function(){
         	var status = $(this).val();
         	if(status <= 0){

@@ -81,7 +81,7 @@
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{$uploadUrl ?? ''}",
+        	'uploadUrl' : "{$uploadUrl ?? '{:url('Upload/upload', ['prex' => 'other_', 'thumb_type' => ''])}'}",
         });
     }); 
 </script>

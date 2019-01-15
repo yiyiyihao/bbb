@@ -53,11 +53,12 @@
             </div>
         </div>
     </div>
-    </div>
 </form>
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'web_banner_', 'thumb_type' => 'banner_thumb_'])}",
+        });
     });
 </script>

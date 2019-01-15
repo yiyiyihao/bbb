@@ -97,11 +97,12 @@
             </div>
         </div>
     </div>
-    </div>
 </form>
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'web_setting_', 'thumb_type' => 'article_thumb_'])}",
+        });
     });
 </script>
