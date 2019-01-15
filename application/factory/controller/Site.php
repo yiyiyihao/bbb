@@ -219,10 +219,11 @@ class Site extends FactoryForm
         if (IS_POST) {
             $menu = empty($id) ? (new WebMenu) : WebMenu::alias('m')->get($id);
             $store_no = \app\common\model\Store::where('store_id', $this->store_id)->value('store_no');
+            $page_type = input('page_type', 0, 'trim,intval');
             $data = [
                 'name' => input('name'),
                 'type' => input('type', 0, 'trim,intval'),
-                'page_type' => input('page_type', 0, 'trim,intval'),
+                'page_type' => $page_type == 0 ? 0 : 1,
                 'store_id' => $this->store_id,
                 'store_no' => $store_no,
                 'page_id' => input('page_id', 0, 'trim,intval'),
