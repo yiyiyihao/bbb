@@ -145,7 +145,7 @@ class Myorder extends commonOrder
                 unset($params['from']);
                 $url = url('',$params);
                 $controller = controller('index');
-                return $controller->index("admin@index\index",$url);
+                return $controller->index("admin@index/index",$url);
                 die();
             }
         }
@@ -177,7 +177,7 @@ class Myorder extends commonOrder
         }
         return $where;
     }
-    private function _buildmap($param = []){
+    protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
             'O.user_id' => ADMIN_ID,
