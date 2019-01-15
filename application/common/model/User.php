@@ -77,6 +77,7 @@ class User extends Model
             $params['appid']        = $appid;
             $udataId = $userDataModel->save($params);
         }else{
+            $udataId = $exist['udata_id'];
             $openid = $exist['openid'];
             $userId = $exist['user_id'];
             //修改第三方更新的数据
@@ -87,10 +88,10 @@ class User extends Model
                 }
             }
             if ($data) {
-                $udataId = $userDataModel->save($data, ['udata_id' => $exist['udata_id']]);
+                $userDataModel->save($data, ['udata_id' => $exist['udata_id']]);
             }
         }
-        return ['openid' => $openid, 'user_id' => $userId,'udata_id'=>$userDataModel->udata_id];
+        return ['openid' => $openid, 'user_id' => $userId, 'udata_id'=> $udataId];
     }
     public function bindPhone($openid, $phone)
     {
