@@ -315,7 +315,7 @@ class OrderService extends Model
         }
         $apiType = $config['api_type'];
         $storeId = $order['store_id'];
-        /* switch ($apiType) {
+        switch ($apiType) {
             case 'alipay':
                 $alipayApi = new \app\common\api\AlipayPayApi($storeId, $payCode);
                 $result = $alipayApi->tradeRefund($order, $service);
@@ -338,7 +338,7 @@ class OrderService extends Model
                 $this->error = lang('接口未开通');
                 return FALSE;
             break;
-        } */
+        }
         $transferNo = $service['service_sn'];
         $serviceStatus = 3;//已完成
         $data = [
