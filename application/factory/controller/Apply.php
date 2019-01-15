@@ -149,7 +149,7 @@ class Apply extends CommonBase
             $this->assign('store', $store);
             $this->assign('user', $user);
             $domain_repost=str_replace($this->request->subDomain(),'www',$this->request->domain());
-            $url_repost=$domain_repost.'/JoinInvestment/FillInformation?user_id='.$user['user_id'];
+            $url_repost=$domain_repost.'#/JoinInvestment/FillInformation?user_id='.$user['user_id'];
             $this->assign('url_repost',$url_repost);
             return $this->fetch();
         }

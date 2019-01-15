@@ -35,7 +35,7 @@
                             <label>摘要</label>
                         </div>
                         <div class="field">
-                            <textarea class="input" style="width: 100%;" id="summary" name="summary" rows="5" datatype="*" value="{$data['summary'] ?? ''}">
+                            <textarea class="input" style="width: 100%;" id="summary" name="summary" rows="5" datatype="" value="{$data['summary'] ?? ''}">
 		                  	{$data['summary']? stripslashes($data['summary']) : '' }
 		                  </textarea>
                             <div class="input-note"></div>
@@ -77,8 +77,11 @@
         </div>
         <div class="panel-foot">
             <div class="form-button">
-                <button class="button bg-main" type="submit">保存</button>
-                <button class="button bg" type="reset">重置</button>
+            	<input type="hidden" name="status" value="0" id="status" />
+                 <button class="button bg" type="reset">重置</button>
+                 <button class="button " type="submit">保存草稿</button>
+            	<button class="button bg-main" type="submit" id="published">直接发布</button>              
+               
                 <div id="tips"></div>
             </div>
         </div>
@@ -89,6 +92,11 @@
 	var Config = {
 		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'article_'])}",
 	};
+	$("#published").click(function(e) {
+        $("#status").val(1);
+		return true;
+    });
+	
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({

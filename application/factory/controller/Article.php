@@ -40,12 +40,13 @@ class Article extends FormBase
                 'sys_menu_id' => 2,//公司动态
                 'is_top' => input('is_top') ? 1 : 0,
                 'title' => input('title'),
+                'status' => input('status'),
                 'summary' => trim(strip_tags(input('summary'))),
-                'content' => trim(strip_tags(input('content'))),
+                'content' => trim(input('content')),
                 'cover_img' => input('cover_img'),
             ];
             if (empty($data['content'])) {
-                $this->error("文章正文不能为空");
+                $this->error("文章详情不能为空");
             }
             if (empty($data['summary'])) {
                 $data['summary'] = sub_str($data['content'], 120);
