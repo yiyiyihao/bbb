@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 
+use app\common\api\WechatApi;
 use app\common\model\ActivityGoods;
 use app\common\model\Goods;
 use app\common\model\Order;
@@ -18,6 +19,8 @@ class Activity extends BaseApi
 {
     private $store_id;
     private $factory_id;
+    private $goodsId = [13, 15];
+    private $wechatApi;
 
     public function initialize()
     {
@@ -28,26 +31,66 @@ class Activity extends BaseApi
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         $this->factory_id = 1;
         $this->store_id = 1;
+        $this->wechatApi = new WechatApi($this->store_id, 'wechat_js');
+    }
+
+    //授权-第1步
+    public function getScope()
+    {
+        $wechatApi = $this->wechatApi;
+        $appid = $wechatApi->config['appid'];
+        $appsecret = $wechatApi->config['appsecret'];
+
+        //$appid = 'wxd3bbb9c41f285e8d';
+        //$appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
+        $uri = urlEncode('http://m.smarlife.cn');
+        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+        return returnMsg(0, 'ok', ['url' => $scopeUrl]);
+    }
+
+    //授权-第2步，返回微信Openid
+    public function getOpenid()
+    {
+        $wechatApi = $this->wechatApi;
+        $code = input('code');
+        if (empty($code)) {
+            return returnMsg(1, lang('PARAM_ERROR'));
+        }
+        $result = $wechatApi->getOauthOpenid($code, TRUE);
+        if ($result === FALSE) {
+            return ['errCode' => 1, 'errMsg' => $wechatApi->error];
+        }
+        $userModel = new \app\common\model\User();
+        $params = [
+            'user_type' => 'user',
+            'appid' => $result['appid'],
+            'third_openid' => $result['openid'],
+            'nickname' => isset($result['nickname']) ? trim($result['nickname']) : '',
+            'avatar' => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
+            'gender' => isset($result['sex']) ? intval($result['sex']) : 0,
+            'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
+        ];
+        $oauth = $userModel->authorized($this->store_id, $params);
+        if ($oauth === false) {
+            return ['errCode' => 1, 'errMsg' => $userModel->error];
+        }
+        $oauth['third_openid'] = $result['openid'];
+        session('act_udata_id', $oauth['udata_id']);
+        session('act_third_open_id', $result['openid']);
+        return ['errCode' => 0, 'errMsg' => 'ok', 'data' => $oauth];
+    }
+
+
+    private function getUdataId()
+    {
+        return session('act_udata_id');
     }
 
     //商品列表
     public function getGoodsList()
     {
-
-//         $list = ActivityGoods::alias('ag')->field('g.goods_id,ag.goods_name,g.name')->join('goods g', 'ag.goods_id=g.goods_id')->where([
-//             'ag.act_id' => 1,
-//             'ag.store_id' => $this->store_id,
-//             'ag.is_del' => 0,
-//             'g.is_del' => 0,
-//             'g.status' => 1,
-//         ])->select()->map(function ($item) {
-//             $item['goods_name'] = empty($item['goods_name']) ? $item['name'] : $item['goods_name'];
-//             unset($item['name']);
-//             return $item;
-//         });
-        $goodsIds = [13, 15];
         $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = db('goods')->where(['goods_id' => ['IN', $goodsIds]])->field($field)->order('sort_order DESC, add_time DESC')->select();
+        $list = db('goods')->where(['goods_id' => ['IN', $this->goodsId]])->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
@@ -89,42 +132,11 @@ class Activity extends BaseApi
         return returnMsg(0, 'ok', $result);
     }
 
-    private function getOpenid()
-    {
-        $wechatApi = new \app\common\api\WechatApi(FALSE, 'h5');
-        $code = '';
-        $result = $wechatApi->getOauthOpenid($code, TRUE);
-        if ($result === FALSE) {
-            return ['errCode' => 1, 'errMsg' => $wechatApi->error];
-        }
-        $userModel = new \app\common\model\User();
-        $params = [
-            'user_type' => 'user',
-            'appid'     => $result['appid'],
-            'third_openid' => $result['openid'],
-            'nickname'  => isset($result['nickname']) ? trim($result['nickname']) : '',
-            'avatar'    => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
-            'gender'    => isset($result['sex']) ? intval($result['sex']) : 0,
-            'unionid'   => isset($result['unionid']) ? trim($result['unionid']) : '',
-        ];
-        $oauth = $userModel->authorized($this->store_id, $params);
-        if ($oauth === false) {
-            return ['errCode' => 1, 'errMsg' => $userModel->error];
-        }
-        $oauth['third_openid'] = $result['openid'];
-        return ['errCode' => 0, 'errMsg' => 'ok', 'data' => $oauth];
-    }
-
 
     //订单列表
     public function orderList()
     {
-        $auth = $this->getOpenid();
-        if ($auth['errCode'] != 0) {
-            return json($auth);
-        }
-        $auth = $auth['data'];
-        $udata_id = $auth['udata_id'];
+        $udata_id = $this->getUdataId();
         //0全部，1待付款，2待发货，3待收货，4交易完成
         $page = input('page', 1, 'intval');
         $limit = input('limit', 10, 'intval');
@@ -163,12 +175,11 @@ class Activity extends BaseApi
             default://全部
                 break;
         }
-        $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,AG.goods_name,O.real_amount,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
+        $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,O.real_amount,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
         $join = [
             ['store S', 'S.store_id=O.store_id'],
             ['order_sku OS', 'OS.order_sn=O.order_sn'],
             ['goods G', 'OS.goods_id = G.goods_id'],
-            ['activity_goods AG', 'AG.goods_id = G.goods_id', 'left'],
         ];
         $order = Order::alias('O')
             ->field($field)
@@ -193,7 +204,7 @@ class Activity extends BaseApi
             }
             $arr['order_id'] = $item['order_id'];
             $arr['order_sn'] = $item['order_sn'];
-            $arr['goods_name'] = $item['goods_name'] ? $item['goods_name'] : $item['name'];
+            $arr['goods_name'] = $item['name'];
             $arr['sku_name'] = $item['sku_name'];
             $arr['real_amount'] = $item['real_amount'];
             $arr['total_amount'] = $item['real_amount'];
@@ -208,26 +219,25 @@ class Activity extends BaseApi
     //订单详情
     public function orderDetail()
     {
-        $order_id = input('order_id', 0, 'intval');
-        if ($order_id <= 0) {
+        $order_sn = input('order_sn', 0, 'intval');
+        if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $udata_id = input('udata_id', '', 'intval');
+        $udata_id = $this->getUdataId();
         if (empty($openid)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
 
         $where['O.order_type'] = 2;
         $where['O.status'] = 1;
-        $where['O.order_id'] = $order_id;
+        $where['O.order_sn'] = $order_sn;
         $where['O.udata_id'] = $udata_id;
 
-        $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,AG.goods_name,O.real_amount,O.address_name,O.address_phone,O.address_detail,O.remark,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
+        $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,O.real_amount,O.address_name,O.address_phone,O.address_detail,O.remark,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
         $join = [
             ['store S', 'S.store_id=O.store_id'],
             ['order_sku OS', 'OS.order_sn=O.order_sn'],
             ['goods G', 'OS.goods_id = G.goods_id'],
-            ['activity_goods AG', 'AG.goods_id = G.goods_id', 'left'],
         ];
         $order = Order::alias('O')
             ->field($field)
@@ -317,8 +327,8 @@ class Activity extends BaseApi
         return returnMsg(0, 'ok');
     }
 
-    //生成JSPay微信付款请求数据
-    public function orderPay()
+    //用户下单
+    public function order()
     {
         $sku_id = input('sku_id', 0, 'intval');
         if (empty($sku_id)) {
@@ -349,7 +359,6 @@ class Activity extends BaseApi
         if (empty($region_name)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
-        //1.创建订单
         $orderModel = new Order();
         $num = 1;//商品数量
         $submit = TRUE;//是否提交订单
@@ -362,30 +371,40 @@ class Activity extends BaseApi
         ];
         $orderType = 2;//活动订单类型
         $user = [
-            'udata_id' => 1,
+            'udata_id' => $this->getUdataId(),
         ];
         $result = $orderModel->createOrder($user, 'goods', $sku_id, $num, $submit, $params, $remark, $orderType);
         if ($result === false) {
             return returnMsg(3, $orderModel->error);
         }
-        //2.生成支付请求
-        $auth = $this->getOpenid();
-        if ($auth['errCode'] != 0) {
-            return json($auth);
+        return returnMsg(0, '下单成功，请完成微信支付');
+    }
+
+
+    //生成JSPay微信付款请求数据
+    public function pay()
+    {
+        $order_sn = input('order_sn', '', 'trim');
+        if (empty($order_sn)) {
+            return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $auth = $auth['data'];
+        $orderInfo = Order::where('order_sn')->find();
+        if (empty($orderInfo)) {
+            return returnMsg(0, '订单信息不存在');
+        }
+
         $return = [
             'errCode' => 0,
             'errMsg' => 'ok',
         ];
         $factoryId = $this->factory_id;
         $order = [
-            'openid' => $auth['third_openid'],
+            'openid' => session('act_third_open_id'),
             'order_sn' => get_nonce_str(32),
-            'real_amount' => $result['real_amount'],
+            'real_amount' => $orderInfo['real_amount'],
             'store_id' => $factoryId,
         ];
-        $paymentApi = new \app\common\api\PaymentApi($factoryId, 'wechat_js');
+        $paymentApi = $this->wechatApi;
         $result = $paymentApi->init($order);
         if ($result) {
             $return['data'] = $result;
