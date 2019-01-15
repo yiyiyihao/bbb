@@ -128,7 +128,7 @@ class Web extends BaseApi
         $result['list'] = getTree($data);
         $config = WebConfig::where('store_id', $this->store_id)->value('value');
         $config = json_decode($config, true);
-        unset($config['logo'], $config['login_bg']);
+        //unset($config['logo'], $config['login_bg']);
         return returnMsg(0, 'ok', array_merge($config, $result));
     }
 
