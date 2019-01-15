@@ -17,13 +17,17 @@ use think\Request;
 class Site extends FactoryForm
 {
     private $store_id;
+    private $storeDomain = '';
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->modelName = '导航图片';
         $this->model = model('web_banner');
         parent::__construct();
         $this->store_id = $this->adminUser['store_id'];
+        $this->storeDomain = str_replace($request->subDomain(), 'www', $request->domain());
+        $this->assign('sotoreDomain', $this->storeDomain);
+
     }
 
 
@@ -171,11 +175,11 @@ class Site extends FactoryForm
                 'm.store_id' => $this->store_id,
                 'm.type' => 0,
             ])->order('sort')->select();
-        $sysmenu=config('sysmenu.');
-        $sysmenu=array_map(function ($item)use ($request){
-            $item['url']=str_replace($request->subDomain(),'www',$request->domain()).'/#'.$item['url'];
+        $sysmenu = config('sysmenu.');
+        $sysmenu = array_map(function ($item) use ($request) {
+            $item['url'] = str_replace($request->subDomain(), 'www', $request->domain()) . '/#' . $item['url'];
             return $item;
-        },$sysmenu);
+        }, $sysmenu);
 
         $list_top = array_merge($sysmenu, $list_top->toArray());
         $list_bottom = WebMenu::alias('m')
@@ -242,10 +246,10 @@ class Site extends FactoryForm
             $data = WebMenu::field('id parent_id,name p_name')->get($pid);
             $this->assign('data', $data);
         }
-        $this->subMenu['add'] = [
-            'name' => '返回',
-            'url' => url('menu'),
-        ];
+        //$this->subMenu[''] = [
+        //    'name' => '返回',
+        //    'url' => url('menu'),
+        //];
         $this->assign('pages', $this->getPages());
 
 
@@ -274,17 +278,17 @@ class Site extends FactoryForm
             $model->where('title', 'like', '%' . trim($title) . '%');
         }
         $data = $model->select();
-        $data=$data->map(function ($item) use ($request) {
-            $domain=str_replace($request->subDomain(),'www',$request->domain());
-            $item['url']=$domain.'/page?id='.$item['id'];
-            $item['page_type']=1;
+        $data = $data->map(function ($item) use ($request) {
+            $domain = $this->storeDomain;
+            $item['url'] = $domain . '/#/page?id=' . $item['id'];
+            $item['page_type'] = 1;
             return $item;
         });
 
         $this->assign('list', $data);
         $this->subMenu['add'] = [
             'name' => '新增单页',
-            'url'  => url('add_page'),
+            'url' => url('add_page'),
         ];
         return $this->fetch();
     }
