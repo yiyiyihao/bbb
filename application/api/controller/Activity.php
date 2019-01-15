@@ -33,17 +33,21 @@ class Activity extends BaseApi
     //商品列表
     public function getGoodsList()
     {
-        $list = ActivityGoods::alias('ag')->field('g.goods_id,ag.goods_name,g.name')->join('goods g', 'ag.goods_id=g.goods_id')->where([
-            'ag.act_id' => 1,
-            'ag.store_id' => $this->store_id,
-            'ag.is_del' => 0,
-            'g.is_del' => 0,
-            'g.status' => 1,
-        ])->select()->map(function ($item) {
-            $item['goods_name'] = empty($item['goods_name']) ? $item['name'] : $item['goods_name'];
-            unset($item['name']);
-            return $item;
-        });
+
+//         $list = ActivityGoods::alias('ag')->field('g.goods_id,ag.goods_name,g.name')->join('goods g', 'ag.goods_id=g.goods_id')->where([
+//             'ag.act_id' => 1,
+//             'ag.store_id' => $this->store_id,
+//             'ag.is_del' => 0,
+//             'g.is_del' => 0,
+//             'g.status' => 1,
+//         ])->select()->map(function ($item) {
+//             $item['goods_name'] = empty($item['goods_name']) ? $item['name'] : $item['goods_name'];
+//             unset($item['name']);
+//             return $item;
+//         });
+        $goodsIds = [13, 15];
+        $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
+        $list = db('goods')->where(['goods_id' => ['IN', $goodsIds]])->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
@@ -58,20 +62,14 @@ class Activity extends BaseApi
             'status' => 1,
             'is_del' => 0,
         ];
-        $field = 'goods_id,name,thumb,content,min_price,max_price,install_price,imgs';
+        $field = 'goods_id,name,thumb,content,min_price,install_price,imgs';
         $goods = Goods::where($where)->field($field)->get($id);
         if (empty($goods)) {
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
-        $goods['imgs'] = json_decode($goods['imgs'], true);
-
         $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->store_id, 'spec_json' => ['neq', ""]];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
-        $skuList=array_map(function ($item) {
-            $item['spec_json']=json_decode($item['spec_json'],true);
-            return $item;
-        },$skuList);
         $where = [
             'status' => 1,
             'is_del' => 0,
@@ -102,12 +100,12 @@ class Activity extends BaseApi
         $userModel = new \app\common\model\User();
         $params = [
             'user_type' => 'user',
-            'appid' => $result['appid'],
+            'appid'     => $result['appid'],
             'third_openid' => $result['openid'],
-            'nickname' => isset($result['nickname']) ? trim($result['nickname']) : '',
-            'avatar' => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
-            'gender' => isset($result['sex']) ? intval($result['sex']) : 0,
-            'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
+            'nickname'  => isset($result['nickname']) ? trim($result['nickname']) : '',
+            'avatar'    => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
+            'gender'    => isset($result['sex']) ? intval($result['sex']) : 0,
+            'unionid'   => isset($result['unionid']) ? trim($result['unionid']) : '',
         ];
         $oauth = $userModel->authorized($this->store_id, $params);
         if ($oauth === false) {
