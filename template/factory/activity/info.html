@@ -1,0 +1,67 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                    	<li class="active"><a href="#tab-0">活动配置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+            	<div class="tab-panel active" id="tab-0">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>活动名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="name" name="name" datatype="*" value="{$info['name'] ?? ''}">
+                            <div class="input-note">请填写H5活动名称</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>活动开始时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input js-time" id="start_time" name="start_time" datatype="*" value="{$info['start_time']|date='Y/m/d H:i'}">
+                            <div class="input-note">请填写H5活动开始时间</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>活动结束时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input js-time" id="end_time" name="end_time" datatype="*" value="{$info['end_time']|date='Y/m/d H:i'}">
+                            <div class="input-note">请填写H5活动结束时间</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>促销价格</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="10" class="input" id="activity_price" name="activity_price" datatype="*" value="{$info['activity_price'] ?? 399}">元
+                            <div class="input-note">活动开始后,前2019位付款的客人可享受产品促销价格</div>
+                        </div>
+                    </div>
+                </div>
+               </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+    }); 
+</script>

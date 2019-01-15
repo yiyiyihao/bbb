@@ -44,6 +44,8 @@ RETURN [
     'SECURITY'              =>  '保证金',
     'COMMISSION'            =>  '收益明细',
     
+    'ACTIVITY'              =>  '活动',
+    
     'ORDER'                 =>  '订单',
     'MYORDER'               =>  '我的订单',
     'SUBORDER'              =>  '零售商订单',

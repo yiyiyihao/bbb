@@ -8,7 +8,6 @@
 
 namespace app\api\controller;
 
-use app\common\model\ActivityGoods;
 use app\common\model\Goods;
 use app\common\model\Order;
 use app\common\model\User;
