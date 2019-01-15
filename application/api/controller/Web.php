@@ -52,6 +52,7 @@ class Web extends BaseApi
         $data = WebArticle::field('id,title,update_time,summary,cover_img')->where([
             'store_id' => $this->store_id,
             'is_del' => 0,
+            'status' => 1,
             'sys_menu_id' => 2,
         ])->page($page)->limit($limit)->select();
         return returnMsg(0, 'ok', $data);
@@ -138,6 +139,7 @@ class Web extends BaseApi
         $data = WebArticle::field('id,title,cover_img,summary,update_time')->where([
             'is_del' => 0,
             'store_id' => $this->store_id,
+            'status' => 1,
             'is_top' => 1,
         ])->order('update_time desc')->limit(3)->select();
         $data = $data->map(function ($item) {
