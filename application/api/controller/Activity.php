@@ -8,12 +8,11 @@
 
 namespace app\api\controller;
 
+
 use app\common\api\WechatApi;
-use app\common\model\ActivityGoods;
 use app\common\model\Goods;
 use app\common\model\Order;
-use app\common\model\User;
-use app\common\model\UserData;
+
 
 class Activity extends BaseApi
 {
