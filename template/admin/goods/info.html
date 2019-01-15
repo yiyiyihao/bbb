@@ -138,7 +138,7 @@
 		                  <label>商品最低售价</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="min_price" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
+		                  <input type="text" class="input" id="min_price" {if ($info && isset($info['specs_json']) && $info['specs_json'])}readonly="readonly"{/if} name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
 		                  <div class="input-note"></div>
 		                </div>
 		            </div>

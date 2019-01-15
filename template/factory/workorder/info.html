@@ -123,6 +123,8 @@
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();  
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'workorder_', 'thumb_type' => 'workorder_thumb_'])}",
+        });  
     }); 
 </script>

@@ -47,6 +47,9 @@
             </div>
             <div class="panel-foot">
                 <div class="form-button">
+                	{if isset($info['goods_id']) && $info['goods_id'] > 0}
+                    <a href="{:url('edit', ['id' => $info['goods_id']])}" class="button bg-dot" id="dosubmit" type="submit">上一步</a>
+                    {/if}
                     <button class="button bg-main" type="submit">提交</button>
                     <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
@@ -56,8 +59,13 @@
     </div>
 </form>
 <script>
+var Config = {
+	'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'goods_'])}",
+};
 Do.ready('base', function () {
-        //表单综合处理
-        $('#form').FormPage();
+    //表单综合处理
+    $('#form').FormPage({
+    	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'goods_', 'thumb_type' => 'goods_thumb_100'])}",
+    });
 })
 </script>

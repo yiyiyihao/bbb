@@ -83,11 +83,15 @@
             </div>
         </div>
     </div>
-    </div>
 </form>
 <script>
+	var Config = {
+		'editorUploadUrl' : "{:url('Upload/editorupload', ['prex' => 'article_'])}",
+	};
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'article_', 'thumb_type' => 'article_thumb_'])}",
+        });
     });
 </script>

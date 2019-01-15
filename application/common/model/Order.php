@@ -952,10 +952,8 @@ class Order extends Model
                 $subs = $orderSkuSubModel->where(['osku_id' => $osku['osku_id']])->select();
                 if ($subs) {
                     foreach ($subs as $key1 => $sub) {
-                        if ($order['close_refund_status'] != 2) {
-                            //获取未取消的售后申请(售后状态(-2已取消 -1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功))
-                            $service = $orderSkuServiceModel->order('add_time DESC, service_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
-                        }
+                        //获取未取消的售后申请(售后状态(-2已取消 -1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功))
+                        $service = $orderSkuServiceModel->order('add_time DESC, service_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
                         $subs[$key1]['service'] = isset($service) ? $service : [];
                         //获取安装工单(状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成))
                         $subs[$key1]['work_order'] = $workOrderModel->order('add_time DESC, worder_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();

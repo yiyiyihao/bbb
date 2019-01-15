@@ -854,6 +854,7 @@ function returnMsg($errCode = 0, $errMsg = 'ok', $data = [])
     $result = json_encode($arr);
     header('Content-Type:application/json');
     echo $result;
+    pre(json_decode($result, 1));
     die();
 }
 

@@ -53,14 +53,13 @@
             </div>
         </div>
     </div>
-    </div>
 </form>
-
-
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'web_nav_', 'thumb_type' => 'nav_thumb_'])}",
+        });
         $('#img_group input').click(function () {
             console.log(66666);
             img_len=$(this).val();
@@ -82,13 +81,5 @@
         $('.icon-delete').click(function () {
             $(this).parents('.form-group').removeClass('show').addClass('hide');
         });
-
     });
-
-
-
-
-
-
-
 </script>
