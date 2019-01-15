@@ -26,14 +26,16 @@ class OrderSku extends Model
         $ossub = db('order_sku_sub')->field($field)->alias('OSS')->join($join)->where($where)->find();
         $ossub['service'] = $ossub['work_order'] = [];
         if ($getservice || $getworder) {
-            $orderSkuServiceModel = db('order_sku_service');
-            $workOrderModel = db('work_order');
-            if ($getservice) {
-                $ossub['service'] = $orderSkuServiceModel->order('add_time DESC, service_id DESC')->where(['ossub_id' => $ossub['ossub_id']])->find();
-            }
-            if($getworder){
-                //获取安装工单(状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成))
-                $ossub['work_order'] = $workOrderModel->order('add_time DESC, worder_id DESC')->where(['ossub_id' => $ossub['ossub_id']])->find();
+            if (isset($ossub['ossub_id']) && $ossub['ossub_id']) {
+                $orderSkuServiceModel = db('order_sku_service');
+                $workOrderModel = db('work_order');
+                if ($getservice) {
+                    $ossub['service'] = $orderSkuServiceModel->order('add_time DESC, service_id DESC')->where(['ossub_id' => $ossub['ossub_id']])->find();
+                }
+                if($getworder){
+                    //获取安装工单(状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成))
+                    $ossub['work_order'] = $workOrderModel->order('add_time DESC, worder_id DESC')->where(['ossub_id' => $ossub['ossub_id']])->find();
+                }
             }
         }
         return $ossub;

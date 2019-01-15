@@ -279,12 +279,16 @@ class OrderService extends Model
             default:
             break;
         }
-        if ($user['admin_type'] != ADMIN_FACTORY) {
-            $this->error = '无退款权限';
-            return FALSE;
+        $where = ['order_id' => $service['order_id']];
+        if (isset($user['admin_type'])) {
+            if ($user['admin_type'] != ADMIN_FACTORY) {
+                $this->error = '无退款权限';
+                return FALSE;
+            }
+            $where['store_id'] = $user['store_id'];
         }
         //判断订单是否已支付(是否在线支付)
-        $order = db('Order')->where(['order_id' => $service['order_id'], 'store_id' => $user['store_id']])->find();
+        $order = db('Order')->where($where)->find();
         if (!$order) {
             $this->error = lang('param_error');
             return FALSE;
@@ -311,7 +315,7 @@ class OrderService extends Model
         }
         $apiType = $config['api_type'];
         $storeId = $order['store_id'];
-        switch ($apiType) {
+        /* switch ($apiType) {
             case 'alipay':
                 $alipayApi = new \app\common\api\AlipayPayApi($storeId, $payCode);
                 $result = $alipayApi->tradeRefund($order, $service);
@@ -334,7 +338,7 @@ class OrderService extends Model
                 $this->error = lang('接口未开通');
                 return FALSE;
             break;
-        }
+        } */
         $transferNo = $service['service_sn'];
         $serviceStatus = 3;//已完成
         $data = [
@@ -348,58 +352,65 @@ class OrderService extends Model
             $this->error = lang('system_error');
             return FALSE;
         }
-        //退货退款完成时,库存还原
-        if ($service['service_type'] == 1) {
-            $goodsModel = new \app\common\model\Goods();
-            $goodsModel->setGoodsStock($osub, $service['num']);
-        }
-        $commissionModel = db('store_commission');
-        $where = [
-            'order_id'  => $service['order_id'],
-            'osku_id'   => $service['osku_id'],
-            'commission_status' => 0,//收益状态(0待结算 1已结算 2已退还)
-            'is_del'    => 0,
-            'status'    => 1,
-        ];
-        //退款成功后判断当前产品是否存在佣金返利
-        $commission = $commissionModel->where($where)->find();
-        if ($commission) {
-            $ratio = $commission['commission_ratio'];
-            $skuCount = $subModel->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id']])->count();
-            //计算已退款的产品数量
-            $refundCount = $this->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id'], 'service_status' => $serviceStatus])->count();
-            
-            $refundAmount = round($service['refund_amount'] * $ratio/ 100, 2);
-            $data = [
-                'refund_amount' => ['inc', $service['refund_amount']],
-                'income_amount' => ['dec', $refundAmount],
-                'update_time' => time(),
-            ];
-            //判断当前订单商品是否已全部退款
-            if ($refundCount >= $skuCount) {
-                $data = ['commission_status' => 2];
+        if ($order['order_type'] == 1) {
+            //退货退款完成时,库存还原
+            if ($service['service_type'] == 1) {
+                $goodsModel = new \app\common\model\Goods();
+                $goodsModel->setGoodsStock($osub, $service['num']);
             }
-            $result = $commissionModel->where($where)->update($data);
-            //可提现金额不变 待结算金额减少 总收益减少
-            $financeModel = new \app\common\model\StoreFinance();
-            $params = [
-                'pending_amount'=> -$refundAmount,
-                'total_amount'  => -$refundAmount,
+            
+            $commissionModel = db('store_commission');
+            $where = [
+                'order_id'  => $service['order_id'],
+                'osku_id'   => $service['osku_id'],
+                'commission_status' => 0,//收益状态(0待结算 1已结算 2已退还)
+                'is_del'    => 0,
+                'status'    => 1,
             ];
-            $result = $financeModel->financeChange($commission['store_id'], $params, '买家退款,收益退还');
+            //退款成功后判断当前产品是否存在佣金返利
+            $commission = $commissionModel->where($where)->find();
+            if ($commission) {
+                $ratio = $commission['commission_ratio'];
+                $skuCount = $subModel->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id']])->count();
+                //计算已退款的产品数量
+                $refundCount = $this->where(['order_id' => $service['order_id'], 'osku_id' => $service['osku_id'], 'service_status' => $serviceStatus])->count();
+                
+                $refundAmount = round($service['refund_amount'] * $ratio/ 100, 2);
+                $data = [
+                    'refund_amount' => ['inc', $service['refund_amount']],
+                    'income_amount' => ['dec', $refundAmount],
+                    'update_time' => time(),
+                ];
+                //判断当前订单商品是否已全部退款
+                if ($refundCount >= $skuCount) {
+                    $data = ['commission_status' => 2];
+                }
+                $result = $commissionModel->where($where)->update($data);
+                //可提现金额不变 待结算金额减少 总收益减少
+                $financeModel = new \app\common\model\StoreFinance();
+                $params = [
+                    'pending_amount'=> -$refundAmount,
+                    'total_amount'  => -$refundAmount,
+                ];
+                $result = $financeModel->financeChange($commission['store_id'], $params, '买家退款,收益退还');
+            }
         }
         $orderModel = new Order();
         $orderModel->orderLog($order, $user, '卖家完成退款', $remark, $service['service_id']);
-        //当订单下所有产品都已经完成退款时,当前订单改为已关闭状态
-        $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->sum('num');
-        $refundCount = db('order_sku_service')->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
-        if ($refundCount >= $totalCount) {
-            //3为订单关闭状态
-            $result = $orderModel->save(['order_status' => 3, 'close_refund_status' => 2], ['order_id' => $service['order_id']]);
-            $orderModel->orderLog($order, [], '订单关闭', '订单产品全部退款，系统自动关闭订单');
-        }else{
-            //判断订单是否需要关闭退货退款
-            $orderModel->orderCloseRefund($order);
+        if ($order['order_type'] == 1) {
+            //当订单下所有产品都已经完成退款时,当前订单改为已关闭状态
+            $totalCount = $this->orderSkuModel->where(['order_id' => $service['order_id']])->sum('num');
+            $refundCount = db('order_sku_service')->where(['order_id' => $service['order_id'], 'service_status' => $serviceStatus])->count();
+            if ($refundCount >= $totalCount) {
+                //3为订单关闭状态
+                $result = $orderModel->save(['order_status' => 3, 'close_refund_status' => 2], ['order_id' => $service['order_id']]);
+                $orderModel->orderLog($order, [], '订单关闭', '订单产品全部退款，系统自动关闭订单');
+            }else{
+                //判断订单是否需要关闭退货退款
+                $orderModel->orderCloseRefund($order);
+            }
+        }elseif ($order['order_type'] == 2){
+            $result = $orderModel->save(['close_refund_status' => 2], ['order_id' => $service['order_id']]);
         }
         return TRUE;
     }
@@ -548,6 +559,46 @@ class OrderService extends Model
             return $this->_getServiceSn();
         }else{
             return $sn;
+        }
+    }
+    
+    public function servuceActivityRefund($order, $refundAmount, $remark)
+    {
+        //判断当前订单对应售后订单数据是否存在
+        $service = $this->where(['order_id' => $order['order_id']])->find();
+        if ($service) {
+            if ($service['service_status'] != 2) {
+                $this->error = '不能重复退款';
+                return FALSE;
+            }
+            $serviceId = $service['service_id'];
+        }else{
+            $service = [
+                'store_id'      => $order['store_id'],
+                'user_id'       => 0,
+                'user_store_id' => 0,
+                'order_id'      => $order['order_id'],
+                'order_sn'      => $order['order_sn'],
+                'osku_id'       => $order['skus'][0]['sku_id'],
+                'ossub_id'      => $order['skus'][0]['subs'][0]['ossub_id'],
+                'num'           => 1,
+                'refund_amount' => $refundAmount,
+                'remark'        => $remark,
+                'service_status'=> 2,
+                'imgs'          => '',
+                'service_sn'    => $this->_getServiceSn(),
+            ];
+            $serviceId = $this->save($service);
+            $service['service_id'] = $serviceId;
+            //记录日志
+            $orderModel = new \app\common\model\Order();
+            $orderModel->orderLog($order, [], '开始活动退款', $remark, $serviceId);
+        }
+        $result = $this->serviceRefund($service, ['user_id' => 0], []);
+        if ($result === FALSE) {
+            return FALSE;
+        }else{
+            return TRUE;
         }
     }
 }

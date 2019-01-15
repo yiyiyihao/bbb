@@ -186,6 +186,7 @@ class Service extends FactoryForm
         $params = $this->request->param();
         $where = [
             'S.is_del' => 0,
+            'O.order_type' => 1,
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.store_id'] = $this->adminUser['store_id'];

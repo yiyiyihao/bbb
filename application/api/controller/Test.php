@@ -71,7 +71,7 @@ class Test extends Base
     {
         //1.创建订单
         $orderModel = new \app\common\model\Order();
-        $skuId = 33;//商品规格ID
+        $skuId = 40;//商品规格ID
         $num = 1;//商品数量
         $submit = FALSE;//是否提交订单
         $submit = TRUE;//是否提交订单

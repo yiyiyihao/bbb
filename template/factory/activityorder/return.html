@@ -1,0 +1,59 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">退款信息</a></li>
+                        <li><a href="#tab-2">订单信息</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+            	<div class="tab-panel active" id="tab-1">
+            		<div class="form-group">
+					    <div class="label">
+					        <label>订单实际支付金额</label>
+					    </div>
+					    <div class="field">
+					    	<span class="field-text">{$info['order']['paid_amount'] ?? ''}元</span>
+					    </div>
+					</div>
+					<div class="form-group">
+					    <div class="label">
+					        <label>优惠活动</label>
+					    </div>
+					    <div class="field">
+					    	<span class="field-text">{$return['return_name'] ?? ''}</span>
+					    </div>
+					</div>
+					<div class="form-group">
+					    <div class="label">
+					        <label>需退款金额</label>
+					    </div>
+					    <div class="field">
+					    	<span class="field-text">{$return['return_amount'] ?? 0}</span>
+					    </div>
+					</div>
+                </div>
+                <div class="tab-panel" id="tab-2">
+                    {include file="order/_detail" /} 
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-red" type="submit">确认退款</button>
+                    <a href="{:url('index')}" class="button button-middle bg-main">返回列表</a>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		
+    }); 
+</script>
