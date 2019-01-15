@@ -1,0 +1,31 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">下单信息</a></li>
+                        <li class=""><a href="#tab-2">订单产品</a></li>
+                        <li class=""><a href="#tab-3">订单操作日志</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    {include file="order/_detail" /} 
+                </div>
+            	<div class="tab-panel" id="tab-2">
+            		{include file="order/_skus" /}
+            	</div>
+            	<div class="tab-panel" id="tab-3">
+            		{include file="order/_log" /} 
+            	</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <a href="{:url('index')}" class="button button-middle bg-main">返回列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

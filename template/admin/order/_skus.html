@@ -26,19 +26,8 @@
             <td>{$vo.real_price}元</td>
             <td>-</td>
             <td>-</td>
-            <!-- <td>-</td> -->
             <td>
             	<span class='button-group'>
-            		{if ($adminUser['admin_type'] == $Think.const.ADMIN_FACTORY)}
-	            		<!-- {if condition="$info['order']['order_type'] != 1"}
-			              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
-			                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
-			                {/if}
-		                {/if}
-		                {if condition="$info['order']['pay_status'] == 1 AND $info['order']['order_status'] == 1 AND $info['order']['delivery_status'] != 2 AND $vo['delivery_status'] != 2"}
-		              		<a href="{:url('delivery', ['order_sn' => $info['order']['order_sn'], 'osku_id' => $vo['osku_id']])}"  class="button button-small bg-main js-open" title="填写物流信息">填写物流信息</a>
-		                {/if} -->
-	                {/if}
             	</span>
             </td>
           </tr>
@@ -60,14 +49,12 @@
              	{/if}
              </td>
              <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td>
-             <!-- <td>
+             <td>
              	{if ($v.odelivery_id)}
              	物流单号:{$v.delivery_sn}({$v.delivery_name})
              	{elseif(!$v.odelivery_id && $v['delivery_status'] != 0)/}
              	已发货
              	{/if}
-             </td> -->
-             <td>
              </td>
            </tr>
          {/volist}

@@ -248,9 +248,11 @@ class Order extends FormBase
         }
         return $where;
     }
-    private function _buildmap($param = []){
+    protected function _buildmap($param = []){
         $params = $this->request->param();
-        $map = [];
+        $map = [
+            'order_type' => 1,
+        ];
         $map['O.store_id'] = $this->adminUser['store_id'];
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;

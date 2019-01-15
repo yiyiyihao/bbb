@@ -1,0 +1,79 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">确定收款信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>订单号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" value="{$info['order_sn'] ?? ''}" size="60" disabled="disabled">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>应付金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" value="{$info['real_amount'] ?? ''}" size="20" disabled="disabled">元
+                        </div>
+                    </div>
+                    <div class="form-group">
+						<div class="label">
+							<label>支付方式</label>
+						</div>
+						<div class="field">
+							<select class="input" name="pay_code" id="pay_code" datatype="*" nullmsg="请选择支付方式！">
+								{volist name="payments" id="payment"}
+									<option value="{$payment['pay_code']}">{$payment['name']}</option> 
+								{/volist}
+							</select>
+							<div class="input-note">请选择售后类型</div>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>第三方交易号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="pay_sn" name="pay_sn" size="60" datatype="s" value="">
+                            <div class="input-note">在线支付请输入第三方交易号</div>
+                        </div>
+                    </div>    
+                    <div class="form-group">
+			            <div class="label">
+			              <label>收款备注</label>
+			            </div>
+			            <div class="field">
+			              <textarea class="input" id="remark" name="remark" rows="5" cols="60"></textarea>
+			              <div class="input-note">请输入订单收款操作备注</div>
+			            </div>
+			          </div>                 
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		
+    }); 
+</script>

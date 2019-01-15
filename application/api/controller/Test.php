@@ -67,6 +67,48 @@ class Test extends Base
         pre($store);
     }
     
+    public function order()
+    {
+        //1.创建订单
+        $orderModel = new \app\common\model\Order();
+        $skuId = 33;//商品规格ID
+        $num = 1;//商品数量
+        $submit = FALSE;//是否提交订单
+        $submit = TRUE;//是否提交订单
+        $params = [
+            'address_name' => '收货人姓名',
+            'address_phone' => '13698547852',
+            'region_id' => 1965,
+            'region_name' => '广东省 深圳市',
+            'address' => '详细地址',
+        ];
+        $remark = '买家备注';
+        $orderType = 2;//活动订单类型
+        $user = [
+            'udata_id' => 1,
+        ];
+        $order = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, $params, $remark, $orderType);
+        echo $orderModel->error;
+        pre($order);
+        
+        //2.取消订单
+        $user = [
+            'udata_id' => 1,
+        ];
+        $orderSn = '20190115103650505310460546505';
+        $result = $orderModel->orderCancel($orderSn, $user);
+        echo $orderModel->error;
+        pre($result);
+        //3.确认完成
+        $user = [
+            'udata_id' => 1,
+        ];
+        $orderSn = '20190115103910101575165714584';
+        $result = $orderModel->orderFinish($orderSn, $user);
+        echo $orderModel->error;
+        pre($result);
+    }
+    
     public function getopenid(){
         $wechatApi = new \app\common\api\WechatApi(FALSE, 'h5');
         $code = '';

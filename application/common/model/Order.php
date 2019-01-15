@@ -155,7 +155,7 @@ class Order extends Model
         if ($order['order_type'] == 1) {
             $action = '确认完成';
         }else{
-            $action = $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
+            $action = isset($user['admin_type']) && $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
         }
         $this->orderTrack($order, 0, $remark);
         return $this->orderLog($order, $user, $action, $remark);
@@ -240,8 +240,7 @@ class Order extends Model
                 'add_time'          => time(),
             ];
             $deliveryModel = db('order_sku_delivery');
-//             $odeliveryId = $deliveryModel->insertGetId($deliveryData);
-            $odeliveryId = 1;
+            $odeliveryId = $deliveryModel->insertGetId($deliveryData);
             if (!$odeliveryId) {
                 $this->error = '数据异常';
                 return FALSE;
@@ -526,13 +525,17 @@ class Order extends Model
         $this->orderLog($order, $user, '取消订单', $remark);
         return TRUE;
     }
-    public function createOrder($user, $from, $skuId, $num, $ordermit = FALSE, $addr = [], $remark = '')
+    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $addr = [], $remark = '', $orderType = 1)
     {
         if (!$user) {
             $this->error = lang('param_error');
             return FALSE;
         }
-        $userId = $user['user_id'];
+        if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
+            $this->error = lang('param_error');
+            return FALSE;
+        }
+        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         if ($from == 'goods') {
             $goodsModel = new \app\common\model\Goods();
             $sku = $goodsModel->checkSku($skuId);
@@ -558,7 +561,7 @@ class Order extends Model
         if ($list === FALSE) {
             return FALSE;
         }
-        if (!$ordermit) {
+        if (!$submit) {
             return $list;
         }else{
             $storeId = $list['store_id'];
@@ -586,12 +589,16 @@ class Order extends Model
             //创建订单
             $orderSn = $this->_getOrderSn();
             $orderData = [
-                'order_type'    => 1,   //1商户订单:支付成功后自动完成
+                'order_type'    => $orderType,   //1商户订单:支付成功后自动完成
                 'order_sn'      => $orderSn,
                 'store_id'      => $storeId,
-                'user_id'       => $user['user_id'],
-                'user_store_id' => $user['store_id'] ? intval($user['store_id']) : 0,
-                'user_store_type' => $user['store_type'] ? intval($user['store_type']) : 0,
+                
+                'user_id'       => $userId,
+                'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
+                'user_store_type' => isset($user['store_type']) ? intval($user['store_type']) : 0,
+                
+                'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
+                
                 'goods_amount'  => $list['sku_amount'],
                 'install_amount'=> $list['install_amount'],
                 'delivery_amount'=> $list['delivery_amount'],
@@ -626,8 +633,11 @@ class Order extends Model
                             'order_id'      => $orderId,
                             'order_sn'      => $orderSn,
                             'store_id'      => $list['store_id'],
-                            'user_id'       => $user['user_id'],
-                            'user_store_id' => $user['store_id'],
+                            
+                            'user_id'       => $userId,
+                            'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
+                            
+                            'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
                             
                             'goods_id'      => $value['goods_id'],
                             'sku_id'        => $value['sku_id'],
@@ -660,8 +670,11 @@ class Order extends Model
                                 'order_sn'      => $orderSn,
                                 'store_id'      => $list['store_id'],
                                 'osku_id'       => $oskuId,
-                                'user_id'       => $user['user_id'],
-                                'user_store_id' => $user['store_id'],
+                                
+                                'user_id'       => $userId,
+                                'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
+                                
+                                'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
                                 
                                 'goods_id'      => $value['goods_id'],
                                 'sku_id'        => $value['sku_id'],
@@ -691,7 +704,7 @@ class Order extends Model
                             $cartIds[] = $value['cart_id'];
                         }
                         $orderData['order_id'] = $orderId;
-                        $logId = $this->orderLog($orderData, $user, '创建订单', '提交购买产品并生成订单');
+                        $logId = $this->orderLog($orderData, $user, '创建订单', '提交购买商品并生成订单');
                         $trackId = $this->orderTrack($orderData, 0, '订单已提交, 系统正在等待付款');
                     }
                 }
@@ -853,7 +866,8 @@ class Order extends Model
      */
     public function orderLog($order, $user, $action = '', $msg = '', $serviceId = 0)
     {
-        if($user && $user['user_id'] > 0){
+        $udataId = $userId = 0;
+        if($user && isset($user['user_id']) && $user['user_id'] > 0){
             $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
             $nickname = $nickname ? $nickname : '用户';
             if ($order['user_store_id'] == $user['store_id']) {
@@ -861,6 +875,15 @@ class Order extends Model
             }else{
                 $nickname = '[卖家]'.$nickname;
             }
+            $userId = $user['user_id'];
+        }elseif($user && isset($user['udata_id']) && $user['udata_id'] > 0){
+            $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+            if (!$nickname) {
+                $nickname = db('user_data')->where(['udata_id' => $user['udata_id']])->value('nickname');
+                $nickname = $nickname ? $nickname : '用户';
+            }
+            $nickname = '[买家]'.$nickname;
+            $udataId = $user['udata_id'];
         }else{
             $nickname = '系统';
         }
@@ -868,7 +891,8 @@ class Order extends Model
             'order_id'  => $order['order_id'],
             'order_sn'  => $order['order_sn'],
             'service_id'=> $serviceId,
-            'user_id'   => $user ? $user['user_id'] : 0,
+            'user_id'   => $userId,
+            'udata_id'  => $udataId,
             'nickname'  => $nickname,
             'action'    => $action,
             'msg'       => $msg,
@@ -899,6 +923,8 @@ class Order extends Model
                 }
                 $where['user_store_id'] = ['IN', $storeIds];
             }
+        }elseif (isset($user['udata_id']) && $user['udata_id'] > 0) {
+            $where['udata_id'] = $user['udata_id'];
         }
         $order = $this->where($where)->find();
         if (!$order) {
@@ -1081,7 +1107,7 @@ class Order extends Model
      */
     private function _getCartDatas($user = [], $incart = FALSE, $skuIds = [], $num = 0)
     {
-        $userId = $user['user_id'];
+        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         if ($incart) {
         }else{
             $where = [
