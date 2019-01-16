@@ -57,9 +57,9 @@ class PayNotify
         $config = db('activity')->where([
             //['start_time', '<=', $now],
             //['end_time', '>=', $now],
-            ['is_del', 0],
-            ['status', 1],
-            ['id', 1],
+            ['is_del','=', 0],
+            ['status', '=',1],
+            ['id', '=',1],
         ])->find();
         if (empty($config)) {
             Log::error('活动未配置');
@@ -75,8 +75,8 @@ class PayNotify
         if ($order['order_status'] == 1 && $order['pay_status'] == 1 && $order['close_refund_status'] == 0 && $order['pay_time'] >= $startTime && $order['pay_time'] <= $entTime) {
             //2.计算当前订单的实际支付顺序 是否逢九订单
             $where=[
-                ['O.order_type',2],
-                ['O.pay_status',1],
+                ['O.order_type','=',2],
+                ['O.pay_status','=',1],
                 ['O.pay_time','>=',$startTime],
                 ['O.pay_time','<=',$order['pay_time']],
                 ['OS.goods_id','in',$goodsId],
