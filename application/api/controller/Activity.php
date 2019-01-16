@@ -441,6 +441,9 @@ class Activity extends BaseApi
             return returnMsg(2, lang('PARAM_ERROR'));
         }
         $thirdOpenid = db('user_data')->where(['udata_id' => $udata_id, 'third_type' => 'wechat_h5'])->value('third_openid');
+        if (empty($thirdOpenid)) {
+            return returnMsg(3, lang('wechat openid missing'));
+        }
         $return = [
             'errCode' => 0,
             'errMsg' => 'ok',
