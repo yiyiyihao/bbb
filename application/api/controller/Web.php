@@ -218,10 +218,6 @@ class Web extends BaseApi
         if (empty($phone)) {
             return returnMsg(1, '手机号不能为空');
         }
-        if (!preg_match('/^1[0-9]{10}$/', $phone)) {
-            return returnMsg(1, '手机码码格式不正确');
-        }
-
         $userModel = new User;
         $result = $userModel->checkPhone($this->factory_id, $phone, TRUE);
         if ($result===false){
