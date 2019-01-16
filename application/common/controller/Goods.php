@@ -355,9 +355,9 @@ class Goods extends FormBase
         $goodsType = $data['goods_type'] = 1;
         $goodsCate = $data['goods_cate'] = 1;
         if ($goodsType == 1) {
-            if ($installPrice <= 0) {
-                $this->error('请填写安装费用');
-            }
+//             if ($installPrice <= 0) {
+//                 $this->error('请填写安装费用');
+//             }
             $data['sample_purchase_limit'] = 0;
         }elseif ($goodsType == 2) {
             if ($samplePurchaseLimit <= 0) {

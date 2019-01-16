@@ -1112,7 +1112,7 @@ class Order extends Model
                 'sku_id' => intval($skuIds),
             ];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
-            $field = 'S.store_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
+            $field = 'G.activity_id, G.activity_id, S.store_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
             $list = db('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
@@ -1125,6 +1125,9 @@ class Order extends Model
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
             foreach ($list as $key => $value) {
+                if ($value['activity_id']) {
+                    $value['price'] = db('activity')->where(['id' => $value['activity_id']])->value('activity_price');
+                }
                 $skuList[] = $skuId = $value['sku_id'];
                 $num = intval($value['num']);
                 //样品限制单个用户购买数量
