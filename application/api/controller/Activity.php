@@ -59,7 +59,7 @@ class Activity extends BaseApi
         }
         $result = $wechatApi->getOauthOpenid($code, TRUE);
         if ($result === FALSE) {
-            return ['errCode' => 1, 'errMsg' => $wechatApi->error];
+            return returnMsg(1,$wechatApi->error);
         }
         $userModel = new \app\common\model\User();
         $params = [
