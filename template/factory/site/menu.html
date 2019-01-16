@@ -71,7 +71,7 @@
                                 {/php}
                                 <td>{$key}</td>
                                 <td>{$vo.cname}</td>
-                                <td>{$type}</td>
+                                <td>{if $vo.parent_id!=0}{$type}{/if}</td>
                                 <td>{$vo.sort}</td>
                                 <td>{if $vo.parent_id==0 }<a class="button button-small icon-plus bg-sub" href="{:url('add_menu',['pid'=>$vo.id,'type'=>1])}">新增下级导航</a>  {/if}<a class="button button-small bg-main icon-edit" href="{:url('add_menu',['id'=>$vo.id])}">编辑</a> <a class="button button-small icon-delete bg-red js-del"   url="{:url('del_menu')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a> </td>
                             </tr>

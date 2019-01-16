@@ -170,6 +170,7 @@ class Web extends BaseApi
     {
         $where = [
             'is_del' => 0,
+            'check_status'    => 1,
             'store_type'    => STORE_DEALER,
             'factory_id' => $this->store_id,];
         $region_id = input('region_id', 0, 'intval');
@@ -202,11 +203,11 @@ class Web extends BaseApi
             $where['region_id'] = ['in', $region_arr];
         }
 
-        $data = Store::field('name as region_name,address,mobile')->where($where)->select();
-        $result = $data->map(function ($item) {
-            $item['region_name'] = str_replace(' ', '', $item['region_name']) . '店';
-            return $item;
-        });
+        $result = Store::field('name as region_name,address,mobile')->where($where)->select();
+        //$result = $data->map(function ($item) {
+        //    $item['region_name'] = str_replace(' ', '', $item['region_name']);
+        //    return $item;
+        //});
         return returnMsg(0, 'ok', $result);
     }
 
@@ -220,7 +221,15 @@ class Web extends BaseApi
         if (!preg_match('/^1[0-9]{10}$/', $phone)) {
             return returnMsg(1, '手机码码格式不正确');
         }
+
+        $userModel = new User;
+        $result = $userModel->checkPhone($this->factory_id, $phone, TRUE);
+        if ($result===false){
+            return returnMsg(1, $userModel->error);
+        }
+
         $codeModel = new \app\common\model\LogCode();
+
         $result = $codeModel->sendSmsCode($this->store_id, $phone, 'register');
         if (!$result['status']) {
             return returnMsg(1, $result['result']);
