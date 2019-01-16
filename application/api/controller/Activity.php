@@ -350,6 +350,7 @@ class Activity extends BaseApi
             return returnMsg(1, lang('PARAM_ERROR'));
         }
         $udata_id = input('udata_id', $this->getUdataId(), 'intval');
+//         $udata_id = 14;
         if (empty($udata_id)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
@@ -431,18 +432,22 @@ class Activity extends BaseApi
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $orderInfo = Order::where('order_sn')->find();
+        $orderInfo = Order::where(['order_sn' => $order_sn])->find();
         if (empty($orderInfo)) {
             return returnMsg(0, '订单信息不存在');
         }
-
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
+        if (empty($udata_id)) {
+            return returnMsg(2, lang('PARAM_ERROR'));
+        }
+        $thirdOpenid = db('user_data')->where(['udata_id' => $udata_id, 'third_type' => 'wechat_h5'])->value('third_openid');
         $return = [
             'errCode' => 0,
             'errMsg' => 'ok',
         ];
         $factoryId = $this->factoryId;
         $order = [
-            'openid' => session('act_third_open_id'),
+            'openid' => $thirdOpenid,
             'order_sn' => get_nonce_str(32),
             'real_amount' => $orderInfo['real_amount'],
             'store_id' => $factoryId,
