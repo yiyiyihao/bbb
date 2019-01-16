@@ -73,12 +73,12 @@ class Activity extends BaseApi
         ];
         $oauth = $userModel->authorized($this->store_id, $params);
         if ($oauth === false) {
-            return ['errCode' => 1, 'errMsg' => $userModel->error];
+            return returnMsg(1,$userModel->error);
         }
         $oauth['third_openid'] = $result['openid'];
         session('act_udata_id', $oauth['udata_id']);
         session('act_third_open_id', $result['openid']);
-        return ['errCode' => 0, 'errMsg' => 'ok', 'data' => $oauth];
+        return returnMsg(0,'ok',$oauth);
     }
 
 
