@@ -38,7 +38,7 @@ class Activity extends BaseApi
     //授权-第1步
     public function getScope()
     {
-        $wechatApi = new WechatApi(0, 'h5');
+        $wechatApi = new WechatApi(0, 'wechat_js');
         $appid = $wechatApi->config['appid'];
         $appsecret = $wechatApi->config['appsecret'];
 
@@ -52,7 +52,7 @@ class Activity extends BaseApi
     //授权-第2步，返回微信Openid
     public function getOpenid()
     {
-        $wechatApi = new WechatApi(0, 'h5');;
+        $wechatApi = new WechatApi(0, 'wechat_js');;
         $code = input('code');
         if (empty($code)) {
             return returnMsg(1, lang('PARAM_ERROR'));
