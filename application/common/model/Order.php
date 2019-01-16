@@ -528,11 +528,11 @@ class Order extends Model
     public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $addr = [], $remark = '', $orderType = 1)
     {
         if (!$user) {
-            $this->error = lang('param_error');
+            $this->error = lang('param_error').'--1';
             return FALSE;
         }
         if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
-            $this->error = lang('param_error');
+            $this->error = lang('param_error').'--2';
             return FALSE;
         }
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
@@ -540,7 +540,7 @@ class Order extends Model
             $goodsModel = new \app\common\model\Goods();
             $sku = $goodsModel->checkSku($skuId);
             if ($sku === FALSE) {
-                $this->error = $goodsModel->error;
+                $this->error = $goodsModel->error.'--3';
                 return FALSE;
             }
             if ($num <= 0) {

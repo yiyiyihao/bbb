@@ -414,7 +414,7 @@ class Activity extends BaseApi
         ];
         $orderType = 2;//活动订单类型
         $user = [
-            'udata_id' => $this->getUdataId(),
+            'udata_id' => $udata_id,
         ];
         $result = $orderModel->createOrder($user, 'goods', $sku_id, $num, $submit, $params, $remark, $orderType);
         if ($result === false) {
