@@ -350,7 +350,6 @@ class Activity extends BaseApi
             return returnMsg(1, lang('PARAM_ERROR'));
         }
         $udata_id = input('udata_id', $this->getUdataId(), 'intval');
-        $udata_id = 14;
         if (empty($udata_id)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }

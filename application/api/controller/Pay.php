@@ -1,8 +1,7 @@
 <?php
 namespace app\api\controller;
-use app\api\behavior\PayNotify;
 use app\common\service\PushBase;
-use think\facade\Hook;
+use think\facade\Log;
 
 class Pay extends ApiBase
 {
@@ -19,6 +18,7 @@ class Pay extends ApiBase
     }
     public function wechat()
     {
+        //         $orderSn = '20190117001642974849330125579';
         $orderSn = isset($this->postParams['out_trade_no']) ? $this->postParams['out_trade_no'] : '';
         $openid = isset($this->postParams['openid']) ? $this->postParams['openid'] : '';
         if ($orderSn) {
@@ -32,6 +32,7 @@ class Pay extends ApiBase
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号为空']);
         }
+        //         $result = 1;
         //获取通知的数据
         $result = $this->_wechatResXml($order['store_id'], $this->payCode, $this->postParams);
         if ($result && $order) {
@@ -55,10 +56,6 @@ class Pay extends ApiBase
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
-                //活动商品支付支付后回款处理
-                Hook::add('after_pay', PayNotify::class);
-                Hook::listen('after_pay', compact('orderSn','user','extra'));
-
                 $push = new \app\common\service\PushBase();
                 $data = [
                     'type'          => 'order',
@@ -67,6 +64,16 @@ class Pay extends ApiBase
                 ];
                 //发送给店铺下所有管理用户
                 $push->sendToGroup('store'.$order['store_id'], json_encode($data));
+                
+                $this->activity([
+                    'order_sn' => $orderSn,
+                    'user' => $user,
+                    'extra' => $extra,
+                ]);
+                /* //活动商品支付支付后回款处理
+                 Hook::add('after_pay', PayNotify::class);
+                 Hook::listen('after_pay', compact('orderSn','user','extra')); */
+                
                 $this->_returnMsg(['msg' => '支付成功', 'order_sn' => $orderSn]);
             }
         }else{
@@ -129,7 +136,7 @@ class Pay extends ApiBase
                 //如果没有做过处理，根据订单号（out_trade_no）在商户网站的订单系统中查到该笔订单的详细，并执行商户的业务程序
                 //请务必判断请求时的total_amount与通知时获取的total_fee为一致的
                 //如果有做过处理，不执行商户的业务程序
-                //注意： TRADE_FINISHED退款日期超过可退款期限后（如三个月可退款），支付宝系统发送该交易状态通知 
+                //注意： TRADE_FINISHED退款日期超过可退款期限后（如三个月可退款），支付宝系统发送该交易状态通知
                 //TRADE_SUCCESS付款完成后，支付宝系统发送该交易状态通知
             }
             //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
@@ -194,7 +201,7 @@ class Pay extends ApiBase
                 break;
             default:
                 ;
-            break;
+                break;
         }
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常2', 'params' => $this->postParams]);
@@ -281,5 +288,91 @@ class Pay extends ApiBase
         <return_msg><![CDATA[{$text}]]></return_msg>
         </xml>";
         return $return;
+    }
+    
+    
+    public function activity($param)
+    {
+        $orderSn = isset($param['order_sn']) ? trim($param['order_sn']) : '';
+        $model = new \app\common\model\Order();
+        $user = $param['user'];
+        $detail = $model->getOrderDetail($orderSn, $user, TRUE, TRUE);
+        if ($detail === false) {
+            Log::error('退款失败，原因【' . $model->error . '】,参数：', $param);
+            return false;
+        }
+        $order = $detail['order'];
+        $return = $this->_checkActivity($order);
+        $returnType = $return['return_type'];
+        if ($returnType <= 0) {
+            Log::error('当前订单不允许退款，原因【' . $model->error . '】,参数：', $param);
+            return false;
+        }
+        $remark = $return['return_name'];
+        $refundAmount = $return['return_amount'];
+        $serviceModel = new \app\common\model\OrderService();
+        $result = $serviceModel->servuceActivityRefund($order, $refundAmount, $remark);
+        if ($result === FALSE) {
+            Log::error('当前订单不允许退款，原因【' . $serviceModel->error . '】,参数：', $param);
+            return false;
+        } else {
+            Log::info('退款成功', $param);
+            return true;
+        }
+    }
+    
+    
+    private function _checkActivity($order)
+    {
+        $goodsId=2;
+        $now = time();
+        $config = db('activity')->where([
+            //['start_time', '<=', $now],
+            //['end_time', '>=', $now],
+            ['is_del','=', 0],
+            ['status', '=',1],
+            ['id', '=',1],
+        ])->find();
+        if (empty($config)) {
+            Log::error('活动未配置');
+            return true;
+        }
+        $total = 2019;
+        $activityPrice = $config['activity_price'];
+        $startTime = $config['start_time'];//活动开始时间
+        $entTime = $config['end_time'];//活动结束书剑
+        $returnType = $returnAmount = 0;
+        $name = '';
+        $num = 9;
+        //1.计算订单下单时间是否在活动时间范围内
+        if ($order['order_status'] == 1 && $order['pay_status'] == 1 && $order['close_refund_status'] == 0 && $order['pay_time'] >= $startTime && $order['pay_time'] <= $entTime) {
+            //         if ($order['order_status'] == 1 && $order['pay_status'] == 1) {
+            //2.计算当前订单的实际支付顺序 是否逢九订单
+            $where=[
+                ['O.order_type','=',2],
+                ['O.pay_status','=',1],
+                ['O.pay_time','>=',$startTime],
+                ['O.pay_time','<=',$entTime],
+                ['OS.goods_id','in',$goodsId],
+            ];
+            $count = db('Order')->alias('O')->join('order_sku OS','O.order_sn=OS.order_sn')->where($where)->count();
+            //$count = Order::a->where($where)->order('order_id ASC')->count();
+            if ($count <= $total) {
+                if ($count % 10 == $num) {
+                    $returnType = 1;//逢九免单
+                    $name = '前'.$total.'位,按实际支付顺序,逢九免单';
+                    $returnAmount = $order['paid_amount'];
+                } else {
+                    $returnType = 2;//前2019位享受促销价
+                    $name = '前'.$total.'位,享受促销价格:' . $activityPrice . '元';
+                    $returnAmount = $order['paid_amount'] >= $activityPrice ? ($order['paid_amount'] - $activityPrice) : $order['paid_amount'];
+                }
+            }
+        }
+        return [
+            'return_type' => $returnType,
+            'return_name' => $name,
+            'return_amount' => $returnAmount,
+        ];
     }
 }    
