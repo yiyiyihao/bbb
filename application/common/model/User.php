@@ -45,7 +45,7 @@ class User extends Model
         }
         $thirdTypes = [
             'wechat_applet' => '微信小程序',
-            'wechat_js' => '微信公众号H5',
+            'wechat_h5' => '微信公众号H5',
         ];
         if (!isset($thirdTypes[$thirdType])) {
             $this->error = '第三方账户类型错误';
