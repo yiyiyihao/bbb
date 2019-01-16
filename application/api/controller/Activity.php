@@ -103,15 +103,29 @@ class Activity extends BaseApi
         if ($id <= 0) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
+
+        $now = time();
+        $config = db('activity')->where([
+            ['start_time', '<=', $now],
+            ['end_time', '>=', $now],
+            ['is_del', 0],
+            ['status', 1],
+            ['id', 1],
+        ])->find();
+        if (empty($config)) {
+            return returnMsg(1, '活动未开始或已经结束');
+        }
         $where = [
-            'status' => 1,
-            'is_del' => 0,
+            ['status',0],
+            ['is_del',0],
+            ['activity_id', $config['id']],
         ];
         $field = 'goods_id,name,thumb,content,min_price,install_price,imgs';
         $goods = Goods::where($where)->field($field)->get($id);
         if (empty($goods)) {
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
+        $goods['activity_price']=$config['activity_price'];
         $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->store_id, 'spec_json' => ['neq', ""]];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
@@ -227,6 +241,7 @@ class Activity extends BaseApi
         }
         $udata_id = $this->getUdataId();
         //$udata_id = 4;
+
 
         $where['O.order_type'] = 2;
         $where['O.status'] = 1;
