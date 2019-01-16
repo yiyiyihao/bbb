@@ -19,10 +19,10 @@ use think\facade\Log;
 
 class Activity extends BaseApi
 {
-    private $store_id;
-    private $factory_id;
+    private $storeId;
+    private $factoryId = 1;
     private $activityId = 1;
-    private $wechatApi;
+    private $wechatApi = 1;
 
     public function initialize()
     {
@@ -31,8 +31,6 @@ class Activity extends BaseApi
         header('Access-Control-Allow-Origin:' . $origin);
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        $this->factory_id = 1;
-        $this->store_id = 1;
     }
 
     //授权-第1步
@@ -72,7 +70,7 @@ class Activity extends BaseApi
             'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
             'third_type' => 'wechat_h5',
         ];
-        $oauth = $userModel->authorized($this->store_id, $params);
+        $oauth = $userModel->authorized($this->storeId, $params);
         if ($oauth === false) {
             return returnMsg(3,$userModel->error);
         }
@@ -127,13 +125,13 @@ class Activity extends BaseApi
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
         $goods['activity_price']=$config['activity_price'];
-        $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->store_id, 'spec_json' => ['neq', ""]];
+        $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->storeId, 'spec_json' => ['neq', ""]];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
         $where = [
             'status' => 1,
             'is_del' => 0,
-            'store_id' => $this->store_id,
+            'store_id' => $this->storeId,
         ];
         $specList = db('goods_spec')->field('name,value')->where($where)->order("sort_order")->select();
         if ($specList) {
@@ -442,7 +440,7 @@ class Activity extends BaseApi
             'errCode' => 0,
             'errMsg' => 'ok',
         ];
-        $factoryId = $this->factory_id;
+        $factoryId = $this->factoryId;
         $order = [
             'openid' => session('act_third_open_id'),
             'order_sn' => get_nonce_str(32),
