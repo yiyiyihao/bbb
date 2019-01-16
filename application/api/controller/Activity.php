@@ -335,6 +335,10 @@ class Activity extends BaseApi
         if (empty($sku_id)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
+        if (empty($udata_id)) {
+            return returnMsg(2, lang('PARAM_ERROR'));
+        }
         $consignee = input('consignee', '', 'trim');//收货人姓名
         $phone = input('phone', '', 'trim');//收货人手机号码
         $region_name = input('region_name', '', 'trim');//收货人的地区
@@ -360,7 +364,32 @@ class Activity extends BaseApi
         if (empty($region_name)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
+
+        $now = time();
+        $config = db('activity')->where([
+            ['start_time', '<=', $now],
+            ['end_time', '>=', $now],
+            ['is_del', 0],
+            ['status', 1],
+            ['id', 1],
+        ])->find();
+        if (empty($config)) {
+            return returnMsg(1, '活动未开始或已经结束');
+        }
+
         $orderModel = new Order();
+        $count = $orderModel->alias('O')
+            ->join('order_sku OS', 'O.order_sn=OS.order_sn')
+            ->where([
+                ['O.udata_id', $udata_id],
+                ['OS.goods_id', 'in', $this->goodsId],
+                ['OS.add_time', '>=', $config['start_time']],
+                ['OS.add_time', '<=', $config['end_time']],
+            ])->count();
+        if ($count > 0) {
+            return returnMsg(1, '活动期内每位用户只能购买1单');
+        }
+
         $num = 1;//商品数量
         $submit = TRUE;//是否提交订单
         $params = [
@@ -378,7 +407,7 @@ class Activity extends BaseApi
         if ($result === false) {
             return returnMsg(3, $orderModel->error);
         }
-        return returnMsg(0, '下单成功，请完成微信支付',['order_sn'=>$result['order_sn']]);
+        return returnMsg(0, '下单成功，请完成微信支付', ['order_sn' => $result['order_sn']]);
     }
 
 
