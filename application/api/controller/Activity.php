@@ -19,7 +19,7 @@ use think\facade\Log;
 
 class Activity extends BaseApi
 {
-    private $storeId;
+    private $storeId = 1;
     private $factoryId = 1;
     private $activityId = 1;
     private $wechatApi = 1;
@@ -70,7 +70,7 @@ class Activity extends BaseApi
             'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
             'third_type' => 'wechat_h5',
         ];
-        $oauth = $userModel->authorized($this->storeId, $params);
+        $oauth = $userModel->authorized($this->factoryId, $params);
         if ($oauth === false) {
             return returnMsg(3,$userModel->error);
         }
