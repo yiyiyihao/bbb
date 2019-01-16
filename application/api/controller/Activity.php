@@ -125,7 +125,7 @@ class Activity extends BaseApi
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
         $goods['activity_price']=$config['activity_price'];
-        $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->storeId, 'spec_json' => ['neq', ""]];
+        $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
         $where = [
