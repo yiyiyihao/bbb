@@ -14,14 +14,6 @@ class Pay extends ApiBase
         }
         $this->payCode = isset($this->params['code']) ? $this->params['code'] : '';
     }
-    public function order()
-    {
-        $sn = isset($this->params['sn']) ? trim($this->params['sn']) : '';
-        $orderModel = new \app\common\model\Order();
-        $order = $orderModel->where(['order_sn' => $sn])->find();
-        echo $sn.'支付成功';
-        die();
-    }
     public function wechat()
     {
         $orderSn = isset($this->postParams['out_trade_no']) ? $this->postParams['out_trade_no'] : '';
