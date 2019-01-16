@@ -1,6 +1,9 @@
 <?php
 namespace app\api\controller;
+use app\api\behavior\PayNotify;
 use app\common\service\PushBase;
+use think\facade\Hook;
+
 class Pay extends ApiBase
 {
     public $payCode;
@@ -48,6 +51,10 @@ class Pay extends ApiBase
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
+                //活动商品支付支付后回款处理
+                Hook::add('after_pay', PayNotify::class);
+                Hook::listen('after_pay', compact('orderSn','user','extra'));
+
                 $push = new \app\common\service\PushBase();
                 $data = [
                     'type'          => 'order',

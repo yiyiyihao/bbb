@@ -9,16 +9,19 @@
 namespace app\api\controller;
 
 
+use app\api\behavior\PayNotify;
 use app\common\api\WechatApi;
 use app\common\model\Goods;
 use app\common\model\Order;
+use think\facade\Hook;
+use think\facade\Log;
 
 
 class Activity extends BaseApi
 {
     private $store_id;
     private $factory_id;
-    private $goodsId = [13, 15];
+    private $goodsId = [1];//特价商品ID
     private $wechatApi;
 
     public function initialize()

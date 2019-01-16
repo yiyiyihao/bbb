@@ -49,6 +49,8 @@ RETURN [
     'SUBORDER'              =>  '零售商订单',
     'ORDER_SKU_SERVICE'     =>  '售后订单',
 
+    'ACTIVITY'              =>'活动',
+
     'INDEX'                 =>  '列表',
     'LIST'                  =>  '列表',
     'ADD'                   =>  '新增',
