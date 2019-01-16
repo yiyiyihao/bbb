@@ -451,7 +451,7 @@ class Activity extends BaseApi
         $factoryId = $this->factoryId;
         $order = [
             'openid' => $thirdOpenid,
-            'order_sn' => get_nonce_str(32),
+            'order_sn' => $order_sn,
             'real_amount' => $orderInfo['real_amount'],
             'store_id' => $factoryId,
         ];

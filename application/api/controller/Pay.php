@@ -38,7 +38,11 @@ class Pay extends ApiBase
             if ($order['pay_status'] > 0) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付', 'order_sn' => $orderSn]);
             }
-            $user = db('user')->where(['user_id' => $order['user_id']])->find();
+            if ($order['order_type'] == 2){
+                $user = db('user_data')->where(['udata_id' => $order['udata_id']])->find();
+            }else{
+                $user = db('user')->where(['user_id' => $order['user_id']])->find();
+            }
             $orderModel = new \app\common\model\Order();
             $paidAmount = isset($this->postParams['total_fee']) ? intval($this->postParams['total_fee'])/100 : 0;
             $extra = [
