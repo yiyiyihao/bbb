@@ -494,6 +494,7 @@ class Goods extends FormBase
                 ];
                 $skuId = db('goods_sku')->insertGetId($skuData);
             }
+            setcookie("goodsUpload",NULL);
         }
         return TRUE;
     }
@@ -527,6 +528,7 @@ class Goods extends FormBase
                 ];
                 db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 1, 'spec_json' => ['eq', ""]])->update($update);
             }
+            setcookie("editgoods".$pkId,NULL);
         }
         return TRUE;
     }
