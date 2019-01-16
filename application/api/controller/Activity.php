@@ -21,7 +21,7 @@ class Activity extends BaseApi
 {
     private $store_id;
     private $factory_id;
-    private $goodsId = [1];//特价商品ID
+    private $goodsId = [10, 11];//特价商品ID
     private $wechatApi;
 
     public function initialize()
@@ -221,18 +221,16 @@ class Activity extends BaseApi
     //订单详情
     public function orderDetail()
     {
-        $order_sn = input('order_sn', 0, 'intval');
+        $order_sn = input('order_sn', 0, 'trim');
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
         $udata_id = $this->getUdataId();
-        if (empty($openid)) {
-            return returnMsg(2, lang('PARAM_ERROR'));
-        }
+        //$udata_id = 4;
 
         $where['O.order_type'] = 2;
         $where['O.status'] = 1;
-        $where['O.order_sn'] = $order_sn;
+        $where['O.order_sn'] = strval($order_sn);
         $where['O.udata_id'] = $udata_id;
 
         $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,O.real_amount,O.address_name,O.address_phone,O.address_detail,O.remark,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
@@ -246,6 +244,7 @@ class Activity extends BaseApi
             ->join($join)
             ->where($where)
             ->find();
+
         if (empty($order)) {
             return returnMsg(1, '暂无数据');
         }
@@ -314,7 +313,7 @@ class Activity extends BaseApi
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $udata_id = input('udata_id', '', 'intval');
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
         if (empty($udata_id)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
@@ -379,7 +378,7 @@ class Activity extends BaseApi
         if ($result === false) {
             return returnMsg(3, $orderModel->error);
         }
-        return returnMsg(0, '下单成功，请完成微信支付');
+        return returnMsg(0, '下单成功，请完成微信支付',['order_sn'=>$result['order_sn']]);
     }
 
 

@@ -16,7 +16,7 @@ class WechatApi
             $config = get_store_config($storeId);
             $wechatConfig = $config && isset($config[$wechatType]) ? $config[$wechatType] : [];
             if (!$wechatConfig) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '厂商未配置小程序信息']);
+                return returnMsg(1,'厂商未配置小程序信息');
             }
             $this->config['appid']      = isset($wechatConfig[$type.'_appid']) ? trim($wechatConfig[$type.'_appid']) : '';
             $this->config['appsecret']  = isset($wechatConfig[$type.'_appsecret']) ? trim($wechatConfig[$type.'_appsecret']) : '';
