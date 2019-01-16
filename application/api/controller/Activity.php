@@ -403,7 +403,7 @@ class Activity extends BaseApi
             'real_amount' => $orderInfo['real_amount'],
             'store_id' => $factoryId,
         ];
-        $paymentApi = $this->wechatApi;
+        $paymentApi = new \app\common\api\PaymentApi($factoryId, 'wechat_js');
         $result = $paymentApi->init($order);
         if ($result) {
             $return['data'] = $result;
