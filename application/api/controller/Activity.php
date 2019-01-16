@@ -92,7 +92,7 @@ class Activity extends BaseApi
     public function getGoodsList()
     {
         $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = db('goods')->where(['goods_id' => ['IN', $this->goodsId]])->field($field)->order('sort_order DESC, add_time DESC')->select();
+        $list = db('goods')->where(['activity_id' => $this->activityId])->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
