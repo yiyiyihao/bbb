@@ -33,13 +33,12 @@ class Activity extends BaseApi
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         $this->factory_id = 1;
         $this->store_id = 1;
-        //$this->wechatApi = new WechatApi(0, 'wechat_js');
     }
 
     //授权-第1步
     public function getScope()
     {
-        $wechatApi = new WechatApi(0, 'wechat_js');
+        $wechatApi = new WechatApi(0, 'h5');
         $appid = $wechatApi->config['appid'];
         $appsecret = $wechatApi->config['appsecret'];
 
@@ -53,7 +52,7 @@ class Activity extends BaseApi
     //授权-第2步，返回微信Openid
     public function getOpenid()
     {
-        $wechatApi = new WechatApi(0, 'wechat_js');;
+        $wechatApi = new WechatApi(0, 'h5');;
         $code = input('code');
         if (empty($code)) {
             return returnMsg(1, lang('PARAM_ERROR'));
