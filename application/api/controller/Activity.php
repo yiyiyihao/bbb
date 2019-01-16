@@ -106,8 +106,8 @@ class Activity extends BaseApi
 
         $now = time();
         $config = db('activity')->where([
-            //['start_time', '<=', $now],
-            //['end_time', '>=', $now],
+//             ['start_time', '<=', $now],
+//             ['end_time', '>=', $now],
             ['is_del','=', 0],
             ['status','=',1],
             ['id', '=',$this->activityId],
@@ -122,7 +122,7 @@ class Activity extends BaseApi
             ['activity_id', '=',$config['id']],
         ];
         $field = 'goods_id,name,thumb,content,min_price,install_price,imgs';
-        $goods = Goods::where($where)->field($field)->get($id);
+        $goods = Goods::where($where)->field($field)->find();
         if (empty($goods)) {
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
@@ -385,9 +385,9 @@ class Activity extends BaseApi
         $config = db('activity')->where([
             //['start_time', '<=', $now],
             //['end_time', '>=', $now],
-            ['is_del', 0],
-            ['status', 1],
-            ['id', 1],
+            ['is_del', '=',0],
+            ['status', '=',1],
+            ['id', '=',$this->activityId],
         ])->find();
         if (empty($config)) {
             return returnMsg(1, '活动未开始或已经结束');
@@ -397,7 +397,7 @@ class Activity extends BaseApi
         $count = $orderModel->alias('O')
             ->join('order_sku OS', 'O.order_sn=OS.order_sn')
             ->where([
-                ['O.udata_id', $udata_id],
+                ['O.udata_id', '=', $udata_id],
                 ['OS.add_time', '>=', $config['start_time']],
                 ['OS.add_time', '<=', $config['end_time']],
             ])->count();
