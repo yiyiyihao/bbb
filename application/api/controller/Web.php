@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 
+use app\common\model\Dealer;
 use app\common\model\LogCode;
 use app\common\model\Store;
 use app\common\model\User;
