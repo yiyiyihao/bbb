@@ -21,7 +21,7 @@ class Activity extends BaseApi
 {
     private $store_id;
     private $factory_id;
-    private $goodsId = [10, 11];//特价商品ID
+    private $goodsId = [1];//特价商品ID
     private $wechatApi;
 
     public function initialize()
