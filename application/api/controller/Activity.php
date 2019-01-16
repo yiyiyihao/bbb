@@ -106,8 +106,8 @@ class Activity extends BaseApi
 
         $now = time();
         $config = db('activity')->where([
-            ['start_time', '<=', $now],
-            ['end_time', '>=', $now],
+            //['start_time', '<=', $now],
+            //['end_time', '>=', $now],
             ['is_del','=', 0],
             ['status','=',1],
             ['id', '=',$this->activityId],
