@@ -24,12 +24,12 @@ class System extends AdminForm
             if (!$params) {
                 $this->error('参数异常');
             }
-            $data['wechat_js_appid'] = isset($params['wechat_js_appid']) ? trim($params['wechat_js_appid']) : '';
-            if (!$data['wechat_js_appid']) {
+            $data['wechat_h5_appid'] = isset($params['wechat_h5_appid']) ? trim($params['wechat_h5_appid']) : '';
+            if (!$data['wechat_h5_appid']) {
                 $this->error('智享家微信公众账号的APPID不能为空');
             }
-            $data['wechat_js_appsecret'] = isset($params['wechat_js_appsecret']) ? trim($params['wechat_js_appsecret']) : '';
-            if (!$data['wechat_js_appsecret']) {
+            $data['wechat_h5_appsecret'] = isset($params['wechat_h5_appsecret']) ? trim($params['wechat_h5_appsecret']) : '';
+            if (!$data['wechat_h5_appsecret']) {
                 $this->error('智享家微信公众账号的AppSecret不能为空');
             }
             $data['order_cancel_minute'] = isset($params['order_cancel_minute']) ? intval($params['order_cancel_minute']) : 0;

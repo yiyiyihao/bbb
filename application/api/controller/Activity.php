@@ -38,7 +38,7 @@ class Activity extends BaseApi
     //授权-第1步
     public function getScope()
     {
-        $wechatApi = new WechatApi(0, 'wechat_js');
+        $wechatApi = new WechatApi(0, 'wechat_h5');
         $appid = $wechatApi->config['appid'];
         $appsecret = $wechatApi->config['appsecret'];
 
@@ -52,7 +52,7 @@ class Activity extends BaseApi
     //授权-第2步，返回微信Openid
     public function getOpenid()
     {
-        $wechatApi = new WechatApi(0, 'wechat_js');;
+        $wechatApi = new WechatApi(0, 'wechat_h5');;
         $code = input('code');
         if (empty($code)) {
             return returnMsg(1, lang('PARAM_ERROR'));
@@ -70,7 +70,7 @@ class Activity extends BaseApi
             'avatar' => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
             'gender' => isset($result['sex']) ? intval($result['sex']) : 0,
             'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
-            'third_type' => 'wechat_js',
+            'third_type' => 'wechat_h5',
         ];
         $oauth = $userModel->authorized($this->store_id, $params);
         if ($oauth === false) {
