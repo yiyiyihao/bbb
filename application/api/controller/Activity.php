@@ -59,7 +59,7 @@ class Activity extends BaseApi
         }
         $result = $wechatApi->getOauthOpenid($code, TRUE);
         if ($result === FALSE) {
-            return returnMsg(1,$wechatApi->error);
+            return returnMsg(2,$wechatApi->error);
         }
         $userModel = new \app\common\model\User();
         $params = [
@@ -70,10 +70,11 @@ class Activity extends BaseApi
             'avatar' => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
             'gender' => isset($result['sex']) ? intval($result['sex']) : 0,
             'unionid' => isset($result['unionid']) ? trim($result['unionid']) : '',
+            'third_type' => 'wechat_js',
         ];
         $oauth = $userModel->authorized($this->store_id, $params);
         if ($oauth === false) {
-            return returnMsg(1,$userModel->error);
+            return returnMsg(3,$userModel->error);
         }
         $oauth['third_openid'] = $result['openid'];
         session('act_udata_id', $oauth['udata_id']);
