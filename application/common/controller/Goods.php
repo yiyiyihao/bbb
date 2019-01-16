@@ -235,7 +235,10 @@ class Goods extends FormBase
     }
     function _getWhere(){
         $params = $this->request->param();
-        $where = ['G.is_del' => 0];
+        $where = [
+            'G.is_del' => 0,
+            'G.activity_id' => 0,
+        ];
         if ($this->adminUser['store_id']) {
             $where['G.store_id'] = $this->adminUser['store_id'];
         }
@@ -340,9 +343,9 @@ class Goods extends FormBase
         if (!$name) {
             $this->error('请输入商品名称');
         }
-        if (!$specJson) {
-            $this->error('请选择商品规格');
-        }
+//         if (!$specJson) {
+//             $this->error('请选择商品规格');
+//         }
 //         if (!$goodsCate || !isset($this->goodsCates[$goodsCate])) {
 //             $this->error('请选择商品类别');
 //         }

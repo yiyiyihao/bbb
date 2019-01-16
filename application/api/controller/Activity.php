@@ -21,8 +21,8 @@ class Activity extends BaseApi
 {
     private $store_id;
     private $factory_id;
-    private $goodsId = [1];//特价商品ID
     private $wechatApi;
+    private $activityId = 1;
 
     public function initialize()
     {
@@ -92,7 +92,10 @@ class Activity extends BaseApi
     public function getGoodsList()
     {
         $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = db('goods')->where(['goods_id' => ['IN', $this->goodsId]])->field($field)->order('sort_order DESC, add_time DESC')->select();
+        $where = [
+            'activity_id' => $this->activityId,
+        ];
+        $list = db('goods')->where($where)->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
@@ -110,7 +113,7 @@ class Activity extends BaseApi
             ['end_time', '>=', $now],
             ['is_del', 0],
             ['status', 1],
-            ['id', 1],
+            ['id', $this->activityId],
         ])->find();
         if (empty($config)) {
             return returnMsg(1, '活动未开始或已经结束');
@@ -397,7 +400,6 @@ class Activity extends BaseApi
             ->join('order_sku OS', 'O.order_sn=OS.order_sn')
             ->where([
                 ['O.udata_id', $udata_id],
-                ['OS.goods_id', 'in', $this->goodsId],
                 ['OS.add_time', '>=', $config['start_time']],
                 ['OS.add_time', '<=', $config['end_time']],
             ])->count();
