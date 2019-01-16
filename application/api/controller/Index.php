@@ -15,7 +15,7 @@ class Index extends ApiBase
     public $factory;
     public $userTypes;
     
-    public $signData;
+    public $signData = [];
     public function __construct(){
         parent::__construct();
         $this->_checkPostParams();
@@ -1155,10 +1155,11 @@ class Index extends ApiBase
         $data['sing_data'] = $this->signData;
         $result = parent::_returnMsg($data);
         $responseTime = $this->_getMillisecond() - $this->visitMicroTime;//响应时间(毫秒)
-        if (strlen($this->postParams['timestamp']) == 13) {
+//         if (strlen($this->postParams['timestamp']) == 13) {
 //             $this->postParams['timestamp'] = substr($this->postParams['timestamp'], 0, 10);
-        }
+//         }
         $addData = [
+            'controller'    => strtolower($this->request->controller()),
             'request_time'  => $this->requestTime,
             'request_source'=> $this->fromSource ? $this->fromSource : '',
             'return_time'   => time(),
@@ -1231,19 +1232,36 @@ class Index extends ApiBase
          unset($this->postParams['file']);#上传文件接口去掉file字段验证签名
          } */
         $timestamp = isset($this->postParams['timestamp']) ?  trim($this->postParams['timestamp']) : '';
-        if(!$timestamp) {
+        if ($this->method != 'uploadImage') {
+            if(!$timestamp) {
+                $this->_returnMsg(array('errCode' => 1,'errMsg' => '请求时间戳(timestamp)参数缺失'));
+            }
+            $len = strlen($timestamp);
+            //         if($len != 10 && $len != 13) {//时间戳长度格式不对
+            if($len != 10) {//时间戳长度格式不对
+                $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误(10位有效长度)'));
+            }
+            if (strlen($timestamp) == 13) {
+                //             $this->postParams['timestamp'] = $timestamp = substr($timestamp, 0, 10);
+            }
+            if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
+                $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
+            }
+        }
+        /* if(!$timestamp) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '请求时间戳(timestamp)参数缺失'));
         }
         $len = strlen($timestamp);
-        if($len != 10 && $len != 13) {//时间戳长度格式不对
-            $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误'));
+//         if($len != 10 && $len != 13) {//时间戳长度格式不对
+        if($len != 10) {//时间戳长度格式不对
+            $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误(10位有效长度)'));
         }
         if (strlen($timestamp) == 13) {
 //             $this->postParams['timestamp'] = $timestamp = substr($timestamp, 0, 10);
         }
         if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
-        }
+        } */
         if(!$this->signKey) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥(signkey)参数缺失'));
         }

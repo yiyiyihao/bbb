@@ -242,6 +242,10 @@ class Installer extends FormBase
             if($rname){
                 $where['UI.region_name'] = ['like','%'.$rname.'%'];
             }
+            $sname = isset($params['sname']) ? trim($params['sname']) : '';
+            if($sname){
+                $where['S.name'] = ['like','%'.$sname.'%'];
+            }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
                 $where['UI.realname'] = ['like','%'.$name.'%'];
@@ -257,11 +261,12 @@ class Installer extends FormBase
      * 列表搜索配置
      */
     function _searchData(){
-        $search = [
-            ['type' => 'input', 'name' =>  'rname', 'value' => '服务区域', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'name', 'value' => '工程师姓名', 'width' => '30'],
-            ['type' => 'input', 'name' =>  'phone', 'value' => '联系电话', 'width' => '30'],
-        ];
+        $search = [];
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $search[] = ['type' => 'input', 'name' =>  'sname', 'value' => '服务商名称', 'width' => '30'];
+        }
+        $search[] = ['type' => 'input', 'name' =>  'name', 'value' => '工程师姓名', 'width' => '30'];
+        $search[] = ['type' => 'input', 'name' =>  'phone', 'value' => '联系电话', 'width' => '30'];
         return $search;
     }
     /**

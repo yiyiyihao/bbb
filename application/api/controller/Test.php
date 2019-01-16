@@ -12,60 +12,6 @@ class Test extends Base
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
     }
-    public function test(){
-        $orderModel = new \app\common\model\Order();
-        $user = db('user')->where(['user_id' => 5])->find();
-        $order = $orderModel->checkOrder('20181221112658501004175288899', $user);
-        $order = $orderModel->getOrderSkus($order, FALSE);
-        $skus = $order['skus'];
-        
-        $where = [
-            'is_del' => 0,
-            'S.store_id' => $order['user_store_id'],
-        ];
-        $store = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where($where)->find();
-        if ($store && $store['ostore_id']) {
-            //获取厂商信息
-            $factory = db('store')->where(['is_del' => 0, 'store_id' => $store['factory_id']])->find();
-            if ($factory) {
-                $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
-                $config = isset($config['default']) ? $config['default'] : [];
-                $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
-                if ($ratio > 0) {
-                    $dataSet = [];
-                    //计算当前订单总收益
-                    $totalAmount = round($order['real_amount'] * $ratio/100, 2);
-                    foreach ($skus as $key => $value) {
-                        $incomeAmount = round($value['real_price'] * $ratio/100, 2);//四舍五入保留小数点后两位
-                        $dataSet[] = [
-                            'store_id'          => $store['ostore_id'],
-                            'from_store_id'     => $store['store_id'],
-                            'order_id'          => $order['order_id'],
-                            'order_sn'          => $order['order_sn'],
-                            'osku_id'           => $value['osku_id'],
-                            'goods_id'          => $value['goods_id'],
-                            'sku_id'            => $value['sku_id'],
-                            'order_amount'      => $value['real_price'],
-                            'commission_ratio'  => $ratio,
-                            'income_amount'     => $incomeAmount,
-                            'add_time'          => time(),
-                        ];
-                    }
-                    $result = db('store_commission')->insertAll($dataSet);
-                    if ($result) {
-                        //修改商户账户收益信息
-                        $financeModel = new \app\common\model\StoreFinance();
-                        $params = [
-                            'pending_amount' => $totalAmount,
-                            'total_amount' => $totalAmount,
-                        ];
-                        $result = $financeModel->financeChange($store['ostore_id'], $params, '订单支付,计算收益', $order['order_sn']);
-                    }
-                }
-            }
-        }
-        pre($store);
-    }
     
     public function order()
     {
@@ -196,7 +142,7 @@ class Test extends Base
     {
         $request = $this->request->param();
         header("Content-type: text/html; charset=utf-8");
-        $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
+        $url = 'http://'.$_SERVER['HTTP_HOST'].'/h5';
         $params['timestamp'] = time();
         $params['signkey'] = 'ds7p7auqyjj8';
         $params['mchkey'] = '1458745225';

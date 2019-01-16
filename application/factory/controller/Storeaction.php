@@ -167,9 +167,6 @@ class Storeaction extends FactoryForm
                 if ($this->adminUser['admin_type'] != ADMIN_FACTORY && isset($value['value']) && $value['value'] == 'name') {
                     unset($table[$key]);
                 }
-                if (isset($value['value']) && in_array($value['value'], ['sort_order', 'status'])) {
-                    unset($table[$key]);
-                }
             }
         }
         if ($table['actions']['button']) {

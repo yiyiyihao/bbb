@@ -395,7 +395,9 @@ class Goods extends FormBase
             $data['imgs'] = $data['imgs'] ? array_unique($data['imgs']) : [];
             $data['imgs'] =  $data['imgs']? json_encode($data['imgs']) : '';
         }
-        $data['content'] = '';
+        if (!$pkId) {
+            $data['content'] = '';
+        }
         return $data;
     }
     

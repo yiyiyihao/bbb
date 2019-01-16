@@ -35,7 +35,7 @@ class Service extends FactoryForm
             ],
             [
                 'name' => '已取消',
-                'url' => url($action, ['status' => 4]),
+                'url' => url($action, ['status' => -2]),
             ]
         ];
         $this->subMenu['menu']['0']['name'] = '全部';

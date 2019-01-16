@@ -74,22 +74,27 @@ class Table extends Model
 	        
 	        $tables[$k] = $temp;
 	    }
-	    $tables[] = [
-	        'title'     => '状态',
-	        'width'     => '60',
-	        'type'      => 'function',
-	        'sort'      => '260',
-	        'value'     => 'status',
-	        'function'  => 'yesorno',
-	    ];
-	    $tables[] = [
-	        'title'     => '排序',
-	        'width'     => '60',
-	        'type'      => 'text',
-	        'sort'      => '270',
-	        'is_sort'   => 1,
-	        'value'     => 'sort_order',
-	    ];
+	    $model = db('form_model')->where(['name' => $model])->find();
+	    if ($model && (!isset($model['status_show']) || $model['status_show'])) {
+	        $tables[] = [
+	            'title'     => '状态',
+	            'width'     => '60',
+	            'type'      => 'function',
+	            'sort'      => '260',
+	            'value'     => 'status',
+	            'function'  => 'yesorno',
+	        ];
+	    }
+	    if ($model && (!isset($model['sort_show']) || $model['sort_show'])) {
+    	    $tables[] = [
+    	        'title'     => '排序',
+    	        'width'     => '60',
+    	        'type'      => 'text',
+    	        'sort'      => '270',
+    	        'is_sort'   => 1,
+    	        'value'     => 'sort_order',
+    	    ];
+	    }
 	    $tables['actions'] = [
             'title'     => '操作',
             'width'     => '160',

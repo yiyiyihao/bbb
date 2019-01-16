@@ -103,11 +103,6 @@ class Commission extends FactoryForm
     function _tableData(){
         $table = parent::_tableData();
         if ($table) {
-            foreach ($table as $key => $value) {
-                if (isset($value['value']) && in_array($value['value'], ['sort_order', 'status'])) {
-                    unset($table[$key]);
-                }
-            }
             unset($table['actions']);
         }
         return $table;
