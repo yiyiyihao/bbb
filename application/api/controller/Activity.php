@@ -194,7 +194,7 @@ class Activity extends BaseApi
             default://全部
                 break;
         }
-        $field = 'O.order_id,O.order_sn,G.name,OS.sku_name,O.real_amount,O.order_status,O.pay_status,O.delivery_status,O.finish_status';
+        $field = 'O.order_id,O.order_sn,G.name as goods_name,OS.sku_name,O.real_amount, O.real_amount as total_amount, O.order_status,O.pay_status,O.delivery_status,O.finish_status';
         $join = [
             ['store S', 'S.store_id=O.store_id'],
             ['order_sku OS', 'OS.order_sn=O.order_sn'],
@@ -211,7 +211,43 @@ class Activity extends BaseApi
         if (empty($order)) {
             return returnMsg(1, '暂无数据');
         }
-        $order = $order->map(function ($item) use ($status, $order_status, $status_des, $udata_id) {
+        if ($order) {
+            foreach ($order as $key => $value) {
+                //订单状态(1：正常，2：全部取消，3：全部关闭，4：全部删除)
+                switch ($value['order_status']) {
+                    case 1:
+                        $_status = 1;
+                        if ($value['pay_status'] == 0) {
+                            $_status = 1;//待付款
+                            $status_des = '待付款';
+                        }elseif ($value['pay_status'] == 1 && $value['delivery_status'] == 0){
+                            $_status = 2;//待发货
+                            $status_des = '待发货';
+                        }elseif ($value['delivery_status']!= 0 && $value['finish_status'] == 0){
+                            $_status = 3;//待收货
+                            $status_des = '待收货';
+                        }elseif ($value['finish_status'] != 0 ){
+                            $_status = 4;//已完成
+                            $status_des = '已完成';
+                        }
+                    break;
+                    case 2://已取消
+                        $_status = 5;
+                        $status_des = '已取消';
+                    break;
+                    case 3://已关闭
+                        $_status = 6;
+                        $status_des = '已关闭';
+                    break;
+                    default:
+                    break;
+                }
+                $order[$key]['status'] = $_status;
+                $order[$key]['status_des'] = get_order_status($value);
+            }
+        }
+        
+        /* $order = $order->map(function ($item) use ($status, $order_status, $status_des, $udata_id) {
             if (empty($status_des)) {
                 if ($item['order_status'] == 2) {
                     $order_status = 5;
@@ -227,11 +263,12 @@ class Activity extends BaseApi
             $arr['sku_name'] = $item['sku_name'];
             $arr['real_amount'] = $item['real_amount'];
             $arr['total_amount'] = $item['real_amount'];
-            $arr['status'] = $order_status;
+            
             $arr['status_des'] = $status_des;
             $arr['udata_id'] = $udata_id;
             return $arr;
-        });
+        }); */
+//             return returnMsg(0, 'ok', ['order' => $order, 'where' => $where, 'udata_id' => $udata_id]);
         return returnMsg(0, 'ok', $order);
     }
 
@@ -271,24 +308,28 @@ class Activity extends BaseApi
         $status_des = '';
         if ($order['order_status'] == 2) {
             $order_status = 5;
-            $status_des = '订单已消取';
+            $status_des = '已取消';
         } elseif ($order['order_status'] == 3) {
             $order_status = 6;
-            $status_des = '订单已关闭';
+            $status_des = '已关闭';
         } elseif ($order['pay_status'] == 0) {
             $time = ($order['add_time'] + 1800 - time()) / 60;
             $time = $time > 0 ? $time : 0;
             $order_status = 1;
             $status_des = '等待付款<br>剩余' . ceil($time) . '分钟自动关闭';
+            $status_des = '待支付';
         } elseif ($order['pay_status'] == 1 && $order['delivery_status'] == 0 && $order['finish_status'] == 0) {
             $order_status = 2;
             $status_des = '付款成功<br>等待厂家发货';
+            $status_des = '待发货';
         } elseif ($order['pay_status'] == 1 && in_array($order['delivery_status'], [1, 2]) && $order['finish_status'] == 0) {
             $order_status = 3;
             $status_des = '付款成功<br>厂家已发货';
+            $status_des = '待收货';
         } elseif ($order['finish_status'] == 2) {
             $order_status = 4;
             $status_des = '已收到<br>交易完成';
+            $status_des = '已完成';
         }
         unset($order['order_status'], $order['pay_status'], $order['delivery_status'], $order['finish_status']);
         $order['status'] = $order_status;

@@ -64,6 +64,22 @@ class Index extends ApiBase
         }
         $this->$method();
     }
+    protected function getWebDetail()
+    {
+        $webConfig = new \app\common\model\WebConfig();
+        $detail = $webConfig->where(['key' => 'setting', 'store_id' => $this->factory['store_id']])->value('value');
+        if ($detail) {
+            $detail = json_decode($detail, 1);
+            if (isset($detail['login_bg'])) {
+                unset($detail['login_bg']);
+            }
+            $detail['content'] = '万佳安物联科技源于1998年，是中国最早专业从事视频安防技术的国家级高新技术企业， 依托于自主研发的领先视频技术、云端技术、人脸识别AI技术、物联网技术，为行业安防、系统集成、智慧城市提供一站式的智能化解决方案及产品。利用实时视频连接技术、云端技术、AI技术，打造全球领先的全连接物联视频云服务平台，为千家万户及各行业实现安全、智能、便捷的优质产品和服务。 公司目前员工620人，其中来自腾讯、华为、中兴等知名企业核心技术精英百余名。公司拥有300多项荣誉证书，及500多项自主知识产权（含发明专利），拥有视频技术专家、AI技术专家在内400多人的研发团队。连续十年荣获中国十大民族品牌，位列全球安防前50强。公司致力于打造全新的物联技术及物联智能生活服务平台领军企业。 ';
+        }else{
+            $detail = [];
+        }
+        $this->_returnMsg(['detail' => $detail]);
+    }
+    
     protected function getStoreDetail()
     {
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
