@@ -50,7 +50,7 @@
                                 <td>{:mb_substr($vo.summary,0,120)}{if mb_strlen($vo.summary)>120}...{/if}</td>
                                 <td>{$vo.update_time|date="Y-m-d H:i"}</td>
                                 <td>{if $vo.status}已发布{else /}未发布{/if}</td>
-                                <td>{if $vo.status==0}<a href="javascript:;"  url="{:url('publish',['id'=>$vo.id])}" refresh="true" title="发布" class="button button-small icon-check bg-dot js-action">发布</a>{/if}  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></td>
+                                <td><span class="button-group">{if $vo.status==0}<a href="javascript:;"  url="{:url('publish',['id'=>$vo.id])}" refresh="true" title="发布" class="button button-small icon-check bg-dot js-action">发布</a>{/if}  <a class="button button-small bg-main icon-edit" href="{:url('add',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
                             </tr>
                             {/volist}
                             {/notempty}

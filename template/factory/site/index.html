@@ -12,7 +12,7 @@
                                     <th>图片</th>
                                     <th>链接</th>
                                     <th>排序</th>
-                                    <th width="200">操作</th>
+                                    <th width="160">操作</th>
                                 </tr>
                                 {notempty name="slideShow"}
                                 {volist name="slideShow" id="vo" key="key"}
@@ -22,7 +22,7 @@
                                     <td><a target="_blank" href="{$vo.link_url ?? ''}">{$vo.link_url?? ''}</a></td>
                                     <!-- <td><a href="##">↑</a> &nbsp;&nbsp;&nbsp;&nbsp;<a href="##">↓</a> </td> -->
                                     <td>{$vo.sort ?? 1}</td>
-                                    <td><a href="{:url('banner',['id'=>$vo.id])}" class="button button-small bg-main icon-edit">编辑</a> <a  class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></td>
+                                    <td><span class="button-group"><a href="{:url('banner',['id'=>$vo.id])}" class="button button-small bg-main icon-edit">编辑</a> <a  class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
                                 </tr>
                                 {/volist}
                                 {/notempty}
