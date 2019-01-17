@@ -22,7 +22,6 @@ class Activity extends BaseApi
     private $storeId = 1;
     private $factoryId = 1;
     private $activityId = 1;
-    private $wechatApi = 1;
 
     public function initialize()
     {
@@ -57,7 +56,7 @@ class Activity extends BaseApi
         }
         $result = $wechatApi->getOauthOpenid($code, TRUE);
         if ($result === FALSE) {
-            return returnMsg(2,$wechatApi->error);
+            return returnMsg(2, $wechatApi->error);
         }
         $userModel = new \app\common\model\User();
         $params = [
@@ -72,12 +71,12 @@ class Activity extends BaseApi
         ];
         $oauth = $userModel->authorized($this->factoryId, $params);
         if ($oauth === false) {
-            return returnMsg(3,$userModel->error);
+            return returnMsg(3, $userModel->error);
         }
         $oauth['third_openid'] = $result['openid'];
-        session('act_udata_id', $oauth['udata_id']);
-        session('act_third_open_id', $result['openid']);
-        return returnMsg(0,'ok',$oauth);
+        session(['act_udata_id' => $oauth['udata_id']]);
+        session(['act_third_open_id' => $result['openid']]);
+        return returnMsg(0, 'ok', $oauth);
     }
 
 
@@ -104,27 +103,28 @@ class Activity extends BaseApi
 
         $now = time();
         $config = db('activity')->where([
-//             ['start_time', '<=', $now],
-//             ['end_time', '>=', $now],
-            ['is_del','=', 0],
-            ['status','=',1],
-            ['id', '=',$this->activityId],
+            ['start_time', '<=', $now],
+            ['end_time', '>=', $now],
+            ['is_del', '=', 0],
+            ['status', '=', 1],
+            ['store_id', '=', $this->factoryId],
+            ['id', '=', $this->activityId],
         ])->find();
 
         if (empty($config)) {
             return returnMsg(1, '活动未开始或已经结束');
         }
         $where = [
-            ['status', '=',1],
-            ['is_del','=',0],
-            ['activity_id', '=',$config['id']],
+            ['status', '=', 1],
+            ['is_del', '=', 0],
+            ['activity_id', '=', $config['id']],
         ];
         $field = 'goods_id,name,thumb,content,min_price,install_price,imgs';
         $goods = Goods::where($where)->field($field)->find();
         if (empty($goods)) {
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
-        $goods['activity_price']=$config['activity_price'];
+        $goods['activity_price'] = $config['activity_price'];
         $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
@@ -151,7 +151,11 @@ class Activity extends BaseApi
     //订单列表
     public function orderList()
     {
-        $udata_id = $this->getUdataId();
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
+        if (empty($udata_id)) {
+            return returnMsg(2, lang('PARAM_ERROR'));
+        }
+
         //0全部，1待付款，2待发货，3待收货，4交易完成
         $page = input('page', 1, 'intval');
         $limit = input('limit', 10, 'intval');
@@ -238,9 +242,10 @@ class Activity extends BaseApi
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $udata_id = $this->getUdataId();
-        //$udata_id = 4;
-
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
+        if (empty($udata_id)) {
+            return returnMsg(2, lang('PARAM_ERROR'));
+        }
 
         $where['O.order_type'] = 2;
         $where['O.status'] = 1;
@@ -298,7 +303,7 @@ class Activity extends BaseApi
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
-        $udata_id = input('udata_id', '', 'intval');
+        $udata_id = input('udata_id', $this->getUdataId(), 'intval');
         if (empty($udata_id)) {
             return returnMsg(2, lang('PARAM_ERROR'));
         }
@@ -381,11 +386,11 @@ class Activity extends BaseApi
 
         $now = time();
         $config = db('activity')->where([
-            //['start_time', '<=', $now],
-            //['end_time', '>=', $now],
-            ['is_del', '=',0],
-            ['status', '=',1],
-            ['id', '=',$this->activityId],
+            ['start_time', '<=', $now],
+            ['end_time', '>=', $now],
+            ['is_del', '=', 0],
+            ['status', '=', 1],
+            ['id', '=', $this->activityId],
         ])->find();
         if (empty($config)) {
             return returnMsg(1, '活动未开始或已经结束');
