@@ -200,7 +200,7 @@ class Activity extends BaseApi
             ->field($field)
             ->join($join)
             ->where($where)
-            ->order('O.id desc')
+            ->order('O.order_id desc')
             ->limit($limit)
             ->page($page)
             ->select();
