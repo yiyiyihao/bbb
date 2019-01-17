@@ -74,8 +74,8 @@ class Activity extends BaseApi
             return returnMsg(3, $userModel->error);
         }
         $oauth['third_openid'] = $result['openid'];
-        session(['act_udata_id' => $oauth['udata_id']]);
-        session(['act_third_open_id' => $result['openid']]);
+        session('act_udata_id',$oauth['udata_id']);
+        session('act_third_open_id',$result['openid']);
         return returnMsg(0, 'ok', $oauth);
     }
 
