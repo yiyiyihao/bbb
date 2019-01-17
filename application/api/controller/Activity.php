@@ -340,7 +340,7 @@ class Activity extends BaseApi
     //取消订单
     public function cancelOrder()
     {
-        $order_sn = input('order_sn', 0, 'intval');
+        $order_sn = input('order_sn', 0, 'trim');
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
@@ -369,7 +369,7 @@ class Activity extends BaseApi
     //确认收货
     public function orderFinish()
     {
-        $order_sn = input('order_sn', 0, 'intval');
+        $order_sn = input('order_sn', 0, 'trim');
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
