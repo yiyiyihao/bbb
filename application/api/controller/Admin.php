@@ -98,28 +98,50 @@ class Admin extends Index
     protected function getWorkOrderList()
     {
         $user = $this->_checkUser();
+        $where=[
+            'WO.is_del'=>0,
+            'WO.status'=>1,
+            'U.is_del'=>0,
+            'U.status'=>1,
+        ];
+        $workOrderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']) : '';
+        $workOrderStatus = isset($this->postParams['work_order_status']) ? intval($this->postParams['work_order_status']) : '';
+        $page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 1;
+        $page_size = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 10;
+        if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
+            $where['WO.work_order_type']=$workOrderType;
+        }
+        if ( ''!==$workOrderStatus &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
+            $where['WO.work_order_status']=$workOrderStatus;
+        }
         switch ($user['admin_type']) {
-            case ADMIN_FACTORY:
+            case ADMIN_FACTORY://厂商
+                $where['WO.factory_id']=$user['store_id'];
                 break;
-            case ADMIN_CHANNEL:
+            case ADMIN_SERVICE://服务商
+                $where['WO.store_id'] = $user['store_id'];
                 break;
-            case ADMIN_DEALER:
+            case ADMIN_CHANNEL://渠道商
+                $where['WO.post_store_id'] = $user['store_id'];
                 break;
-            case ADMIN_SERVICE:
+            case ADMIN_DEALER://零售商
+                $where['WO.post_store_id'] = $user['store_id'];
                 break;
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
         }
         $field='WO.order_sn,WO.work_order_type,WO.work_order_status,WO.worder_sn,WO.region_name,WO.address,WO.phone,WO.user_name';
-        $where=[
-            
-        ];
         $list=db('work_order')->alias('WO')
-        ->field($field)
-        ->join('user U','WO.post_user_id = U.user_id')
-        ->where('');
-        echo 1;
+            ->field($field)
+            ->join('user U','WO.post_user_id = U.user_id')
+            ->where($where)
+            ->page($page)
+            ->limit($page_size)
+            ->order('WO.worder_id desc')
+            ->select();
+        //pre($list);
+        $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
     }
     
     protected function _checkPostParams()
