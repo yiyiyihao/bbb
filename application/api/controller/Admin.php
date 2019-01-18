@@ -76,9 +76,55 @@ class Admin extends Index
     protected function getHomeDetail()
     {
         $user = $this->_checkOpenid();
+        switch ($user['admin_type']) {
+            case ADMIN_FACTORY:
+                //厂商首页显示数据
+                //1.今日支付订单数量
+
+                break;
+            case ADMIN_FACTORY:
+                //厂商首页显示数据
+                //1.今日支付订单数量
+                break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+                break;
+
+        }
+        $this->_returnMsg(['detail' => $detail]);
         pre($user);
     }
-    
+
+    protected function getWorkOrderList()
+    {
+        $user = $this->_checkOpenid();
+
+        switch ($user['admin_type']) {
+            case ADMIN_FACTORY:
+                break;
+            case ADMIN_CHANNEL:
+                break;
+            case ADMIN_DEALER:
+                break;
+            case ADMIN_SERVICE:
+                break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+                break;
+        }
+        $field='WO.order_sn,WO.work_order_type,WO.work_order_status,WO.worder_sn,WO.region_name,WO.address,WO.phone,WO.user_name';
+        $where=[
+            
+        ];
+        $list=db('work_order')->alias('WO')
+            ->field($field)
+            ->join('user U','WO.post_user_id = U.user_id')
+            ->where('');
+
+
+
+    }
+
     /**
      * 验证openid对应用户信息
      * @return array
