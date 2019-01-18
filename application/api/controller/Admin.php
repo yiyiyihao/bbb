@@ -4,34 +4,18 @@ namespace app\api\controller;
 class Admin extends Index
 {
     private $loginUser;
-    private $h5Url = 'http://m.smarlife.cn';
     private $visitIp;
     public function __construct(){
-        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-        $allowOrigin = array(
-            'http://m.wanjiaan.com',
-        );
-        if(in_array($origin, $allowOrigin)){
-            header('Access-Control-Allow-Origin:'.$origin);
-            header('Access-Control-Allow-Methods:POST');
-            header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        }
-//         pre($_SERVER['REMOTE_ADDR']);
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
+        header('Access-Control-Allow-Origin:'.$origin);
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        header('Access-Control-Allow-Credentials:true');
         parent::__construct();
     }
-    public function login()
+    //登录
+    protected function login()
     {
-        $name = 'login_';
-        $session = session($name);
-        if (!$session) {
-            $session = get_nonce_str(12);
-            session($name, $session);
-        }
-        pre($_SESSION);
-//         echo $session;
-//         return ;
-//         return $session;
-        
         $username = isset($this->postParams['username']) ? trim($this->postParams['username']) : '';
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
         if (!$username) {
@@ -52,8 +36,8 @@ class Admin extends Index
         }
         //判断登录用户名是否存在
         $where = [
-            'factory_id'=> $this->factory['store_id'], 
-            'is_del'    => 0, 
+            'factory_id'=> $this->factory['store_id'],
+            'is_del'    => 0,
             'username'  => $username,
             'group_id'  => ['>', 0],
             'admin_type'=> ['IN', [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE]],
@@ -70,17 +54,20 @@ class Admin extends Index
         if(!$user['status']){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('LOGIN_FORBIDDEN')]);
         }
-        pre($result);
+        $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+        }
+        $this->_returnMsg(['msg' => '登录成功', 'user' => $user]);
     }
     //获取首页信息
     protected function getHomeDetail()
     {
-        $user = $this->_checkOpenid();
+        $user = $this->_checkUser();
         switch ($user['admin_type']) {
             case ADMIN_FACTORY:
                 //厂商首页显示数据
                 //1.今日支付订单数量
-
                 break;
             case ADMIN_FACTORY:
                 //厂商首页显示数据
@@ -89,16 +76,14 @@ class Admin extends Index
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
-
+                
         }
         $this->_returnMsg(['detail' => $detail]);
-        pre($user);
     }
-
+    //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
     {
-        $user = $this->_checkOpenid();
-
+        $user = $this->_checkUser();
         switch ($user['admin_type']) {
             case ADMIN_FACTORY:
                 break;
@@ -117,29 +102,29 @@ class Admin extends Index
             
         ];
         $list=db('work_order')->alias('WO')
-            ->field($field)
-            ->join('user U','WO.post_user_id = U.user_id')
-            ->where('');
-
-
-
+        ->field($field)
+        ->join('user U','WO.post_user_id = U.user_id')
+        ->where('');
     }
-
-    /**
-     * 验证openid对应用户信息
-     * @return array
-     */
-    protected function _checkOpenid($openid = '')
+    
+    protected function _checkPostParams()
     {
-        /* $openid = $openid ? $openid : (isset($this->postParams['openid']) ? trim($this->postParams['openid']) : '');
-        if (!$openid) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
-        } */
-        $userId = 2;//厂商
-//         $userId = 3;//渠道商
-//         $userId = 4;//零售商
-//         $userId = 5;//服务商
-        $user = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
-        return $user ? $user : [];
+        $this->requestTime = time();
+        $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
+        $this->postParams = $this->request->param();
+        if (!$this->postParams) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
+        }
+        unset($this->postParams['callback']);
+        unset($this->postParams['_']);
+    }
+    private function _checkUser($openid = '')
+    {
+        $userModel = new \app\common\model\User();
+        $this->loginUser = session('api_admin_user');
+        if (!$this->loginUser) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请登录后操作']);
+        }
+        return $this->loginUser;
     }
 }
