@@ -115,10 +115,13 @@ class Admin extends Index
         ->field($field)
         ->join('user U','WO.post_user_id = U.user_id')
         ->where('');
+        echo 1;
     }
     
     protected function _checkPostParams()
     {
+        return parent::_checkPostParams();
+
         $this->requestTime = time();
         $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
         $this->postParams = $this->request->param();
