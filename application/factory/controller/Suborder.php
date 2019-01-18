@@ -79,7 +79,7 @@ class Suborder extends commonOrder
         }
         return $list;
     }
-    private function _buildmap($param = []){
+    protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
             'AS.ostore_id' => $this->adminUser['store_id'],
