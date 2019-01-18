@@ -299,7 +299,6 @@ class Web extends BaseApi
         $params['code'] = $code;
         $params['phone'] = $phone;
         $result = $codeModel->verifyCode($params);
-        $result = TRUE;
         if ($result === FALSE) {
             return returnMsg(1, $codeModel->error);
         } else {

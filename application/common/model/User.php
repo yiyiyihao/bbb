@@ -332,7 +332,7 @@ class User extends Model
      * @param array $extra
      * @return boolean
      */
-    public function checkFormat($factoryId = 0, $extra = [])
+    public function checkFormat($factoryId = 0, $extra = [], $nameUnique = TRUE)
     {
         $username = isset($extra['username']) ? trim($extra['username']) : '';
         $password = isset($extra['password']) ? trim($extra['password']) : '';
@@ -341,16 +341,17 @@ class User extends Model
         $pattern = '/^[\w]{5,16}$/';
         if ($username) {
             //是否验证用户名格式
-            $uncheckName = $extra && isset($extra['uncheck_name']) ? $extra['uncheck_name'] : 0;
-            if (!$uncheckName && !preg_match($pattern, $username)) {
+            if (!preg_match($pattern, $username)) {
                 $this->error = '登录用户名格式:5-16位字符长度,只能由英文数字下划线组成';
                 return FALSE;
             }
-            //检查登录用户名是否存在
-            $exist = $this->checkUsername($factoryId, $username);
-            if ($exist) {
-                $this->error = '登录用户名已经存在';
-                return FALSE;
+            if ($nameUnique) {
+                //检查登录用户名是否存在
+                $exist = $this->checkUsername($factoryId, $username);
+                if ($exist) {
+                    $this->error = '登录用户名已经存在';
+                    return FALSE;
+                }
             }
         }
         //检查密码格式

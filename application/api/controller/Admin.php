@@ -6,7 +6,7 @@ class Admin extends Index
     private $loginUser;
     private $h5Url = 'http://m.smarlife.cn';
     public function __construct(){
-        /* $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
         $allowOrigin = array(
             'http://m.wanjiaan.com',
         );
@@ -14,11 +14,20 @@ class Admin extends Index
             header('Access-Control-Allow-Origin:'.$origin);
             header('Access-Control-Allow-Methods:POST');
             header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        } */
-        parent::__construct();
+        }
+//         parent::__construct();
     }
-    protected function login()
+    public function login()
     {
+        $name = 'login_';
+        $session = session($name);
+        if (!$session) {
+            $session = get_nonce_str(12);
+            session($name, $session);
+        }
+        pre($_SESSION);
+        return $session;
+        
         $username = isset($this->postParams['username']) ? trim($this->postParams['username']) : '';
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
         if (!$username) {

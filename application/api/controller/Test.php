@@ -12,134 +12,10 @@ class Test extends Base
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
     }
-    
-    public function order()
-    {
-        //1.创建订单
-        $orderModel = new \app\common\model\Order();
-        $skuId = 40;//商品规格ID
-        $num = 1;//商品数量
-        $submit = FALSE;//是否提交订单
-        $submit = TRUE;//是否提交订单
-        $params = [
-            'address_name' => '收货人姓名',
-            'address_phone' => '13698547852',
-            'region_id' => 1965,
-            'region_name' => '广东省 深圳市',
-            'address' => '详细地址',
-        ];
-        $remark = '买家备注';
-        $orderType = 2;//活动订单类型
-        $user = [
-            'udata_id' => 1,
-        ];
-        $order = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, $params, $remark, $orderType);
-        echo $orderModel->error;
-        pre($order);
-        
-        //2.取消订单
-        $user = [
-            'udata_id' => 1,
-        ];
-        $orderSn = '20190115103650505310460546505';
-        $result = $orderModel->orderCancel($orderSn, $user);
-        echo $orderModel->error;
-        pre($result);
-        //3.确认完成
-        $user = [
-            'udata_id' => 1,
-        ];
-        $orderSn = '20190115103910101575165714584';
-        $result = $orderModel->orderFinish($orderSn, $user);
-        echo $orderModel->error;
-        pre($result);
-    }
-    
-    public function getopenid(){
-        $wechatApi = new \app\common\api\WechatApi(FALSE, 'h5');
-        $code = '';
-        $result = $wechatApi->getOauthOpenid($code, TRUE);
-        if ($result === FALSE) {
-            die($wechatApi->error);
-        }
-        $userModel = new \app\common\model\User();
-        $params = [
-            'user_type'     => 'user',
-            'appid'         => $result['appid'],
-            'third_openid'  => $result['openid'],
-            'nickname'      => isset($result['nickname']) ? trim($result['nickname']) : '',
-            'avatar'        => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
-            'gender'        => isset($result['sex']) ? intval($result['sex']) : 0,
-            'unionid'       => isset($result['unionid']) ? trim($result['unionid']) : '',
-        ];
-        $oauth = $userModel->authorized(1, $params);
-        pre($oauth);
-        
-        
-        /* $request = $this->request->param();
-        $appid = 'wxd3bbb9c41f285e8d';
-        $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
-        $code = $request['code'];
-        $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.$appid.'&secret='.$appsecret.'&code='.$code.'&grant_type=authorization_code';
-        $request = curl_post($url,[]);
-        if($request['errcode'] == 0){
-            $return = [
-                'errCode' => 0,
-                'openid'  => $request['openid'],
-            ];
-        }else{
-            $return = $request;
-        }
-        return $this->ajaxJsonReturn($return); */
-        //正确的话返回access_token 和openid
-        /**
-         * { "access_token":"ACCESS_TOKEN","expires_in":7200,"refresh_token":"REFRESH_TOKEN","openid":"OPENID","scope":"SCOPE" }
-         */
-    }
-    public function getscope(){
-        $appid = 'wxd3bbb9c41f285e8d';
-        $appsecret = '0aa9afd28b6140cd97abf6fe47dc7082';
-        $uri   = urlEncode('http://m.smarlife.cn');
-        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.$appid.'&redirect_uri='.$uri.'&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
-        $return = [
-            'errCode' => 0,
-            'url'   => $scopeUrl,
-        ];
-        return $this->ajaxJsonReturn($return);
-    }
-    
-    public function jspay(){
-        $config = [
-            'app_id'        =>  'wxd3bbb9c41f285e8d',
-            'mch_id'        =>  '1520990381',
-            'mch_key'       =>  'cugbuQVsnihCoQEx3MXD2WYlYtdoQJCH',
-            'notify_url'    =>  'https://api.smarlife.cn/test/jsnotify',
-        ];
-        $wechatApi = new \app\common\api\WechatPayApi(1, 'wechat_js', $config);
-        $return = [
-            'errCode' => 0,
-            'msg'   => '请求成功',
-        ];
-        $factoryId = 1;
-        $order = [
-            'openid'        => 'o5hVy1rH9Z4QNpH7X5ytgYulAhdQ',
-            'order_sn'      => get_nonce_str(32),
-            'real_amount'   => '0.01',
-            'store_id'      => $factoryId,
-        ];
-        $paymentApi = new \app\common\api\PaymentApi($factoryId, 'wechat_js');
-        $result = $paymentApi->init($order);
-        if($result){
-            $return['params'] = $result;
-        }else{
-            $return['errCode'] = 1;
-            $return['error'] = $paymentApi->error;
-        }
-        return $this->ajaxJsonReturn($return);
-    }
-    
     public function index()
     {
+        session_start();
+        pre($_SESSION, 1);
         $request = $this->request->param();
         header("Content-type: text/html; charset=utf-8");
 //         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
@@ -220,6 +96,8 @@ class Test extends Base
             $error = curl_error($curl);
             echo 'Curl error: ' . $error;
         }
+        // 获得响应结果里的：头大小
+        // 根据头大小去获取头信息内容
         //关闭URL请求
         curl_close($curl);
         echo $data;

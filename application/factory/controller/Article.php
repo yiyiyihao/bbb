@@ -7,18 +7,16 @@
  */
 
 namespace app\factory\controller;
-
-
-use app\common\controller\FormBase;
 use app\common\model\WebArticle;
 
-class Article extends FormBase
+class Article extends FactoryForm
 {
     private $store_id;
 
     public function __construct()
     {
-        $this->modelName = '文章';
+//         $this->modelName = '文章';
+        $this->modelName = 'web_article';
         $this->model = db('web_article');
         parent::__construct();
         $this->store_id = $this->adminUser['store_id'];
@@ -136,6 +134,17 @@ class Article extends FormBase
             ['type' => 'input', 'name' => 'phone', 'value' => '手机号', 'width' => '30'],
         ];
         return $search;
+    }
+    /**
+     * 列表项配置
+     */
+    function _tableData(){
+        $table = parent::_tableData();
+        if ($table['actions']['button']) {
+            $table['actions']['button'][] =  ['text'  => '查看详情','action'=> 'edit', 'icon'  => 'detail','bgClass'=> 'bg-green'];
+            $table['actions']['width']  = '*';
+        }
+        return $table;
     }
 
 
