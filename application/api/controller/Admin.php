@@ -106,8 +106,8 @@ class Admin extends Index
         ];
         $workOrderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']) : '';
         $workOrderStatus = isset($this->postParams['work_order_status']) ? intval($this->postParams['work_order_status']) : '';
-        $page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 1;
-        $page_size = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 10;
+        $page =$this->page? $this->page : 1;
+        $page_size = $this->pageSize? $this->pageSize : 10;
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
             $where['WO.work_order_type']=$workOrderType;
         }
@@ -143,6 +143,12 @@ class Admin extends Index
         //pre($list);
         $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
     }
+
+    //获取工单详情
+    protected function getWorkerOrderDetail()
+    {
+
+    }
     
     protected function _checkPostParams()
     {
@@ -161,10 +167,10 @@ class Admin extends Index
     }
     private function _checkUser($openid = '')
     {
-        $userId = 2;//厂商
-//         $userId = 3;//渠道商
-//         $userId = 4;//零售商
-//         $userId = 5;//服务商
+        //$userId = 2;//厂商
+        //$userId =4;//渠道商
+        //$userId = 5;//零售商
+        $userId = 6;//服务商
         $this->loginUser = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
         return $this->loginUser ? $this->loginUser : [];
         
