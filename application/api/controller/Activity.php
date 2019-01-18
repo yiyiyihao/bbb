@@ -156,7 +156,7 @@ class Activity extends BaseApi
             return returnMsg(2, lang('PARAM_ERROR'));
         }
 
-        //0全部，1待付款，2待发货，3待收货，4交易完成
+        //0全部，1待付款，2待发货，3已发货，4交易完成
         $page = input('page', 1, 'intval');
         $limit = input('limit', 10, 'intval');
         $status = input('status', 0, 'intval');
@@ -179,12 +179,12 @@ class Activity extends BaseApi
                 $order_status = 2;
                 $status_des = '待发货';
                 break;
-            case 3://待收货
+            case 3://已发货
                 $where['O.pay_status'] = 1;
                 $where['O.delivery_status'] = ['IN', [1, 2]];
                 $where['O.finish_status'] = 0;
                 $order_status = 3;
-                $status_des = '待收货';
+                $status_des = '已发货';
                 break;
             case 4://交易完成
                 $where['O.finish_status'] = 2;
@@ -194,7 +194,7 @@ class Activity extends BaseApi
             default://全部
                 break;
         }
-        $field = 'O.order_id,O.order_sn,G.name as goods_name,OS.sku_name,O.real_amount, O.real_amount as total_amount, O.order_status,O.pay_status,O.delivery_status,O.finish_status';
+        $field = 'O.order_type, O.order_sn,G.name as goods_name,OS.sku_name,O.real_amount, O.real_amount as total_amount, O.order_status,O.pay_status,O.delivery_status,O.finish_status';
         $join = [
             ['store S', 'S.store_id=O.store_id'],
             ['order_sku OS', 'OS.order_sn=O.order_sn'],
@@ -224,8 +224,8 @@ class Activity extends BaseApi
                             $_status = 2;//待发货
                             $status_des = '待发货';
                         }elseif ($value['delivery_status']!= 0 && $value['finish_status'] == 0){
-                            $_status = 3;//待收货
-                            $status_des = '待收货';
+                            $_status = 3;//已发货
+                            $status_des = '已发货';
                         }elseif ($value['finish_status'] != 0 ){
                             $_status = 4;//已完成
                             $status_des = '已完成';
@@ -243,7 +243,8 @@ class Activity extends BaseApi
                     break;
                 }
                 $order[$key]['status'] = $_status;
-                $order[$key]['status_des'] = get_order_status($value);
+                $data = get_order_status($value);
+                $order[$key]['status_des'] = $data['status_text'];
             }
         }
         
@@ -325,7 +326,7 @@ class Activity extends BaseApi
         } elseif ($order['pay_status'] == 1 && in_array($order['delivery_status'], [1, 2]) && $order['finish_status'] == 0) {
             $order_status = 3;
             $status_des = '付款成功<br>厂家已发货';
-            $status_des = '待收货';
+            $status_des = '已发货';
         } elseif ($order['finish_status'] == 2) {
             $order_status = 4;
             $status_des = '已收到<br>交易完成';
@@ -442,6 +443,7 @@ class Activity extends BaseApi
             ->join('order_sku OS', 'O.order_sn=OS.order_sn')
             ->where([
                 ['O.udata_id', '=', $udata_id],
+                ['O.pay_status', '=', 1],
                 ['OS.add_time', '>=', $config['start_time']],
                 ['OS.add_time', '<=', $config['end_time']],
             ])->count();

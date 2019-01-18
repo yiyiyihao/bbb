@@ -310,14 +310,17 @@ class Pay extends ApiBase
         }
         $remark = $return['return_name'];
         $refundAmount = $return['return_amount'];
-        $serviceModel = new \app\common\model\OrderService();
-        $result = $serviceModel->servuceActivityRefund($order, $refundAmount, $remark);
-        if ($result === FALSE) {
-            Log::error('当前订单不允许退款，原因【' . $serviceModel->error . '】,参数：', $param);
-            return false;
-        } else {
-            Log::info('退款成功', $param);
-            return true;
+        $refundFlag = $return['return_flag'];
+        if ($refundAmount > 0 && $refundFlag) {
+            $serviceModel = new \app\common\model\OrderService();
+            $result = $serviceModel->servuceActivityRefund($order, $refundAmount, $remark);
+            if ($result === FALSE) {
+                Log::error('当前订单不允许退款，原因【' . $serviceModel->error . '】,参数：', $param);
+                return false;
+            } else {
+                Log::info('退款成功', $param);
+                return true;
+            }
         }
     }
     
@@ -344,6 +347,7 @@ class Pay extends ApiBase
         $returnType = $returnAmount = 0;
         $name = '';
         $num = 9;
+        $flag = FALSE;
         //1.计算订单下单时间是否在活动时间范围内
         if ($order['order_status'] == 1 && $order['pay_status'] == 1 && $order['close_refund_status'] == 0 && $order['pay_time'] >= $startTime && $order['pay_time'] <= $entTime) {
             //         if ($order['order_status'] == 1 && $order['pay_status'] == 1) {
@@ -362,10 +366,12 @@ class Pay extends ApiBase
                     $returnType = 1;//逢九免单
                     $name = '前'.$total.'位,按实际支付顺序,逢九免单';
                     $returnAmount = $order['paid_amount'];
+                    $flag = TRUE;
                 } else {
                     $returnType = 2;//前2019位享受促销价
                     $name = '前'.$total.'位,享受促销价格:' . $activityPrice . '元';
                     $returnAmount = $order['paid_amount'] >= $activityPrice ? ($order['paid_amount'] - $activityPrice) : $order['paid_amount'];
+                    $flag = TRUE;
                 }
             }
         }
@@ -373,6 +379,7 @@ class Pay extends ApiBase
             'return_type' => $returnType,
             'return_name' => $name,
             'return_amount' => $returnAmount,
+            'return_flag'   => $flag,
         ];
     }
 }    

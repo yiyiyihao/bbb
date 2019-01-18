@@ -1168,7 +1168,7 @@ class Index extends ApiBase
      * 处理接口返回信息
      */
     protected function _returnMsg($data, $echo = TRUE){
-        $data['sing_data'] = $this->signData;
+//         $data['sing_data'] = $this->signData;
         $result = parent::_returnMsg($data);
         $responseTime = $this->_getMillisecond() - $this->visitMicroTime;//响应时间(毫秒)
 //         if (strlen($this->postParams['timestamp']) == 13) {

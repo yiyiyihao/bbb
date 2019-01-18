@@ -142,7 +142,8 @@ class Test extends Base
     {
         $request = $this->request->param();
         header("Content-type: text/html; charset=utf-8");
-        $url = 'http://'.$_SERVER['HTTP_HOST'].'/h5';
+//         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
+        $url = 'http://'.$_SERVER['HTTP_HOST'].'/admin';
         $params['timestamp'] = time();
         $params['signkey'] = 'ds7p7auqyjj8';
         $params['mchkey'] = '1458745225';
@@ -151,7 +152,6 @@ class Test extends Base
             $params = array_merge($params, $request);
         }
         $params['timestamp'] = time();
-        $params['timestamp'] = time().'000';
         if ($params['method'] == 'postWorkOrder') {
             $params['images'] = 'http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png;http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png';
 //             $params['images'] = ['http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png', 'http:\/\/pimvhcf3v.bkt.clouddn.com\/api_20181218201941_default.png'];
