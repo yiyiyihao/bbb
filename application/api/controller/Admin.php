@@ -58,6 +58,16 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
+        $user = [
+            'factory_id'=> $user['factory_id'],
+            'store_id'  => $user['store_id'],
+            'admin_type'=> $user['admin_type'],
+            'username'  => $user['username'],
+            'realname'  => $user['realname'],
+            'nickname'  => $user['nickname'],
+            'phone'     => $user['phone'],
+            'status'    => $user['status'],
+        ];
         $this->_returnMsg(['msg' => '登录成功', 'user' => $user]);
     }
     //获取首页信息
@@ -120,6 +130,13 @@ class Admin extends Index
     }
     private function _checkUser($openid = '')
     {
+        $userId = 2;//厂商
+//         $userId = 3;//渠道商
+//         $userId = 4;//零售商
+//         $userId = 5;//服务商
+        $user = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
+        return $user ? $user : [];
+        
         $userModel = new \app\common\model\User();
         $this->loginUser = session('api_admin_user');
         if (!$this->loginUser) {
