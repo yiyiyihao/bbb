@@ -14,8 +14,8 @@ class Test extends Base
     }
     public function index()
     {
-        session_start();
-        pre($_SESSION);
+//         session_start();
+//         pre($_SESSION);
         $request = $this->request->param();
         header("Content-type: text/html; charset=utf-8");
 //         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';

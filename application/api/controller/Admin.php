@@ -72,4 +72,28 @@ class Admin extends Index
         }
         pre($result);
     }
+    //获取首页信息
+    protected function getHomeDetail()
+    {
+        $user = $this->_checkOpenid();
+        pre($user);
+    }
+    
+    /**
+     * 验证openid对应用户信息
+     * @return array
+     */
+    protected function _checkOpenid($openid = '')
+    {
+        /* $openid = $openid ? $openid : (isset($this->postParams['openid']) ? trim($this->postParams['openid']) : '');
+        if (!$openid) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
+        } */
+        $userId = 2;//厂商
+//         $userId = 3;//渠道商
+//         $userId = 4;//零售商
+//         $userId = 5;//服务商
+        $user = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
+        return $user ? $user : [];
+    }
 }
