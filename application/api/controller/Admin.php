@@ -5,6 +5,7 @@ class Admin extends Index
 {
     private $loginUser;
     private $h5Url = 'http://m.smarlife.cn';
+    private $visitIp;
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
         $allowOrigin = array(
@@ -15,7 +16,8 @@ class Admin extends Index
             header('Access-Control-Allow-Methods:POST');
             header('Access-Control-Allow-Headers:x-requested-with,content-type');
         }
-//         parent::__construct();
+//         pre($_SERVER['REMOTE_ADDR']);
+        parent::__construct();
     }
     public function login()
     {
@@ -26,7 +28,9 @@ class Admin extends Index
             session($name, $session);
         }
         pre($_SESSION);
-        return $session;
+//         echo $session;
+//         return ;
+//         return $session;
         
         $username = isset($this->postParams['username']) ? trim($this->postParams['username']) : '';
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
