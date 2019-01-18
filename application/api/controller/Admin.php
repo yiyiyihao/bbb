@@ -16,6 +16,10 @@ class Admin extends Index
     //登录
     protected function login()
     {
+        $user = $this->_checkUser();
+        if ($user) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您已经登录']);
+        }
         $username = isset($this->postParams['username']) ? trim($this->postParams['username']) : '';
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
         if (!$username) {
@@ -120,7 +124,9 @@ class Admin extends Index
     
     protected function _checkPostParams()
     {
-        return parent::_checkPostParams();
+        if (!isset($_SERVER['HTTP_ORIGIN'])) {
+            return parent::_checkPostParams();
+        }
 
         $this->requestTime = time();
         $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
@@ -137,8 +143,8 @@ class Admin extends Index
 //         $userId = 3;//渠道商
 //         $userId = 4;//零售商
 //         $userId = 5;//服务商
-        $user = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
-        return $user ? $user : [];
+        $this->loginUser = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
+        return $this->loginUser ? $this->loginUser : [];
         
         $userModel = new \app\common\model\User();
         $this->loginUser = session('api_admin_user');
