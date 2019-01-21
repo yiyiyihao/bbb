@@ -436,6 +436,30 @@ class Admin extends Index
     //获取售后订单列表
     protected function getServiceOrderList()
     {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $where = [
+            'S.is_del' => 0,
+        ];
+        $serviceStatus = isset($this->postParams['status']) ? $this->postParams['status'] : '';
+        if (''!==$serviceStatus && in_array($serviceStatus,[-2,-1,0,1,2,3])) {
+            $where['S.service_status']=$serviceStatus;
+        }
+
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $where['S.store_id'] = $user['store_id'];
+        }else{
+            $where['S.user_store_id'] = $user['store_id'];
+        }
+        $field='S.order_sn,S.service_status,S.refund_amount,S.update_time,S1.name store_name,S1.mobile';
+        $join=[
+            ['store S1', 'S1.store_id = S.user_store_id', 'LEFT'],
+        ];
+        $order='S.update_time DESC';
+        $list = $this->_getModelList(db('order_sku_service'), $where, $field, $order,'S',$join);
+        $this->_returnMsg(compact('list'));
         
     }
     //获取售后订单详情
