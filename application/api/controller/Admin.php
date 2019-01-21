@@ -12,6 +12,8 @@ class Admin extends Index
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
         parent::__construct();
+        $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 1;
+        $this->pageSize = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 10;
     }
     //登录
     protected function login()
@@ -102,8 +104,8 @@ class Admin extends Index
             'is_del' => 0,
             'status' => 1,
         ];
-        $workOrderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']) : '';
-        $workOrderStatus = isset($this->postParams['work_order_status']) ? intval($this->postParams['work_order_status']) : '';
+        $workOrderType = isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
+        $workOrderStatus = isset($this->postParams['status']) ? intval($this->postParams['status']) : '';
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
             $where['work_order_type']=$workOrderType;
         }
@@ -133,7 +135,6 @@ class Admin extends Index
         
         $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
     }
-
     //获取工单详情
     protected function getWorkerOrderDetail()
     {
