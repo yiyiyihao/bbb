@@ -1,6 +1,8 @@
 <?php
 namespace app\api\controller;
 
+use app\common\model\WorkOrder;
+
 class Admin extends Index
 {
     private $loginUser;
@@ -204,9 +206,54 @@ class Admin extends Index
         $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
-    protected function getWorkerOrderDetail()
+    protected function getWorkOrderDetails()
     {
+        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
+        if (empty($worderSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('PARAM_ERROR')]);
+        }
+        $where = [
+            'worder_sn' => $worderSn,
+            'is_del' => 0,
+        ];
+        $field='worder_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
+        $workOrderModel=new WorkOrder;
+        $info = $workOrderModel->field($field)->where($where)->find();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
+        }
+        $info['images']=explode(',',$info['images']);
+        $region_name=str_replace(' ','',$info['region_name']);
+        $info['address']=$region_name.$info['address'];
 
+        if ($info['ossub_id']) {
+            $join = [
+                ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
+            ];
+            $field =  'OS.sku_name, OS.sku_spec';
+            $where = [
+                'ossub_id' => $info['ossub_id'],
+            ];
+            $ossub = db('order_sku_sub')->field($field)->alias('OSS')->join($join)->where($where)->find();
+            $info['goods_name']=$ossub['sku_name']?$ossub['sku_name']:$ossub['sku_spec'];
+        }else{
+            $infoSub = db('goods')->find($info['goods_id']);
+            $info['goods_name']=$infoSub['name'];
+        }
+        unset($info['region_name']);
+        //获取工单日志
+        //$info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
+        //获取工单评价记录
+        $info['assess_list']=[];
+        $assess_list = $workOrderModel->getWorderAssess($info);
+        if (!empty($assess_list)) {
+            $info['assess_list']=[
+                'msg'=>$assess_list[0]['msg'],
+                'detail'=>$assess_list[0]['configs'],
+            ];
+        }
+        $this->_returnMsg(['details' => $info]);
+        //pre($info);
     }
     
     
