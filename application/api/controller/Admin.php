@@ -134,7 +134,6 @@ class Admin extends Index
         $join = [['user U','WO.post_user_id = U.user_id']];
         $order = 'WO.worder_id desc';
         $field = 'WO.worder_sn, WO.order_sn, WO.work_order_type, WO.work_order_status, WO.region_name, WO.address, WO.phone, WO.user_name';
-        
         $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         
 //         $list=db('work_order')->alias('WO')
