@@ -12,7 +12,8 @@ class AuthRule extends Model
 	//自定义初始化
 	protected function initialize()
 	{
-	    $this->table = $this->config['prefix'].'auth_rule';
+	    $prefix = $this->getConfig('prefix');
+	    $this->table = $prefix.'auth_rule';
 	    parent::initialize();
 	}
 	

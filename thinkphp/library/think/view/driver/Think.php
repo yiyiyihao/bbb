@@ -166,7 +166,7 @@ class Think
         } else {
             $template = str_replace(['/', ':'], $depr, substr($template, 1));
         }
-        $this->config['view_tpl'] = $template;
+       $this->config['view_tpl'] = $template;
 
         return $path . ltrim($template, '/') . '.' . ltrim($this->config['view_suffix'], '.');
     }

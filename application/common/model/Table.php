@@ -13,7 +13,8 @@ class Table extends Model
 	//自定义初始化
 	protected function initialize()
 	{
-	    $this->table = $this->config['prefix'].$this->tableName;
+	    $prefix = $this->getConfig('prefix');
+	    $this->table = $prefix.$this->tableName;
 	    parent::initialize();
 	}
 	

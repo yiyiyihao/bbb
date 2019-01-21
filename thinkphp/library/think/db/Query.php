@@ -628,9 +628,6 @@ class Query
             $result = (float) $result;
         }
 
-        // 查询完成后清空聚合字段信息
-        $this->removeOption('field');
-
         return $result;
     }
 
@@ -656,9 +653,9 @@ class Query
                 $query->fetchSql(true);
             }
 
-            $count = $query->aggregate('COUNT', '*');
+            $count = $query->aggregate('COUNT', '*', true);
         } else {
-            $count = $this->aggregate('COUNT', $field);
+            $count = $this->aggregate('COUNT', $field, true);
         }
 
         return is_string($count) ? $count : (int) $count;
@@ -837,13 +834,11 @@ class Query
      * @param  mixed  $join      关联的表名
      * @param  mixed  $condition 条件
      * @param  string $type      JOIN类型
+     * @param  array  $bind      参数绑定
      * @return $this
      */
-    public function join($join, $condition = null, $type = 'INNER')
+    public function join($join, $condition = null, $type = 'INNER', $bind = [])
     {
-        if (!$join) {
-            return $this;
-        }
         if (empty($condition)) {
             // 如果为组数，则循环调用join
             foreach ($join as $key => $value) {
@@ -853,7 +848,9 @@ class Query
             }
         } else {
             $table = $this->getJoinTable($join);
-
+            if ($bind) {
+                $this->bindParams($condition, $bind);
+            }
             $this->options['join'][] = [$table, strtoupper($type), $condition];
         }
 
@@ -865,9 +862,10 @@ class Query
      * @access public
      * @param  mixed  $join      关联的表名
      * @param  mixed  $condition 条件
+     * @param  array  $bind      参数绑定
      * @return $this
      */
-    public function leftJoin($join, $condition = null)
+    public function leftJoin($join, $condition = null, $bind = [])
     {
         return $this->join($join, $condition, 'LEFT');
     }
@@ -877,9 +875,10 @@ class Query
      * @access public
      * @param  mixed  $join      关联的表名
      * @param  mixed  $condition 条件
+     * @param  array  $bind      参数绑定
      * @return $this
      */
-    public function rightJoin($join, $condition = null)
+    public function rightJoin($join, $condition = null, $bind = [])
     {
         return $this->join($join, $condition, 'RIGHT');
     }
@@ -889,9 +888,10 @@ class Query
      * @access public
      * @param  mixed  $join      关联的表名
      * @param  mixed  $condition 条件
+     * @param  array  $bind      参数绑定
      * @return $this
      */
-    public function fullJoin($join, $condition = null)
+    public function fullJoin($join, $condition = null, $bind = [])
     {
         return $this->join($join, $condition, 'FULL');
     }
@@ -949,6 +949,10 @@ class Query
      */
     public function union($union, $all = false)
     {
+        if (empty($union)) {
+            return $this;
+        }
+
         $this->options['union']['type'] = $all ? 'UNION ALL' : 'UNION';
 
         if (is_array($union)) {
@@ -1011,11 +1015,13 @@ class Query
         if ($tableName) {
             // 添加统一的前缀
             $prefix = $prefix ?: $tableName;
-            foreach ($field as $key => $val) {
-                if (is_numeric($key)) {
-                    $val = $prefix . '.' . $val . ($alias ? ' AS ' . $alias . $val : '');
+            foreach ($field as $key => &$val) {
+                if (is_numeric($key) && $alias) {
+                    $field[$prefix . '.' . $val] = $alias . $val;
+                    unset($field[$key]);
+                } elseif (is_numeric($key)) {
+                    $val = $prefix . '.' . $val;
                 }
-                $field[$key] = $val;
             }
         }
 
@@ -1524,7 +1530,7 @@ class Query
             return $this->whereRaw($field, is_array($op) ? $op : []);
         } elseif ($strict) {
             // 使用严格模式查询
-            $where = [$field, $op, $condition];
+            $where = [$field, $op, $condition, $logic];
         } elseif (is_array($field)) {
             // 解析数组批量查询
             return $this->parseArrayWhereItems($field, $logic);
@@ -1625,8 +1631,8 @@ class Query
         }
 
         if (!empty($where)) {
-            $this->options['where'][$logic] = $where;
-//             $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
+//            $this->options['where'][$logic] = $where;
+            $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
         }
 
         return $this;
@@ -3565,6 +3571,10 @@ class Query
      */
     protected function parseView(&$options)
     {
+        if (!isset($options['map'])) {
+            return;
+        }
+
         foreach (['AND', 'OR'] as $logic) {
             if (isset($options['where'][$logic])) {
                 foreach ($options['where'][$logic] as $key => $val) {

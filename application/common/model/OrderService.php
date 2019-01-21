@@ -13,7 +13,8 @@ class OrderService extends Model
 	//自定义初始化
     protected function initialize()
     {
-        $this->table = $this->config['prefix'].'order_sku_service';
+        $prefix = $this->getConfig('prefix');
+        $this->table = $prefix.'order_sku_service';
         parent::initialize();
         $this->orderSkuModel = db('order_sku');
     }

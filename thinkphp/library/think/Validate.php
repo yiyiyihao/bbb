@@ -131,7 +131,7 @@ class Validate
      * 内置正则验证规则
      * @var array
      */
-    protected $regex = [
+    protected $defaultRegex = [
         'alphaDash'   => '/^[A-Za-z0-9\-\_]+$/',
         'chs'         => '/^[\x{4e00}-\x{9fa5}]+$/u',
         'chsAlpha'    => '/^[\x{4e00}-\x{9fa5}a-zA-Z]+$/u',
@@ -177,6 +177,12 @@ class Validate
      * @var array
      */
     protected $append = [];
+
+    /**
+     * 验证正则定义
+     * @var array
+     */
+    protected $regex = [];
 
     /**
      * 架构函数
@@ -516,7 +522,9 @@ class Validate
             $rules = array_merge($rules, $this->append[$field]);
         }
 
-        $i = 0;
+        $i      = 0;
+        $result = true;
+
         foreach ($rules as $key => $rule) {
             if ($rule instanceof \Closure) {
                 $result = call_user_func_array($rule, [$value, $data]);
@@ -527,17 +535,18 @@ class Validate
 
                 if (isset($this->append[$field]) && in_array($info, $this->append[$field])) {
 
-                } elseif (isset($this->remove[$field]) && in_array($info, $this->remove[$field])) {
+                } elseif (array_key_exists($field, $this->remove) && (null === $this->remove[$field] || in_array($info, $this->remove[$field]))) {
                     // 规则已经移除
                     $i++;
                     continue;
                 }
 
                 // 验证类型
-                $callback = isset(self::$type[$type]) ? self::$type[$type] : [$this, $type];
-                if ('must' == $info || 0 === strpos($info, 'require') || (!is_null($value) && '' !== $value) || method_exists($callback[0], $callback[1])) {
+                if (isset(self::$type[$type])) {
+                    $result = call_user_func_array(self::$type[$type], [$value, $rule, $data, $field, $title]);
+                } elseif ('must' == $info || 0 === strpos($info, 'require') || (!is_null($value) && '' !== $value)) {
                     // 验证数据
-                    $result = call_user_func_array($callback, [$value, $rule, $data, $field, $title]);
+                    $result = call_user_func_array([$this, $type], [$value, $rule, $data, $field, $title]);
                 } else {
                     $result = true;
                 }
@@ -999,10 +1008,14 @@ class Validate
             // 支持多个字段验证
             $fields = explode('^', $key);
             foreach ($fields as $key) {
-                $map[] = [$key, '=', $data[$key]];
+                if (isset($data[$key])) {
+                    $map[] = [$key, '=', $data[$key]];
+                }
             }
-        } else {
+        } elseif (isset($data[$field])) {
             $map[] = [$key, '=', $data[$field]];
+        } else {
+            $map = [];
         }
 
         $pk = !empty($rule[3]) ? $rule[3] : $db->getPk();
@@ -1353,6 +1366,8 @@ class Validate
     {
         if (isset($this->regex[$rule])) {
             $rule = $this->regex[$rule];
+        } elseif (isset($this->defaultRegex[$rule])) {
+            $rule = $this->defaultRegex[$rule];
         }
 
         if (0 !== strpos($rule, '/') && !preg_match('/\/[imsU]{0,4}$/', $rule)) {

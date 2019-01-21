@@ -12,7 +12,8 @@ class Servicer extends Model
 	//自定义初始化
 	protected function initialize()
 	{
-	    $this->table = $this->config['prefix'].'store_servicer';
+	    $prefix = $this->getConfig('prefix');
+	    $this->table = $prefix.'store_servicer';
 	    parent::initialize();
 	}
 	

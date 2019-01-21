@@ -809,9 +809,14 @@ class Request
             return $this->server('REQUEST_METHOD') ?: 'GET';
         } elseif (!$this->method) {
             if (isset($_POST[$this->config['var_method']])) {
-                $this->method    = strtoupper($_POST[$this->config['var_method']]);
-                $method          = strtolower($this->method);
-                $this->{$method} = $_POST;
+                $method = strtolower($_POST[$this->config['var_method']]);
+                if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
+                    $this->method    = strtoupper($method);
+                    $this->{$method} = $_POST;
+                } else {
+                    $this->method = 'POST';
+                }
+                unset($_POST[$this->config['var_method']]);
             } elseif ($this->server('HTTP_X_HTTP_METHOD_OVERRIDE')) {
                 $this->method = strtoupper($this->server('HTTP_X_HTTP_METHOD_OVERRIDE'));
             } else {
@@ -1315,6 +1320,22 @@ class Request
     }
 
     /**
+     * 递归重置数组指针
+     * @access public
+     * @param array $data 数据源
+     * @return void
+     */
+    public function arrayReset(array &$data)
+    {
+        foreach ($data as &$value) {
+            if (is_array($value)) {
+                $this->arrayReset($value);
+            }
+        }
+        reset($data);
+    }
+
+    /**
      * 获取变量 支持过滤和默认值
      * @access public
      * @param  array         $data 数据源
@@ -1353,7 +1374,10 @@ class Request
 
         if (is_array($data)) {
             array_walk_recursive($data, [$this, 'filterValue'], $filter);
-            reset($data);
+            if (version_compare(PHP_VERSION, '7.1.0', '<')) {
+                // 恢复PHP版本低于 7.1 时 array_walk_recursive 中消耗的内部指针
+                $this->arrayReset($data);
+            }
         } else {
             $this->filterValue($data, $name, $filter);
         }
@@ -1362,19 +1386,7 @@ class Request
             // 强制类型转换
             $this->typeCast($data, $type);
         }
-        #TODO  去掉获取请求参数的路径参数
-        if ($data && is_array($data)) {
-            $module = strtolower($this->module());
-            $controller = strtolower($this->controller());
-            $action = strtolower($this->action());
-            $url = $controller.'/'.$action;
-            foreach ($data as $key => $value) {
-                if (strstr($key, $url) !== FALSE) {
-                    unset($data[$key]);
-                    break;
-                }
-            }
-        }
+
         return $data;
     }
 

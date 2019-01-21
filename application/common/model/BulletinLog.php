@@ -13,7 +13,8 @@ class BulletinLog extends Model
 	//自定义初始化
 	protected function initialize()
 	{
-	    $this->table = $this->config['prefix'].'bulletin_log';
+	    $prefix = $this->getConfig('prefix');
+	    $this->table = $prefix.'bulletin_log';
 	    $this->bulletinModel = db('bulletin');
 	    parent::initialize();
 	}

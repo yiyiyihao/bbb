@@ -12,7 +12,8 @@ class Channel extends Model
 	//自定义初始化
 	protected function initialize()
 	{
-	    $this->table = $this->config['prefix'].'store_channel';
+	    $prefix = $this->getConfig('prefix');
+	    $this->table = $prefix.'store_channel';
 	    parent::initialize();
 	}
 }
