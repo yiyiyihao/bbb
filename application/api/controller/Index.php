@@ -1089,7 +1089,7 @@ class Index extends ApiBase
      * @param string $having
      * @return array
      */
-    private function _getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
+    protected function _getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
     {
         if($alias)  $model->alias($alias);
         if($join)   $model->join($join);

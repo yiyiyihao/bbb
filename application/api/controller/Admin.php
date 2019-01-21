@@ -131,15 +131,20 @@ class Admin extends Index
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
         }
-        $field='WO.order_sn,WO.work_order_type,WO.work_order_status,WO.worder_sn,WO.region_name,WO.address,WO.phone,WO.user_name';
-        $list=db('work_order')->alias('WO')
-            ->field($field)
-            ->join('user U','WO.post_user_id = U.user_id')
-            ->where($where)
-            ->page($page)
-            ->limit($page_size)
-            ->order('WO.worder_id desc')
-            ->select();
+        $join = [['user U','WO.post_user_id = U.user_id']];
+        $order = 'WO.worder_id desc';
+        $field = 'WO.worder_sn, WO.order_sn, WO.work_order_type, WO.work_order_status, WO.region_name, WO.address, WO.phone, WO.user_name';
+        
+        $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
+        
+//         $list=db('work_order')->alias('WO')
+//             ->field($field)
+//             ->join('user U','WO.post_user_id = U.user_id')
+//             ->where($where)
+//             ->page($page)
+//             ->limit($page_size)
+//             ->order('WO.worder_id desc')
+//             ->select();
         //pre($list);
         $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
     }
