@@ -1,7 +1,6 @@
 <?php
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
-use app\common\service\Chart;
 use think\response\Redirect;
 
 class Index extends CommonIndex
@@ -58,7 +57,24 @@ class Index extends CommonIndex
     }
     public function home()
     {
-        $adminType = $this->adminUser['admin_type'];
+        $result = $this->getStoreHome($this->adminUser);
+        if ($result === FALSE) {
+            $this->error($this->error);
+        }
+        $chartOverview = $this->adminUser['admin_type'] == ADMIN_SERVICE ? $result['worder_overview'] : $result['order_overview'];
+        $chartAmount = $this->adminUser['admin_type'] == ADMIN_SERVICE ? $result['worder_statistics'] : $result['order_statistics'];
+        $this->assign('chart_overview', $chartOverview);
+        $this->assign('chart_amount', $chartAmount);
+        
+        $this->assign('today', $result['today']);
+        $this->assign('total', $result['total']);
+        $hometpl = 'home_'.$result['tpl'];
+        
+        //$hometpl = 'home';
+        return $this->fetch($hometpl);
+        
+        
+        /* $adminType = $this->adminUser['admin_type'];
         if (!$adminType) {
             $this->error(lang('NO ACCESS'));
         }
@@ -364,13 +380,15 @@ class Index extends CommonIndex
             default:
                 $this->error(lang('NO ACCESS'));
             break;
-        }
+        } 
         $this->assign('today', $today);
         $this->assign('total', $total);
+        
         $hometpl = 'home_'.$tpl;
 
         //$hometpl = 'home';
         return $this->fetch($hometpl);
+        */
     }
 
     //异步处理图表数据
@@ -423,445 +441,445 @@ class Index extends CommonIndex
         return $data;
     }
 
-    //订单概况
-    private function orderOverView($startTime,$endTime,$storeId)
-    {
+//     //订单概况
+//     private function orderOverView($startTime,$endTime,$storeId)
+//     {
 
-        $data=[];
-        $lable=[];
-        $dataset[0] = [
-            'name'     =>'',
-            'type'     =>'line',
-            'itemStyle'=>[],
-            'smooth'   => 0.5
-        ];
-        $model=new \app\common\model\Order();
+//         $data=[];
+//         $lable=[];
+//         $dataset[0] = [
+//             'name'     =>'',
+//             'type'     =>'line',
+//             'itemStyle'=>[],
+//             'smooth'   => 0.5
+//         ];
+//         $model=new \app\common\model\Order();
 
-        //$startTime='2018-12-14';
-        //$endTime='2018-12-25';
-        //$storeId=3;
+//         //$startTime='2018-12-14';
+//         //$endTime='2018-12-25';
+//         //$storeId=3;
 
-        if ($startTime==$endTime){//单日数据
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
-            $now=date('Y-m-d H:00');
-            while ($begin<=$endTime) {
-                $data[$i]['time']=date('H:00',$begin);
-                $end=$begin+3600;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['order_status','<>',2],
-                    ['pay_status','=',1],
-                ];
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
-                    //渠道商零售商数据据统计
-                    $where=[
-                        ['O.add_time','>=',$begin],
-                        ['O.add_time','<',$end],
-                        ['S.is_del','=',0],
-                        ['S.store_type','=',2],
-                        ['S.store_id','=',$storeId],
-                        ['order_status','<>',2],
-                        ['O.pay_status','=',1],
-                    ];
-                    $join=[
-                        ['store_dealer SD','O.user_store_id=SD.store_id'],
-                        ['store S','SD.ostore_id=S.store_id'],
-                    ];
-                    $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
-                    $where[]=['store_id','=',$storeId];
-                    $query=$model->where($where);
-                }else{
-                    $where[]=['user_store_id','=',$storeId];
-                    $query=$model->where($where);
-                }
-                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+//         if ($startTime==$endTime){//单日数据
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
+//             $now=date('Y-m-d H:00');
+//             while ($begin<=$endTime) {
+//                 $data[$i]['time']=date('H:00',$begin);
+//                 $end=$begin+3600;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['order_status','<>',2],
+//                     ['pay_status','=',1],
+//                 ];
+//                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+//                     //渠道商零售商数据据统计
+//                     $where=[
+//                         ['O.add_time','>=',$begin],
+//                         ['O.add_time','<',$end],
+//                         ['S.is_del','=',0],
+//                         ['S.store_type','=',2],
+//                         ['S.store_id','=',$storeId],
+//                         ['order_status','<>',2],
+//                         ['O.pay_status','=',1],
+//                     ];
+//                     $join=[
+//                         ['store_dealer SD','O.user_store_id=SD.store_id'],
+//                         ['store S','SD.ostore_id=S.store_id'],
+//                     ];
+//                     $query = $model->alias('O')->join($join)->where($where);
+//                 }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+//                     $where[]=['store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }else{
+//                     $where[]=['user_store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }
+//                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
 
-                //以前数据加缓存7天
-                //if ($now != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->count();
+//                 //以前数据加缓存7天
+//                 //if ($now != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->count();
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-                if ($end>strtotime(date('Y-m-d H:00'))) {
-                    break;
-                }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//                 if ($end>strtotime(date('Y-m-d H:00'))) {
+//                     break;
+//                 }
 
-            }
-        }else{
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
-            $today=date('Y-m-d');
-            while($begin<=$endTime){
-                $data[$i]['time']=date('Y-m-d',$begin);
-                $end=$begin+86400;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['order_status','<>',2],
-                    ['pay_status','=',1],
-                ];
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
-                    //渠道商零售商数据据统计
-                    $where=[
-                        ['O.add_time','>=',$begin],
-                        ['O.add_time','<',$end],
-                        ['S.is_del','=',0],
-                        ['S.store_type','=',2],
-                        ['S.store_id','=',$storeId],
-                        ['order_status','<>',2],
-                        ['O.pay_status','=',1],
-                    ];
-                    $join=[
-                        ['store_dealer SD','O.user_store_id=SD.store_id'],
-                        ['store S','SD.ostore_id=S.store_id'],
-                    ];
-                    $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
-                    $where[]=['store_id','=',$storeId];
-                    $query=$model->where($where);
-                }else{
-                    $where[]=['user_store_id','=',$storeId];
-                    $query=$model->where($where);
-                }
-                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-                //以前数据加缓存7天
-                //if ($today != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->count();
+//             }
+//         }else{
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
+//             $today=date('Y-m-d');
+//             while($begin<=$endTime){
+//                 $data[$i]['time']=date('Y-m-d',$begin);
+//                 $end=$begin+86400;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['order_status','<>',2],
+//                     ['pay_status','=',1],
+//                 ];
+//                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+//                     //渠道商零售商数据据统计
+//                     $where=[
+//                         ['O.add_time','>=',$begin],
+//                         ['O.add_time','<',$end],
+//                         ['S.is_del','=',0],
+//                         ['S.store_type','=',2],
+//                         ['S.store_id','=',$storeId],
+//                         ['order_status','<>',2],
+//                         ['O.pay_status','=',1],
+//                     ];
+//                     $join=[
+//                         ['store_dealer SD','O.user_store_id=SD.store_id'],
+//                         ['store S','SD.ostore_id=S.store_id'],
+//                     ];
+//                     $query = $model->alias('O')->join($join)->where($where);
+//                 }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+//                     $where[]=['store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }else{
+//                     $where[]=['user_store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }
+//                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+//                 //以前数据加缓存7天
+//                 //if ($today != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->count();
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-            }
-        }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//             }
+//         }
 
-        $color=['#009688'];
-        $chart=new Chart('group',[''],$lable,$dataset,$color,false);
-        $result=$chart->getOption();
-        if(IS_AJAX){
-            return $this->ajaxJsonReturn($result);
-        }else{
-            return json_encode($result);
-        }
-    }
+//         $color=['#009688'];
+//         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
+//         $result=$chart->getOption();
+//         if(IS_AJAX){
+//             return $this->ajaxJsonReturn($result);
+//         }else{
+//             return json_encode($result);
+//         }
+//     }
 
-    //订单金额统计
-    private function orderAmount($startTime,$endTime,$storeId)
-    {
-        $data=[];
-        $lable=[];
-        $dataset[0] = [
-            'name'     =>'',
-            'type'     =>'line',
-            'itemStyle'=>[],
-            'smooth'   => 0.5
-        ];
-        $model=new \app\common\model\Order();
+//     //订单金额统计
+//     private function orderAmount($startTime,$endTime,$storeId)
+//     {
+//         $data=[];
+//         $lable=[];
+//         $dataset[0] = [
+//             'name'     =>'',
+//             'type'     =>'line',
+//             'itemStyle'=>[],
+//             'smooth'   => 0.5
+//         ];
+//         $model=new \app\common\model\Order();
 
-        //$startTime='2018-12-14';
-        //$endTime='2018-12-25';
-        //$storeId=3;
+//         //$startTime='2018-12-14';
+//         //$endTime='2018-12-25';
+//         //$storeId=3;
 
-        if ($startTime==$endTime){//单日数据
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
-            $now=date('Y-m-d H:00');
-            while ($begin<=$endTime) {
-                $data[$i]['time']=date('H:00',$begin);
-                $end=$begin+3600;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['order_status','<>',2],
-                    ['pay_status','=',1],
-                ];
+//         if ($startTime==$endTime){//单日数据
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
+//             $now=date('Y-m-d H:00');
+//             while ($begin<=$endTime) {
+//                 $data[$i]['time']=date('H:00',$begin);
+//                 $end=$begin+3600;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['order_status','<>',2],
+//                     ['pay_status','=',1],
+//                 ];
 
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
-                    //渠道商零售商数据据统计
-                    $where=[
-                        ['O.add_time','>=',$begin],
-                        ['O.add_time','<',$end],
-                        ['S.is_del','=',0],
-                        ['S.store_type','=',2],
-                        ['S.store_id','=',$storeId],
-                        ['order_status','<>',2],
-                        ['O.pay_status','=',1],
-                    ];
-                    $join=[
-                        ['store_dealer SD','O.user_store_id=SD.store_id'],
-                        ['store S','SD.ostore_id=S.store_id'],
-                    ];
-                    $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
-                    $where[]=['store_id','=',$storeId];
-                    $query=$model->where($where);
-                }else{
-                    $where[]=['user_store_id','=',$storeId];
-                    $query=$model->where($where);
-                }
-                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+//                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+//                     //渠道商零售商数据据统计
+//                     $where=[
+//                         ['O.add_time','>=',$begin],
+//                         ['O.add_time','<',$end],
+//                         ['S.is_del','=',0],
+//                         ['S.store_type','=',2],
+//                         ['S.store_id','=',$storeId],
+//                         ['order_status','<>',2],
+//                         ['O.pay_status','=',1],
+//                     ];
+//                     $join=[
+//                         ['store_dealer SD','O.user_store_id=SD.store_id'],
+//                         ['store S','SD.ostore_id=S.store_id'],
+//                     ];
+//                     $query = $model->alias('O')->join($join)->where($where);
+//                 }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+//                     $where[]=['store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }else{
+//                     $where[]=['user_store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }
+//                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
 
-                //以前数据加缓存7天
-                //if ($now != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->sum('real_amount');
+//                 //以前数据加缓存7天
+//                 //if ($now != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->sum('real_amount');
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-                if ($end>strtotime(date('Y-m-d H:00'))) {
-                    break;
-                }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//                 if ($end>strtotime(date('Y-m-d H:00'))) {
+//                     break;
+//                 }
 
-            }
-        }else{
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
+//             }
+//         }else{
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
 
-            $today=date('Y-m-d');
-            while($begin<=$endTime){
-                $data[$i]['time']=date('Y-m-d',$begin);
-                $end=$begin+86400;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['order_status','<>',2],
-                    ['pay_status','=',1],
-                ];
+//             $today=date('Y-m-d');
+//             while($begin<=$endTime){
+//                 $data[$i]['time']=date('Y-m-d',$begin);
+//                 $end=$begin+86400;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['order_status','<>',2],
+//                     ['pay_status','=',1],
+//                 ];
 
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
-                    //渠道商零售商数据据统计
-                    $where=[
-                        ['O.add_time','>=',$begin],
-                        ['O.add_time','<',$end],
-                        ['S.is_del','=',0],
-                        ['S.store_type','=',2],
-                        ['S.store_id','=',$storeId],
-                        ['O.order_status','=',1],
-                        ['O.pay_status','=',1],
-                    ];
-                    $join=[
-                        ['store_dealer SD','O.user_store_id=SD.store_id'],
-                        ['store S','SD.ostore_id=S.store_id'],
-                    ];
-                    $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
-                    $where[]=['store_id','=',$storeId];
-                    $query=$model->where($where);
-                }else{
-                    $where[]=['user_store_id','=',$storeId];
-                    $query=$model->where($where);
-                }
-                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-                //以前数据加缓存7天
-                //if ($today != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->sum('real_amount');
+//                 if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+//                     //渠道商零售商数据据统计
+//                     $where=[
+//                         ['O.add_time','>=',$begin],
+//                         ['O.add_time','<',$end],
+//                         ['S.is_del','=',0],
+//                         ['S.store_type','=',2],
+//                         ['S.store_id','=',$storeId],
+//                         ['O.order_status','=',1],
+//                         ['O.pay_status','=',1],
+//                     ];
+//                     $join=[
+//                         ['store_dealer SD','O.user_store_id=SD.store_id'],
+//                         ['store S','SD.ostore_id=S.store_id'],
+//                     ];
+//                     $query = $model->alias('O')->join($join)->where($where);
+//                 }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+//                     $where[]=['store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }else{
+//                     $where[]=['user_store_id','=',$storeId];
+//                     $query=$model->where($where);
+//                 }
+//                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+//                 //以前数据加缓存7天
+//                 //if ($today != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->sum('real_amount');
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-            }
-        }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//             }
+//         }
 
-        $color=['#009688'];
-        $chart=new Chart('group',[''],$lable,$dataset,$color,false);
-        $result=$chart->getOption();
-        if(IS_AJAX){
-            return $this->ajaxJsonReturn($result);
-        }else{
-            return json_encode($result);
-        }
-    }
-    //工单概况
-    private function workOrderOverView($startTime,$endTime,$storeId)
-    {
-        $data=[];
-        $lable=[];
-        $dataset[0] = [
-            'name'     =>'',
-            'type'     =>'line',
-            'itemStyle'=>[],
-            'smooth'   => 0.5
-        ];
-        $workOrder=new \app\common\model\WorkOrder();
+//         $color=['#009688'];
+//         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
+//         $result=$chart->getOption();
+//         if(IS_AJAX){
+//             return $this->ajaxJsonReturn($result);
+//         }else{
+//             return json_encode($result);
+//         }
+//     }
+//     //工单概况
+//     private function workOrderOverView($startTime,$endTime,$storeId)
+//     {
+//         $data=[];
+//         $lable=[];
+//         $dataset[0] = [
+//             'name'     =>'',
+//             'type'     =>'line',
+//             'itemStyle'=>[],
+//             'smooth'   => 0.5
+//         ];
+//         $workOrder=new \app\common\model\WorkOrder();
 
-        //$startTime='2018-12-14';
-        //$endTime='2018-12-25';
-        //$storeId=3;
+//         //$startTime='2018-12-14';
+//         //$endTime='2018-12-25';
+//         //$storeId=3;
 
-        if ($startTime==$endTime){//单日数据
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
-            $now=date('Y-m-d H:00');
-            while ($begin<=$endTime) {
-                $data[$i]['time']=date('H:00',$begin);
-                $end=$begin+3600;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['store_id','=',$storeId],
-                ];
-                $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
-                $query=$workOrder->where($where);
-                //以前数据加缓存7天
-                //if ($now != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->count();
+//         if ($startTime==$endTime){//单日数据
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
+//             $now=date('Y-m-d H:00');
+//             while ($begin<=$endTime) {
+//                 $data[$i]['time']=date('H:00',$begin);
+//                 $end=$begin+3600;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['store_id','=',$storeId],
+//                 ];
+//                 $key='work_order_overview_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+//                 $query=$workOrder->where($where);
+//                 //以前数据加缓存7天
+//                 //if ($now != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->count();
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-                if ($begin>strtotime(date('Y-m-d H:00'))) {
-                    break;
-                }
-            }
-        }else{
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//                 if ($begin>strtotime(date('Y-m-d H:00'))) {
+//                     break;
+//                 }
+//             }
+//         }else{
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
 
-            $today=date('Y-m-d');
-            while($begin<=$endTime){
-                $data[$i]['time']=date('Y-m-d',$begin);
-                $end=$begin+86400;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['store_id','=',$storeId],
-                ];
-                $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
-                $query=$workOrder->where($where);
-                //以前数据加缓存7天
-                //if ($today != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->count();
+//             $today=date('Y-m-d');
+//             while($begin<=$endTime){
+//                 $data[$i]['time']=date('Y-m-d',$begin);
+//                 $end=$begin+86400;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['store_id','=',$storeId],
+//                 ];
+//                 $key='order_overview_'.$begin.'_'.$end.'_'.$storeId;
+//                 $query=$workOrder->where($where);
+//                 //以前数据加缓存7天
+//                 //if ($today != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->count();
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-            }
-        }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//             }
+//         }
 
-        $color=['#009688'];
-        $chart=new Chart('group',[''],$lable,$dataset,$color,false);
-        $result=$chart->getOption();
-        if(IS_AJAX){
-            return $this->ajaxJsonReturn($result);
-        }else{
-            return json_encode($result);
-        }
-    }
+//         $color=['#009688'];
+//         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
+//         $result=$chart->getOption();
+//         if(IS_AJAX){
+//             return $this->ajaxJsonReturn($result);
+//         }else{
+//             return json_encode($result);
+//         }
+//     }
 
-    //工单佣金统计
-    private function workOrderIncome($startTime,$endTime,$storeId)
-    {
+//     //工单佣金统计
+//     private function workOrderIncome($startTime,$endTime,$storeId)
+//     {
 
-        $data=[];
-        $lable=[];
-        $dataset[0] = [
-            'name'     =>'',
-            'type'     =>'line',
-            'itemStyle'=>[],
-            'smooth'   => 0.5
-        ];
-        $model=db('store_service_income');
+//         $data=[];
+//         $lable=[];
+//         $dataset[0] = [
+//             'name'     =>'',
+//             'type'     =>'line',
+//             'itemStyle'=>[],
+//             'smooth'   => 0.5
+//         ];
+//         $model=db('store_service_income');
 
-        //$startTime='2018-12-14';
-        //$endTime='2018-12-25';
-        //$storeId=3;
+//         //$startTime='2018-12-14';
+//         //$endTime='2018-12-25';
+//         //$storeId=3;
 
-        if ($startTime==$endTime){//单日数据
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
-            $now=date('Y-m-d H:00');
-            while ($begin<=$endTime) {
-                $data[$i]['time']=date('H:00',$begin);
-                $end=$begin+3600;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['store_id','=',$storeId],
-                    ['income_status', '<>', 2],
-                ];
-                $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
-                $query=$model->where($where);
-                //以前数据加缓存7天
-                //if ($now != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->sum('install_amount');
+//         if ($startTime==$endTime){//单日数据
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
+//             $now=date('Y-m-d H:00');
+//             while ($begin<=$endTime) {
+//                 $data[$i]['time']=date('H:00',$begin);
+//                 $end=$begin+3600;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['store_id','=',$storeId],
+//                     ['income_status', '<>', 2],
+//                 ];
+//                 $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId.'_'.$data[$i]['time'];
+//                 $query=$model->where($where);
+//                 //以前数据加缓存7天
+//                 //if ($now != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->sum('install_amount');
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-                if ($begin>strtotime(date('Y-m-d H:00'))) {
-                    break;
-                }
-            }
-        }else{
-            $begin=strtotime($startTime.' 00:00:00');
-            $endTime=strtotime($endTime.' 23:59:59');
-            $i=0;
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//                 if ($begin>strtotime(date('Y-m-d H:00'))) {
+//                     break;
+//                 }
+//             }
+//         }else{
+//             $begin=strtotime($startTime.' 00:00:00');
+//             $endTime=strtotime($endTime.' 23:59:59');
+//             $i=0;
 
-            $today=date('Y-m-d');
-            while($begin<=$endTime){
-                $data[$i]['time']=date('Y-m-d',$begin);
-                $end=$begin+86400;
-                $where=[
-                    ['add_time','>=',$begin],
-                    ['add_time','<',$end],
-                    ['store_id','=',$storeId],
-                    ['income_status', '<>', 2],
-                ];
-                $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
-                $query=$model->where($where);
-                //以前数据加缓存7天
-                //if ($today != $data[$i]['time']) {
-                //    $query->cache($key,86400*7);
-                //}
-                $data[$i]['value']=$query->sum('install_amount');
+//             $today=date('Y-m-d');
+//             while($begin<=$endTime){
+//                 $data[$i]['time']=date('Y-m-d',$begin);
+//                 $end=$begin+86400;
+//                 $where=[
+//                     ['add_time','>=',$begin],
+//                     ['add_time','<',$end],
+//                     ['store_id','=',$storeId],
+//                     ['income_status', '<>', 2],
+//                 ];
+//                 $key='work_order_income_'.$begin.'_'.$end.'_'.$storeId;
+//                 $query=$model->where($where);
+//                 //以前数据加缓存7天
+//                 //if ($today != $data[$i]['time']) {
+//                 //    $query->cache($key,86400*7);
+//                 //}
+//                 $data[$i]['value']=$query->sum('install_amount');
 
-                $lable[$i]=$data[$i]['time'];//鼠标移动提示
-                $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
-                $i++;
-                $begin=$end;
-            }
-        }
+//                 $lable[$i]=$data[$i]['time'];//鼠标移动提示
+//                 $dataset[0]['data'][$i]=$data[$i]['value'];//显示数据子元素值
+//                 $i++;
+//                 $begin=$end;
+//             }
+//         }
 
-        $color=['#009688'];
-        $chart=new Chart('group',[''],$lable,$dataset,$color,false);
-        $result=$chart->getOption();
-        if(IS_AJAX){
-            return $this->ajaxJsonReturn($result);
-        }else{
-            return json_encode($result);
-        }
-    }
+//         $color=['#009688'];
+//         $chart=new Chart('group',[''],$lable,$dataset,$color,false);
+//         $result=$chart->getOption();
+//         if(IS_AJAX){
+//             return $this->ajaxJsonReturn($result);
+//         }else{
+//             return json_encode($result);
+//         }
+//     }
 
 
 }

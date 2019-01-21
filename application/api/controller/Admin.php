@@ -63,8 +63,6 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
         $user = [
-            'factory_id'=> $user['factory_id'],
-            'store_id'  => $user['store_id'],
             'admin_type'=> $user['admin_type'],
             'username'  => $user['username'],
             'realname'  => $user['realname'],
@@ -78,23 +76,93 @@ class Admin extends Index
     protected function getHomeDetail()
     {
         $user = $this->_checkUser();
-        $index = new \app\common\controller\Index();
-        pre($index->getStoreHome());
-        switch ($user['admin_type']) {
-            case ADMIN_FACTORY:
-                //厂商首页显示数据
-                //1.今日支付订单数量
-                break;
-            case ADMIN_FACTORY:
-                //厂商首页显示数据
-                //1.今日支付订单数量
-                break;
-            default:
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-                break;
-                
+        $indexController = new \app\common\controller\Index();
+        $result = $indexController->getStoreHome($user);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $indexController->error]);
+        }
+        $this->_returnMsg(['detail' => $result]);
+    }
+    //获取用户公告列表(全部/未读)
+    protected function getBulletinList()
+    {
+        $user = $this->_checkUser();
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $unread = isset($this->postParams['unread']) ? intval($this->postParams['unread']) : 0;
+        $where = [
+            'B.publish_status' => 1,
+            'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))',
+            'B.store_type IN(0, '.$user['store_type'].')',
+        ];
+        if ($unread) {
+            $where[] = '(BR.bulletin_id IS NULL OR BR.is_read = 0)';
+        }
+        $join = [
+            ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.$user['user_id'], 'LEFT']
+        ];
+        $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read';
+        $order = 'is_top DESC, publish_time DESC';
+        $list = $this->_getModelList(db('bulletin'), $where, $field, $order, 'B', $join);
+        $this->_returnMsg(['list' => $list]);
+    }
+    //获取公告详情
+    protected function getBulletinDetail($return = FALSE)
+    {
+        $bulletinId = isset($this->postParams['bulletin_id']) ? intval($this->postParams['bulletin_id']) : 0;
+        if (!$bulletinId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告ID不能为空']);
+        }
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $join = [
+            ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.$user['user_id'], 'LEFT']
+        ];
+        $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read, IFNULL(BR.is_del, 0) as is_del';
+        $where = [
+            'B.publish_status' => 1,
+            'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))',
+            'B.store_type IN(0, '.$user['store_type'].')',
+            'B.bulletin_id' => $bulletinId,
+            '(BR.bulletin_id IS NULL OR BR.is_del = 0)',
+        ];
+        $detail = db('bulletin')->alias('B')->join($join)->where($where)->field($field)->find();
+        if (!$detail || $detail['is_del']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
+        }
+        if ($return) {
+            return $detail;
+        }
+        if (!$detail['is_read']) {
+            $detail = $this->setBulletinRead($detail);
         }
         $this->_returnMsg(['detail' => $detail]);
+    }
+    //设置公告已读
+    protected function setBulletinRead($detail = [])
+    {
+        $user = $this->_checkUser();
+        $detail = $this->getBulletinDetail(TRUE);
+        if (!$detail || $detail['is_del']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
+        }
+        if ($detail['is_read'] > 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告已读,不允许重复操作']);
+        }
+        $logModel = new \app\common\model\BulletinLog();
+        $result = $logModel->read($detail, $user);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $logModel->error]);
+        }
+        if ($detail) {
+            $detail['is_read'] = 1;
+            return $detail;
+        }
+        $this->_returnMsg(['msg' => '已读操作成功']);
     }
     //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
@@ -133,13 +201,17 @@ class Admin extends Index
         $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
         
-        $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
+        $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
     protected function getWorkerOrderDetail()
     {
 
     }
+    
+    
+    
+    
     
     protected function _checkPostParams()
     {
@@ -158,11 +230,11 @@ class Admin extends Index
     }
     private function _checkUser($openid = '')
     {
-        //$userId = 2;//厂商
-        //$userId =4;//渠道商
-        //$userId = 5;//零售商
-        $userId = 6;//服务商
-        $this->loginUser = db('user')->field('user_id, factory_id, store_id, admin_type, is_admin, username, realname, nickname, phone, status')->find($userId);
+        $userId = 2;//厂商
+        $userId =4;//渠道商
+//         $userId = 5;//零售商
+//         $userId = 6;//服务商
+        $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $this->loginUser ? $this->loginUser : [];
         
         $userModel = new \app\common\model\User();
