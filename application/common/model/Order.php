@@ -23,6 +23,7 @@ class Order extends Model
             $orderSkuModel = db('order_sku');
             $workOrderModel = db('work_order');
             foreach ($list as $key => $value) {
+                $list[$key]['_service'] = [];
                 $ossubId = 0;//可申请安装/售后的订单商品ID
                 $list[$key]['_status'] = get_order_status($value);
                 //判断订单申请安装状态
@@ -51,7 +52,7 @@ class Order extends Model
                         $ossubId = db('order_sku_sub')->alias('OSSUB')->join($join)->where($where)->value('OSSUB.ossub_id');
                     }
                     if ($value['order_status'] == 1 && $value['close_refund_status'] != 2) {
-                        $list[$key]['_workorder'] = [
+                        $list[$key]['_service'] = [
                             'ossub_id' => $ossubId,
                         ];
                     }

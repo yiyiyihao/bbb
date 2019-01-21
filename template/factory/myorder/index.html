@@ -86,8 +86,8 @@
               		{if condition="$vo['_apply_status']['ossub_id'] > 0"}
 	              		<a href="{:url('workorder/add', ['ossub_id' => $vo['_apply_status']['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
 	              	{/if}
-	              	{if condition="isset($vo['_workorder']) && $vo['_workorder']['ossub_id'] > 0"}
-	              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $vo['_workorder']['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
+	              	{if condition="isset($vo['_service']) && $vo['_service'] && $vo['_service']['ossub_id'] > 0"}
+	              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $vo['_service']['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
 	              	{/if}
               	</span>
               </td>
