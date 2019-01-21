@@ -12,8 +12,6 @@ class Admin extends Index
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
         parent::__construct();
-        $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 1;
-        $this->pageSize = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 10;
     }
     //登录
     protected function login()
@@ -80,6 +78,8 @@ class Admin extends Index
     protected function getHomeDetail()
     {
         $user = $this->_checkUser();
+        $index = new \app\common\controller\Index();
+        pre($index->getStoreHome());
         switch ($user['admin_type']) {
             case ADMIN_FACTORY:
                 //厂商首页显示数据

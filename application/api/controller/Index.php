@@ -22,6 +22,8 @@ class Index extends ApiBase
         $this->method = trim($this->postParams['method']);
         $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 0;
         $this->pageSize = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 0;
+        $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 1;
+        $this->pageSize = isset($this->postParams['page_size']) && $this->postParams['page_size'] ? intval($this->postParams['page_size']) : 10;
         if ($this->pageSize > 50) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '单页显示数量(page_size)不能大于50']);
         }
@@ -1099,6 +1101,9 @@ class Index extends ApiBase
         if($group)  $model->group($group);
         if ($this->pageSize > 0) {
             $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            if ($result) {
+                return $result->items();
+            }
             return $result;
         }else{
             return $model->field($field)->select();
