@@ -547,14 +547,14 @@ class Admin extends Index
         //$info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
         $info['assess_list']=[];
-        $assessList = $workOrderModel->getWorderAssess($info);
+        $assessList = $workOrderModel->getWorderAssess($info,'assess_id,msg,add_time,type');
         //pre($assessList);
         if (!empty($assessList)) {
-            $info['assess_list']=[
-                'msg'=>$assessList[0]['msg'],
-                'detail'=>$assessList[0]['configs'],
-                'add_time'=>$assessList[0]['add_time'],
-            ];
+            $assessList=array_map(function ($item) {
+                unset($item['assess_id']);
+                return $item;
+            },$assessList);
+            $info['assess_list']=$assessList;
         }
         unset($info['region_name'],$info['worder_id'],$info['goods_id'],$info['ossub_id']);
         $this->_returnMsg(['detail' => $info]);
