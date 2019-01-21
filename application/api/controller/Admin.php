@@ -216,7 +216,7 @@ class Admin extends Index
             'worder_sn' => $worderSn,
             'is_del' => 0,
         ];
-        $field='worder_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
+        $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
         $workOrderModel=new WorkOrder;
         $info = $workOrderModel->field($field)->where($where)->find();
         if (empty($info)) {
@@ -240,7 +240,7 @@ class Admin extends Index
             $infoSub = db('goods')->find($info['goods_id']);
             $info['goods_name']=$infoSub['name'];
         }
-        unset($info['region_name']);
+
         //获取工单日志
         //$info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
@@ -252,8 +252,8 @@ class Admin extends Index
                 'detail'=>$assess_list[0]['configs'],
             ];
         }
+        unset($info['region_name'],$info['worder_id'],$info['goods_id'],$info['ossub_id']);
         $this->_returnMsg(['details' => $info]);
-        //pre($info);
     }
     
     
