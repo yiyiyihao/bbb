@@ -602,7 +602,7 @@ class Admin extends Index
     protected function getServiceOrderList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $where = [
@@ -618,7 +618,7 @@ class Admin extends Index
         }else{
             $where['S.user_store_id'] = $user['store_id'];
         }
-        $field='S.order_sn,S.service_status,S.refund_amount,S.update_time,S1.name store_name,S1.mobile';
+        $field='S.service_sn,S.order_sn,S.service_status,S.refund_amount,S.update_time,S1.name store_name,S1.mobile';
         $join=[
             ['store S1', 'S1.store_id = S.user_store_id', 'LEFT'],
         ];
@@ -630,6 +630,45 @@ class Admin extends Index
     //获取售后订单详情
     protected function getServiceOrderDetail()
     {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
+        if (!$serviceSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后单号不能为空']);
+        }
+        $where = ['S.service_sn' => $serviceSn];
+        if ($user && isset($user['store_id']) && $user['store_id'] > 0) {
+            if ($user['admin_type'] == ADMIN_FACTORY) {
+                $where['S.store_id'] = $user['store_id'];
+            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
+                $storeIds = [$user['store_id']];
+                if ($user['admin_type'] == ADMIN_CHANNEL) {
+                    //获取零售商的下级经销商
+                    $ids = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
+                    $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
+                }
+                $where['S.user_store_id'] = ['IN', $storeIds];
+            }
+        }
+        $field='OS.sku_name,OS.sku_spec,OS.price,OS.install_price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status';
+        $join=[
+            ['order_sku_sub OSS', 'OSS.ossub_id = S.ossub_id', 'INNER'],
+            ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
+            ['order O', 'O.order_id = OSS.order_id', 'INNER'],
+        ];
+        $service = db('order_sku_service')->alias('S')->join($join)->field($field)->where($where)/*->fetchSql(true)*/->find();
+        if (!$service) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后服务单号不正确']);
+        }
+
+
+
+
+        pre($service);
+
+
         
     }
     //取消售后订单
