@@ -127,7 +127,6 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $result]);
     }
     //获取用户公告列表(全部/未读)
-    //获取公告列表
     protected function getBulletinList()
     {
         $user = $this->_checkUser();
@@ -151,7 +150,6 @@ class Admin extends Index
         $list = $this->_getModelList(db('bulletin'), $where, $field, $order, 'B', $join);
         $this->_returnMsg(['list' => $list]);
     }
-    //获取公告详情
     //获取公告详情
     protected function getBulletinDetail($return = FALSE)
     {
@@ -186,7 +184,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['detail' => $detail]);
     }
-    //设置公告已读
     //设置公告已读
     protected function setBulletinRead($detail = [])
     {
@@ -234,6 +231,172 @@ class Admin extends Index
         $unReadCount    = db('bulletin')->join($join)->field($field)->alias('B')->where($where)->count();
         $this->_returnMsg(['count' => $unReadCount]);
     }
+    
+    protected function getStoreList()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $where = [
+            'S.is_del' => 0,
+            'S.status' => 1,
+            'S.check_status'=> 1,
+            'S.factory_id'  => $user['factory_id'],
+        ];
+        $field = 'S.store_id, S.store_no, S.store_no, S.name, S.store_type, S.region_name';
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : 0;
+            if (!$storeType){
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户类型不能为空']);
+            }
+            $channelNo = isset($this->postParams['channel_no']) ? trim($this->postParams['channel_no']) : '';
+            if ($channelNo){
+                $channel = db('store')->where(['store_type' => STORE_CHANNEL, 'is_del' => 0, 'store_no' => $channelNo, 'factory_id' => $user['factory_id']])->find();
+                if (!$channel) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '渠道商不存在或已删除']);
+                }
+            }
+            $join = [];
+            switch ($storeType){
+                case STORE_CHANNEL:
+                    $join[] = ['store_channel OS', 'S.store_id = OS.store_id', 'INNER'];
+                    $join[] = ['store_finance SF', 'S.store_id = SF.store_id', 'INNER'];
+                    $field .= ', total_amount';
+                    break;
+                case STORE_DEALER:
+                    $field .= ', sample_amount';
+                    $join[] = ['store_dealer OS', 'S.store_id = OS.store_id', 'INNER'];
+                    break;
+                case STORE_SERVICE:
+                    $join[] = ['store_servicer OS', 'S.store_id = OS.store_id', 'INNER'];
+                    $join[] = ['store_finance SF', 'S.store_id = SF.store_id', 'INNER'];
+                    $field .= ', total_amount';
+                    break;
+                default:
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户类型错误']);
+                    break;
+            }
+            $where['S.factory_id'] = $user['factory_id'];
+        }else{
+            $storeType = STORE_DEALER;
+            $where['OS.ostore_id'] = $user['store_id'];
+            $join[] = ['store_dealer OS', 'S.store_id = OS.store_id', 'INNER'];
+            $field .= ', sample_amount, address';
+        }
+        $order = 'S.sort_order ASC, S.add_time desc';
+        $list = $this->_getModelList(db('store'), $where, $field, $order, 'S', $join);
+        if ($list) {
+            foreach ($list as $key => $value) {
+                switch ($storeType) {
+                    case STORE_DEALER:
+                        //计算订单金额 订单数量
+                        $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $value['store_id'], 'pay_status' => 1])->find();
+                        $list[$key]['order_num'] = $order ? intval($order['num']) : 0;
+                        if ($user['admin_type'] == ADMIN_CHANNEL) {
+                            $list[$key]['address'] = $value['region_name'].' '.$value['address'];
+                        }
+                        break;
+                    case STORE_CHANNEL:
+                        //所属零售商数量
+                        $where = [
+                            'S.store_type'  => STORE_DEALER,
+                            'S.is_del'      => 0,
+                            'S.check_status'=> 1,
+                            'SD.ostore_id'  => $value['store_id'],
+                        ];
+                        $join = [
+                            ['store_dealer SD', 'S.store_id = SD.store_id', 'INNER'],
+                        ];
+                        $list[$key]['dealer_count'] = db('store')->alias('S')->join($join)->where($where)->count();
+                        break;
+                    case STORE_SERVICE:
+                        //服务次数
+                        $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
+                        break;
+                    default:
+                        ;
+                        break;
+                }
+                $list[$key]['store_type_name'] = get_store_type($value['store_type']);
+                unset($list[$key]['store_id'], $list[$key]['store_type']);
+            }
+        }
+        $this->_returnMsg(['list' => $list]);
+    }
+    //获取商户详情
+    protected function getStoreDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $storeNo = isset($this->postParams['store_no']) ?trim($this->postParams['store_no']) : '';
+        if (!$storeNo) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户编号不能为空']);
+        }
+        $where = [
+            'is_del' => 0, 
+            'store_no' => $storeNo,
+            'factory_id' => $user['factory_id'],
+        ];
+        $field = 'store_id, store_type, store_no, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, status';
+        $info = db('store')->field($field)->where($where)->find();
+        if (!$info) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+        }
+        switch ($info['store_type']) {
+            case STORE_CHANNEL:
+                $model = 'channel';
+                break;
+            case STORE_DEALER:
+                $model = 'dealer';
+                break;
+            case STORE_SERVICE:
+                $model = 'servicer';
+                break;
+            default:
+                return FALSE;
+                break;
+        }
+        $finance = $account = [];
+        $detail = model($model)->where(['store_id' => $info['store_id']])->find();
+        if ($user['admin_type'] == ADMIN_CHANNEL && $user['store_id'] != $detail['ostore_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+        }
+        if ($detail) {
+            $info = array_merge($info, $detail->toArray());
+        }
+        if ($info['store_type'] != STORE_DEALER) {
+            $finance = db('store_finance')->field('amount, withdraw_amount, pending_amount, total_amount')->find($info['store_id']);
+            $account = db('store_bank')->field('id_card, realname, bank_name, bank_branch, bank_no')->where(['store_id' => $info['store_id'], 'is_del' => 0])->find();
+        }
+        if ($info['store_type'] != STORE_SERVICE) {
+            //计算订单金额 订单数量
+            $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $info['store_id'], 'pay_status' => 1])->find();
+            $info['order_num'] = $order ? intval($order['num']) : 0;
+            $info['order_amount'] = $order ? floatval($order['amount']) : 0;
+            //计算 退款订单数 退款订单金额
+            $orderService = db('order_sku_service');
+            $where = [
+                'store_id' => $detail['store_id'],
+                'service_status' => 3,
+            ];
+            $field = 'count(distinct(order_id)) count,sum(refund_amount) amount';
+            $refund = $orderService->field($field)->where($where)->find();
+            //累计退款订单数
+            $info['refund_count'] = $refund ? intval($refund['count']) : 0;
+            //累计退款金额
+            $info['refund_amount'] = $refund? floatval($refund['amount']): 0;
+        }else{
+            //服务工单数
+            $info['service_count'] = db('work_order')->where(['store_id' => $info['store_id'], 'sign_time' => ['>', 0]])->count();
+        }
+        $info['store_type_name'] = get_store_type($info['store_type']);
+        unset($info['store_id'], $info['store_type']);
+        $this->_returnMsg(['detail' => $info, 'finance' => $finance, 'account' => $account]);
+    }
+    
     //获取商品列表
     protected function getGoodsList()
     {
@@ -378,14 +541,14 @@ class Admin extends Index
                     $where['order_status'] = 1;
                 break;
                 case 3://已关闭(取消或已关闭)
-                    $map['order_status'] = ['<>', 1];
+                    $where['order_status'] = ['<>', 1];
                 break;
                 default:
                 break;
             }
         }
         if ($user['admin_type'] == ADMIN_FACTORY) {
-            $where['store_id'] = $user['user_id'];
+            $where['store_id'] = $user['store_id'];
             $flag = FALSE;
         }else{
             $where['user_id'] = $user['user_id'];
@@ -393,7 +556,6 @@ class Admin extends Index
             $where['user_store_type'] = $user['store_type'];
             $flag = TRUE;
         }
-        $field = '*';
         $order = 'add_time DESC';
         $field = 'order_id, store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
@@ -415,7 +577,7 @@ class Admin extends Index
     protected function getOrderDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -423,13 +585,16 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
         }
         $orderModel = new \app\common\model\Order();
-        $field = 'order_id, order_type, order_sn, goods_amount, delivery_amount, install_amount, real_amount, paid_amount, order_status, pay_status, delivery_status, finish_status';
-        $field .= 'add_time';
-        $result = $orderModel->getOrderDetail($orderSn, $user, FALSE, FALSE, $field);
+        $orderField = 'order_id, order_type, order_sn, real_amount, order_status, pay_status, delivery_status, finish_status';
+        $orderField .= ', pay_code, store_id, pay_time, close_refund_status, add_time, remark';
+        $skuField = 'sku_name, sku_thumb, sku_spec, num, price';
+        $result = $orderModel->getOrderDetail($orderSn, $user, FALSE, FALSE, $orderField, $skuField);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
         $detail = $result['order'];
+        unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
+        unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
     }
     
@@ -628,7 +793,7 @@ class Admin extends Index
     private function _checkUser($openid = '')
     {
         $userId = 2;//厂商
-        //$userId =4;//渠道商
+//         $userId =4;//渠道商
         //$userId = 5;//零售商
         //$userId = 6;//服务商
         $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
