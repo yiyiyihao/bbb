@@ -433,6 +433,22 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $detail]);
     }
     
+    //获取售后订单列表
+    protected function getServiceOrderList()
+    {
+        
+    }
+    //获取售后订单详情
+    protected function getServiceOrderDetail()
+    {
+        
+    }
+    //取消售后订单
+    protected function cancelServiceOrder()
+    {
+        
+    }
+    
     //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
     {
@@ -543,6 +559,32 @@ class Admin extends Index
         unset($info['region_name'],$info['worder_id'],$info['goods_id'],$info['ossub_id']);
         $this->_returnMsg(['detail' => $info]);
     }
+    //获取工程师列表
+    protected function getInstallerList()
+    {
+        
+    }
+    //获取工程师详情
+    protected function getInstallerDetail()
+    {
+        
+    }
+    //编辑工程师信息
+    protected function editInstaller()
+    {
+        
+    }
+    //设置工程师状态
+    protected function setInstallerStatus()
+    {
+        
+    }
+    //删除工程师
+    protected function delInstaller()
+    {
+        
+    }
+    
     
     protected function _checkPostParams()
     {
