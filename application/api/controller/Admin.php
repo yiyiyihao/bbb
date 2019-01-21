@@ -99,52 +99,38 @@ class Admin extends Index
     {
         $user = $this->_checkUser();
         $where=[
-            'WO.is_del'=>0,
-            'WO.status'=>1,
-            'U.is_del'=>0,
-            'U.status'=>1,
+            'is_del' => 0,
+            'status' => 1,
         ];
         $workOrderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']) : '';
         $workOrderStatus = isset($this->postParams['work_order_status']) ? intval($this->postParams['work_order_status']) : '';
-        $page =$this->page? $this->page : 1;
-        $page_size = $this->pageSize? $this->pageSize : 10;
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
-            $where['WO.work_order_type']=$workOrderType;
+            $where['work_order_type']=$workOrderType;
         }
         if ( ''!==$workOrderStatus &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
-            $where['WO.work_order_status']=$workOrderStatus;
+            $where['work_order_status']=$workOrderStatus;
         }
         switch ($user['admin_type']) {
             case ADMIN_FACTORY://厂商
-                $where['WO.factory_id']=$user['store_id'];
+                $where['factory_id']=$user['store_id'];
                 break;
             case ADMIN_SERVICE://服务商
-                $where['WO.store_id'] = $user['store_id'];
+                $where['store_id'] = $user['store_id'];
                 break;
             case ADMIN_CHANNEL://渠道商
-                $where['WO.post_store_id'] = $user['store_id'];
+                $where['post_store_id'] = $user['store_id'];
                 break;
             case ADMIN_DEALER://零售商
-                $where['WO.post_store_id'] = $user['store_id'];
+                $where['post_store_id'] = $user['store_id'];
                 break;
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
         }
-        $join = [['user U','WO.post_user_id = U.user_id']];
-        $order = 'WO.worder_id desc';
-        $field = 'WO.worder_sn, WO.order_sn, WO.work_order_type, WO.work_order_status, WO.region_name, WO.address, WO.phone, WO.user_name';
-        $list = $this->_getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
+        $order = 'worder_id desc';
+        $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name';
+        $list = $this->_getModelList(db('work_order'), $where, $field, $order);
         
-//         $list=db('work_order')->alias('WO')
-//             ->field($field)
-//             ->join('user U','WO.post_user_id = U.user_id')
-//             ->where($where)
-//             ->page($page)
-//             ->limit($page_size)
-//             ->order('WO.worder_id desc')
-//             ->select();
-        //pre($list);
         $this->_returnMsg(['msg' => 'ok', 'list' => $list]);
     }
 
