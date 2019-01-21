@@ -206,16 +206,35 @@ class Admin extends Index
         $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
-    protected function getWorkOrderDetails()
+    protected function getWorkOrderDetail($return=false)
     {
+        $user = $this->_checkUser();
         $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
         if (empty($worderSn)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('PARAM_ERROR')]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
         }
         $where = [
             'worder_sn' => $worderSn,
             'is_del' => 0,
+            'status' => 1,
         ];
+        switch ($user['admin_type']) {
+            case ADMIN_FACTORY://厂商
+                $where['factory_id']=$user['store_id'];
+                break;
+            case ADMIN_SERVICE://服务商
+                $where['store_id'] = $user['store_id'];
+                break;
+            case ADMIN_CHANNEL://渠道商
+                $where['post_store_id'] = $user['store_id'];
+                break;
+            case ADMIN_DEALER://零售商
+                $where['post_store_id'] = $user['store_id'];
+                break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+                break;
+        }
         $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
         $workOrderModel=new WorkOrder;
         $info = $workOrderModel->field($field)->where($where)->find();
@@ -223,8 +242,8 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
         }
         $info['images']=explode(',',$info['images']);
-        $region_name=str_replace(' ','',$info['region_name']);
-        $info['address']=$region_name.$info['address'];
+        $regionName=str_replace(' ','',$info['region_name']);
+        $info['address']=$regionName.$info['address'];
 
         if ($info['ossub_id']) {
             $join = [
@@ -245,11 +264,13 @@ class Admin extends Index
         //$info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
         $info['assess_list']=[];
-        $assess_list = $workOrderModel->getWorderAssess($info);
-        if (!empty($assess_list)) {
+        $assessList = $workOrderModel->getWorderAssess($info);
+        //pre($assessList);
+        if (!empty($assessList)) {
             $info['assess_list']=[
-                'msg'=>$assess_list[0]['msg'],
-                'detail'=>$assess_list[0]['configs'],
+                'msg'=>$assessList[0]['msg'],
+                'detail'=>$assessList[0]['configs'],
+                'add_time'=>$assessList[0]['add_time'],
             ];
         }
         unset($info['region_name'],$info['worder_id'],$info['goods_id'],$info['ossub_id']);
@@ -278,9 +299,9 @@ class Admin extends Index
     private function _checkUser($openid = '')
     {
         $userId = 2;//厂商
-        $userId =4;//渠道商
-//         $userId = 5;//零售商
-//         $userId = 6;//服务商
+        //$userId =4;//渠道商
+        //$userId = 5;//零售商
+        //$userId = 6;//服务商
         $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $this->loginUser ? $this->loginUser : [];
         
