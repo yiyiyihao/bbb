@@ -169,6 +169,9 @@ class Admin extends Index
         if (!$this->loginUser) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请登录后操作']);
         }
+        if (!$this->loginUser['admin_type']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户信息错误']);
+        }
         return $this->loginUser;
     }
 }
