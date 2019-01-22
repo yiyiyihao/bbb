@@ -6,7 +6,6 @@ use app\common\model\WorkOrder;
 
 class Admin extends Index
 {
-    private $loginUser;
     private $visitIp;
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
@@ -14,15 +13,62 @@ class Admin extends Index
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
+        $this->mchKey = '1458745225';
+//         \think\facade\Session::clear();
+//         pre(session(''));
         parent::__construct();
     }
-    //登录
+    //微信授权-第1步
+    protected function getWechatScope()
+    {
+        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
+        $appsecret = isset($wechatApi->config['appsecret']) ? trim($wechatApi->config['appsecret']) : '';
+        if (!$appid || !$appsecret) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'Appid/AppSecret配置不能为空']);
+        }
+        $uri = urlEncode('http://m.smarlife.cn');
+        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+        $this->_returnMsg(['scopeUrl' => $scopeUrl]);
+    }
+    //微信授权-第2步，返回微信Openid
+    protected function getWechatOpenid()
+    {
+        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
+        if (!$code) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
+        }
+        $result = $wechatApi->getOauthOpenid($code, TRUE);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+        }
+        $userModel = new \app\common\model\User();
+        $params = [
+            'user_type'     => 'user',
+            'appid'         => $result['appid'],
+            'third_openid'  => $result['openid'],
+            'nickname'      => isset($result['nickname']) ? trim($result['nickname']) : '',
+            'avatar'        => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
+            'gender'        => isset($result['sex']) ? intval($result['sex']) : 0,
+            'unionid'       => isset($result['unionid']) ? trim($result['unionid']) : '',
+            'third_type'    => 'wechat_h5',
+        ];
+        $oauth = $userModel->authorized($this->factory['store_id'], $params);
+        if ($oauth === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+        }
+        if (!$oauth['user_id']) {
+            $oauth['third_openid'] = $result['openid'];
+            session('api_user_data', $oauth);
+            $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'loginStep' => 2]);
+        }
+        $this->_setLogin($oauth['user_id'], $result['openid']);
+    }
+    //绑定登录
     protected function login()
     {
-        $user = $this->_checkUser();
-        if ($user) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您已经登录']);
-        }
+        $udata = $this->_getScopeUser();
         $username = isset($this->postParams['username']) ? trim($this->postParams['username']) : '';
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
         if (!$username) {
@@ -61,20 +107,168 @@ class Admin extends Index
         if(!$user['status']){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('LOGIN_FORBIDDEN')]);
         }
-        $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
+        //微信用户绑定
+        $result = db('user_data')->where(['udata_id' => $udata['udata_id']])->update(['user_id' => $user['user_id'], 'update_time' => time()]);
+        $this->_setLogin($user['user_id'], $udata['third_openid']);
+    }
+    protected function applyStep1()
+    {
+        $udata = $this->_getScopeUser();
+        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
+        $rePwd = isset($this->postParams['re_pwd']) ? trim($this->postParams['re_pwd']) : '';
+        $allow = isset($this->postParams['allow']) ? intval($this->postParams['allow']) : 0;
+        if (!$phone) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码不能为空']);
+        }
+        if (!$password) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '密码不能为空']);
+        }
+        if (!$rePwd) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '确认密码不能为空']);
+        }
+        if ($password != $rePwd) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '两次密码输入不一致']);
+        }
+        if (!$allow) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请同意用户协议']);
+        }
+        $userModel = new \app\common\model\User();
+        //检查登录用户名/密码格式
+        $extra = [
+            'phone'     => $phone,
+            'password'  => $password,
+        ];
+        $result = $userModel->checkFormat($this->factory['store_id'], $extra, FALSE);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
-        $user = [
-            'admin_type'=> $user['admin_type'],
-            'username'  => $user['username'],
-            'realname'  => $user['realname'],
-            'nickname'  => $user['nickname'],
-            'phone'     => $user['phone'],
-            'status'    => $user['status'],
+        $data = [
+            'phone'     => $phone,
+            'username'  => $phone,
+            'admin_type'=> 0,
+            'factory_id'=> $this->factory['store_id'],
+            'store_id'  => 0,
+            'is_admin'  => 1,
+            'password'  => $userModel->pwdEncryption($password),
+            'group_id'  => 0,
         ];
-        $this->_returnMsg(['msg' => '登录成功', 'user' => $user]);
+        $userId = $userModel->save($data);
+        if ($userId === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        } else {
+            $result = db('user_data')->where(['udata_id' => $udata['udata_id']])->update(['user_id' => $userId, 'update_time' => time()]);
+            $udata['phone'] = $phone;
+            $udata['user_id'] = $userId;
+            $udata['store_id'] = 0;
+            session('api_user_data', $udata);
+            $this->_returnMsg(['msg' => '注册成功,请完善资料']);
+        }
     }
+    protected function applyStep2()
+    {
+        $udata = $this->_getScopeUser();
+        $types = [
+            STORE_DEALER => [
+                'name' => '零售商',
+                'admin_type' => ADMIN_DEALER,
+                'group_id'   => GROUP_DEALER,
+            ],
+            STORE_CHANNEL => [
+                'name' => '渠道商',
+                'admin_type' => ADMIN_CHANNEL,
+                'group_id'   => GROUP_CHANNEL,
+            ],
+            STORE_SERVICE => [
+                'name' => '服务商',
+                'admin_type' => ADMIN_SERVICE,
+                'group_id'   => GROUP_SERVICE,
+            ],
+        ];
+        $params = $this->postParams;
+        $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : '';
+        if (!$storeType) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请选择商户类型')]);
+        }
+        if (!isset($types[$storeType])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户类型错误')]);
+        }
+        $channelNo = isset($this->postParams['channel_no']) ? trim($this->postParams['channel_no']) : '';
+        $storeModel = new \app\common\model\Store();
+        if ($storeType == STORE_DEALER) {
+            if (!$channelNo) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
+            }
+            $channel = $storeModel->where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            if (!$channel) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
+            }
+            $params['ostore_id'] = $channel['store_id'];
+        }
+        $this->_verifyStoreForm($storeType);
+        if (isset($params['sample_amount'])) {
+            $amount = floatval($params['sample_amount']);
+            $amount = sprintf('%.2f', $amount);
+            if (strlen($amount) > 11) {
+                $array = explode('.', $amount);
+                $amount = substr($array[0], 0, 8);
+                $amount = $amount.'.'.$array[1];
+                $params['sample_amount'] = $amount;
+            }
+        }
+        if (isset($params['security_money'])) {
+            $amount = floatval($params['security_money']);
+            $amount = sprintf('%.2f', $amount);
+            if (strlen($amount) > 11) {
+                $array = explode('.', $amount);
+                $amount = substr($array[0], 0, 8);
+                $amount = $amount.'.'.$array[1];
+                $params['security_money'] = $amount;
+            }
+        }
+        $params['store_type'] = $storeType;
+        $params['factory_id'] = $this->factory['store_id'];
+        $params['mobile']     = $udata['phone'];
+        $params['config_json'] = '';
+        $params['check_status'] = 0;
+        $params['enter_type'] = 1;
+        $storeId = $storeModel->save($params);
+        if ($storeId === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        }else{
+            $data = [
+                'admin_type'    => $types[$storeType]['admin_type'],
+                'group_id'      => $types[$storeType]['group_id'],
+                'store_id'      => $storeId,
+                'realname'      => trim($params['user_name'])
+            ];
+            $userModel = new \app\common\model\User();
+            $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
+            $this->_setLogin($udata['user_id'], $udata['third_openid']);
+            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核']);
+        }
+    }
+    //获取入驻商户审核详情
+    protected function getApplyDetail()
+    {
+        $user = $this->_checkUser(FALSE);
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $field = 'store_id, enter_type, address, store_type, store_no, check_status, admin_remark, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, add_time';
+        $detail = $this->getStoreDetail($field, $user['store_id']);
+        if ($detail['enter_type'] != 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+        }
+        $detail['check_status_txt'] = get_check_status($detail['check_status']);
+        $detail['add_time'] = time_to_date($detail['add_time']);
+        if ($detail['store_type'] == STORE_DEALER) {
+            $detail['region_name'] = $detail['region_name'] . $detail['address'];
+        }
+        unset($detail['store_id'], $detail['store_type'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
+        $this->_returnMsg(['detail' => $detail]);
+    }
+    
     //修改用户密码
     protected function updatePassword()
     {
@@ -115,7 +309,6 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '修改密码成功']);
         }
     }
-    
     //获取首页信息
     protected function getHomeDetail()
     {
@@ -232,7 +425,7 @@ class Admin extends Index
         $unReadCount    = db('bulletin')->join($join)->field($field)->alias('B')->where($where)->count();
         $this->_returnMsg(['count' => $unReadCount]);
     }
-    
+    //获取商户列表
     protected function getStoreList()
     {
         $user = $this->_checkUser();
@@ -326,22 +519,28 @@ class Admin extends Index
         $this->_returnMsg(['list' => $list]);
     }
     //获取商户详情
-    protected function getStoreDetail()
+    protected function getStoreDetail($returnField = '', $storeId = 0)
     {
-        $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-        }
-        $storeNo = isset($this->postParams['store_no']) ?trim($this->postParams['store_no']) : '';
-        if (!$storeNo) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户编号不能为空']);
+        if (!$storeId) {
+            $user = $this->_checkUser();
+            if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+            }
+            $storeNo = isset($this->postParams['store_no']) ?trim($this->postParams['store_no']) : '';
+            if (!$storeNo) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户编号不能为空']);
+            }
         }
         $where = [
             'is_del' => 0, 
-            'store_no' => $storeNo,
-            'factory_id' => $user['factory_id'],
+            'factory_id' => $this->factory['store_id'],
         ];
-        $field = 'store_id, store_type, store_no, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, status';
+        if ($storeId) {
+            $where['store_id'] = $storeId;
+        }else{
+            $where['store_no'] = $storeNo;
+        }
+        $field = $returnField ? $returnField : 'store_id, store_type, store_no, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, status';
         $info = db('store')->field($field)->where($where)->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
@@ -362,11 +561,15 @@ class Admin extends Index
         }
         $finance = $account = [];
         $detail = model($model)->where(['store_id' => $info['store_id']])->find();
-        if ($user['admin_type'] == ADMIN_CHANNEL && $user['store_id'] != $detail['ostore_id']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
-        }
         if ($detail) {
             $info = array_merge($info, $detail->toArray());
+        }
+        $info['store_type_name'] = get_store_type($info['store_type']);
+        if ($returnField) {
+            return $info;
+        }
+        if ($user['admin_type'] == ADMIN_CHANNEL && $user['store_id'] != $detail['ostore_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
         }
         if ($info['store_type'] != STORE_DEALER) {
             $finance = db('store_finance')->field('amount, withdraw_amount, pending_amount, total_amount')->find($info['store_id']);
@@ -393,9 +596,295 @@ class Admin extends Index
             //服务工单数
             $info['service_count'] = db('work_order')->where(['store_id' => $info['store_id'], 'sign_time' => ['>', 0]])->count();
         }
-        $info['store_type_name'] = get_store_type($info['store_type']);
-        unset($info['store_id'], $info['store_type']);
+        unset($info['store_id'], $info['store_type'], $info['ostore_id']);
         $this->_returnMsg(['detail' => $info, 'finance' => $finance, 'account' => $account]);
+    }
+    //新增零售商
+    protected function addDealer()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
+        }
+        $this->_verifyStoreForm();
+        //判断渠道商操作零售商是否需要厂商审核
+        $config = get_store_config($this->factory['store_id'], TRUE, 'default');
+        $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
+        $this->postParams['store_type'] = STORE_DEALER;
+        $this->postParams['factory_id'] = $user['factory_id'];
+        $this->postParams['ostore_id'] = $user['store_id'];
+        $this->postParams['config_json'] = '';
+        if (!$check) {
+            $storeModel = new \app\common\model\Store();
+            $this->postParams['check_status'] = 1;
+            $result = $storeModel->save($this->postParams);
+            if ($result === FALSE) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
+            }else{
+                $this->_returnMsg(['msg' => '新增零售商成功']);
+            }
+        }else{
+            $data = [
+                'factory_id'        => $user['factory_id'],
+                'action_store_id'   => $user['store_id'],
+                'action_user_id'    => $user['user_id'],
+                'to_store_id'       => 0,
+                'to_store_name'     => isset($this->postParams['name']) ? trim($this->postParams['name']) : '',
+                'action_type'       => 'add',
+                'before'            => '',
+                'after'             => $this->postParams ? json_encode($this->postParams): '',
+                'modify'            => $this->postParams ? json_encode($this->postParams): '',
+                'check_status'      => 0,
+                'add_time'          => time(),
+                'update_time'       => time(),
+            ];
+            $result = db('store_action_record')->insertGetId($data);
+            if ($result === FALSE) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
+            }else{
+                $this->_returnMsg(['msg' => '新增零售商成功，等待厂商审核']);
+            }
+        }
+    }
+    private function _verifyStoreForm($storeType = STORE_DEALER)
+    {
+        $sname = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
+        $userName = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $mobile = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
+        $sampleAmount = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
+        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
+        $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
+        $signingContractImg = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
+        $name = get_store_type($storeType);
+        if (!$sname){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'名称不能为空']);
+        }
+        if (!$userName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系人姓名不能为空']);
+        }
+        if (!$mobile){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
+        }
+        if ($storeType == STORE_DEALER && $sampleAmount < 0){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
+        }
+        if ($regionId <= 0 || !$regionName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择'.$name.'区域']);
+        }
+        if ($storeType == STORE_DEALER && !$address){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'地址详情不能为空']);
+        }
+        /* if (!$idcardFontImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证正面']);
+         }
+         if (!$idcardBackImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证背面']);
+         }
+         if (!$signingContractImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传签约合同']);
+         } */
+    }
+    //编辑零售商
+    protected function editDealer()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商编辑权限']);
+        }
+        $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
+        if (!$storeNo) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '零售商编号不能为空']);
+        }
+        $storeModel = new \app\common\model\Store();
+        $where = [
+            'S.store_no' => $storeNo, 
+            'S.is_del' => 0, 
+            'S.store_type' => STORE_DEALER, 
+            'S.factory_id' => $user['factory_id'],
+            'SD.ostore_id' => $user['store_id'],
+        ];
+        $store = db('store')->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->find();
+        if (!$store) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '零售商不存在或已删除']);
+        }
+        $this->_verifyStoreForm();
+        //判断对象是否存在待处理的申请
+        $exist = db('store_action_record')->where(['to_store_id' => $store['store_id'], 'check_status' => 0])->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前零售商存在待审核的操作记录,请等待审核']);
+        }
+        //判断渠道商操作零售商是否需要厂商审核
+        $config = get_store_config($this->factory['store_id'], TRUE, 'default');
+        $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
+        if (!$check) {
+            $result = $storeModel->save($this->postParams, ['store_id' => $store['store_id']]);
+            if ($result === FALSE) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
+            }else{
+                $this->_returnMsg(['msg' => '编辑零售商成功']);
+            }
+        }else{
+            $data = $this->postParams;
+            $temp = [];
+            foreach ($store as $key => $value) {
+                if (isset($data[$key]) && $data[$key] != $value && $key != 'update_time') {
+                    $temp[$key] = $data[$key];
+                }
+            }
+            if ($temp) {
+                $data = [
+                    'factory_id'    => $user['factory_id'],
+                    'action_store_id'=> $user['store_id'],
+                    'action_user_id'=> $user['user_id'],
+                    'to_store_id'   => $store['store_id'],
+                    'to_store_name' => isset($store['name']) ? trim($store['name']) : '',
+                    'action_type'   => 'edit',
+                    'before'         => $store ? json_encode($store): '',
+                    'after'         => $data ? json_encode($data): '',
+                    'modify'        => $temp ? json_encode($temp): '',
+                    'check_status'  => 0,
+                    'add_time'      => time(),
+                    'update_time'    => time(),
+                ];
+                $result = db('store_action_record')->insertGetId($data);
+                if ($result === FALSE) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
+                }else{
+                    $this->_returnMsg(['msg' => '编辑零售商成功，等待厂商审核']);
+                }
+            }else{
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '未修改零售商信息']);
+            }
+        }
+    }
+    //删除零售商
+    protected function delDealer()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商编辑权限']);
+        }
+        $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
+        if (!$storeNo) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '零售商编号不能为空']);
+        }
+        $storeModel = new \app\common\model\Store();
+        $where = [
+            'S.store_no' => $storeNo,
+            'S.is_del' => 0,
+            'S.store_type' => STORE_DEALER,
+            'S.factory_id' => $user['factory_id'],
+            'SD.ostore_id' => $user['store_id'],
+        ];
+        $store = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->find();
+        if (!$store) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '零售商不存在或已删除']);
+        }
+        //判断对象是否存在待处理的申请
+        $exist = db('store_action_record')->where(['to_store_id' => $store['store_id'], 'check_status' => 0])->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前零售商存在待审核的操作记录,请等待审核']);
+        }
+        //判断渠道商操作零售商是否需要厂商审核
+        $config = get_store_config($this->factory['store_id'], TRUE, 'default');
+        $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
+        
+        $result = $storeModel->del($store['store_id'], $user, $check);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
+        }else{
+            $msg = $check ? '删除零售商操作提交，请等待厂商审核' : '删除商户成功';
+            $this->_returnMsg(['msg' => $msg]);
+        }
+    }
+    //获取入驻审核列表
+    protected function getStoreEnteringList()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $where = [
+            'is_del'        => 0,
+            'enter_type'    => 1,
+        ];
+        $field = 'S.store_no, S.name, store_type, security_money, sample_amount, check_status, user_name, mobile, region_name, address, add_time';
+        $order = 'S.add_time desc';
+        $join[] = ['store_dealer SD', 'SD.store_id = S.store_id', 'LEFT'];
+        $list = $this->_getModelList(db('store'), $where, $field, $order, 'S', $join);
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $list[$key]['store_type_name'] = get_store_type($value['store_type']);
+                $list[$key]['sample_amount'] = trim($value['sample_amount']);
+                $list[$key]['check_status_txt'] = get_check_status($value['check_status']);
+                $list[$key]['add_time'] = time_to_date($value['add_time']);
+                if ($value['store_type'] == STORE_DEALER) {
+                    $list[$key]['region_name'] = $value['region_name'] . $value['address'];
+                }
+                unset($list[$key]['address']);
+            }
+        }
+        $this->_returnMsg(['list' => $list]);
+    }
+    //获取入驻商户审核详情
+    protected function getStoreCheckDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $field = 'store_id, enter_type, address, store_type, store_no, check_status, admin_remark, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, add_time';
+        $detail = $this->getStoreDetail($field);
+        if ($detail['enter_type'] != 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+        }
+        $detail['check_status_txt'] = get_check_status($detail['check_status']);
+        $detail['add_time'] = time_to_date($detail['add_time']);
+        if ($detail['store_type'] == STORE_DEALER) {
+            $detail['region_name'] = $detail['region_name'] . $detail['address'];
+        }
+        unset($detail['store_id'], $detail['store_type'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
+        $this->_returnMsg(['detail' => $detail]);
+    }
+    //商户审核操作
+    protected function checkStore()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $checkStatus = isset($this->postParams['check_result']) ? intval($this->postParams['check_result']) : FALSE;
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        if (!$checkStatus || !in_array($checkStatus, [-1, 1])){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '审核结果错误']);
+        }
+        $field = '*';
+        $detail = $this->getStoreDetail($field);
+        if ($detail['enter_type'] != 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+        }
+        if ($checkStatus == -1 && !$remark) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '拒绝理由不能为空']);
+        }
+        //判断当前商户是否已经审核通过
+//         if ($detail['check_status'] != 0) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已审核，不能重复操作']);
+//         }
+        $status = $checkStatus > 0 ? 1: 2;
+        $data = [
+            'check_status' => $status,
+            'admin_remark' => $remark,
+        ];
+        $storeModel = new \app\common\model\Store();
+        $result = $storeModel->save($data, ['store_id' => $detail['store_id']]);
+        if ($result !== FALSE) {
+            $this->_returnMsg(['msg' => '审核成功']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        }
     }
     
     //获取商品列表
@@ -415,6 +904,7 @@ class Admin extends Index
         $list = $this->_getModelList(db('goods'), $where, $field, $order);
         $this->_returnMsg(['list' => $list]);
     }
+    //获取商品详情
     protected function getGoodsDetail()
     {
         $goodsId = isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : 0;
@@ -519,6 +1009,34 @@ class Admin extends Index
             $this->_returnMsg(['datas' => $result]);
         }
     }
+    //支付订单
+    protected function payOrder()
+    {
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if (!$orderSn) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
+        }
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order = $orderModel->checkOrder($orderSn, $user);
+        if ($order === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
+        }
+        $thirdOpenid = isset($this->postParams['wechat_openid']) ? trim($this->postParams['wechat_openid']) : '';
+        if (!$thirdOpenid) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
+        }
+        $order['openid'] = $user['third_openid'];
+        $paymentApi = new \app\common\api\PaymentApi($this->factory['store_id'], 'wechat_js');
+        $result = $paymentApi->init($order);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $paymentApi->error]);
+        }
+        $this->_returnMsg(['data' => $result]);
+    }
     
     //获取订单列表
     protected function getOrderList()
@@ -569,6 +1087,58 @@ class Admin extends Index
                     $list[$key]['skus'] = $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where(['order_id' => $value['order_id']])->select();
                     unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
                     unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+                }
+            }
+        }
+        $this->_returnMsg(['list' => $list]);
+    }
+    //获取零售商订单列表[渠道商]
+    protected function getDealerOrderList()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
+        }
+        $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
+        $where = [
+            'order_type' => 1,
+        ];
+        if ($status > 0) {
+            switch ($status) {
+                case 1://待支付
+                    $where['order_status'] = 1;
+                    $where['pay_status'] = 0;
+                    break;
+                case 2://已完成
+                    $where['finish_status'] = 2;
+                    $where['order_status'] = 1;
+                    break;
+                case 3://已关闭(取消或已关闭)
+                    $where['order_status'] = ['<>', 1];
+                    break;
+                default:
+                    break;
+            }
+        }
+        $where['user_store_type'] = STORE_DEALER;
+        $where['AS.ostore_id'] = $user['store_id'];
+        $order = 'add_time DESC';
+        $field = 'O.order_id, O.store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, O.add_time, close_refund_status';
+        $join = [
+            ['store S', 'O.user_store_id = S.store_id', 'LEFT'],
+            ['store_dealer AS', 'O.user_store_id = AS.store_id', 'LEFT'],
+        ];
+        $list = $this->_getModelList(db('order'), $where, $field, $order, 'O', $join);
+        if ($list) {
+            $orderModel = new \app\common\model\Order();
+            $list = $orderModel->getOrderList($list, FALSE);
+            if ($list) {
+                foreach ($list as $key => $value) {
+                    $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
+                    $list[$key]['skus'] = $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where(['order_id' => $value['order_id']])->select();
+                    unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
+                    unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+                    unset($list[$key]['_service'], $list[$key]['_apply_status']);
                 }
             }
         }
@@ -660,7 +1230,7 @@ class Admin extends Index
                 $where['S.user_store_id'] = ['IN', $storeIds];
             }
         }
-        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.refund_time,S.admin_remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
+        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.real_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
         $join=[
             ['order_sku_sub OSS', 'OSS.ossub_id = S.ossub_id', 'INNER'],
             ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
@@ -700,7 +1270,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $serviceModel->error]);
         }else {
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => '售后取消成功']);
         }
     }
     
@@ -870,23 +1440,86 @@ class Admin extends Index
         unset($this->postParams['callback']);
         unset($this->postParams['_']);
     }
-    private function _checkUser($openid = '')
+    /**
+     * 处理接口返回信息
+     */
+    protected function _returnMsg($data, $echo = TRUE){
+        $data['loginStep'] = isset($data['loginStep']) ? intval($data['loginStep']) : 0;
+        $result = parent::_returnMsg($data);
+    }
+    private function _checkUser($checkFlag = TRUE)
     {
         $userId = 2;//厂商
-        //$userId =4;//渠道商
+        $userId =4;//渠道商
         //$userId = 5;//零售商
-        //$userId = 6;//服务商
-        $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
-        return $this->loginUser ? $this->loginUser : [];
-        
+//         $userId = 6;//服务商
+        $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
+        return $loginUser ? $loginUser : [];
+        $loginUser = session('api_admin_user');
+        if ($loginUser) {
+            if (!$checkFlag) {
+                return $loginUser;
+            }
+            $store = db('store')->where(['store_id' => $loginUser['store_id'], 'is_del' => 0])->find();
+            if (!$store) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
+            }
+            if (!$store['status']) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已禁用,请联系厂商启用后登录']);
+            }
+            if ($store['check_status'] == 0) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请审核中']);
+            }
+            if ($store['check_status'] == 2) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请已拒绝']);
+            }
+            return $loginUser;
+        }
+        $sessionUdata = session('api_user_data');
+        if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
+            $this->_returnMsg(['msg' => '前往授权页面', 'loginStep' => 1]);
+        }
+        $this->_returnMsg(['msg' => '已授权,前往登录页面', 'loginStep' => 2]);//已授权未绑定
+    }
+    private function _getScopeUser()
+    {
+        if (session('api_admin_user')) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您已经登录', 'loginStep' => 0]);
+        }
+        $sessionUdata = session('api_user_data');
+        if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后登录', 'loginStep' => 1]);
+        }
+        //判断授权微信用户是否已经绑定用户信息
+        $udata = db('user_data')->where(['udata_id' => $sessionUdata['udata_id'], 'factory_id' => $this->factory['store_id'], 'third_type' => 'wechat_h5'])->find();
+        if (!$udata) {
+            session('api_user_data', []);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户不存在,请重新授权', 'loginStep' => 1]);
+        }
+        if ($udata['user_id'] > 0 && isset($sessionUdata['store_id']) && $sessionUdata['store_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '不能重复绑定']);
+        }
+        return $sessionUdata;
+    }
+    /**
+     * 执行登录
+     * @param int $userId
+     * @param string $thirdOpenid
+     */
+    private function _setLogin($userId, $thirdOpenid = '')
+    {
         $userModel = new \app\common\model\User();
-        $this->loginUser = session('api_admin_user');
-        if (!$this->loginUser) {
-            $this->_returnMsg(['errCode' => -1, 'errMsg' => '请登录后操作']);
+        $user = $userModel->where(['user_id' => $userId, 'is_del' => 0])->find();
+        if (!$user) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
         }
-        if (!$this->loginUser['admin_type']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户信息错误']);
+        $user['third_openid'] = $thirdOpenid;
+        $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+        }else{
+            session('api_user_data', []);
+            $this->_returnMsg(['msg' => '登录成功', 'loginStep' => 0]);
         }
-        return $this->loginUser;
     }
 }
