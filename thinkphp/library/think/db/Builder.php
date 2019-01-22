@@ -305,7 +305,10 @@ abstract class Builder
                         throw new Exception('where express error:' . var_export($value, true));
                     }
                     $field = array_shift($value);
-                } elseif (!($value instanceof \Closure)) {
+                }elseif (is_string($value)){
+                    $str[] = ' AND ('.$value.')';
+                    continue;
+                }elseif (!($value instanceof \Closure)) {
                     throw new Exception('where express error:' . var_export($value, true));
                 }
 
