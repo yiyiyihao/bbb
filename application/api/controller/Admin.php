@@ -618,12 +618,18 @@ class Admin extends Index
         }else{
             $where['S.user_store_id'] = $user['store_id'];
         }
-        $field='S.service_sn,S.order_sn,S.service_status,S.refund_amount,S.update_time,S1.name store_name,S1.mobile';
+        $field='S.service_sn,S.order_sn,S.service_status,S.refund_amount,S.add_time,S1.name store_name,S1.mobile';
         $join=[
             ['store S1', 'S1.store_id = S.user_store_id', 'LEFT'],
         ];
         $order='S.update_time DESC';
         $list = $this->_getModelList(db('order_sku_service'), $where, $field, $order,'S',$join);
+        if (!empty($list)) {
+            $list=array_map(function ($item) {
+                $item['status_desc']=get_service_status($item['service_status']);
+                return $item;
+            },$list);
+        }
         $this->_returnMsg(compact('list'));
         
     }
@@ -670,6 +676,16 @@ class Admin extends Index
     //取消售后订单
     protected function cancelServiceOrder()
     {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
+        if (!$serviceSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后单号不能为空']);
+        }
+
+
         
     }
     
