@@ -839,6 +839,9 @@ class Query
      */
     public function join($join, $condition = null, $type = 'INNER', $bind = [])
     {
+        if (!$join) {
+            return $this;
+        }
         if (empty($condition)) {
             // 如果为组数，则循环调用join
             foreach ($join as $key => $value) {

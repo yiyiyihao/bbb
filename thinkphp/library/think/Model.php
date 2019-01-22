@@ -59,7 +59,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      * 是否存在数据
      * @var bool
      */
-    private $exists = false;
+    protected $exists = false;
 
     /**
      * 是否Replace
@@ -469,7 +469,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         $this->origin = $this->data;
         $this->set    = [];
 
-        return true;
+        return $result;
     }
 
     /**
@@ -616,7 +616,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 ->strict(false)
                 ->field($allowFields)
                 ->update($data);
-//                $this->data = $data ? array_merge($data, $where) : $data;
+                $this->data = $data ? array_merge($data, $where) : $data;
             // 关联更新
             if (!empty($this->relationWrite)) {
                 $this->autoRelationUpdate();
@@ -661,7 +661,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         try {
             $result = $db->strict(false)
                 ->field($allowFields)
-                ->insert($this->data, $this->replace, false, $sequence);
+                ->insertGetId($this->data, $this->replace, false, $sequence);
 
             // 获取自动增长主键
             if ($result && $insertId = $db->getLastInsID($sequence)) {
@@ -687,7 +687,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             // 新增回调
             $this->trigger('after_insert');
 
-            return true;
+            return $result;
         } catch (\Exception $e) {
             $db->rollback();
             throw $e;
