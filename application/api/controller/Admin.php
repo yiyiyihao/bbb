@@ -1,6 +1,7 @@
 <?php
 namespace app\api\controller;
 
+use app\common\model\Servicer;
 use app\common\model\WorkOrder;
 
 class Admin extends Index
@@ -686,9 +687,17 @@ class Admin extends Index
         if (!$serviceSn){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后单号不能为空']);
         }
-
-
-        
+        $serviceModel = new \app\common\model\OrderService();
+        $service=$serviceModel->where(['service_sn'=>$serviceSn,'is_del'=>0])->find();
+        if (empty($service)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后信息不存在']);
+        }
+        $result = $serviceModel->serviceCancel($service, $user);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $serviceModel->error]);
+        }else {
+            $this->_returnMsg(['errMsg' => 'ok']);
+        }
     }
     
     //获取工单列表(厂商/渠道商/零售商/服务商)
@@ -845,9 +854,9 @@ class Admin extends Index
     }
     private function _checkUser($openid = '')
     {
-        $userId = 2;//厂商
-//         $userId =4;//渠道商
-        //$userId = 5;//零售商
+        //$userId = 2;//厂商
+        //$userId =4;//渠道商
+        $userId = 5;//零售商
         //$userId = 6;//服务商
         $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $this->loginUser ? $this->loginUser : [];
