@@ -670,6 +670,8 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后服务单号不正确']);
         }
         $detail['sku_name']=$detail['sku_name']?$detail['sku_name']:$detail['sku_spec'];
+        $detail['status_desc']=get_service_status($detail['service_status']);
+        $detail['imgs']=explode(',',$detail['imgs']);
         unset($detail['sku_spec']);
         $this->_returnMsg(compact('detail'));
     }
