@@ -2,6 +2,7 @@
 namespace app\api\controller;
 
 use app\common\model\Servicer;
+use app\common\model\UserInstaller;
 use app\common\model\WorkOrder;
 
 class Admin extends Index
@@ -1401,30 +1402,91 @@ class Admin extends Index
     //获取工程师列表
     protected function getInstallerList()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $where='is_del=0';
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $where.=' AND factory_id='.$user['store_id'];
+        } elseif ($user['admin_type'] == ADMIN_SERVICE) {
+            $where.=' AND store_id='.$user['store_id'];
+        }
+        $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 'add_time';
+        $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
+        if (!empty($key)) {
+            $where.=' AND (realname like "%'.$key.'%" OR phone like "%'.$key.'%"  )';
+        }
+        if (!in_array($order, ['add_time', 'service_count', 'score'])) {
+            $order = 'add_time';
+        }
+        $order .= ' desc';
+        $field = 'realname,phone,status,service_count,score,job_no';
+        $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
+        $this->_returnMsg(compact('list'));
     }
+
     //获取工程师详情
     protected function getInstallerDetail()
     {
-        
+        $info=$this->checkInstaller();
+
     }
+
     //编辑工程师信息
     protected function editInstaller()
     {
-        
+
     }
+
     //设置工程师状态
     protected function setInstallerStatus()
     {
-        
+        $info=$this->checkInstaller();
+        //$status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
+        $status=$info['status']==1?0:1;
+        $desc=$status==0?'禁用':'启用';
+        if ($info->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
+            $this->_returnMsg(['errMsg' => $desc.'成功']);
+        }
+        $this->_returnMsg(['errCode' => 1, 'errMsg' => $desc.'失败']);
     }
+
     //删除工程师
     protected function delInstaller()
     {
-        
+        $info=$this->checkInstaller();
+        if ($info->where('installer_id',$info['installer_id'])->update(['is_del'=>1])) {
+            $this->_returnMsg(['errMsg' => 'ok']);
+        }
+        $this->_returnMsg(['errCode' => 1, 'errMsg' => '删除失败']);
     }
-    
-    
+
+    private function checkInstaller()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
+        if (empty($jobNo)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师工号不能为空']);
+        }
+        $info = UserInstaller::where(['is_del' => 0, 'job_no' => $jobNo])->find();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工号不正确或该工程师已被删除']);
+        }
+        if ($user['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $user['store_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        if ($user['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $user['store_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        return $info;
+
+    }
+
+
     protected function _checkPostParams()
     {
         if (!isset($_SERVER['HTTP_ORIGIN'])) {
