@@ -627,6 +627,7 @@ class Admin extends Index
         $list = $this->_getModelList(db('order_sku_service'), $where, $field, $order,'S',$join);
         if (!empty($list)) {
             $list=array_map(function ($item) {
+                $item['add_time']=time_to_date($item['add_time']);
                 $item['status_desc']=get_service_status($item['service_status']);
                 return $item;
             },$list);
@@ -659,7 +660,7 @@ class Admin extends Index
                 $where['S.user_store_id'] = ['IN', $storeIds];
             }
         }
-        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
+        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.refund_time,S.admin_remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
         $join=[
             ['order_sku_sub OSS', 'OSS.ossub_id = S.ossub_id', 'INNER'],
             ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
@@ -672,7 +673,10 @@ class Admin extends Index
         }
         $detail['sku_name']=$detail['sku_name']?$detail['sku_name']:$detail['sku_spec'];
         $detail['status_desc']=get_service_status($detail['service_status']);
-        $detail['imgs']=explode(',',$detail['imgs']);
+        $detail['imgs']=json_decode($detail['imgs'],true);
+        $detail['add_time']=time_to_date($detail['add_time']);
+        $detail['refund_time']=time_to_date($detail['refund_time']);
+        $detail['pay_time']=time_to_date($detail['pay_time']);
         unset($detail['sku_spec']);
         $this->_returnMsg(compact('detail'));
     }
@@ -736,6 +740,14 @@ class Admin extends Index
         $order = 'worder_id desc';
         $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
+        $list=array_map(function ($item) {
+            $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
+            $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
+            $item['work_order_type_desc']=get_work_order_type($item['work_order_type']);
+            unset($item['region_name']);
+            return $item;
+        },$list);
+
         
         $this->_returnMsg(['list' => $list]);
     }
@@ -778,6 +790,11 @@ class Admin extends Index
         $info['images']=explode(',',$info['images']);
         $regionName=str_replace(' ','',$info['region_name']);
         $info['address']=$regionName.$info['address'];
+        $info['work_order_status_desc']=get_work_order_status($info['work_order_status']);
+        $info['work_order_type_desc']=get_work_order_type($info['work_order_type']);
+        $info['appointment']=time_to_date($info['appointment']);
+        $info['finish_time']=time_to_date($info['finish_time']);
+
 
         if ($info['ossub_id']) {
             $join = [
@@ -803,6 +820,7 @@ class Admin extends Index
         if (!empty($assessList)) {
             $assessList=array_map(function ($item) {
                 unset($item['assess_id']);
+                $item['add_time']=time_to_date($item['add_time']);
                 return $item;
             },$assessList);
             $info['assess_list']=$assessList;
@@ -854,9 +872,9 @@ class Admin extends Index
     }
     private function _checkUser($openid = '')
     {
-        //$userId = 2;//厂商
+        $userId = 2;//厂商
         //$userId =4;//渠道商
-        $userId = 5;//零售商
+        //$userId = 5;//零售商
         //$userId = 6;//服务商
         $this->loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $this->loginUser ? $this->loginUser : [];
