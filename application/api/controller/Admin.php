@@ -652,24 +652,20 @@ class Admin extends Index
                 $where['S.user_store_id'] = ['IN', $storeIds];
             }
         }
-        $field='OS.sku_name,OS.sku_spec,OS.price,OS.install_price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status';
+        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.paid_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
         $join=[
             ['order_sku_sub OSS', 'OSS.ossub_id = S.ossub_id', 'INNER'],
             ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
             ['order O', 'O.order_id = OSS.order_id', 'INNER'],
+            ['user U', 'U.user_id = O.user_id', 'LEFT'],
         ];
-        $service = db('order_sku_service')->alias('S')->join($join)->field($field)->where($where)/*->fetchSql(true)*/->find();
-        if (!$service) {
+        $detail = db('order_sku_service')->alias('S')->join($join)->field($field)->where($where)/*->fetchSql(true)*/->find();
+        if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后服务单号不正确']);
         }
-
-
-
-
-        pre($service);
-
-
-        
+        $detail['sku_name']=$detail['sku_name']?$detail['sku_name']:$detail['sku_spec'];
+        unset($detail['sku_spec']);
+        $this->_returnMsg(compact('detail'));
     }
     //取消售后订单
     protected function cancelServiceOrder()
