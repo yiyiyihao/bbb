@@ -1,6 +1,6 @@
 <?php
 namespace app\common\service;
-use \Exception;
+use think\Exception;
 /**
  * This file is part of workerman.
  *
@@ -36,7 +36,7 @@ class Gateway
      *
      * @var string|array
      */
-    public static $registerAddress = '127.0.0.1:1238';
+    public static $registerAddress = '127.0.0.1:8383';
     
     /**
      * 秘钥
