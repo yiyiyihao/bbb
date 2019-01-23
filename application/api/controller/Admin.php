@@ -1425,11 +1425,22 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $field='job_no,realname,phone,check_status,admin_remark,add_time';
-        $model=new \app\common\model\UserInstaller;
-        $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
-        $status=in_array($status,[-4,-3,-2,-1,0,1])?$status:'';
-        $where=[];
-        $list = $this->_getModelList($model, $where, $field, $order);
+        $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
+        $status = isset($this->postParams['status']) && $this->postParams['status']!=='' ? intval($this->postParams['status']) : '';
+        $where=['is_del'=>0];
+        if ('' !== $status && in_array($status,[-4,-3,-2,-1,0,1])) {
+            $where['check_status']=$status;
+        }
+        if (!empty($key)) {
+            $where['realname|phone']=['like','%'.$key.'%'];
+        }
+        $order='add_time DESC';
+        $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
+        $list=array_map(function ($item) {
+            $item['status_desc']=get_installer_status($item['check_status']);
+            $item['add_time']=time_to_date($item['add_time']);
+            return $item;
+        },$list);
         $this->_returnMsg(compact('list'));
     }
     //获取工程师审核详情
