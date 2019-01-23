@@ -1284,6 +1284,15 @@ class Admin extends Index
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
             $where['work_order_type']=$workOrderType;
         }
+        //查找工程师的工单
+        $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
+        if (!empty($jobNo)) {
+            $installerId=db('user_installer')->where('job_no',$jobNo)->value('installer_id');
+            if ($installerId) {
+                $where['installer_id']=$installerId;
+            }
+        }
+
         if ( ''!==$workOrderStatus &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
             $where['work_order_status']=$workOrderStatus;
         }
