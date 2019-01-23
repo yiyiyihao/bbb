@@ -262,7 +262,7 @@ class Admin extends Index
         if ($detail['store_type'] == STORE_DEALER) {
             $detail['region_name'] = $detail['region_name'] . $detail['address'];
         }
-        unset($detail['store_id'], $detail['store_type'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
+        unset($detail['store_id'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
         $this->_returnMsg(['detail' => $detail]);
     }
     
@@ -304,6 +304,13 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             $this->_returnMsg(['msg' => '修改密码成功']);
+        }
+    }
+    protected function getShareDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
     }
     //获取首页信息
@@ -655,6 +662,8 @@ class Admin extends Index
         $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
         $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
         $signingContractImg = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
+        $licenseImg = isset($this->postParams['license_img']) ? trim($this->postParams['license_img']) : '';
+        $groupPhoto = isset($this->postParams['group_photo']) ? trim($this->postParams['group_photo']) : '';
         $name = get_store_type($storeType);
         if (!$sname){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'名称不能为空']);
@@ -1166,6 +1175,17 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $detail]);
     }
     
+    //申请安装工单
+    protected function applyWorkOrder()
+    {
+        
+    }
+    //申请退款
+    protected function applyServiceOrder()
+    {
+        
+    }
+    
     //获取售后订单列表
     protected function getServiceOrderList()
     {
@@ -1404,6 +1424,16 @@ class Admin extends Index
         unset($info['region_name'],$info['worder_id'],$info['goods_id'],$info['ossub_id']);
         $this->_returnMsg(['detail' => $info]);
     }
+    //分派工单操作【服务商】
+    protected function dispatchWorkOrder()
+    {
+        
+    }
+    //取消工单操作【服务商】
+    protected function cancelWorkOrder()
+    {
+        
+    }
     //获取工程师列表
     protected function getInstallerList()
     {
@@ -1443,11 +1473,22 @@ class Admin extends Index
     {
         
     }
+    //获取工程师审核详情
+    protected function getInstallerCheckDetail()
+    {
+        
+    }
+    //工程师审核操作
+    protected function checkInstaller()
+    {
+        
+    }
+    
 
     //获取工程师详情
     protected function getInstallerDetail()
     {
-        list($user,$info)=$this->checkInstaller();
+        list($user,$info)=$this->_checkInstaller();
         $storeName=db('store')->where('store_id',$info['store_id'])->value('name');
         $result=[
             'job_no'=>$info['job_no'],
@@ -1491,7 +1532,7 @@ class Admin extends Index
     //设置工程师状态
     protected function setInstallerStatus()
     {
-        list($user,$info)=$this->checkInstaller();
+        list($user,$info)=$this->_checkInstaller();
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
@@ -1508,7 +1549,7 @@ class Admin extends Index
     protected function delInstaller()
     {
 
-        list($user,$info)=$this->checkInstaller();
+        list($user,$info)=$this->_checkInstaller();
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
@@ -1521,8 +1562,41 @@ class Admin extends Index
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '删除失败']);
     }
+    
+    //获取当前商户的财务数据[渠道商/服务商]
+    protected function getFinanceData()
+    {
+        $user = $this->_checkUser();
+        
+    }
+    //申请提现[渠道商/服务商]
+    protected function applyWithdraw()
+    {
+        
+    }
+    //获取提现记录[渠道商/服务商]
+    protected function getWithdrawList()
+    {
+        
+    }
+    //获取渠道商收益明细
+    protected function getChannelIncomeList()
+    {
+        
+    }
+    //获取服务商收益明细
+    protected function getServicerIncomeList()
+    {
+        
+    }
+    //提现配置
+    protected function configWithdraw()
+    {
+        
+    }
+    
 
-    private function checkInstaller()
+    private function _checkInstaller()
     {
         $user = $this->_checkUser();
         if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
@@ -1576,7 +1650,7 @@ class Admin extends Index
 //         $userId =4;//渠道商
         //$userId = 5;//零售商
 //         $userId = 6;//服务商
-        $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
+        $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $loginUser ? $loginUser : [];
         $loginUser = session('api_admin_user');
         if ($loginUser) {
