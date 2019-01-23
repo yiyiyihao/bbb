@@ -1460,8 +1460,12 @@ class Admin extends Index
         if ($checkStatus == 1) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师已经通过审核']);
         }
+        if (in_array($checkStatus, [-2, -4])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已经被拒绝，请重新发起审核申请']);
+        }
+
         if (!in_array($checkStatus, [-1, -3])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作已审核']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请先操作已审核']);
         }
         //if ($user['admin_type'] == ADMIN_FACTORY && $checkStatus != -1) {
         //    $this->error(lang('NO_OPERATE_PERMISSION'));
