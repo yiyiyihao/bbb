@@ -1397,19 +1397,22 @@ class Admin extends Index
         } elseif ($user['admin_type'] == ADMIN_SERVICE) {
             $where['UI.store_id']=$user['store_id'];
         }
-        $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 'add_time';
+        $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 0;
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
-        $storeNo = isset($this->postParams['store_no']) ? intval($this->postParams['store_no']) : '';
+        $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
+        $checkStatus = isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
         if ($storeNo) {
             $where['S.store_no']=$storeNo;
         }
+        if (''!==$checkStatus){
+            $where['UI.check_status']=$checkStatus;
+        }
+
         if (!empty($key)) {
             $where['UI.realname|UI.phone']=['like','%'.$key.'%'];
         }
-        if (!in_array($order, ['add_time', 'service_count', 'score'])) {
-            $order = 'add_time';
-        }
-        $order ='UI.'.$order. ' desc';
+        $arr=['UI.add_time DESC','UI.service_count DESC','UI.score DESC'];
+        $order=isset($arr[$order])?$arr[$order]:$arr[0];
         $field = 'UI.realname,UI.phone,UI.status,UI.service_count,UI.score,UI.job_no,S.name store_name,S.store_no';
         $join=[
             //['store SF', 'SF.store_id = UI.factory_id', 'LEFT'],
