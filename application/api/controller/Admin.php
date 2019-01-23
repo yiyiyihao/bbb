@@ -1649,6 +1649,15 @@ class Admin extends Index
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
         $checkStatus = isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
         if ($storeNo) {
+            $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0])->find();
+            if (empty($store)) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在或已被删除']);
+            }
+            if ($store['status']==0) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商已被禁用']);
+            }
+            //$where['S.is_del']=0;
+            //$where['S.status']=1;
             $where['S.store_no']=$storeNo;
         }
         if (''!==$checkStatus){
@@ -1677,10 +1686,20 @@ class Admin extends Index
         }
         $field='job_no,realname,phone,check_status,admin_remark,add_time';
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
-        $status = isset($this->postParams['status']) && $this->postParams['status']!=='' ? intval($this->postParams['status']) : '';
+        $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
         $where=['is_del'=>0];
-        if ('' !== $status && in_array($status,[-4,-3,-2,-1,0,1])) {
-            $where['check_status']=$status;
+        switch ($status) {
+            case 1://待审核
+                $where['check_status']=['in',[0,-1,-3]];
+                break;
+            case 2://已通过
+                $where['check_status']=1;
+                break;
+            case 3://已拒绝
+                $where['check_status']=['in',[-2,-4]];
+                break;
+            default://全部
+                break;
         }
         if (!empty($key)) {
             $where['realname|phone']=['like','%'.$key.'%'];
@@ -1729,14 +1748,14 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 2, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
-        $check = isset($this->postParams['check']) ? trim($this->postParams['check']) : 'deny';
-        $check = ($check == 'pass') ? 'pass' : 'deny';
-        if ($check == 'deny' && empty($remark)) {
+        $check_result = isset($this->postParams['check_result']) ? intval($this->postParams['check_result']) : -1;
+        $check_result = ($check_result == 1) ? 1 : -1;
+        if ($check_result == -1 && empty($remark)) {
             $this->_returnMsg(['errCode' => 3, 'errMsg' => '请填写拒绝理由']);
         }
         //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
         $status = '';
-        if ($check == 'pass') {
+        if ($check_result == 'pass') {
             //判断是否需要厂商审核
             $config = get_store_config($user['factory_id'], TRUE, 'default');
             //默认需要厂商审核
@@ -1789,6 +1808,9 @@ class Admin extends Index
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
+        if ($info['check_status']==1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已通过审核']);
+        }
         $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         $data['phone'] = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $data['idcard_font_img'] = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
@@ -1811,9 +1833,12 @@ class Admin extends Index
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        //$status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
-        $status=$info['status']==1?0:1;
+        $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : 0;
+        $status=($status==0)?0:1;
         $desc=$status==0?'禁用':'启用';
+        if ($info['status'] == $status) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已被'.$desc.'!']);
+        }
         if ($info->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
             $this->_returnMsg(['errMsg' => $desc.'成功']);
         }
@@ -1974,7 +1999,7 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        $userId = 2;//厂商
+        //$userId = 2;//厂商
         // $userId =4;//渠道商
         //$userId = 5;//零售商
         $userId = 6;//服务商
