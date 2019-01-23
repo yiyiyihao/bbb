@@ -1,6 +1,8 @@
 <?php
 namespace app\api\controller;
 
+
+
 class Admin extends Index
 {
     private $visitIp;
@@ -265,7 +267,7 @@ class Admin extends Index
         unset($detail['store_id'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
         $this->_returnMsg(['detail' => $detail]);
     }
-    
+
     //修改用户密码
     protected function updatePassword()
     {
@@ -536,7 +538,7 @@ class Admin extends Index
             }
         }
         $where = [
-            'is_del' => 0, 
+            'is_del' => 0,
             'factory_id' => $this->factory['store_id'],
         ];
         if ($storeId) {
@@ -706,9 +708,9 @@ class Admin extends Index
         }
         $storeModel = new \app\common\model\Store();
         $where = [
-            'S.store_no' => $storeNo, 
-            'S.is_del' => 0, 
-            'S.store_type' => STORE_DEALER, 
+            'S.store_no' => $storeNo,
+            'S.is_del' => 0,
+            'S.store_type' => STORE_DEALER,
             'S.factory_id' => $user['factory_id'],
             'SD.ostore_id' => $user['store_id'],
         ];
@@ -797,7 +799,7 @@ class Admin extends Index
         //判断渠道商操作零售商是否需要厂商审核
         $config = get_store_config($this->factory['store_id'], TRUE, 'default');
         $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
-        
+
         $result = $storeModel->del($store['store_id'], $user, $check);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
@@ -892,7 +894,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
     }
-    
+
     //获取商品列表
     protected function getGoodsList()
     {
@@ -1043,7 +1045,7 @@ class Admin extends Index
         }
         $this->_returnMsg(['data' => $result]);
     }
-    
+
     //获取订单列表
     protected function getOrderList()
     {
@@ -1174,7 +1176,7 @@ class Admin extends Index
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
     }
-    
+
     //申请安装工单
     protected function applyWorkOrder()
     {
@@ -1220,7 +1222,7 @@ class Admin extends Index
             },$list);
         }
         $this->_returnMsg(compact('list'));
-        
+
     }
     //获取售后订单详情
     protected function getServiceOrderDetail()
@@ -1290,7 +1292,7 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '售后取消成功']);
         }
     }
-    
+
     //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
     {
@@ -1344,7 +1346,7 @@ class Admin extends Index
             return $item;
         },$list);
 
-        
+
         $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
@@ -1471,7 +1473,24 @@ class Admin extends Index
     //获取工程师审核列表
     protected function getInstallerCheckList()
     {
-        
+        $user = $this->_checkUser();
+        if ($user['admin_type']!=ADMIN_SERVICE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $field='job_no,realname,phone,check_status,admin_remark,add_time';
+        $model=new \app\common\model\UserInstaller;
+        $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
+        $status=in_array($status,[-4,-3,-2,-1,0,1])?$status:'';
+
+
+
+        $where=[];
+        $list = $this->_getModelList($model, $where, $field, $order);
+        $this->_returnMsg(compact('list'));
+
+
+
+
     }
     //获取工程师审核详情
     protected function getInstallerCheckDetail()
@@ -1644,7 +1663,8 @@ class Admin extends Index
         $data['loginStep'] = isset($data['loginStep']) ? intval($data['loginStep']) : 0;
         $result = parent::_returnMsg($data);
     }
-    private function _checkUser($checkFlag = TRUE)
+    private function
+    _checkUser($checkFlag = TRUE)
     {
         $userId = 2;//厂商
 //         $userId =4;//渠道商
