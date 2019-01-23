@@ -12,6 +12,32 @@ class Admin extends Index
         $this->mchKey = '1458745225';
         parent::__construct();
     }
+    //上传图片
+    protected function uploadImage($verifyUser = FALSE)
+    {
+        $udata = $this->_getScopeUser();
+        parent::uploadImage($verifyUser);
+    }
+    //发送短信验证码
+    protected function sendSmsCode()
+    {
+        $udata = $this->_getScopeUser();
+        $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
+        if (!$type) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
+        }
+        parent::sendSmsCode();
+    }
+    //短信验证码验证
+    protected function checkSmsCode()
+    {
+        $udata = $this->_getScopeUser();
+        $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
+        if (!$type) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
+        }
+        parent::checkSmsCode();
+    }
     //微信授权-第1步
     protected function getWechatScope()
     {
@@ -311,6 +337,51 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+        //获取厂商分享配置
+        $config = get_store_config($user['factory_id'], FALSE, 'invite_share');
+        if (!$config) {
+            //默认分享数据
+            $config = [
+                'title' => '',
+                'description' => '',
+                'img_url' => '',
+            ];
+        }
+        $store = session('api_admin_store');
+        $url = '';
+        $storeNo = $store ? $store['store_no'] : $user['store_no'];
+        if ($user['admin_type'] == ADMIN_CHANNEL) {
+            $url .= '?channel_no='.$storeNo;
+        }else{
+            $url .= '?factory_no='.$storeNo;
+        }
+        $config['url'] = $url;
+        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $appid = $wechatApi ? $wechatApi->config['appid'] : '';
+        if (!$appid) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信配置错误']);
+        }
+        $jsapiTicket = $wechatApi->getWechatJsApiTicket();
+        if ($jsapiTicket === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+        }
+        // 注意 URL 一定要动态获取，不能 hardcode.
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $url = "$protocol$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $timestamp = time();
+        $nonceStr = get_nonce_str(16, 1);
+        // 这里参数的顺序要按照 key 值 ASCII 码升序排序
+        $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
+        $signature = sha1($string);
+        $config['sign_package'] = array(
+            "appId"     => $appid,
+            "nonceStr"  => $nonceStr,
+            "timestamp" => $timestamp,
+            "url"       => $url,
+            "signature" => $signature,
+            "rawString" => $string
+        );
+        $this->_returnMsg(['detail' => $config]);
     }
     //获取首页信息
     protected function getHomeDetail()
@@ -763,7 +834,7 @@ class Admin extends Index
         }
     }
     //获取入驻审核列表
-    protected function getStoreEnteringList()
+    protected function getStoreCheckList()
     {
         $user = $this->_checkUser();
         if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
@@ -1043,6 +1114,7 @@ class Admin extends Index
             $list = $orderModel->getOrderList($list, $flag);
             if ($list) {
                 foreach ($list as $key => $value) {
+                    $list[$key]['add_time'] = time_to_date($value['add_time']);
                     $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
                     $list[$key]['skus'] = $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where(['order_id' => $value['order_id']])->select();
                     unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
@@ -1128,15 +1200,193 @@ class Admin extends Index
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
     }
-    //申请安装工单
+    //获取订单商品详情
+    protected function getOrderSkuSubDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if(!$orderSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号不能为空']);
+        }
+        $ossubId = isset($this->postParams['ossub_id']) ? intval($this->postParams['ossub_id']) : 0;
+        if(!$ossubId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品ID不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order = $orderModel->checkOrder($orderSn, $user);
+        if ($order === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
+        }
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $ossub = $orderSkuModel->getSubDetail($ossubId, 'OS.order_sn, ossub_id, sku_name, sku_spec, sku_thumb');
+        if (!$ossub) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        if ($ossub['order_sn'] != $order['order_sn']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        unset($ossub['work_order'], $ossub['service']);
+        $this->_returnMsg(['detail' => $ossub]);
+    }
+    //申请安装
     protected function applyWorkOrder()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if(!$orderSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号不能为空']);
+        }
+        $ossubId = isset($this->postParams['ossub_id']) ? intval($this->postParams['ossub_id']) : 0;
+        if(!$ossubId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品ID不能为空']);
+        }
+        $workOrderType = 1;
+        $data = [
+            'work_order_type' => $workOrderType,
+            'factory_id'    => $this->factory['store_id'],
+            'post_user_id'  => $user['user_id'],
+            'post_store_id' => $user['store_id'],
+            'fault_desc'    => '',
+            'images'        => '',
+        ];
+        $userName   = $data['user_name']    = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $phone      = $data['phone']        = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $regionId   = $data['region_id']    = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
+        $regionName = $data['region_name']  = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $address    = $data['address']      = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $appointment= $data['appointment']  = isset($this->postParams['appointment']) ? trim($this->postParams['appointment']) : '';
+        $remark     = $data['remark']       = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        if(!$userName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户姓名不能为空']);
+        }
+        if(!$phone){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户联系电话不能为空']);
+        }
+        if(!$regionId || !$regionName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择安装区域']);
+        }
+        if(!$address){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写安装地址']);
+        }
+        if(!$appointment){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '预约时间不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order = $orderModel->checkOrder($orderSn, $user);
+        if ($order === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
+        }
+        $skuModel = new \app\common\model\OrderSku();
+        $ossub = $skuModel->getSubDetail($ossubId, FALSE, TRUE);
+        if (!$ossub) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        if ($ossub['order_sn'] != $order['order_sn']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        if ($ossub['goods_type'] == 2) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '样品不允许安装']);
+        }
+        if ($ossub['order_status'] != 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已取消/已关闭，不允许申请安装']);
+        }
+        if (!$ossub['pay_status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单未支付，不允许申请安装']);
+        }
+        if($ossub['service'] && ($ossub['service']['service_status'] != -1 && $ossub['service']['service_status'] != -2)){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品存在退款申请,不允许申请安装']);
+        }
+        $workOrderModel = new \app\common\model\WorkOrder();
+        //判断当前商品是否已经申请安装
+        $exist = $workOrderModel->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 1, 'work_order_status' => ['<>', -1]])->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品已申请安装']);
+        }
+        $storeModel = new \app\common\model\Store();
+        //根据安装地址分配服务商
+        //原型地址精确到区则根据当前region_id获取父级ID然后获取服务商ID
+        $parentId = db('region')->where(['region_id' => $regionId])->value(['parent_id']);
+        if (!$parentId) {
+            $parentId = 0;
+        }
+        $storeId = $storeModel->getStoreFromRegion($parentId);
+        if(!$storeId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该区域暂无服务商']);
+        }
+        $data['store_id'] = $storeId;
+        $data['appointment'] = strtotime($appointment);
+        $data['order_sn'] = $ossub['order_sn'];
+        $data['osku_id'] = $ossub['osku_id'];
+        $data['ossub_id'] = $ossub['ossub_id'];
+        $data['goods_id'] = $ossub['goods_id'];
+        $data['sku_id'] = $ossub['sku_id'];
+        $data['install_price'] = $ossub['install_amount'];
+        $result = $workOrderModel->save($data);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        }
+        $this->_returnMsg(['msg' => lang('申请安装成功'), 'worder_sn' => $result]);
     }
     //申请退款
     protected function applyServiceOrder()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if(!$orderSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号不能为空']);
+        }
+        $ossubId = isset($this->postParams['ossub_id']) ? intval($this->postParams['ossub_id']) : 0;
+        if(!$ossubId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品ID不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order = $orderModel->checkOrder($orderSn, $user);
+        if ($order === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
+        }
+        if ($order['close_refund_status'] == 2) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '超时不允许退货退款']);
+        }
+        $orderSkuModel = new \app\common\model\OrderSku();
+        $ossub = $orderSkuModel->getSubDetail($ossubId, FALSE, FALSE, TRUE);
+        if (!$ossub) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        if ($ossub['order_sn'] != $order['order_sn']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品不存在']);
+        }
+        if ($ossub['work_order'] && $ossub['work_order'] != -1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单商品存在安装工单，不允许申请售后']);
+        }
+        $imgs = isset($this->postParams['imgs']) ? $this->postParams['imgs'] : [];
+        if ($imgs) {
+            $imgs = explode(',', $imgs);
+            $imgs = $imgs ? array_filter($imgs) : [];
+            $imgs = $imgs ? array_unique($imgs) : [];
+            if (count($imgs) > 3) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '退款凭证不能大于3张']);
+            }
+        }
+        $orderSkuServiceModel = new \app\common\model\OrderService();
+        $params = [
+            'remarks' => isset($this->postParams['remarks']) ? $this->postParams['remarks'] : '',
+            'imgs' => $imgs,
+        ];
+        $result = $orderSkuServiceModel->createService($order, $ossub, $user, $params);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderSkuServiceModel->error]);
+        }else{
+            $this->_returnMsg(['msg' => '退款申请成功,请耐心等待厂商审核']);
+        }
     }
     //获取售后订单列表
     protected function getServiceOrderList()
@@ -1263,7 +1513,6 @@ class Admin extends Index
                 $where['installer_id']=$installerId;
             }
         }
-
         if ( ''!==$workOrderStatus &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
             $where['work_order_status']=$workOrderStatus;
         }
@@ -1294,8 +1543,6 @@ class Admin extends Index
             unset($item['region_name']);
             return $item;
         },$list);
-
-
         $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
@@ -1334,7 +1581,7 @@ class Admin extends Index
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
         }
-        $info['images']=explode(',',$info['images']);
+        $info['images']= $info['images'] ? explode(',',$info['images']) : [];
         $regionName=str_replace(' ','',$info['region_name']);
         $info['address']=$regionName.$info['address'];
         $info['work_order_status_desc']=get_work_order_status($info['work_order_status']);
@@ -1529,25 +1776,11 @@ class Admin extends Index
     //获取工程师详情
     protected function getInstallerDetail()
     {
-        list($user,$info)=$this->_checkInstaller();
-        $storeName=db('store')->where('store_id',$info['store_id'])->value('name');
-        $result=[
-            'job_no'    =>$info['job_no'],
-            'realname'  =>$info['realname'],
-            'phone'     =>$info['phone'],
-            'idcard_font_img'   =>$info['idcard_font_img'],
-            'idcard_back_img'   =>$info['idcard_back_img'],
-            'status'    =>$info['status'],
-            'check_status'    =>$info['check_status'],
-            'check_status_desc' =>get_installer_status($info['check_status']),
-            'add_time'  =>$info['add_time'],
-            'service_count'     =>$info['service_count'],
-            'security_record_num'=>$info['security_record_num'],
-            'score'     =>$info['score'],
-            'store_name'=>$storeName,
-            'remark'=>$info['remark'],
-        ];
-        $this->_returnMsg(['detail' => $result]);
+        $field = 'store_id, job_no, realname, phone, idcard_font_img, idcard_back_img, status, check_status, service_count, score, security_record_num, add_time, remark';
+        list($user,$info)=$this->_checkInstaller($field);
+        $info['store_name'] = db('store')->where('store_id',$info['store_id'])->value('name');
+        unset($info['store_id']);
+        $this->_returnMsg(['detail' => $info]);
     }
     //编辑工程师信息
     protected function editInstaller()
@@ -1636,6 +1869,8 @@ class Admin extends Index
         
     }
     /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
+     * 
+     */
     /**
      * 用户提交参数处理
      */
@@ -1711,7 +1946,7 @@ class Admin extends Index
      * 获取工程师信息
      * @return array
      */
-    private function _checkInstaller()
+    private function _checkInstaller($field = '*')
     {
         $user = $this->_checkUser();
         if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
@@ -1722,12 +1957,9 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师工号不能为空']);
         }
         $userInstallerModel = new \app\common\model\UserInstaller();
-        $info = $userInstallerModel->where(['is_del' => 0, 'job_no' => $jobNo])->find();
+        $info = $userInstallerModel->field($field)->where(['is_del' => 0, 'job_no' => $jobNo, 'factory_id' => $this->factory['store_id']])->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工号不正确或该工程师已被删除']);
-        }
-        if ($user['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $user['store_id']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         if ($user['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $user['store_id']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
@@ -1742,7 +1974,7 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        //$userId = 2;//厂商
+        $userId = 2;//厂商
         // $userId =4;//渠道商
         //$userId = 5;//零售商
         $userId = 6;//服务商
