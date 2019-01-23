@@ -1313,7 +1313,7 @@ class Admin extends Index
         ];
         switch ($user['admin_type']) {
             case ADMIN_FACTORY://厂商
-                $where['factory_id']=$user['store_id'];
+                $where['factory_id'] = $user['store_id'];
                 break;
             case ADMIN_SERVICE://服务商
                 $where['store_id'] = $user['store_id'];
@@ -1383,6 +1383,7 @@ class Admin extends Index
     {
         
     }
+
     //获取工程师列表
     protected function getInstallerList()
     {
@@ -1451,8 +1452,68 @@ class Admin extends Index
     //工程师审核操作
     protected function checkInstaller()
     {
-        
+        list($user, $info) = $this->_checkInstaller();
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $checkStatus = $info['check_status'];
+        if ($checkStatus == 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师已经通过审核']);
+        }
+        if (!in_array($checkStatus, [-1, -3])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作已审核']);
+        }
+        //if ($user['admin_type'] == ADMIN_FACTORY && $checkStatus != -1) {
+        //    $this->error(lang('NO_OPERATE_PERMISSION'));
+        //}
+        if ($user['admin_type'] == ADMIN_SERVICE && $checkStatus != -3) {
+            $this->_returnMsg(['errCode' => 2, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $check = isset($this->postParams['check']) ? trim($this->postParams['check']) : 'deny';
+        $check = ($check == 'pass') ? 'pass' : 'deny';
+        if ($check == 'deny' && empty($remark)) {
+            $this->_returnMsg(['errCode' => 3, 'errMsg' => '请填写拒绝理由']);
+        }
+        //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
+        $status = '';
+        if ($check == 'pass') {
+            //判断是否需要厂商审核
+            $config = get_store_config($user['factory_id'], TRUE, 'default');
+            //默认需要厂商审核
+            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                $status = -1;
+            } else {
+                //服务商和厂商都不审核,直接通过
+                $status = 1;
+            }
+        } else {
+            $status = -4;
+        }
+        $data = [
+            'check_status' => $status,
+            'admin_remark' => $remark,
+        ];
+        $toUser=[
+            'phone'=>$info['phone'],
+            'realname'=>$info['realname'],
+            'user_id'=>$info['user_id'],
+        ];
+        $result = $info->save($data, ['installer_id' => $info['installer_id']]);
+        if ($result !== FALSE) {
+            //申请审核后通知工程师
+            $informModel = new \app\common\model\LogInform();
+            if ($status == 1) {
+                $informModel->sendInform($user['factory_id'], 'sms', $toUser, 'installer_check_success');
+            } else {
+                $informModel->sendInform($user['factory_id'], 'sms', $toUser, 'installer_check_fail');
+            }
+            $this->_returnMsg(['errMsg' => 'ok']);
+        } else {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+        }
     }
+
     //获取工程师详情
     protected function getInstallerDetail()
     {
