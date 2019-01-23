@@ -1421,6 +1421,11 @@ class Admin extends Index
         $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
         $this->_returnMsg(compact('list'));
     }
+    //获取工程师审核列表
+    protected function getInstallerCheckList()
+    {
+        
+    }
 
     //获取工程师详情
     protected function getInstallerDetail()
@@ -1509,7 +1514,7 @@ class Admin extends Index
     private function _checkUser($checkFlag = TRUE)
     {
         $userId = 2;//厂商
-        $userId =4;//渠道商
+//         $userId =4;//渠道商
         //$userId = 5;//零售商
 //         $userId = 6;//服务商
         $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
