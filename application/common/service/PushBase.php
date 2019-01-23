@@ -1,6 +1,6 @@
 <?php
 namespace app\common\service;
-use think\Gateway;
+use vendor\Gateway;
 
 //消息推送底层控制器
 class PushBase
