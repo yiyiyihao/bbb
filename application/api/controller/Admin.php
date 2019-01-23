@@ -1,10 +1,6 @@
 <?php
 namespace app\api\controller;
 
-use app\common\model\Servicer;
-use app\common\model\UserInstaller;
-use app\common\model\WorkOrder;
-
 class Admin extends Index
 {
     private $visitIp;
@@ -1353,7 +1349,7 @@ class Admin extends Index
                 break;
         }
         $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
-        $workOrderModel=new WorkOrder;
+        $workOrderModel=new \app\common\model\WorkOrder();
         $info = $workOrderModel->field($field)->where($where)->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
@@ -1472,7 +1468,8 @@ class Admin extends Index
         if (empty($jobNo)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师工号不能为空']);
         }
-        $info = UserInstaller::where(['is_del' => 0, 'job_no' => $jobNo])->find();
+        $userInstallerModel = new \app\common\model\UserInstaller();
+        $info = $userInstallerModel->where(['is_del' => 0, 'job_no' => $jobNo])->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工号不正确或该工程师已被删除']);
         }

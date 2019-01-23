@@ -28,12 +28,15 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '单页显示数量(page_size)不能大于50']);
         }
         $this->signKey = isset($this->postParams['signkey']) && $this->postParams['signkey'] ? trim($this->postParams['signkey']) : '';
-        $this->mchKey = isset($this->postParams['mchkey']) && $this->postParams['mchkey'] ? trim($this->postParams['mchkey']) : '';
+        if (!$this->mchKey) {
+            $this->mchKey = isset($this->postParams['mchkey']) && $this->postParams['mchkey'] ? trim($this->postParams['mchkey']) : '';
+        }
         //客户端签名密钥
         $this->signKeyList = [
-            'H5'        => 'VO17NvGtExcc',
-            'Applets'   => 'SjeGczso8Ya2',
-            'TEST'      => 'ds7p7auqyjj8',
+            'H5_MANAGER'        => 'VO17NvGtExcc',
+            'APPLETS_INTALLER'  => 'SjeGczso8Ya2',
+            'APPLETS_USER'      => 'SjeGczso8Ya3',
+            'TEST'              => 'ds7p7auqyjj8',
         ];
         $this->verifySignParam($this->postParams);
         //请求参数验证
@@ -1188,7 +1191,7 @@ class Index extends ApiBase
             'request_params'=> $this->postParams ? json_encode($this->postParams) : '',
             'return_params' => $result,
             'response_time' => $responseTime,
-            'error'         => isset($data['errCode']) ? intval($data['errCode']) : 0,
+            'error'         => isset($data['errCode']) && intval($data['errCode']) > 0 ? 1 : 0,
         ];
         $apiLogId = db('apilog_app')->insertGetId($addData);
         exit();
@@ -1253,27 +1256,10 @@ class Index extends ApiBase
          unset($this->postParams['file']);#上传文件接口去掉file字段验证签名
          } */
         $timestamp = isset($this->postParams['timestamp']) ?  trim($this->postParams['timestamp']) : '';
-        if ($this->method != 'uploadImage') {
-            if(!$timestamp) {
-                $this->_returnMsg(array('errCode' => 1,'errMsg' => '请求时间戳(timestamp)参数缺失'));
-            }
-            $len = strlen($timestamp);
-            //         if($len != 10 && $len != 13) {//时间戳长度格式不对
-            if($len != 10) {//时间戳长度格式不对
-                $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误(10位有效长度)'));
-            }
-            if (strlen($timestamp) == 13) {
-                //             $this->postParams['timestamp'] = $timestamp = substr($timestamp, 0, 10);
-            }
-            if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
-                $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
-            }
-        }
-        /* if(!$timestamp) {
+        if(!$timestamp) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '请求时间戳(timestamp)参数缺失'));
         }
         $len = strlen($timestamp);
-//         if($len != 10 && $len != 13) {//时间戳长度格式不对
         if($len != 10) {//时间戳长度格式不对
             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '时间戳格式错误(10位有效长度)'));
         }
@@ -1282,20 +1268,22 @@ class Index extends ApiBase
         }
         if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
-        } */
+        }
         if(!$this->signKey) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥(signkey)参数缺失'));
         }
         if(!in_array($this->signKey, $this->signKeyList)) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥错误'));
         }
-        if(!$this->mchKey) {
+        if (strtolower($this->request->controller()) == 'index' && !$this->mchKey) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '商户密钥(mchkey)参数缺失'));
         }
-        //根据商户密钥获取商户信息
-        $this->factory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['store_no' => trim($this->mchKey), 'store_type' => STORE_FACTORY, 'S.is_del' => 0])->find();
-        if(!$this->factory) {
-            $this->_returnMsg(array('errCode' => 1,'errMsg' => '商户密钥(mchkey)对应商户不存在或已删除'));
+        if($this->mchKey){
+            //根据商户密钥获取商户信息
+            $this->factory = db('store_factory')->alias('SF')->join('store S', 'S.store_id = SF.store_id', 'INNER')->where(['store_no' => trim($this->mchKey), 'store_type' => STORE_FACTORY, 'S.is_del' => 0])->find();
+            if(!$this->factory) {
+                $this->_returnMsg(array('errCode' => 1,'errMsg' => '商户密钥(mchkey)对应商户不存在或已删除'));
+            }
         }
         
         if (isset($data['file'])) {
