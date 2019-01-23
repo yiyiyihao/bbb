@@ -31,8 +31,6 @@ class Login extends CommonBase
                 $user = $userModel->where($map)->find();
             }elseif ($this->adminFactory){
                 $factoryId = $this->adminFactory['store_id'];
-//                 $sql = 'username = "'.$userName.'"'.' AND admin_type > 1 AND ((admin_type = '.ADMIN_FACTORY.' AND U.store_id = '.$factoryId.') OR (admin_type != '.ADMIN_FACTORY.' AND S.factory_id = '.$factoryId.'))';
-//                 $user = $userModel->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->where($sql)->find();
                 $where = [
                     'U.username'    => $userName,
                     'U.factory_id'  => $factoryId,

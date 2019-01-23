@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model;
 use think\Model;
+use think\Db;
 
 class Order extends Model
 {
@@ -42,9 +43,12 @@ class Order extends Model
                         //获取可申请安装的订单商品
                         $where = [
                             'OSSUB.order_id'    => $value['order_id'],
-                            'service_status = -2 OR service_status is NULL',
-                            'work_order_status = -1 OR work_order_status is NULL',
+//                             'service_status = -2 OR service_status is NULL',
+//                             'work_order_status = -1 OR work_order_status is NULL',
                         ];
+                        $where[]=['','EXP',Db::raw("service_status = -2 OR service_status is NULL")];
+                        $where[]=['','EXP',Db::raw("work_order_status = -1 OR work_order_status is NULL")];
+                        
                         $join = [
                             ['order_sku_service OSSE', 'OSSE.ossub_id = OSSUB.ossub_id', 'LEFT'],
                             ['work_order WO', 'WO.ossub_id = OSSUB.ossub_id', 'LEFT'],
@@ -77,12 +81,12 @@ class Order extends Model
      * @param number $userId    用户ID
      * @return array
      */
-    public function getOrderDetail($orderSn = '', $user = [], $getlog = TRUE, $getskusub = FALSE)
+    public function getOrderDetail($orderSn = '', $user = [], $getlog = TRUE, $getskusub = FALSE, $orderField = '*', $skuField = '*')
     {
         if (!$orderSn) {
             return FALSE;
         }
-        $order = $this->checkOrder($orderSn, $user);
+        $order = $this->checkOrder($orderSn, $user, $orderField);
         if ($order === FALSE) {
             return FALSE;
         }
@@ -91,8 +95,8 @@ class Order extends Model
         if ($order['pay_code']) {
             $payName = db('payment')->where(['pay_code' => $order['pay_code'], 'is_del' => 0, 'store_id' => $order['store_id']])->value('name');
         }
-        $order['_pay_status'] = ['pay_code' => $order['pay_code'], 'name' => $payName, 'time' => $order['pay_time']];
-        $order = $this->getOrderSkus($order, $getskusub);
+        $order['_pay_status'] = ['pay_code' => $order['pay_code'], 'name' => $payName, 'time' => time_to_date($order['pay_time'])];
+        $order = $this->getOrderSkus($order, $getskusub, $skuField);
         $detail['order'] = $order;
         if ($getlog) {
             $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
@@ -901,7 +905,7 @@ class Order extends Model
         ];
         return $result = db('order_log')->insertGetId($data);
     }
-    public function checkOrder($orderSn = '', $user = [])
+    public function checkOrder($orderSn = '', $user = [], $field = '*')
     {
         if (!$orderSn) {
             $this->error = '订单号不能为空';
@@ -927,7 +931,7 @@ class Order extends Model
         }elseif (isset($user['udata_id']) && $user['udata_id'] > 0) {
             $where['udata_id'] = $user['udata_id'];
         }
-        $order = $this->where($where)->find();
+        $order = $this->field($field)->where($where)->find();
         if (!$order) {
             $this->error = lang('NO ACCESS');
             return FALSE;
@@ -942,9 +946,9 @@ class Order extends Model
         }
         return $payments = db('payment')->order('sort_order ASC, add_time DESC')->where($where)->select();
     }
-    public function getOrderSkus($order, $getsub = FALSE)
+    public function getOrderSkus($order, $getsub = FALSE, $field = '*')
     {
-        $oskus = db('order_sku')->where(['order_id' => $order['order_id']])->select();
+        $oskus = db('order_sku')->where(['order_id' => $order['order_id']])->field($field)->select();
         if ($oskus && $getsub) {
             $orderSkuSubModel = db('order_sku_sub');
             $orderSkuServiceModel = db('order_sku_service');

@@ -141,6 +141,7 @@ class Store extends FormBase
             if (IS_POST) {
                 $data = $this->_getData();
                 $data = [
+                    'factory_id'        => $this->adminUser['factory_id'],
                     'action_store_id'   => $this->adminUser['store_id'],
                     'action_user_id'    => ADMIN_ID,
                     'to_store_id'       => 0,
@@ -204,6 +205,7 @@ class Store extends FormBase
                 }
                 if ($temp) {
                     $data = [
+                        'factory_id'        => $this->adminUser['factory_id'],
                         'action_store_id'=> $this->adminUser['store_id'],
                         'action_user_id'=> ADMIN_ID,
                         'to_store_id'   => $info['store_id'],

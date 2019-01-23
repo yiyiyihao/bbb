@@ -2,6 +2,7 @@
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
 use think\response\Redirect;
+use think\Db;
 
 class Index extends CommonIndex
 {
@@ -22,16 +23,21 @@ class Index extends CommonIndex
             $bulletinModel = db('bulletin');
             $where = [
                 'B.publish_status' => 1,
-                'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))',
-                '(BR.bulletin_id IS NULL OR BR.is_read = 0)',
-                'B.store_type IN(0, '.$this->adminUser['store_type'].')',
+//                 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))',
+//                 '(BR.bulletin_id IS NULL OR BR.is_read = 0)',
+//                 'B.store_type IN(0, '.$this->adminUser['store_type'].')',
             ];
+            $where[]=['','EXP',Db::raw("B.visible_range = 1 OR (visible_range = 0 AND find_in_set(".$this->adminUser['store_id'].", B.to_store_ids))")];
+            $where[]=['','EXP',Db::raw("(BR.bulletin_id IS NULL OR BR.is_read = 0)")];
+            $where[]=['','EXP',Db::raw("B.store_type IN(0, ".$this->adminUser['store_type'].")")];
+            
             $join = [
                 ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.ADMIN_ID, 'LEFT']
             ];
             $field  = "B.*,BR.is_read";
             //未读公告列表
             $bulletins      = $bulletinModel->field($field)->alias('B')->join($join)->where($where)->limit(0, 5)->order('is_top DESC, publish_time DESC')->select();
+            
             $unReadCount    = $bulletinModel->field($field)->alias('B')->where($where)->count();
             //获取需要开屏展示的公告列表
             $where['B.special_display'] = 1;

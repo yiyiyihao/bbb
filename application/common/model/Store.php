@@ -81,6 +81,7 @@ class Store extends Model
                 return FALSE;
             }
             $data = [
+                'factory_id'        => $user['factory_id'],
                 'action_store_id'   => $user['store_id'],
                 'action_user_id'    => $user['user_id'],
                 'to_store_id'       => $info['store_id'],
