@@ -6,23 +6,29 @@ class Test extends Base
 {
     public function initialize()
     {
-        //放过所有跨域
-        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-        header('Access-Control-Allow-Origin:' . $origin);
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
+//         $allowOrigin = array(
+//             'http://m.wanjiaan.com',
+//         );
+//         if(in_array($origin, $allowOrigin)){
+//             header('Access-Control-Allow-Origin:'.$origin);
+//             header('Access-Control-Allow-Methods:POST');
+//             header('Access-Control-Allow-Headers:x-requested-with,content-type');
+//         }
+        header('Access-Control-Allow-Origin:'.$origin);
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
+//         header('Access-Control-Allow-Credentials:true');
     }
     public function index()
     {
-//         session_start();
-//         pre($_SESSION);
         $request = $this->request->param();
         header("Content-type: text/html; charset=utf-8");
-//         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
+        $url = 'http://'.$_SERVER['HTTP_HOST'].'/index';
         $url = 'http://'.$_SERVER['HTTP_HOST'].'/admin';
         $params['timestamp'] = time();
         $params['signkey'] = 'ds7p7auqyjj8';
-        $params['mchkey'] = '1458745225';
+//         $params['mchkey'] = '1458745225';
         $params['method'] = isset($request['method']) ? trim($request['method']) : '';
         if ($request) {
             $params = array_merge($params, $request);
