@@ -1755,7 +1755,7 @@ class Admin extends Index
         }
         //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
         $status = '';
-        if ($check_result == 'pass') {
+        if ($check_result == 1) {
             //判断是否需要厂商审核
             $config = get_store_config($user['factory_id'], TRUE, 'default');
             //默认需要厂商审核
