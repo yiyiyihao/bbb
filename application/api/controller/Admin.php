@@ -1438,14 +1438,45 @@ class Admin extends Index
     //获取工程师详情
     protected function getInstallerDetail()
     {
-        $info=$this->checkInstaller();
-
+        list($user,$info)=$this->checkInstaller();
+        $storeName=db('store')->where('store_id',$info['store_id'])->value('name');
+        $result=[
+            'job_no'=>$info['job_no'],
+            'realname'=>$info['realname'],
+            'phone'=>$info['phone'],
+            'idcard_font_img'=>$info['idcard_font_img'],
+            'idcard_back_img'=>$info['idcard_back_img'],
+            'status'=>$info['status'],
+            'add_time'=>$info['add_time'],
+            'service_count'=>$info['service_count'],
+            'security_record_num'=>$info['security_record_num'],
+            'score'=>$info['score'],
+            'store_name'=>$storeName,
+        ];
+        $this->_returnMsg(['detail' => $result]);
     }
 
     //编辑工程师信息
     protected function editInstaller()
     {
-
+        list($user,$info)=$this->checkInstaller();
+        if ($user['admin_type']==ADMIN_FACTORY) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
+        $data['phone'] = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $data['idcard_font_img'] = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
+        $data['idcard_back_img'] = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
+        $data=array_filter($data, function ($item) {
+            return !empty($item);
+        });
+        if (empty($data)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请提交要保存的数据']);
+        }
+        if ($info->where('installer_id',$info['installer_id'])->update($data)) {
+            $this->_returnMsg(['errMsg' => 'ok']);
+        }
+        $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
     }
 
     //设置工程师状态
