@@ -1,8 +1,5 @@
 <?php
 namespace app\api\controller;
-
-
-
 class Admin extends Index
 {
     private $visitIp;
@@ -13,8 +10,6 @@ class Admin extends Index
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
         $this->mchKey = '1458745225';
-//         \think\facade\Session::clear();
-//         pre(session(''));
         parent::__construct();
     }
     //微信授权-第1步
@@ -110,6 +105,7 @@ class Admin extends Index
         $result = db('user_data')->where(['udata_id' => $udata['udata_id']])->update(['user_id' => $user['user_id'], 'update_time' => time()]);
         $this->_setLogin($user['user_id'], $udata['third_openid']);
     }
+    //商户入驻-用户注册
     protected function applyStep1()
     {
         $udata = $this->_getScopeUser();
@@ -164,6 +160,7 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '注册成功,请完善资料']);
         }
     }
+    //商户入驻-完善商户资料
     protected function applyStep2()
     {
         $udata = $this->_getScopeUser();
@@ -267,7 +264,6 @@ class Admin extends Index
         unset($detail['store_id'], $detail['enter_type'], $detail['address'], $detail['ostore_id'], $detail['address']);
         $this->_returnMsg(['detail' => $detail]);
     }
-
     //修改用户密码
     protected function updatePassword()
     {
@@ -308,6 +304,7 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '修改密码成功']);
         }
     }
+    //获取分享页面信息【厂商/渠道商】
     protected function getShareDetail()
     {
         $user = $this->_checkUser();
@@ -652,49 +649,6 @@ class Admin extends Index
             }
         }
     }
-    private function _verifyStoreForm($storeType = STORE_DEALER)
-    {
-        $sname = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
-        $userName = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
-        $mobile = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
-        $sampleAmount = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
-        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
-        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
-        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
-        $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
-        $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
-        $signingContractImg = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
-        $licenseImg = isset($this->postParams['license_img']) ? trim($this->postParams['license_img']) : '';
-        $groupPhoto = isset($this->postParams['group_photo']) ? trim($this->postParams['group_photo']) : '';
-        $name = get_store_type($storeType);
-        if (!$sname){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'名称不能为空']);
-        }
-        if (!$userName){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系人姓名不能为空']);
-        }
-        if (!$mobile){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
-        }
-        if ($storeType == STORE_DEALER && $sampleAmount < 0){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
-        }
-        if ($regionId <= 0 || !$regionName){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择'.$name.'区域']);
-        }
-        if ($storeType == STORE_DEALER && !$address){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'地址详情不能为空']);
-        }
-        /* if (!$idcardFontImg){
-         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证正面']);
-         }
-         if (!$idcardBackImg){
-         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证背面']);
-         }
-         if (!$signingContractImg){
-         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传签约合同']);
-         } */
-    }
     //编辑零售商
     protected function editDealer()
     {
@@ -878,9 +832,9 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '拒绝理由不能为空']);
         }
         //判断当前商户是否已经审核通过
-//         if ($detail['check_status'] != 0) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已审核，不能重复操作']);
-//         }
+        if ($detail['check_status'] != 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已审核，不能重复操作']);
+        }
         $status = $checkStatus > 0 ? 1: 2;
         $data = [
             'check_status' => $status,
@@ -894,7 +848,6 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
     }
-
     //获取商品列表
     protected function getGoodsList()
     {
@@ -1045,7 +998,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['data' => $result]);
     }
-
     //获取订单列表
     protected function getOrderList()
     {
@@ -1176,7 +1128,6 @@ class Admin extends Index
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
     }
-
     //申请安装工单
     protected function applyWorkOrder()
     {
@@ -1187,7 +1138,6 @@ class Admin extends Index
     {
         
     }
-    
     //获取售后订单列表
     protected function getServiceOrderList()
     {
@@ -1292,7 +1242,6 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '售后取消成功']);
         }
     }
-
     //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
     {
@@ -1392,8 +1341,6 @@ class Admin extends Index
         $info['work_order_type_desc']=get_work_order_type($info['work_order_type']);
         $info['appointment']=time_to_date($info['appointment']);
         $info['finish_time']=time_to_date($info['finish_time']);
-
-
         if ($info['ossub_id']) {
             $join = [
                 ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
@@ -1481,16 +1428,9 @@ class Admin extends Index
         $model=new \app\common\model\UserInstaller;
         $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
         $status=in_array($status,[-4,-3,-2,-1,0,1])?$status:'';
-
-
-
         $where=[];
         $list = $this->_getModelList($model, $where, $field, $order);
         $this->_returnMsg(compact('list'));
-
-
-
-
     }
     //获取工程师审核详情
     protected function getInstallerCheckDetail()
@@ -1502,29 +1442,26 @@ class Admin extends Index
     {
         
     }
-    
-
     //获取工程师详情
     protected function getInstallerDetail()
     {
         list($user,$info)=$this->_checkInstaller();
         $storeName=db('store')->where('store_id',$info['store_id'])->value('name');
         $result=[
-            'job_no'=>$info['job_no'],
-            'realname'=>$info['realname'],
-            'phone'=>$info['phone'],
-            'idcard_font_img'=>$info['idcard_font_img'],
-            'idcard_back_img'=>$info['idcard_back_img'],
-            'status'=>$info['status'],
-            'add_time'=>$info['add_time'],
-            'service_count'=>$info['service_count'],
+            'job_no'    =>$info['job_no'],
+            'realname'  =>$info['realname'],
+            'phone'     =>$info['phone'],
+            'idcard_font_img'   =>$info['idcard_font_img'],
+            'idcard_back_img'   =>$info['idcard_back_img'],
+            'status'    =>$info['status'],
+            'add_time'  =>$info['add_time'],
+            'service_count'     =>$info['service_count'],
             'security_record_num'=>$info['security_record_num'],
-            'score'=>$info['score'],
+            'score'     =>$info['score'],
             'store_name'=>$storeName,
         ];
         $this->_returnMsg(['detail' => $result]);
     }
-
     //编辑工程师信息
     protected function editInstaller()
     {
@@ -1547,7 +1484,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
     }
-
     //设置工程师状态
     protected function setInstallerStatus()
     {
@@ -1563,7 +1499,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => $desc.'失败']);
     }
-
     //删除工程师
     protected function delInstaller()
     {
@@ -1613,8 +1548,82 @@ class Admin extends Index
     {
         
     }
-    
-
+    /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
+    /**
+     * 用户提交参数处理
+     */
+    protected function _checkPostParams()
+    {
+        if (!isset($_SERVER['HTTP_ORIGIN'])) {
+            return parent::_checkPostParams();
+        }
+        $this->requestTime = time();
+        $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
+        $this->postParams = $this->request->param();
+        if (!$this->postParams) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
+        }
+        unset($this->postParams['callback']);
+        unset($this->postParams['_']);
+    }
+    /**
+     * 处理接口返回信息
+     */
+    protected function _returnMsg($data, $echo = TRUE){
+        $data['loginStep'] = isset($data['loginStep']) ? intval($data['loginStep']) : 0;
+        $result = parent::_returnMsg($data);
+    }
+    /**
+     * 验证商户表单信息
+     * @param int $storeType
+     */
+    private function _verifyStoreForm($storeType = STORE_DEALER)
+    {
+        $sname = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
+        $userName = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $mobile = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
+        $sampleAmount = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
+        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
+        $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
+        $signingContractImg = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
+        $licenseImg = isset($this->postParams['license_img']) ? trim($this->postParams['license_img']) : '';
+        $groupPhoto = isset($this->postParams['group_photo']) ? trim($this->postParams['group_photo']) : '';
+        $name = get_store_type($storeType);
+        if (!$sname){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'名称不能为空']);
+        }
+        if (!$userName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系人姓名不能为空']);
+        }
+        if (!$mobile){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
+        }
+        if ($storeType == STORE_DEALER && $sampleAmount < 0){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
+        }
+        if ($regionId <= 0 || !$regionName){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择'.$name.'区域']);
+        }
+        if ($storeType == STORE_DEALER && !$address){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'地址详情不能为空']);
+        }
+        /* if (!$idcardFontImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证正面']);
+         }
+         if (!$idcardBackImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传公司法人身份证背面']);
+         }
+         if (!$signingContractImg){
+         $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传签约合同']);
+         } */
+    }
+    /**
+     * 获取工程师信息
+     * @return array
+     */
     private function _checkInstaller()
     {
         $user = $this->_checkUser();
@@ -1637,34 +1646,14 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         return [$user,$info];
-
-    }
-
-
-    protected function _checkPostParams()
-    {
-        if (!isset($_SERVER['HTTP_ORIGIN'])) {
-            return parent::_checkPostParams();
-        }
-
-        $this->requestTime = time();
-        $this->visitMicroTime = $this->_getMillisecond();//会员访问时间(精确到毫秒)
-        $this->postParams = $this->request->param();
-        if (!$this->postParams) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
-        }
-        unset($this->postParams['callback']);
-        unset($this->postParams['_']);
+        
     }
     /**
-     * 处理接口返回信息
+     * 获取当前用户登录信息
+     * @param boolean $checkFlag 是否验证用户对应商户信息
+     * @return array
      */
-    protected function _returnMsg($data, $echo = TRUE){
-        $data['loginStep'] = isset($data['loginStep']) ? intval($data['loginStep']) : 0;
-        $result = parent::_returnMsg($data);
-    }
-    private function
-    _checkUser($checkFlag = TRUE)
+    private function _checkUser($checkFlag = TRUE)
     {
         $userId = 2;//厂商
 //         $userId =4;//渠道商
@@ -1698,6 +1687,10 @@ class Admin extends Index
         }
         $this->_returnMsg(['msg' => '已授权,前往登录页面', 'loginStep' => 2]);//已授权未绑定
     }
+    /**
+     * 获取微信授权用户信息
+     * @return array
+     */
     private function _getScopeUser()
     {
         if (session('api_admin_user')) {
