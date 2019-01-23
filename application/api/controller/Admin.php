@@ -1402,23 +1402,31 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $where='is_del=0';
+        $where['UI.is_del']=0;
         if ($user['admin_type'] == ADMIN_FACTORY) {
-            $where.=' AND factory_id='.$user['store_id'];
+            $where['UI.factory_id']=$user['store_id'];
         } elseif ($user['admin_type'] == ADMIN_SERVICE) {
-            $where.=' AND store_id='.$user['store_id'];
+            $where['UI.store_id']=$user['store_id'];
         }
         $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 'add_time';
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
+        $storeNo = isset($this->postParams['store_no']) ? intval($this->postParams['store_no']) : '';
+        if ($storeNo) {
+            $where['S.store_no']=$storeNo;
+        }
         if (!empty($key)) {
-            $where.=' AND (realname like "%'.$key.'%" OR phone like "%'.$key.'%"  )';
+            $where['UI.realname|UI.phone']=['like','%'.$key.'%'];
         }
         if (!in_array($order, ['add_time', 'service_count', 'score'])) {
             $order = 'add_time';
         }
-        $order .= ' desc';
-        $field = 'realname,phone,status,service_count,score,job_no';
-        $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
+        $order ='UI.'.$order. ' desc';
+        $field = 'UI.realname,UI.phone,UI.status,UI.service_count,UI.score,UI.job_no,S.name store_name,S.store_no';
+        $join=[
+            //['store SF', 'SF.store_id = UI.factory_id', 'LEFT'],
+            ['store S', 'S.store_id = UI.store_id', 'LEFT'],
+        ];
+        $list = $this->_getModelList(db('user_installer'), $where, $field, $order,'UI',$join);
         $this->_returnMsg(compact('list'));
     }
     //获取工程师审核列表
@@ -1443,7 +1451,10 @@ class Admin extends Index
     //设置工程师状态
     protected function setInstallerStatus()
     {
-        $info=$this->checkInstaller();
+        list($user,$info)=$this->checkInstaller();
+        if ($user['admin_type']==ADMIN_FACTORY) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
         //$status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
         $status=$info['status']==1?0:1;
         $desc=$status==0?'禁用':'启用';
@@ -1456,7 +1467,15 @@ class Admin extends Index
     //删除工程师
     protected function delInstaller()
     {
-        $info=$this->checkInstaller();
+
+        list($user,$info)=$this->checkInstaller();
+        if ($user['admin_type']==ADMIN_FACTORY) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $exist = db('work_order')->where(['installer_id' => $info['installer_id']])->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师存在工单记录,不允许删除']);
+        }
         if ($info->where('installer_id',$info['installer_id'])->update(['is_del'=>1])) {
             $this->_returnMsg(['errMsg' => 'ok']);
         }
@@ -1484,7 +1503,7 @@ class Admin extends Index
         if ($user['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $user['store_id']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        return $info;
+        return [$user,$info];
 
     }
 
