@@ -1447,6 +1447,11 @@ class Admin extends Index
     //获取工程师审核详情
     protected function getInstallerCheckDetail()
     {
+        list($user, $info) = $this->_checkInstaller();
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $this->getInstallerDetail();
         
     }
     //工程师审核操作
@@ -1530,11 +1535,14 @@ class Admin extends Index
             'idcard_font_img'   =>$info['idcard_font_img'],
             'idcard_back_img'   =>$info['idcard_back_img'],
             'status'    =>$info['status'],
+            'check_status'    =>$info['check_status'],
+            'check_status_desc' =>get_installer_status($info['check_status']),
             'add_time'  =>$info['add_time'],
             'service_count'     =>$info['service_count'],
             'security_record_num'=>$info['security_record_num'],
             'score'     =>$info['score'],
             'store_name'=>$storeName,
+            'remark'=>$info['remark'],
         ];
         $this->_returnMsg(['detail' => $result]);
     }
@@ -1731,10 +1739,10 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        $userId = 2;//厂商
-//         $userId =4;//渠道商
+        //$userId = 2;//厂商
+        // $userId =4;//渠道商
         //$userId = 5;//零售商
-//         $userId = 6;//服务商
+        $userId = 6;//服务商
         $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         return $loginUser ? $loginUser : [];
         $loginUser = session('api_admin_user');
