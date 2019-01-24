@@ -1732,8 +1732,10 @@ class Admin extends Index
     {
         list($user, $info) = $this->_checkInstaller();
         if ($user['admin_type'] == ADMIN_FACTORY) {
+            //屏蔽厂商审核操作，如不需要，注释即可
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
+
         $checkStatus = $info['check_status'];
         if ($checkStatus == 1) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师已经通过审核']);
@@ -1763,17 +1765,23 @@ class Admin extends Index
         //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
         $status = '';
         if ($check_result == 1) {
-            //判断是否需要厂商审核
-            $config = get_store_config($user['factory_id'], TRUE, 'default');
-            //默认需要厂商审核
-            if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
-                $status = -1;
-            } else {
-                //服务商和厂商都不审核,直接通过
+            if ($user['admin_type'] == ADMIN_FACTORY) {
                 $status = 1;
+            }else{
+                //判断是否需要厂商审核
+                $config = get_store_config($user['factory_id'], TRUE, 'default');
+                //pre($config,true);
+                //默认需要厂商审核
+                if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
+                    $status = -1;
+                }else {
+                    //服务商和厂商都不审核,直接通过
+                    $status = 1;
+                }
             }
+            //pre($status);
         } else {
-            $status = -4;
+            $status = $user['admin_type'] == ADMIN_FACTORY ? -2: -4;
         }
         $data = [
             'check_status' => $status,
