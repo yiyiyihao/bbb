@@ -1856,8 +1856,20 @@ class Admin extends Index
         }
         $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         $data['phone'] = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        if (empty($data['realname'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师姓名不能为空']);
+        }
+        if (empty($data['phone'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师手机号不能为空']);
+        }
+        $pattern = '/^(13[0-9]|14[0|9]|15[0-9]|167[0-9]|17[0-9]|18[0-9]|19[0-9])\d{8}$/';
+        if (!preg_match($pattern,$data['phone'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号格式不正确']);
+        }
+
         $data['idcard_font_img'] = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
         $data['idcard_back_img'] = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
+        $data['security_record_num'] = isset($this->postParams['security_record_num']) ? trim($this->postParams['security_record_num']) : '';
         $data=array_filter($data, function ($item) {
             return !empty($item);
         });
