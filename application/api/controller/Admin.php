@@ -1811,7 +1811,7 @@ class Admin extends Index
     //编辑工程师信息
     protected function editInstaller()
     {
-        list($user,$info)=$this->checkInstaller();
+        list($user,$info)=$this->_checkInstaller();
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
