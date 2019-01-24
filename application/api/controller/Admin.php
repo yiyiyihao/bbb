@@ -1654,6 +1654,10 @@ class Admin extends Index
     //分派工单操作【服务商】
     protected function dispatchWorkOrder()
     {
+        list($user,$installer)=$this->_checkInstaller();
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
         $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
         if (empty($jobNo)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择售后工程师']);
@@ -1663,17 +1667,12 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
         }
         $model=new \app\common\model\WorkOrder();
-        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn])->find();
+        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn,'store_id'=>$user['store_id']])->find();
         if (empty($worder)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
         }
-
-        list($user,$installer)=$this->_checkInstaller();
-        if ($user['admin_type']!=ADMIN_SERVICE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
-        }
         if ($user['store_id']!=$installer['store_id']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '只能派单到您所属工程师']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '只能派单到您下属工程师']);
         }
         $result = $model->worderDispatch($worder, $user, $installer['installer_id']);
         if ($result !== FALSE) {
@@ -1694,24 +1693,25 @@ class Admin extends Index
     //取消工单操作【服务商】
     protected function cancelWorkOrder()
     {
+        $user=$this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
         $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
         if (empty($worderSn)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
         }
         $model=new \app\common\model\WorkOrder();
-        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn])->find();
+        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn,'store_id'=>$user['store_id']])->find();
         if (empty($worder)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
         }
-        $user=$this->_checkUser();
-        if ($user['admin_type']!=ADMIN_SERVICE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
-        }
+
         $result = $model->worderCancel($worder, $user);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '取消失败【'.$model->error.'】']);
         }else{
-            $this->_returnMsg(['msg' => '取消售后订单成功']);
+            $this->_returnMsg(['msg' => '取消工单成功']);
         }
     }
 
@@ -1914,8 +1914,8 @@ class Admin extends Index
         if (empty($data['phone'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师手机号不能为空']);
         }
-        $pattern = '/^(13[0-9]|14[0|9]|15[0-9]|167[0-9]|17[0-9]|18[0-9]|19[0-9])\d{8}$/';
-        if (!preg_match($pattern,$data['phone'])) {
+        $user=new \app\common\model\User;
+        if ($user->checkPhone(0,$data['phone'])===FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号格式不正确']);
         }
 
@@ -1928,7 +1928,7 @@ class Admin extends Index
         if (empty($data)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请提交要保存的数据']);
         }
-        if ($info->where('installer_id',$info['installer_id'])->update($data)) {
+        if (db('user_installer')->where('installer_id',$info['installer_id'])->update($data)) {
             $this->_returnMsg(['msg' => 'ok']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
@@ -1949,7 +1949,7 @@ class Admin extends Index
         if ($info['status'] == $status) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已被'.$desc.'!']);
         }
-        if ($info->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
+        if (db('user_installer')->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
             $this->_returnMsg(['msg' => $desc.'工程师操作成功']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => $desc.'失败']);

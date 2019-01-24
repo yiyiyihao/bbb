@@ -205,7 +205,7 @@ class Workorder extends FactoryForm
         if ($result === FALSE) {
             $this->error($this->model->error);
         }else{
-            $this->success('取消售后订单成功');
+            $this->success('取消售后工单成功');
         }
     }
     public function getAjaxList($where = [], $field = '')
