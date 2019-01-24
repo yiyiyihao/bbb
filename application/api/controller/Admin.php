@@ -1654,22 +1654,65 @@ class Admin extends Index
     //分派工单操作【服务商】
     protected function dispatchWorkOrder()
     {
-        list($user,$info)=$this->_checkInstaller();
+        $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
+        if (empty($jobNo)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择售后工程师']);
+        }
+        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
+        if (empty($worderSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
+        }
+        $model=new \app\common\model\WorkOrder();
+        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn])->find();
+        if (empty($worder)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
+        }
+
+        list($user,$installer)=$this->_checkInstaller();
         if ($user['admin_type']!=ADMIN_SERVICE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-
-
-        
+        if ($user['store_id']!=$installer['store_id']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '只能派单到您所属工程师']);
+        }
+        $result = $model->worderDispatch($worder, $user, $installer['installer_id']);
+        if ($result !== FALSE) {
+            //发送派单通知给工程师
+            $push = new \app\common\service\PushBase();
+            $sendData = [
+                'type'         => 'worker',
+                'worder_sn'    => $worder['worder_sn'],
+                'worder_id'    => $worder['worder_id'],
+            ];
+            //发送给服务商在线管理员
+            $push->sendToUid(md5($installer['installer_id']), json_encode($sendData));
+            $this->_returnMsg(['msg' => '售后工程师指派成功']);
+        }else{
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败【'.$model->error.'】']);
+        }
     }
     //取消工单操作【服务商】
     protected function cancelWorkOrder()
     {
-        list($user,$info)=$this->_checkInstaller();
+        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
+        if (empty($worderSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
+        }
+        $model=new \app\common\model\WorkOrder();
+        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn])->find();
+        if (empty($worder)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
+        }
+        $user=$this->_checkUser();
         if ($user['admin_type']!=ADMIN_SERVICE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        
+        $result = $model->worderCancel($worder, $user);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '取消失败【'.$model->error.'】']);
+        }else{
+            $this->_returnMsg(['msg' => '取消售后订单成功']);
+        }
     }
 
     //获取工程师列表
