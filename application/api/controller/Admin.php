@@ -1649,7 +1649,7 @@ class Admin extends Index
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
         $checkStatus = isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
         if ($storeNo) {
-            $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0])->find();
+            $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0,'store_type'=>ADMIN_SERVICE])->find();
             if (empty($store)) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在或已被删除']);
             }
