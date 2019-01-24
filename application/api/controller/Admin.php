@@ -3,6 +3,7 @@ namespace app\api\controller;
 class Admin extends Index
 {
     private $visitIp;
+    private $thirdType = 'wechat_h5';
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -41,7 +42,7 @@ class Admin extends Index
     //微信授权-第1步
     protected function getWechatScope()
     {
-        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
         $appsecret = isset($wechatApi->config['appsecret']) ? trim($wechatApi->config['appsecret']) : '';
         if (!$appid || !$appsecret) {
@@ -54,7 +55,7 @@ class Admin extends Index
     //微信授权-第2步，返回微信Openid
     protected function getWechatOpenid()
     {
-        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
@@ -72,7 +73,7 @@ class Admin extends Index
             'avatar'        => isset($result['headimgurl']) ? trim($result['headimgurl']) : '',
             'gender'        => isset($result['sex']) ? intval($result['sex']) : 0,
             'unionid'       => isset($result['unionid']) ? trim($result['unionid']) : '',
-            'third_type'    => 'wechat_h5',
+            'third_type'    => $this->thirdType,
         ];
         $oauth = $userModel->authorized($this->factory['store_id'], $params);
         if ($oauth === FALSE) {
@@ -334,29 +335,45 @@ class Admin extends Index
     protected function getShareDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         //获取厂商分享配置
         $config = get_store_config($user['factory_id'], FALSE, 'invite_share');
         if (!$config) {
-            //默认分享数据
-            $config = [
-                'title' => '',
-                'description' => '',
-                'img_url' => '',
-            ];
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '厂商未配置分享数据']);
         }
-        $store = session('api_admin_store');
-        $url = '';
+        switch ($user['admin_type']) {
+            case ADMIN_FACTORY:
+                $url = '';
+                $config = $config && isset($config['factory']) ? $config['factory'] : [];
+            break;
+            case ADMIN_CHANNEL:
+                $url = '';
+                $config = $config && isset($config['channel']) ? $config['channel'] : [];
+                break;
+            case ADMIN_SERVICE:
+                $url = '';
+                $config = $config && isset($config['service']) ? $config['service'] : [];
+                break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+            break;
+        }
+        // 注意 URL 一定要动态获取，不能 hardcode.
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $url = "$protocol$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        if (!$config) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '厂商未配置'.get_admin_type($user['admin_type']).'分享数据']);
+        }
+        /* $store = session('api_admin_store');
         $storeNo = $store ? $store['store_no'] : $user['store_no'];
         if ($user['admin_type'] == ADMIN_CHANNEL) {
             $url .= '?channel_no='.$storeNo;
         }else{
             $url .= '?factory_no='.$storeNo;
-        }
-        $config['url'] = $url;
-        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        } */
+        $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         $appid = $wechatApi ? $wechatApi->config['appid'] : '';
         if (!$appid) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信配置错误']);
@@ -365,9 +382,6 @@ class Admin extends Index
         if ($jsapiTicket === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
         }
-        // 注意 URL 一定要动态获取，不能 hardcode.
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-        $url = "$protocol$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $timestamp = time();
         $nonceStr = get_nonce_str(16, 1);
         // 这里参数的顺序要按照 key 值 ASCII 码升序排序
@@ -1057,11 +1071,20 @@ class Admin extends Index
         if ($order === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
-        $thirdOpenid = isset($this->postParams['wechat_openid']) ? trim($this->postParams['wechat_openid']) : '';
-        if (!$thirdOpenid) {
+        if (!empty($user['third_openid'])) {
+            $order['openid'] = $user['third_openid'];
+        }else{
+            //获取当前用户h5微信openid
+            $where = [
+                'user_id' => $user['user_id'],
+                'factory_id' => $user['factory_id'],
+                'third_type' => $this->thirdType,
+            ];
+            $order['openid'] = db('user_data')->where($where)->value('third_openid');
+        }
+        if (!$order['openid']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
         }
-        $order['openid'] = $user['third_openid'];
         $paymentApi = new \app\common\api\PaymentApi($this->factory['store_id'], 'wechat_js');
         $result = $paymentApi->init($order);
         if ($result === FALSE) {
@@ -1199,6 +1222,14 @@ class Admin extends Index
         unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
+    }
+    //取消订单
+    protected function cancelOrder()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
     }
     //获取订单商品详情
     protected function getOrderSkuSubDetail()
@@ -1638,6 +1669,10 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
+        $where = [
+            'UI.is_del' => 0,
+            'UI.check_status' => 1,
+        ];
         $where['UI.is_del']=0;
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $where['UI.factory_id']=$user['store_id'];
@@ -1647,8 +1682,6 @@ class Admin extends Index
         $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 0;
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
-        //$checkStatus = isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
-        $checkStatus = 1;
         if ($storeNo && $user['admin_type'] == ADMIN_FACTORY) {
             $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0,'store_type'=>STORE_SERVICE])->find();
             if (empty($store)) {
@@ -1657,15 +1690,8 @@ class Admin extends Index
             if ($store['status']==0) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商已被禁用']);
             }
-            //$where['S.is_del']=0;
-            //$where['S.status']=1;
-            //$where['S.store_no']=$storeNo;
             $where['UI.store_id']=$store['store_id'];
         }
-        if (''!==$checkStatus){
-            $where['UI.check_status']=$checkStatus;
-        }
-
         if (!empty($key)) {
             $where['UI.realname|UI.phone']=['like','%'.$key.'%'];
         }
@@ -1673,7 +1699,6 @@ class Admin extends Index
         $order=isset($arr[$order])?$arr[$order]:$arr[0];
         $field = 'UI.realname,UI.phone,UI.status,UI.service_count,UI.score,UI.job_no,S.name store_name,S.store_no';
         $join=[
-            //['store SF', 'SF.store_id = UI.factory_id', 'LEFT'],
             ['store S', 'S.store_id = UI.store_id', 'LEFT'],
         ];
         $list = $this->_getModelList(db('user_installer'), $where, $field, $order,'UI',$join);
@@ -1770,7 +1795,6 @@ class Admin extends Index
             }else{
                 //判断是否需要厂商审核
                 $config = get_store_config($user['factory_id'], TRUE, 'default');
-                //pre($config,true);
                 //默认需要厂商审核
                 if (!isset($config['installer_check']) || $config['installer_check'] > 0) {
                     $status = -1;
@@ -1779,7 +1803,6 @@ class Admin extends Index
                     $status = 1;
                 }
             }
-            //pre($status);
         } else {
             $status = $user['admin_type'] == ADMIN_FACTORY ? -2: -4;
         }
@@ -1801,7 +1824,7 @@ class Admin extends Index
             } else {
                 $informModel->sendInform($user['factory_id'], 'sms', $toUser, 'installer_check_fail');
             }
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => '操作成功']);
         } else {
             $this->_returnMsg(['errCode' => 5, 'errMsg' => '操作失败']);
         }
@@ -1837,7 +1860,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请提交要保存的数据']);
         }
         if ($info->where('installer_id',$info['installer_id'])->update($data)) {
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => 'ok']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
     }
@@ -1858,30 +1881,29 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已被'.$desc.'!']);
         }
         if ($info->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => $desc.'工程师操作成功']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => $desc.'失败']);
     }
     //删除工程师
     protected function delInstaller()
     {
-
         list($user,$info)=$this->_checkInstaller();
         if ($user['admin_type']==ADMIN_FACTORY) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         if ($info['check_status']!=1) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '只有审核通过的工程师才允许删除']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-
         $exist = db('work_order')->where(['installer_id' => $info['installer_id']])->find();
         if ($exist) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师存在工单记录,不允许删除']);
         }
-        if ($info->where('installer_id',$info['installer_id'])->update(['is_del'=>1])) {
-            $this->_returnMsg(['errMsg' => 'ok']);
+        $result = db('user_installer')->where('installer_id',$info['installer_id'])->update(['is_del'=>1]);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '删除失败']);
         }
-        $this->_returnMsg(['errCode' => 1, 'errMsg' => '删除失败']);
+        $this->_returnMsg(['msg' => '工程师删除成功']);
     }
     
     //获取当前商户的财务数据[渠道商/服务商]
@@ -2025,7 +2047,12 @@ class Admin extends Index
         // $userId =4;//渠道商
         //$userId = 5;//零售商
         $userId = 6;//服务商
+        
+        $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
         $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
+        if (!$loginUser) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
+        }
         return $loginUser ? $loginUser : [];
         $loginUser = session('api_admin_user');
         if ($loginUser) {
@@ -2067,7 +2094,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后登录', 'loginStep' => 1]);
         }
         //判断授权微信用户是否已经绑定用户信息
-        $udata = db('user_data')->where(['udata_id' => $sessionUdata['udata_id'], 'factory_id' => $this->factory['store_id'], 'third_type' => 'wechat_h5'])->find();
+        $udata = db('user_data')->where(['udata_id' => $sessionUdata['udata_id'], 'factory_id' => $this->factory['store_id'], 'third_type' => $this->thirdType])->find();
         if (!$udata) {
             session('api_user_data', []);
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户不存在,请重新授权', 'loginStep' => 1]);
