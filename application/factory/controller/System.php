@@ -20,7 +20,7 @@ class System extends adminSystem
         }
         $params = [];
         if (IS_POST) {
-            $params = $this->request->param();
+            $params = $this->request->post();
             if (!$params) {
                 $this->error('参数异常');
             }
@@ -63,6 +63,32 @@ class System extends adminSystem
         return $this->_storeConfig($params);
     }
     
+    public function share(){
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $params = [];
+        if (IS_POST) {
+            $params = $this->request->post();
+            if (!$params) {
+                $this->error('参数异常');
+            }
+            foreach ($params as $key => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        $content = isset($v['description']) ? trim($v['description']) : '';
+                        if ($content) {
+                            $content = str_replace("\r", " ", $content);
+                            $content = str_replace("\n", " ", $content);
+                            $params[$key][$k]['description'] = $content;
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        return $this->_storeConfig($params);
+    }
     public function servicer()
     {
         $this->error(lang('NO ACCESS'));
@@ -125,7 +151,7 @@ class System extends adminSystem
         $storeModel = model('store');
         if (IS_POST) {
             $config = get_store_config($this->adminStore['store_id']);
-            $params = $params ? $params : $this->request->param();
+            $params = $params ? $params : $this->request->post();
             if ($params) {
                 $configKey = 'default';
                 foreach ($params as $key => $value) {

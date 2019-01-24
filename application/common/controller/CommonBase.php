@@ -113,7 +113,7 @@ class CommonBase extends Base
             $this->adminFactory = $factory;
             session('admin_factory', $factory);
         }
-        $this->adminStore = $this->adminStore ? $this->adminStore : session('admin_store');
+        $this->adminStore = $this->adminStore ? $this->adminStore : session($domain.'_store');
     }
     
     //页面初始化赋值

@@ -27,6 +27,9 @@ class Admin extends Index
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
         }
+        if ($type != 'register'){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
+        }
         parent::sendSmsCode();
     }
     //短信验证码验证
@@ -35,7 +38,10 @@ class Admin extends Index
         $udata = $this->_getScopeUser();
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
         if (!$type) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
+        }
+        if ($type != 'register'){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型错误')]);
         }
         parent::checkSmsCode();
     }
@@ -208,7 +214,6 @@ class Admin extends Index
                 'group_id'   => GROUP_SERVICE,
             ],
         ];
-        $params = $this->postParams;
         $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : '';
         if (!$storeType) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请选择商户类型')]);
@@ -226,9 +231,8 @@ class Admin extends Index
             if (!$channel) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
             }
-            $params['ostore_id'] = $channel['store_id'];
         }
-        $this->_verifyStoreForm($storeType);
+        $params = $this->_verifyStoreForm($storeType);
         if (isset($params['sample_amount'])) {
             $amount = floatval($params['sample_amount']);
             $amount = sprintf('%.2f', $amount);
@@ -238,6 +242,9 @@ class Admin extends Index
                 $amount = $amount.'.'.$array[1];
                 $params['sample_amount'] = $amount;
             }
+        }
+        if (isset($channel) && $channel) {
+            $params['ostore_id'] = $channel['store_id'];
         }
         if (isset($params['security_money'])) {
             $amount = floatval($params['security_money']);
@@ -520,6 +527,7 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+        $sortOrder = isset($this->postParams['sortorder']) ? trim($this->postParams['sortorder']) : '';
         $where = [
             'S.is_del' => 0,
             'S.status' => 1,
@@ -549,6 +557,9 @@ class Admin extends Index
                 case STORE_DEALER:
                     $field .= ', sample_amount';
                     $join[] = ['store_dealer OS', 'S.store_id = OS.store_id', 'INNER'];
+                    if ($channelNo && isset($channel) && $channel) {
+                        $where['OS.ostore_id'] = $channel['store_id'];
+                    }
                     break;
                 case STORE_SERVICE:
                     $join[] = ['store_servicer OS', 'S.store_id = OS.store_id', 'INNER'];
@@ -566,7 +577,16 @@ class Admin extends Index
             $join[] = ['store_dealer OS', 'S.store_id = OS.store_id', 'INNER'];
             $field .= ', sample_amount, address';
         }
-        $order = 'S.sort_order ASC, S.add_time desc';
+        $order = '';
+        if ($sortOrder == 'amount') {
+            if (in_array($storeType, [STORE_SERVICE, STORE_CHANNEL])) {
+                $order .= 'SF.total_amount DESC, ';
+            }else{
+                $order .= 'sample_amount DESC, ';
+            }
+        }
+        
+        $order .= 'S.add_time DESC';
         $list = $this->_getModelList(db('store'), $where, $field, $order, 'S', $join);
         if ($list) {
             foreach ($list as $key => $value) {
@@ -662,8 +682,13 @@ class Admin extends Index
         if ($info['store_type'] != STORE_DEALER) {
             $finance = db('store_finance')->field('amount, withdraw_amount, pending_amount, total_amount')->find($info['store_id']);
             $account = db('store_bank')->field('id_card, realname, bank_name, bank_branch, bank_no')->where(['store_id' => $info['store_id'], 'is_del' => 0])->find();
+            $account = $account ? $account : [];
         }
         if ($info['store_type'] != STORE_SERVICE) {
+            if ($info['store_type'] == STORE_CHANNEL) {
+                //获取渠道商下的零售商数量
+                $info['dealer_count'] = db('store')->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['is_del' => 0, 'check_status' => 1, 'ostore_id' => $info['store_id']])->count();
+            } 
             //计算订单金额 订单数量
             $order = db('order')->field('count(order_id) as num, sum(real_amount) as amount')->where(['user_store_id' => $info['store_id'], 'pay_status' => 1])->find();
             $info['order_num'] = $order ? intval($order['num']) : 0;
@@ -684,7 +709,7 @@ class Admin extends Index
             //服务工单数
             $info['service_count'] = db('work_order')->where(['store_id' => $info['store_id'], 'sign_time' => ['>', 0]])->count();
         }
-        unset($info['store_id'], $info['store_type'], $info['ostore_id']);
+        unset($info['store_id'], $info['ostore_id']);
         $this->_returnMsg(['detail' => $info, 'finance' => $finance, 'account' => $account]);
     }
     //新增零售商
@@ -694,18 +719,18 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
         }
-        $this->_verifyStoreForm();
+        $params = $this->_verifyStoreForm();
         //判断渠道商操作零售商是否需要厂商审核
         $config = get_store_config($this->factory['store_id'], TRUE, 'default');
         $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
-        $this->postParams['store_type'] = STORE_DEALER;
-        $this->postParams['factory_id'] = $user['factory_id'];
-        $this->postParams['ostore_id'] = $user['store_id'];
-        $this->postParams['config_json'] = '';
+        $params['store_type'] = STORE_DEALER;
+        $params['factory_id'] = $user['factory_id'];
+        $params['ostore_id'] = $user['store_id'];
+        $params['config_json'] = '';
         if (!$check) {
             $storeModel = new \app\common\model\Store();
-            $this->postParams['check_status'] = 1;
-            $result = $storeModel->save($this->postParams);
+            $params['check_status'] = 1;
+            $result = $storeModel->save($params);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
             }else{
@@ -757,7 +782,7 @@ class Admin extends Index
         if (!$store) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '零售商不存在或已删除']);
         }
-        $this->_verifyStoreForm();
+        $data = $this->_verifyStoreForm();
         //判断对象是否存在待处理的申请
         $exist = db('store_action_record')->where(['to_store_id' => $store['store_id'], 'check_status' => 0])->find();
         if ($exist) {
@@ -767,14 +792,13 @@ class Admin extends Index
         $config = get_store_config($this->factory['store_id'], TRUE, 'default');
         $check = isset($config['channel_operate_check']) ? intval($config['channel_operate_check']) : 0;
         if (!$check) {
-            $result = $storeModel->save($this->postParams, ['store_id' => $store['store_id']]);
+            $result = $storeModel->save($data, ['store_id' => $store['store_id']]);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
             }else{
                 $this->_returnMsg(['msg' => '编辑零售商成功']);
             }
         }else{
-            $data = $this->postParams;
             $temp = [];
             foreach ($store as $key => $value) {
                 if (isset($data[$key]) && $data[$key] != $value && $key != 'update_time') {
@@ -1714,6 +1738,10 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '取消工单成功']);
         }
     }
+    protected function getProvinceRegions()
+    {
+        $this->getRegions('region_id, region_name');
+    }
 
     //获取工程师列表
     protected function getInstallerList()
@@ -1732,7 +1760,7 @@ class Admin extends Index
         } elseif ($user['admin_type'] == ADMIN_SERVICE) {
             $where['UI.store_id']=$user['store_id'];
         }
-        $order = isset($this->postParams['order']) ? trim($this->postParams['order']) : 0;
+        $sortorder = isset($this->postParams['sortorder']) ? trim($this->postParams['sortorder']) : '';
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
         if ($storeNo && $user['admin_type'] == ADMIN_FACTORY) {
@@ -1748,8 +1776,15 @@ class Admin extends Index
         if (!empty($key)) {
             $where['UI.realname|UI.phone']=['like','%'.$key.'%'];
         }
-        $arr=['UI.add_time DESC','UI.service_count DESC','UI.score DESC'];
-        $order=isset($arr[$order])?$arr[$order]:$arr[0];
+        $order = '';
+        if (in_array($sortorder, ['count', 'score'])) {
+            if ($sortorder == 'count') {
+                $order .= 'UI.service_count DESC, ';
+            }else{
+                $order .= 'UI.score DESC, ';
+            }
+        }
+        $order .= 'UI.add_time DESC';
         $field = 'UI.realname,UI.phone,UI.status,UI.service_count,UI.score,UI.job_no,S.name store_name,S.store_no';
         $join=[
             ['store S', 'S.store_id = UI.store_id', 'LEFT'],
@@ -2039,18 +2074,19 @@ class Admin extends Index
      */
     private function _verifyStoreForm($storeType = STORE_DEALER)
     {
-        $sname = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
-        $userName = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
-        $mobile = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
-        $sampleAmount = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
-        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
-        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
-        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
-        $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
-        $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
-        $signingContractImg = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
-        $licenseImg = isset($this->postParams['license_img']) ? trim($this->postParams['license_img']) : '';
-        $groupPhoto = isset($this->postParams['group_photo']) ? trim($this->postParams['group_photo']) : '';
+        $data = [];
+        $sname      = $data['name'] = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
+        $userName   = $data['user_name'] = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $mobile     = $data['mobile'] = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
+        $sampleAmount   = $data['sample_amount'] = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
+        $regionId   = $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
+        $regionName = $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $address    = $data['address'] = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $idcardFontImg  = $data['idcard_font_img'] = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
+        $idcardBackImg  = $data['idcard_back_img'] = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
+        $signingContractImg = $data['signing_contract_img'] = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
+        $licenseImg     = $data['license_img'] = isset($this->postParams['license_img']) ? trim($this->postParams['license_img']) : '';
+        $groupPhoto     = $data['group_photo'] = isset($this->postParams['group_photo']) ? trim($this->postParams['group_photo']) : '';
         $name = get_store_type($storeType);
         if (!$sname){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'名称不能为空']);
@@ -2079,6 +2115,7 @@ class Admin extends Index
          if (!$signingContractImg){
          $this->_returnMsg(['errCode' => 1, 'errMsg' => '请上传签约合同']);
          } */
+        return $data;
     }
     /**
      * 获取工程师信息

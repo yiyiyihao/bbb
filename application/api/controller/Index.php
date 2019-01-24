@@ -286,7 +286,7 @@ class Index extends ApiBase
         $this->_returnMsg(['openid' => $user['openid'], 'profile' => $profile]);
     }
     //获取区域列表
-    protected function getRegions()
+    protected function getRegions($field = 'region_id, region_name, parent_id')
     {
         $parentId = isset($this->postParams['parent_id']) && $this->postParams['parent_id'] ? intval($this->postParams['parent_id']) : 0;
         if ($parentId) {
@@ -294,7 +294,7 @@ class Index extends ApiBase
         }else{
             $where['parent_id'] = 1;
         }
-        $regions = db('region')->field('region_id, region_name, parent_id')->where($where)->select();
+        $regions = db('region')->field($field)->where($where)->select();
         $this->_returnMsg(['list' => $regions]);
     }
     //获取用户收货地址列表
@@ -952,20 +952,22 @@ class Index extends ApiBase
         $this->_returnMsg(['config' => $config]);
     }
     //上传图片接口
-    protected function uploadImage()
+    protected function uploadImage($verifyUser = TRUE)
     {
-        $user = $this->_checkOpenid();
+        if ($verifyUser){
+            $user = $this->_checkOpenid();
+        }
         $file = $this->request->file('file');
         if (!$file) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择上传图片']);
         }
         $type = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
-        if (!$type || !in_array($type, ['idcard'])) {
+        if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片类型错误']);
         }
         //图片上传到七牛
         $upload = new \app\common\controller\UploadBase();
-        $result = $upload->upload(TRUE, 'file', 'api_'.$type);
+        $result = $upload->upload(TRUE, 'file', 'api_'.$type.'_');
         if (!$result || !$result['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['info']]);
         }

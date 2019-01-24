@@ -232,7 +232,7 @@ class User extends Model
             }
             if ($adminStore) {
                 $storeType = $adminStore['store_type'];
-                session('admin_store',$adminStore);
+                session($domain.'_store',$adminStore);
             }
         }
         //设置session

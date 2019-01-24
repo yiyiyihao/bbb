@@ -35,6 +35,27 @@ class WechatApi
      */
     public function getOauthOpenid($code, $flag = FALSE)
     {
+        #TODO DELETE  测试删除
+        $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
+        $openid = 'o5hVy1m7mU7HdJ3UDYhDyWLHg7HI';
+        $return = [
+            'openid'    => $openid,
+            'appid'     => $appid,
+        ];
+        /* $userinfo = $this->getWechatUserInfo($openid);
+        if ($userinfo === FALSE) {
+            return FALSE;
+        } */
+//         pre($userinfo, 1);
+        $userinfo = [
+            'avatar' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/hpWZHBOvoeNpmUCWCjsFUKME1vBkDStMzUddJ0Eib5TF6kSJNDiacVooxA2qfsISsKf5icWQRtIc29msFToXQMzZQ/132',
+            'nickname' => '小君',
+            'gender' => 2,
+        ];
+        $return = array_merge($return, $userinfo);
+        return $return;
+        
+        
         $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
         if (!$appid) {
             $this->error = 'APPID不能为空';
@@ -138,6 +159,39 @@ class WechatApi
             return $accessToken;
         }
     }
+    /**
+     * 微信接口:获取分享jsapi_ticket
+     * @return boolean|mixed|unknown
+     */
+    public function getWechatJsApiTicket() {
+        $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
+        if (!$appid) {
+            $this->error = 'APPID不能为空';
+            return FALSE;
+        }
+        $ticketName = 'jsapi_ticket_'.$appid;
+        $jsapiTicket = \think\facade\Cache::get($ticketName);
+        if (!$jsapiTicket) {
+            $accessToken = $this->getWechatAccessToken();
+            if ($accessToken === FALSE) {
+                return FALSE;
+            }
+            $url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=$accessToken";
+            $result = curl_post_https($url, []);
+            if (isset($result['ticket'])) {
+                $jsapiTicket = $result['ticket'];
+                $expiresIn = isset($result['expires_in']) ? $result['expires_in']-1 : 7100;
+                \think\facade\Cache::set($ticketName, $jsapiTicket, $expiresIn);
+                return $jsapiTicket;
+            }else{
+                $this->error = 'errcode:'.$result['errcode'].'; errmsg:'.$result['errmsg'];
+                return FALSE;
+            }
+        } else {
+            return $jsapiTicket;
+        }
+    }
+    
     public function getWXACodeUnlimit($scene, $page = FALSE)
     {
         $token = $this->getWechatAccessToken();
