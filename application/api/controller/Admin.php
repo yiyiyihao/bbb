@@ -1654,11 +1654,21 @@ class Admin extends Index
     //分派工单操作【服务商】
     protected function dispatchWorkOrder()
     {
+        list($user,$info)=$this->_checkInstaller();
+        if ($user['admin_type']!=ADMIN_SERVICE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+
+
         
     }
     //取消工单操作【服务商】
     protected function cancelWorkOrder()
     {
+        list($user,$info)=$this->_checkInstaller();
+        if ($user['admin_type']!=ADMIN_SERVICE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
         
     }
 
@@ -1708,7 +1718,7 @@ class Admin extends Index
     protected function getInstallerCheckList()
     {
         $user = $this->_checkUser();
-        if ($user['admin_type']!=ADMIN_SERVICE) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $field='job_no,realname,phone,status,check_status,admin_remark,add_time';
@@ -1750,7 +1760,7 @@ class Admin extends Index
     {
         $field = 'store_id,job_no,realname,phone,idcard_font_img,idcard_back_img,check_status,security_record_num,add_time,remark,admin_remark,update_time';
         list($user, $info) = $this->_checkInstaller($field);
-        if ($user['admin_type'] == ADMIN_FACTORY) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         unset($info['store_id']);
@@ -1761,8 +1771,7 @@ class Admin extends Index
     protected function checkInstaller()
     {
         list($user, $info) = $this->_checkInstaller();
-        if ($user['admin_type'] == ADMIN_FACTORY) {
-            //屏蔽厂商审核操作，如不需要，注释即可
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
 
@@ -1848,7 +1857,7 @@ class Admin extends Index
     protected function editInstaller()
     {
         list($user,$info)=$this->_checkInstaller();
-        if ($user['admin_type']==ADMIN_FACTORY) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         if ($info['check_status']==1) {
@@ -1885,7 +1894,7 @@ class Admin extends Index
     protected function setInstallerStatus()
     {
         list($user,$info)=$this->_checkInstaller();
-        if ($user['admin_type']==ADMIN_FACTORY) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
@@ -1906,7 +1915,7 @@ class Admin extends Index
     protected function delInstaller()
     {
         list($user,$info)=$this->_checkInstaller();
-        if ($user['admin_type']==ADMIN_FACTORY) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         if ($info['check_status']!=1) {
