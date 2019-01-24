@@ -1731,6 +1731,11 @@ class Admin extends Index
         if (!empty($key)) {
             $where['realname|phone']=['like','%'.$key.'%'];
         }
+        if ($user['admin_type'] == ADMIN_FACTORY) {
+            $where['factory_id']=$user['store_id'];
+        } elseif ($user['admin_type'] == ADMIN_SERVICE) {
+            $where['store_id']=$user['store_id'];
+        }
         $order='add_time DESC';
         $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
         $list=array_map(function ($item) {
@@ -1779,17 +1784,17 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 2, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
-        $check_result = isset($this->postParams['check_result']) ? intval($this->postParams['check_result']) : '';
-        if (empty($check_result)) {
+        $checkResult = isset($this->postParams['check_result']) ? intval($this->postParams['check_result']) : '';
+        if (empty($checkResult)) {
             $this->_returnMsg(['errCode' => 3, 'errMsg' => '审核结果不能为空']);
         }
-        $check_result = ($check_result == 1) ? 1 : -1;
-        if ($check_result == -1 && empty($remark)) {
+        $checkResult = ($checkResult == 1) ? 1 : -1;
+        if ($checkResult == -1 && empty($remark)) {
             $this->_returnMsg(['errCode' => 4, 'errMsg' => '请填写拒绝理由']);
         }
         //状态(0待审核 1审核成功 -1厂商审核中 -2厂商拒绝 -3服务商审核中 -4服务商拒绝)
         $status = '';
-        if ($check_result == 1) {
+        if ($checkResult == 1) {
             if ($user['admin_type'] == ADMIN_FACTORY) {
                 $status = 1;
             }else{
