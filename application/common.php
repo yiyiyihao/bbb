@@ -897,3 +897,33 @@ function sub_str($str, $length = 0, $append = '...') {
     return $newstr;
 }
 
+//银行卡加密
+function bank_card_encode($bankNo){
+    $sub = substr($bankNo,-4);
+    $length = strlen($bankNo);
+    $bankNo=str_pad($sub,$length,'*',STR_PAD_LEFT);
+    return $bankNo;
+}
+
+//身份证加密
+function id_card_encode($idCard){
+    $length=mb_strlen($idCard);
+    if ($length<=8){
+        return '********';
+    }
+    $prefix=mb_substr($idCard,0,4);
+    $subfix=mb_substr($idCard,-4);
+    $middle=str_pad('',$length-8,'*');
+    return $prefix.$middle.$subfix;
+}
+//加密姓名
+function realname_encode($realname){
+    $length=mb_strlen($realname);
+    if ($length<2){
+        return '**';
+    }
+    $subfix=mb_substr($realname,-1);
+    $prefix=str_pad('',$length-1,'*');
+    return $prefix.$subfix;
+}
+

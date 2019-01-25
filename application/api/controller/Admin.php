@@ -2125,10 +2125,7 @@ class Admin extends Index
         $detail=db('store_withdraw')->field($field)->where($where)->find();
         $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
         $detail['add_time']=time_to_date($detail['add_time']);
-        $sub = substr($detail['bank_no'],-4);
-        $length = strlen($detail['bank_no']);
-        $detail['bank_no']=str_pad($sub,$length,'*',STR_PAD_LEFT);
-        //$detail['bank_no']=preg_replace('/./','*',$detail['bank_no'],$length-4);
+        $detail['bank_no']=bank_card_encode($detail['bank_no']);
         $this->_returnMsg(['detail' => $detail]);
     }
 
@@ -2271,11 +2268,16 @@ class Admin extends Index
             'bank_type'=>1,
             'store_id'=>$user['store_id'],
         ];
-        $info=$model->where($where)->find();
-        pre($model->getLastSql(),1);
-        pre($info);
-
-
+        $field='bank_id id,bank_no,realname,id_card,bank_name,bank_branch';
+        $info=$model->field($field)->where($where)->find();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '请先设置提现卡']);
+        }
+        $info['id_card_encode']=id_card_encode($info['id_card']);
+        $info['bank_no_encode']=bank_card_encode($info['bank_no']);
+        $info['realname_encdoe']=realname_encode($info['realname']);
+        //pre($model->getLastSql(),1);
+        $this->_returnMsg(['detail' => $info]);
     }
 
     //提现配置
