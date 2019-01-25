@@ -2092,7 +2092,7 @@ class Admin extends Index
         //if ('' !== $status && in_array($status,['-2','-1','0','1','2'])) {
         //    $where['withdraw_status']=intval($status);
         //}
-        $field='transfer_no,add_time,amount,withdraw_status';
+        $field='log_id id,add_time,amount,withdraw_status';
         $order='add_time DESC';
         $list=$this->_getModelList(db('store_withdraw'),$where,$field,$order);
         if (empty($list)) {
@@ -2112,16 +2112,16 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $transferNo = isset($this->postParams['transfer_no']) ? trim($this->postParams['transfer_no']) : '';
-        if (empty($transferNo)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '银行流水号不能为空']);
+        $id = isset($this->postParams['id']) ? trim($this->postParams['id']) : '';
+        if (empty($id)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[ID]']);
         }
         $where=[
             'is_del'=>0,
             'from_store_id'=>$user['store_id'],
-            'transfer_no'=>$transferNo,
+            'log_id'=>$id,
         ];
-        $field='transfer_no,amount,withdraw_status,bank_name,bank_no,add_time,remark';
+        $field='log_id id,amount,withdraw_status,bank_name,bank_no,add_time,remark';
         $detail=db('store_withdraw')->field($field)->where($where)->find();
         $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
         $detail['add_time']=time_to_date($detail['add_time']);
