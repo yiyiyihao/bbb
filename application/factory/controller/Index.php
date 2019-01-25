@@ -2,7 +2,6 @@
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
 use think\response\Redirect;
-use think\Db;
 
 class Index extends CommonIndex
 {
@@ -23,13 +22,10 @@ class Index extends CommonIndex
             $bulletinModel = db('bulletin');
             $where = [
                 'B.publish_status' => 1,
-//                 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))',
-//                 '(BR.bulletin_id IS NULL OR BR.is_read = 0)',
-//                 'B.store_type IN(0, '.$this->adminUser['store_type'].')',
             ];
-            $where[]=['','EXP',Db::raw("B.visible_range = 1 OR (visible_range = 0 AND find_in_set(".$this->adminUser['store_id'].", B.to_store_ids))")];
-            $where[]=['','EXP',Db::raw("(BR.bulletin_id IS NULL OR BR.is_read = 0)")];
-            $where[]=['','EXP',Db::raw("B.store_type IN(0, ".$this->adminUser['store_type'].")")];
+            $where[] = ['', 'EXP', \think\Db::raw("B.visible_range = 1 OR (visible_range = 0 AND find_in_set(".$this->adminUser['store_id'].", B.to_store_ids))")];
+            $where[] = ['', 'EXP', \think\Db::raw("(BR.bulletin_id IS NULL OR BR.is_read = 0)")];
+            $where[] = ['', 'EXP', \think\Db::raw("B.store_type IN(0, ".$this->adminUser['store_type'].")")];
             
             $join = [
                 ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.ADMIN_ID, 'LEFT']

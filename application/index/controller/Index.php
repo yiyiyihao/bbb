@@ -9,8 +9,5 @@ class Index extends Base
 {
     public function index()
     {
-        session_start();
-        pre($_SESSION);
-
     }
 }

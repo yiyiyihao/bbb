@@ -665,14 +665,16 @@ class Index extends ApiBase
             $field .= ', UG.realname as installer_name, UG.phone as installer_phone';
         }else{
             if ($status >= -1 || $status === FALSE) {
-                $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+                $sql = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+                $where[] = ['', 'EXP', \think\Db::raw($sql)];
             }else{
                 if ($status == -2) {
                     $installStatus = 1;
                 }else{
                     $installStatus = 2;
                 }
-                $where[] = '(WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status = '.$installStatus.')';
+                $sql = '(WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status = '.$installStatus.')';
+                $where[] = ['', 'EXP', \think\Db::raw($sql)];
             }
             $join[] = ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'];
             $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';

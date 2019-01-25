@@ -39,7 +39,6 @@ class Commission extends FactoryForm
             $join[] = ['store S', 'S.store_id = C.from_store_id', 'LEFT'];
         }else{
             $join[] = ['user_installer UI', 'UI.installer_id = C.installer_id', 'LEFT'];
-//             $join[] = ['work_order WO', 'WO.worder_id = C.worder_id AND WO.work_order_type = 1', 'INNER'];
         }
         $join[] = ['goods G', 'G.goods_id = C.goods_id', 'LEFT'];
         return $join;

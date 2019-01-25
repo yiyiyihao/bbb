@@ -189,8 +189,8 @@ class Bulletin extends FactoryForm
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
             $where['B.store_id'] = $this->adminUser['factory_id'];
             $where['B.publish_status'] = 1;
-            $where[] = 'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))';
-            $where[] = 'B.store_type = 0 OR B.store_type = '.$this->adminUser['store_type'];
+            $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$this->adminUser['store_id'].', B.to_store_ids))')];
+            $where[] = ['', 'EXP', \think\Db::raw('B.store_type = 0 OR B.store_type = '.$this->adminUser['store_type'])];
         }else{
             $where['B.store_id'] = $this->adminUser['store_id'];
         }

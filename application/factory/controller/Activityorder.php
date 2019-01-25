@@ -82,9 +82,9 @@ class Activityorder extends commonOrder
             $where = [
                 'order_type' => 2,
                 'pay_status' => 1,
-                'pay_time >= '.$startTime.' AND pay_time <=' .$order['pay_time'],
-                'order_id <=' . $order['order_id'],
+                'order_id' => ['<=', $order['order_id']],
             ];
+            $where[] = ['', 'EXP', \think\Db::raw('pay_time >= '.$startTime.' AND pay_time <=' .$order['pay_time'])];
             $count = db('order')->where($where)->order('order_id ASC')->count();
             if ($count <= $total) {
                 if ($count%10 == 9) {

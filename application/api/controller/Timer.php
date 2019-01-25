@@ -107,9 +107,9 @@ class Timer extends ApiBase
                     //获取未进行首次评价的已完成的工单(安装和维修工单)
                     $assessWhere = [
                         'work_order_status' => 4,
-                        'assess_id IS NULL OR assess_id = 0',
-                        $assessSql,
                     ];
+                    $where[] = ['', 'EXP', \think\Db::raw('assess_id IS NULL OR assess_id = 0')];
+                    $where[] = ['', 'EXP', \think\Db::raw($assessSql)];
                     $join = [
                         ['work_order_assess WOS', 'WO.worder_id = WOS.worder_id AND WOS.type = 1', 'LEFT'],
                     ];

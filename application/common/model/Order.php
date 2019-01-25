@@ -1,7 +1,6 @@
 <?php
 namespace app\common\model;
 use think\Model;
-use think\Db;
 
 class Order extends Model
 {
@@ -43,11 +42,9 @@ class Order extends Model
                         //获取可申请安装的订单商品
                         $where = [
                             'OSSUB.order_id'    => $value['order_id'],
-//                             'service_status = -2 OR service_status is NULL',
-//                             'work_order_status = -1 OR work_order_status is NULL',
                         ];
-                        $where[]=['','EXP',Db::raw("service_status = -2 OR service_status is NULL")];
-                        $where[]=['','EXP',Db::raw("work_order_status = -1 OR work_order_status is NULL")];
+                        $where[] = ['', 'EXP', \think\Db::raw("service_status = -2 OR service_status is NULL")];
+                        $where[] = ['', 'EXP', \think\Db::raw("work_order_status = -1 OR work_order_status is NULL")];
                         
                         $join = [
                             ['order_sku_service OSSE', 'OSSE.ossub_id = OSSUB.ossub_id', 'LEFT'],

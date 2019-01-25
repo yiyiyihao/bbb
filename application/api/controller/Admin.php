@@ -409,10 +409,12 @@ class Admin extends Index
     {
         $user = $this->_checkUser();
         $indexController = new \app\common\controller\Index();
-        $result = $indexController->getStoreHome($user);
+        $flag = $user['admin_type'] == ADMIN_FACTORY ? FALSE : TRUE;
+        $result = $indexController->getStoreHome($user, $flag);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $indexController->error]);
         }
+        unset($result['tpl']);
         $this->_returnMsg(['detail' => $result]);
     }
     //获取用户公告列表(全部/未读)
@@ -425,9 +427,9 @@ class Admin extends Index
         $unread = isset($this->postParams['unread']) ? intval($this->postParams['unread']) : 0;
         $where = [
             'B.publish_status' => 1,
-            'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))',
-            'B.store_type IN(0, '.$user['store_type'].')',
         ];
+        $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))')];
+        $where[] = ['', 'EXP', \think\Db::raw('B.store_type IN(0, '.$user['store_type'].')')];
         if ($unread) {
             $where[] = '(BR.bulletin_id IS NULL OR BR.is_read = 0)';
         }
@@ -456,11 +458,12 @@ class Admin extends Index
         $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read, IFNULL(BR.is_del, 0) as is_del';
         $where = [
             'B.publish_status' => 1,
-            'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))',
-            'B.store_type IN(0, '.$user['store_type'].')',
             'B.bulletin_id' => $bulletinId,
-            '(BR.bulletin_id IS NULL OR BR.is_del = 0)',
         ];
+        $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))')];
+        $where[] = ['', 'EXP', \think\Db::raw('B.store_type IN(0, '.$user['store_type'].')')];
+        $where[] = ['', 'EXP', \think\Db::raw('(BR.bulletin_id IS NULL OR BR.is_del = 0)')];
+        
         $detail = db('bulletin')->alias('B')->join($join)->where($where)->field($field)->find();
         if (!$detail || $detail['is_del']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
@@ -505,10 +508,10 @@ class Admin extends Index
         $unread = isset($this->postParams['unread']) ? intval($this->postParams['unread']) : 0;
         $where = [
             'B.publish_status' => 1,
-            'B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))',
-            'B.store_type IN(0, '.$user['store_type'].')',
-            '(BR.bulletin_id IS NULL OR BR.is_read = 0)',
         ];
+        $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))')];
+        $where[] = ['', 'EXP', \think\Db::raw('(BR.bulletin_id IS NULL OR BR.is_read = 0)')];
+        $where[] = ['', 'EXP', \think\Db::raw('B.store_type IN(0, '.$user['store_type'].')')];
         if ($unread) {
             $where[] = '(BR.bulletin_id IS NULL OR BR.is_read = 0)';
         }
@@ -534,7 +537,7 @@ class Admin extends Index
             'S.check_status'=> 1,
             'S.factory_id'  => $user['factory_id'],
         ];
-        $field = 'S.store_id, S.store_no, S.store_no, S.name, S.store_type, S.region_name';
+        $field = 'S.store_id, S.store_no, S.name, S.store_type, S.region_name';
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : 0;
             if (!$storeType){
@@ -1738,11 +1741,41 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '取消工单成功']);
         }
     }
+    //获取省份列表
     protected function getProvinceRegions()
     {
         $this->getRegions('region_id, region_name');
     }
-
+    //根据省份获取服务商列表
+    protected function getServiceListByRegion()
+    {
+        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']): 0;
+        if (!$regionId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '省份ID不能为空']);
+        }
+        $region = db('region')->where(['region_id' => $regionId, 'is_del' => 0, 'parent_id' => ['>', 0]])->find();
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $childs = db('region')->where(['parent_id' => $regionId, 'is_del' => 0])->column('region_id');
+        if (!$childs) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误']);
+        }
+        $where = [
+            'is_del' => 0,
+            'status' => 1,
+            'check_status'=> 1,
+            'factory_id'  => $user['factory_id'],
+            'store_type' => STORE_SERVICE,
+            'region_id' => ['IN', $childs],
+        ];
+        $field = 'store_no, name';
+        $order = 'add_time DESC';
+        
+        $list = $this->_getModelList(db('store'), $where, $field, $order);
+        $this->_returnMsg(['list' => $list]);
+    }
     //获取工程师列表
     protected function getInstallerList()
     {

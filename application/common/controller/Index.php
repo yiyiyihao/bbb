@@ -434,7 +434,7 @@ class Index extends CommonBase
                 $where = [
                     'store_id' => $storeId,
                     'is_del' => 0,
-                    'sign_time > 0',
+                    'sign_time' => ['>', 0],
                 ];
                 $field = 'count(if(work_order_type = 1, true, NULL)) as workorder_count_1';
                 $field .= ', count(if(work_order_type = 2, true, NULL)) as workorder_count_2';
