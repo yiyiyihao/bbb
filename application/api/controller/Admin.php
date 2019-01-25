@@ -2014,28 +2014,237 @@ class Admin extends Index
     protected function getFinanceData()
     {
         $user = $this->_checkUser();
-        
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $model=new \app\common\model\StoreFinance;
+        $info=$model->where('store_id',$user['store_id'])->find();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
+        }
+        $config = get_store_config($user['store_id'], TRUE, 'default');
+        $info['withdraw_start_date']='';
+        $info['withdraw_end_date']='';
+        $info['is_withdraw']=0;
+        //判断商户是否可提现
+        if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
+            $info['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
+            $info['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
+            $day = intval(date('d'));
+            if ($day >= $min && $day <= $max) {
+                $info['is_withdraw']=1;
+            }
+        }
+        unset($info['store_id']);
+        $this->_returnMsg(['detail' => $info]);
     }
     //申请提现[渠道商/服务商]
     protected function applyWithdraw()
     {
-        
+
     }
     //获取提现记录[渠道商/服务商]
     protected function getWithdrawList()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $where=[
+            'is_del'=>0,
+            'from_store_id'=>$user['store_id'],
+        ];
+        //提现状态(0申请中 1审核通过-提现中 2提现成功 -1 拒绝提现 -2提现失败)
+        //$status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
+        //if ('' !== $status && in_array($status,['-2','-1','0','1','2'])) {
+        //    $where['withdraw_status']=intval($status);
+        //}
+        $field='transfer_no,add_time,amount,withdraw_status';
+        $order='add_time DESC';
+        $list=$this->_getModelList(db('store_withdraw'),$where,$field,$order);
+        if (empty($list)) {
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        }
+        $list=array_map(function ($item){
+            $item['add_time']=time_to_date($item['add_time']);
+            $item['status_desc']=get_withdraw_status($item['withdraw_status']);
+            return $item;
+        },$list);
+        $this->_returnMsg(['list' => $list]);
     }
-    //获取渠道商收益明细
+    //获取提现详情[渠道商/服务商]
+    protected function getWithdrawDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $transferNo = isset($this->postParams['transfer_no']) ? trim($this->postParams['transfer_no']) : '';
+        if (empty($transferNo)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '银行流水号不能为空']);
+        }
+        $where=[
+            'is_del'=>0,
+            'from_store_id'=>$user['store_id'],
+            'transfer_no'=>$transferNo,
+        ];
+        $field='transfer_no,amount,withdraw_status,bank_name,bank_no,add_time,remark';
+        $detail=db('store_withdraw')->field($field)->where($where)->find();
+        $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
+        $detail['add_time']=time_to_date($detail['add_time']);
+        $sub = substr($detail['bank_no'],-4);
+        $length = strlen($detail['bank_no']);
+        $detail['bank_no']=str_pad($sub,$length,'*',STR_PAD_LEFT);
+        //$detail['bank_no']=preg_replace('/./','*',$detail['bank_no'],$length-4);
+        $this->_returnMsg(['detail' => $detail]);
+    }
+
+
+    //获取渠道商收益列表
     protected function getChannelIncomeList()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $model=db('store_commission');
+        $where=[
+            'C.is_del'=>0,
+            'C.store_id'=>$user['store_id'],
+        ];
+        $field='C.order_sn,C.income_amount,S.`name` store_name,C.commission_status,C.add_time';
+        $join=[
+            ['store S', 'S.store_id = C.from_store_id', 'LEFT'],
+            //['goods G', 'G.goods_id = C.goods_id', 'LEFT'],
+        ];
+        $order='C.add_time DESC';
+        $list=$this->_getModelList($model,$where,$field,$order,'C',$join);
+        if (empty($list)) {
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        }
+        $list=array_map(function ($item) {
+            $item['add_time']=time_to_date($item['add_time']);
+            $item['com_status_desc']=get_commission_status($item['commission_status']);
+            return $item;
+        },$list);
+        $this->_returnMsg(['list' => $list]);
+        //pre($list);
     }
-    //获取服务商收益明细
-    protected function getServicerIncomeList()
+    //获取渠道商收益详情
+    protected function getChannelIncomeDetail()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if (empty($orderSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号不能为空']);
+        }
+        $model=db('store_commission');
+        $where=[
+            'C.is_del'=>0,
+            'C.store_id'=>$user['store_id'],
+            'C.order_sn'=>$orderSn,
+        ];
+        $field='C.income_amount,C.order_sn,C.order_amount,C.commission_status,G.`name` goods_name,S.`name` store_name,C.add_time';
+        $join=[
+            ['store S', 'S.store_id = C.from_store_id', 'LEFT'],
+            ['goods G', 'G.goods_id = C.goods_id', 'LEFT'],
+        ];
+        $detail=$model->alias('C')->field($field)->where($where)->join($join)/*->fetchSql(true)*/->find();
+        if (empty($detail)) {
+            $this->_returnMsg(['errCode' =>1, 'errMsg' => '查无该订单的佣金信息']);
+        }
+        $detail['add_time']=time_to_date($detail['add_time']);
+        $detail['com_status_desc']=get_commission_status($detail['commission_status']);
+        $this->_returnMsg(['detail' => $detail]);
     }
+
+
+    //获取服务商收益列表
+    protected function getServerIncomeList()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $model=db('store_service_income');
+        $where=[
+            'SI.is_del'=>0,
+            'SI.store_id'=>$user['store_id'],
+        ];
+        $field='SI.income_amount,SI.worder_sn,UI.realname,SI.income_status,SI.add_time';
+        $join=[
+            ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
+            //['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
+        ];
+        $order='SI.add_time DESC';
+        $list=$this->_getModelList($model,$where,$field,$order,'SI',$join);
+
+        if (empty($list)) {
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        }
+        $list=array_map(function ($item) {
+            $item['add_time']=time_to_date($item['add_time']);
+            $item['income_status_desc']=get_commission_status($item['income_status']);
+            return $item;
+        },$list);
+        $this->_returnMsg(['list' => $list]);
+    }
+
+    //获取服务商收益详情
+    protected function getServerIncomeDetail()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
+        if (empty($worderSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
+        }
+        $model=db('store_service_income');
+        $where=[
+            'SI.is_del'=>0,
+            'SI.store_id'=>$user['store_id'],
+            'SI.worder_sn'=>$worderSn,
+        ];
+        $field='SI.worder_sn,SI.install_amount,SI.income_amount,SI.income_status,G.`name` goods_name,UI.realname,SI.add_time';
+        $join=[
+            ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
+            ['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
+        ];
+        $detail=$model->alias('SI')->field($field)->where($where)->join($join)->find();
+        if (empty($detail)) {
+            $this->_returnMsg(['errCode' =>1, 'errMsg' => '查无该工单的收入信息']);
+        }
+        //dump($model->getLastSql());
+        $detail['add_time']=time_to_date($detail['add_time']);
+        $detail['income_status_desc']=get_commission_status($detail['income_status']);
+        $this->_returnMsg(['detail' => $detail]);
+    }
+
+    //获取服务商 、服务商提现配置
+    protected function getWithdrawConfig()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $model = db('store_bank');
+        $where=[
+            'is_del'=>0,
+            'bank_type'=>1,
+            'store_id'=>$user['store_id'],
+        ];
+        $info=$model->where($where)->find();
+        pre($model->getLastSql(),1);
+        pre($info);
+
+
+    }
+
     //提现配置
     protected function configWithdraw()
     {
