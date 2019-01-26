@@ -2150,7 +2150,7 @@ class Admin extends Index
             }
             $this->_returnMsg(['msg' => '提现申请提交,请耐心等待审核']);
         }else{
-            $this->_returnMsg(['errCode' => 8, 'errMsg' => '申请提交异常']);
+            $this->_returnMsg(['errCode' => 9, 'errMsg' => '申请提交异常']);
         }
     }
     //获取提现记录[渠道商/服务商]
