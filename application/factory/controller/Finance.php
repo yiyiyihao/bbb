@@ -142,6 +142,10 @@ class Finance extends FactoryForm
             if ($amount < $minAmount) {
                 $this->error('单笔最低提现金额为'.$minAmount.'元');
             }
+            if ($amount>$this->finance['amount']) {
+                $this->error('最多可提现'.$this->finance['amount'].'元');
+            }
+
             $data = [
                 'store_id'  => $this->adminFactory['store_id'],
                 'user_id'   => ADMIN_ID,
