@@ -2283,11 +2283,116 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $info]);
     }
 
-    //提现配置
-    protected function configWithdraw()
+    //添加提现银行卡
+    protected function addWithdrawConfig()
     {
-        
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $model = db('store_bank');
+        $where=[
+            'is_del'=>0,
+            'bank_type'=>1,
+            'store_id'=>$user['store_id'],
+        ];
+        $exist=$model->where($where)->find();
+        if (!empty($exist)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前商户已经绑定过提现银行卡']);
+        }
+        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
+        $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
+        $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
+        $data['bank_branch'] = isset($this->postParams['bank_branch']) ? trim($this->postParams['bank_branch']) : '';
+        $data['bank_no'] = isset($this->postParams['bank_no']) ? trim($this->postParams['bank_no']) : '';
+        $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        if (!$data['realname']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人姓名']);
+        }
+        if (!$data['id_card']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人身份证号']);
+        }
+        if (!$data['bank_name']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡名称']);
+        }
+        if (!$data['bank_branch']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写开户行支行信息']);
+        }
+        if (!$data['bank_no']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡号']);
+        }
+        if (!$data['region_name'] || $data['region_id']<=0 ) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
+        }
+        $data['bank_type']  = 1;
+        $data['store_id']   = $user['store_id'];
+        $data['add_time']   = time();
+        $data['post_user_id'] = $user['user_id'];
+        $result = $model->insertGetId($data);
+        if (!$result){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '添加失败']);
+        }
+        $this->_returnMsg(['msg' => '添加成功']);
     }
+
+    //编辑提现银行卡
+    protected function editWithdrawConfig()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
+        if ($id<=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[ID]']);
+        }
+        $model = db('store_bank');
+        $where=[
+            'is_del'=>0,
+            'bank_type'=>1,
+            'store_id'=>$user['store_id'],
+            'bank_id'=>$id,
+        ];
+        $bank=$model->where($where)->find();
+        if (empty($bank)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '查无该银行卡']);
+        }
+        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
+        $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
+        $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
+        $data['bank_branch'] = isset($this->postParams['bank_branch']) ? trim($this->postParams['bank_branch']) : '';
+        $data['bank_no'] = isset($this->postParams['bank_no']) ? trim($this->postParams['bank_no']) : '';
+        $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        $data['update_time'] = time();
+
+        if (!$data['realname']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人姓名']);
+        }
+        if (!$data['id_card']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人身份证号']);
+        }
+        if (!$data['bank_name']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡名称']);
+        }
+        if (!$data['bank_branch']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写开户行支行信息']);
+        }
+        if (!$data['bank_no']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡号']);
+        }
+        if (!$data['region_name'] || $data['region_id']<=0 ) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
+        }
+        $result=$model->where('bank_id',$id)->update($data);
+        if ($result === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
+        }
+        $this->_returnMsg(['msg' => '保存成功']);
+    }
+
+
     /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
      * 
      */
