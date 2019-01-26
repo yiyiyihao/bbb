@@ -2149,7 +2149,7 @@ class Admin extends Index
             if (!$result) {
                 db('store_withdraw')->where(['log_id' => $logId])->update(['status' => 0, 'is_del' => 1]);
             }
-            $this->_returnMsg(['msg' => '提现申请提交,请耐心等待审核']);
+            $this->_returnMsg(['msg' => '提现申请成功,请耐心等待审核']);
         }else{
             $this->_returnMsg(['errCode' => 9, 'errMsg' => '申请提交异常']);
         }
