@@ -897,33 +897,34 @@ function sub_str($str, $length = 0, $append = '...') {
     return $newstr;
 }
 
-//银行卡加密
-function bank_card_encode($bankNo){
-    $sub = substr($bankNo,-4);
-    $length = strlen($bankNo);
-    $bankNo=str_pad($sub,$length,'*',STR_PAD_LEFT);
-    return $bankNo;
-}
-
-//身份证加密
-function id_card_encode($idCard){
-    $length=mb_strlen($idCard);
-    if ($length<=8){
-        return '********';
+/**
+ * 字符串加密
+ * @param $str
+ * @param int $prefix 前面保留几位
+ * @param int $suffix 后面保留几位
+ * @return string
+ */
+function str_encode($str,$prefix=0,$suffix=0){
+    if ($prefix<=0  && $suffix<=0) {
+        return $str;
     }
-    $prefix=mb_substr($idCard,0,4);
-    $subfix=mb_substr($idCard,-4);
-    $middle=str_pad('',$length-8,'*');
-    return $prefix.$middle.$subfix;
-}
-//加密姓名
-function realname_encode($realname){
-    $length=mb_strlen($realname);
-    if ($length<2){
-        return '**';
+    $_pre='';
+    $_suf='';
+    $len=mb_strlen($str);
+    if ($prefix>=$len) {
+        return $str;
     }
-    $subfix=mb_substr($realname,-1);
-    $prefix=str_pad('',$length-1,'*');
-    return $prefix.$subfix;
+    if ($prefix>0){
+        $_pre=mb_substr($str,0,$prefix);
+    }
+    if ($suffix>=$len) {
+        return $str;
+    }
+    if ($suffix>0){
+        $_suf=mb_substr($str,-$suffix);
+    }
+    $_len=$len-$prefix-$suffix;
+    $_len=$_len>0?$_len:0;
+    $_mid=str_pad('',$_len,'*');
+    return $_pre.$_mid.$_suf;
 }
-

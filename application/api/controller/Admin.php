@@ -2145,7 +2145,7 @@ class Admin extends Index
             'C.is_del'=>0,
             'C.store_id'=>$user['store_id'],
         ];
-        $field='C.order_sn,C.income_amount,S.`name` store_name,C.commission_status,C.add_time';
+        $field='C.log_id id,C.income_amount,S.`name` store_name,C.commission_status,C.add_time';
         $join=[
             ['store S', 'S.store_id = C.from_store_id', 'LEFT'],
             //['goods G', 'G.goods_id = C.goods_id', 'LEFT'],
@@ -2170,17 +2170,17 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
-        if (empty($orderSn)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号不能为空']);
+        $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
+        if ($id<=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[ID]']);
         }
         $model=db('store_commission');
         $where=[
             'C.is_del'=>0,
             'C.store_id'=>$user['store_id'],
-            'C.order_sn'=>$orderSn,
+            'C.log_id'=>$id,
         ];
-        $field='C.income_amount,C.order_sn,C.order_amount,C.commission_status,G.`name` goods_name,S.`name` store_name,C.add_time';
+        $field='C.log_id id,C.income_amount,C.order_amount,C.commission_status,G.`name` goods_name,S.`name` store_name,C.add_time';
         $join=[
             ['store S', 'S.store_id = C.from_store_id', 'LEFT'],
             ['goods G', 'G.goods_id = C.goods_id', 'LEFT'],
@@ -2207,7 +2207,7 @@ class Admin extends Index
             'SI.is_del'=>0,
             'SI.store_id'=>$user['store_id'],
         ];
-        $field='SI.income_amount,SI.worder_sn,UI.realname,SI.income_status,SI.add_time';
+        $field='SI.log_id id,SI.income_amount,UI.realname,SI.income_status,SI.add_time';
         $join=[
             ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
             //['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
@@ -2233,17 +2233,17 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
-        if (empty($worderSn)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
+        $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
+        if ($id<=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[ID]']);
         }
         $model=db('store_service_income');
         $where=[
             'SI.is_del'=>0,
             'SI.store_id'=>$user['store_id'],
-            'SI.worder_sn'=>$worderSn,
+            'SI.log_id'=>$id,
         ];
-        $field='SI.worder_sn,SI.install_amount,SI.income_amount,SI.income_status,G.`name` goods_name,UI.realname,SI.add_time';
+        $field='SI.log_id id,SI.install_amount,SI.income_amount,SI.income_status,G.`name` goods_name,UI.realname,SI.add_time';
         $join=[
             ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
             ['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
@@ -2271,14 +2271,14 @@ class Admin extends Index
             'bank_type'=>1,
             'store_id'=>$user['store_id'],
         ];
-        $field='bank_id id,bank_no,realname,id_card,bank_name,bank_branch';
+        $field='bank_id id,bank_no,realname,id_card,bank_name,bank_branch,region_name,region_id';
         $info=$model->field($field)->where($where)->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' =>104, 'errMsg' => '请先设置提现卡']);
         }
-        $info['id_card_encode']=id_card_encode($info['id_card']);
-        $info['bank_no_encode']=bank_card_encode($info['bank_no']);
-        $info['realname_encdoe']=realname_encode($info['realname']);
+        $info['id_card_encode']=str_encode($info['id_card'],4,4);
+        $info['bank_no_encode']=str_encode($info['bank_no'],0,4);
+        $info['realname_encdoe']=str_encode($info['realname'],0,1);
         //pre($model->getLastSql(),1);
         $this->_returnMsg(['detail' => $info]);
     }
@@ -2397,7 +2397,7 @@ class Admin extends Index
     private function _checkUser($checkFlag = TRUE)
     {
         //$userId = 2;//厂商
-        // $userId =4;//渠道商
+        //$userId =4;//渠道商
         //$userId = 5;//零售商
         $userId = 6;//服务商
         
