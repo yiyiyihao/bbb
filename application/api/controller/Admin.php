@@ -2112,7 +2112,7 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $id = isset($this->postParams['id']) ? trim($this->postParams['id']) : '';
+        $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
         if (empty($id)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '提现ID不能为空']);
         }
