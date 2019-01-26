@@ -2086,10 +2086,10 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $result=$this->_withdrawConfig($user['factory_id']);
-        $start=$result['withdraw_start_date'];
-        $end=$result['withdraw_end_date'];
-        if (!$result['is_withdraw']) {
+        $check=$this->_withdrawConfig($user);
+        $start=$check['withdraw_start_date'];
+        $end=$check['withdraw_end_date'];
+        if (!$check['is_withdraw']) {
             $this->_returnMsg(['errCode' => 2, 'errMsg' => '每月提现时间：'.$start.'日-'.$end.'日']);
         }
         //获取当前商户提现信息
@@ -2098,6 +2098,13 @@ class Admin extends Index
         $bank = $bankModel->where(['is_del' => 0, 'bank_type' => $bankType, 'store_id' => $user['store_id']])->find();
         if (!$bank) {
             $this->_returnMsg(['errCode' => 3, 'errMsg' => '请先绑定银行卡号']);
+        }
+        if ($check['amount'] <= 0) {
+            $this->_returnMsg(['errCode' => 4, 'errMsg' => '没有可提现额度']);
+        }
+        $minAmount = isset($this->config['withdraw_min_amount']) && $this->config['withdraw_min_amount'] ? $this->config['withdraw_min_amount'] : 100;
+        if ($this->finance['amount'] < $minAmount) {
+            $this->error('单笔最低提现金额为'.$minAmount.'元，暂不允许提现');
         }
 
 
@@ -2236,7 +2243,7 @@ class Admin extends Index
             'SI.is_del'=>0,
             'SI.store_id'=>$user['store_id'],
         ];
-        $field='SI.log_id id,SI.income_amount,UI.realname,SI.income_status,SI.add_time';
+        $field='SI.log_id id,SI.worder_sn,SI.income_amount,UI.realname,SI.income_status,SI.add_time';
         $join=[
             ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
             //['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
@@ -2272,7 +2279,7 @@ class Admin extends Index
             'SI.store_id'=>$user['store_id'],
             'SI.log_id'=>$id,
         ];
-        $field='SI.log_id id,SI.install_amount,SI.income_amount,SI.income_status,G.`name` goods_name,UI.realname,SI.add_time';
+        $field='SI.log_id id,SI.worder_sn,SI.install_amount,SI.income_amount,SI.income_status,G.`name` goods_name,UI.realname,SI.add_time';
         $join=[
             ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
             ['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
