@@ -2050,32 +2050,33 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        $model=new \app\common\model\StoreFinance;
-        $info=$model->where('store_id',$user['store_id'])->find();
-        if (empty($info)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
-        }
-        $result=$this->withdrawConfig($this->factory['store_id']);
-        unset($result['store_id']);
+        $result=$this->_withdrawConfig($user);
         $this->_returnMsg(['detail' => $result]);
     }
 
-    private function withdrawConfig($factoryId)
+    private function _withdrawConfig($user)
     {
-        $config = get_store_config($factoryId, TRUE, 'default');
-        $result['withdraw_start_date']='';
-        $result['withdraw_end_date']='';
-        $result['is_withdraw']=0;
+        $model=new \app\common\model\StoreFinance;
+        $info=$model->where('store_id',$user['store_id'])->find()->toArray();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
+        }
+        $config = get_store_config($user['factory_id'], TRUE, 'default');
+        $setting['withdraw_start_date']='';
+        $setting['withdraw_end_date']='';
+        $setting['is_withdraw']=0;
         //判断商户是否可提现
         if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
-            $result['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
-            $result['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
+            $setting['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
+            $setting['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
             $day = intval(date('d'));
             if ($day >= $min && $day <= $max) {
-                $result['is_withdraw']=1;
+                $setting['is_withdraw']=1;
             }
         }
-        return $result;
+        $ret=array_merge($info,$setting);
+        unset($ret['store_id']);
+        return $ret;
     }
     
     //申请提现[渠道商/服务商]
@@ -2085,6 +2086,22 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
+        $result=$this->_withdrawConfig($user['factory_id']);
+        $start=$result['withdraw_start_date'];
+        $end=$result['withdraw_end_date'];
+        if (!$result['is_withdraw']) {
+            $this->_returnMsg(['errCode' => 2, 'errMsg' => '每月提现时间：'.$start.'日-'.$end.'日']);
+        }
+        //获取当前商户提现信息
+        $bankModel = db('store_bank');
+        $bankType = 1;//银行卡
+        $bank = $bankModel->where(['is_del' => 0, 'bank_type' => $bankType, 'store_id' => $user['store_id']])->find();
+        if (!$bank) {
+            $this->_returnMsg(['errCode' => 3, 'errMsg' => '请先绑定银行卡号']);
+        }
+
+
+
         
 
     }
