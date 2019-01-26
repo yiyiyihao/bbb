@@ -2065,6 +2065,7 @@ class Admin extends Index
         $setting['withdraw_start_date']='';
         $setting['withdraw_end_date']='';
         $setting['is_withdraw']=0;
+        $setting['withdraw_min_amount']=isset($config['withdraw_min_amount'])?$config['withdraw_min_amount']:100;
         //判断商户是否可提现
         if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
             $setting['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
@@ -2087,7 +2088,6 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $check=$this->_withdrawConfig($user);
-        //pre($check);
         $start=$check['withdraw_start_date'];
         $end=$check['withdraw_end_date'];
         if (!$check['is_withdraw']) {
@@ -2103,7 +2103,8 @@ class Admin extends Index
         if ($check['amount'] <= 0) {
             $this->_returnMsg(['errCode' => 4, 'errMsg' => '没有可提现额度']);
         }
-        $minAmount = isset($check['withdraw_min_amount']) && $check['withdraw_min_amount'] ? $check['withdraw_min_amount'] : 100;
+        $minAmount = isset($check['withdraw_min_amount']) && $check['withdraw_min_amount']>0 ? $check['withdraw_min_amount'] : 100;
+
         if ($check['amount'] < $minAmount) {
             $this->_returnMsg(['errCode' => 5, 'errMsg' => '单笔最低提现金额为'.$minAmount.'元，余额不足，暂不允许提现']);
         }
