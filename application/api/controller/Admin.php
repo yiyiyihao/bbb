@@ -2055,25 +2055,37 @@ class Admin extends Index
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
         }
-        $config = get_store_config($user['store_id'], TRUE, 'default');
-        $info['withdraw_start_date']='';
-        $info['withdraw_end_date']='';
-        $info['is_withdraw']=0;
+        $result=$this->withdrawConfig($this->factory['store_id']);
+        unset($result['store_id']);
+        $this->_returnMsg(['detail' => $result]);
+    }
+
+    private function withdrawConfig($factoryId)
+    {
+        $config = get_store_config($factoryId, TRUE, 'default');
+        $result['withdraw_start_date']='';
+        $result['withdraw_end_date']='';
+        $result['is_withdraw']=0;
         //判断商户是否可提现
         if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
-            $info['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
-            $info['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
+            $result['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
+            $result['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
             $day = intval(date('d'));
             if ($day >= $min && $day <= $max) {
-                $info['is_withdraw']=1;
+                $result['is_withdraw']=1;
             }
         }
-        unset($info['store_id']);
-        $this->_returnMsg(['detail' => $info]);
+        return $result;
     }
+    
     //申请提现[渠道商/服务商]
     protected function applyWithdraw()
     {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        
 
     }
     //获取提现记录[渠道商/服务商]
