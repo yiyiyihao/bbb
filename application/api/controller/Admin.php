@@ -2123,6 +2123,9 @@ class Admin extends Index
         ];
         $field='log_id id,amount,withdraw_status,bank_name,bank_no,add_time,remark';
         $detail=db('store_withdraw')->field($field)->where($where)->find();
+        if (empty($detail)) {
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        }
         $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
         $detail['add_time']=time_to_date($detail['add_time']);
         $detail['bank_no']=bank_card_encode($detail['bank_no']);
