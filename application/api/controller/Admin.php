@@ -2128,7 +2128,7 @@ class Admin extends Index
         }
         $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
         $detail['add_time']=time_to_date($detail['add_time']);
-        $detail['bank_no']=bank_card_encode($detail['bank_no']);
+        $detail['bank_no']=str_encode($detail['bank_no'],0,4);
         $this->_returnMsg(['detail' => $detail]);
     }
 
