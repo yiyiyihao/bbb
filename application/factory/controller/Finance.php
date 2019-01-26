@@ -192,6 +192,8 @@ class Finance extends FactoryForm
             $bankName = isset($params['bank_name']) ? trim($params['bank_name']) : '';
             $bankBranch = isset($params['bank_branch']) ? trim($params['bank_branch']) : '';
             $bankNo = isset($params['bank_no']) ? trim($params['bank_no']) : '';
+            $regionName = isset($params['region_name']) ? trim($params['region_name']) : '';
+            $regionId = isset($params['region_id']) ? intval($params['region_id']) : 0;
             if (!$realname) {
                 $this->error('请填写持卡人姓名');
             }
@@ -207,12 +209,18 @@ class Finance extends FactoryForm
             if (!$bankNo) {
                 $this->error('请填写银行卡号');
             }
+            if (empty($regionName) || $regionId<=0 ) {
+                $this->error('请选择开户行所在地');
+            }
+
             $data = [
                 'realname'  => $realname,
                 'id_card'   => $idCard,
                 'bank_name' => $bankName,
                 'bank_no'   => $bankNo,
                 'bank_branch' => $bankBranch,
+                'region_name' => $regionName,
+                'region_id' => $regionId,
                 'update_time' => time(),
             ];
             if ($info) {
