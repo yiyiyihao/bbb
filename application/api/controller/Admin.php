@@ -2114,6 +2114,10 @@ class Admin extends Index
         if ($amount < $minAmount) {
             $this->_returnMsg(['errCode' => 7, 'errMsg' => '单笔最低提现金额为'.$minAmount.'元']);
         }
+        if ($amount>$check['amount']) {
+            $this->_returnMsg(['errCode' => 8, 'errMsg' => '最多可提现'.$check['amount'].'元']);
+        }
+
         $storeType=db('store')->where([
             'is_del'=>0,
             'store_id'=>$user['store_id'],
@@ -2373,6 +2377,20 @@ class Admin extends Index
         if (!empty($exist)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前商户已经绑定过提现银行卡']);
         }
+        $data=$this->_withdrawCheck();
+        $data['bank_type']  = 1;
+        $data['store_id']   = $user['store_id'];
+        $data['add_time']   = time();
+        $data['post_user_id'] = $user['user_id'];
+        $result = $model->insertGetId($data);
+        if (!$result){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '添加失败']);
+        }
+        $this->_returnMsg(['msg' => '添加成功']);
+    }
+
+    private function _withdrawCheck()
+    {
         $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
         $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
@@ -2398,15 +2416,7 @@ class Admin extends Index
         if (!$data['region_name'] || $data['region_id']<=0 ) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
         }
-        $data['bank_type']  = 1;
-        $data['store_id']   = $user['store_id'];
-        $data['add_time']   = time();
-        $data['post_user_id'] = $user['user_id'];
-        $result = $model->insertGetId($data);
-        if (!$result){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '添加失败']);
-        }
-        $this->_returnMsg(['msg' => '添加成功']);
+        return $data;
     }
 
     //编辑提现银行卡
@@ -2431,33 +2441,7 @@ class Admin extends Index
         if (empty($bank)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '查无该银行卡']);
         }
-        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
-        $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
-        $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
-        $data['bank_branch'] = isset($this->postParams['bank_branch']) ? trim($this->postParams['bank_branch']) : '';
-        $data['bank_no'] = isset($this->postParams['bank_no']) ? trim($this->postParams['bank_no']) : '';
-        $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
-        $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
-        $data['update_time'] = time();
-
-        if (!$data['realname']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人姓名']);
-        }
-        if (!$data['id_card']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人身份证号']);
-        }
-        if (!$data['bank_name']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡名称']);
-        }
-        if (!$data['bank_branch']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写开户行支行信息']);
-        }
-        if (!$data['bank_no']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡号']);
-        }
-        if (!$data['region_name'] || $data['region_id']<=0 ) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
-        }
+        $data=$this->_withdrawCheck();
         $result=$model->where('bank_id',$id)->update($data);
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
