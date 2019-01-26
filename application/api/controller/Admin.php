@@ -2087,6 +2087,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $check=$this->_withdrawConfig($user);
+        //pre($check);
         $start=$check['withdraw_start_date'];
         $end=$check['withdraw_end_date'];
         if (!$check['is_withdraw']) {
@@ -2102,15 +2103,51 @@ class Admin extends Index
         if ($check['amount'] <= 0) {
             $this->_returnMsg(['errCode' => 4, 'errMsg' => '没有可提现额度']);
         }
-        $minAmount = isset($this->config['withdraw_min_amount']) && $this->config['withdraw_min_amount'] ? $this->config['withdraw_min_amount'] : 100;
-        if ($this->finance['amount'] < $minAmount) {
-            $this->error('单笔最低提现金额为'.$minAmount.'元，暂不允许提现');
+        $minAmount = isset($check['withdraw_min_amount']) && $check['withdraw_min_amount'] ? $check['withdraw_min_amount'] : 100;
+        if ($check['amount'] < $minAmount) {
+            $this->_returnMsg(['errCode' => 5, 'errMsg' => '单笔最低提现金额为'.$minAmount.'元，余额不足，暂不允许提现']);
         }
+        $amount = isset($this->postParams['amount']) && $this->postParams['amount'] ? floatval($this->postParams['amount']) : 0;
+        if ($amount <= 0) {
+            $this->_returnMsg(['errCode' => 6, 'errMsg' => '提现金额有误，请重新输入，确认无误后再提交']);
+        }
+        if ($amount < $minAmount) {
+            $this->_returnMsg(['errCode' => 7, 'errMsg' => '单笔最低提现金额为'.$minAmount.'元']);
+        }
+        $storeType=db('store')->where([
+            'is_del'=>0,
+            'store_id'=>$user['store_id'],
+            'status'=>1,
+        ])->value('store_type');
+        $data = [
+            'store_id'  => $user['store_id'],
+            'user_id'   => $user['user_id'],
+            'amount'    => $amount,
+            'add_time'  => time(),
 
+            'bank_id'   => $bank['bank_id'],
+            'realname'  => $bank['realname'],
+            'bank_name' => $bank['bank_name'],
+            'bank_no'   => $bank['bank_no'],
+            'bank_detail' => json_encode($bank),
 
-
-        
-
+            'update_time' => time(),
+            'from_store_id'=> $user['store_id'],
+            'from_store_type'=> $storeType,
+            'withdraw_status'=> 0,
+        ];
+        $logId = db('store_withdraw')->insertGetId($data);
+        if ($logId) {
+            //记录成功后减少可提现金额
+            $financeModel = new \app\common\model\StoreFinance();
+            $result = $financeModel->financeChange($user['store_id'], ['amount' => -$amount], '申请提现', '');
+            if (!$result) {
+                db('store_withdraw')->where(['log_id' => $logId])->update(['status' => 0, 'is_del' => 1]);
+            }
+            $this->_returnMsg(['msg' => '提现申请提交,请耐心等待审核']);
+        }else{
+            $this->_returnMsg(['errCode' => 8, 'errMsg' => '申请提交异常']);
+        }
     }
     //获取提现记录[渠道商/服务商]
     protected function getWithdrawList()
