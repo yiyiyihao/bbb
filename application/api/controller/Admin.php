@@ -2114,7 +2114,7 @@ class Admin extends Index
         }
         $id = isset($this->postParams['id']) ? trim($this->postParams['id']) : '';
         if (empty($id)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[ID]']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '提现ID不能为空']);
         }
         $where=[
             'is_del'=>0,
@@ -2124,7 +2124,7 @@ class Admin extends Index
         $field='log_id id,amount,withdraw_status,bank_name,bank_no,add_time,remark';
         $detail=db('store_withdraw')->field($field)->where($where)->find();
         if (empty($detail)) {
-            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+            $this->_returnMsg(['errCode' =>104, 'errMsg' => '提现记录不存在']);
         }
         $detail['status_desc']=get_withdraw_status($detail['withdraw_status']);
         $detail['add_time']=time_to_date($detail['add_time']);
