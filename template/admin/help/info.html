@@ -1,0 +1,108 @@
+{php}
+$parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(isset($pid) &&$pid?$pid:0);
+{/php}
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-0">新增/编辑问题</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-0">
+                    {if $parentId>0}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>问题名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="title" placeholder="请输入问题名称，最多30个字" maxlength="30" name="title" datatype="*1-30" value="{$info['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    {else /}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分类名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="title" placeholder="请输入分类名称，最多10个字" maxlength="10" name="title" datatype="*1-10" value="{$info['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    {/if}
+
+
+                    {notempty name='parentId'}
+                    <input type="hidden" name="parent_id" value="{$parentId}">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>问题答案</label>
+                        </div>
+                        <div class="field">
+                            <textarea class="input js-editor"  name="answer" rows="20">
+                                    {$info['answer'] ?? ''}
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>可见人员*</label>
+                        </div>
+                        <div class="field checkgroup">
+                            <div class="button-group">
+                                {notempty name='storeType'}
+                                {foreach $storeType as $key=>$vo}
+                                {php}
+                                $flag=false;
+                                if(isset($info['visible_store_type']) && !empty($info['visible_store_type'])){
+                                $visibleType=$info['visible_store_type'];
+                                if($visibleType && in_array($key,$visibleType)){
+                                $flag=true;
+                                }
+                                }
+                                {/php}
+                                <div class="checkbox data-all {if $flag}checked{/if}">
+                                    <input type="checkbox" class="top" {if $flag}checked{/if}  name="visible_store_type[]" value="{$key}" >
+                                    <i class="icon-check"></i><span>{$vo}</span>
+                                </div>
+                                {/foreach}
+                                {/notempty}
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {/notempty}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="sort_order" placeholder=""  name="sort_order" datatype="n1-4" value="{$info['sort_order'] ?? '0'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <a href="{:url('help/index')}"><span class="button bg-back">返回</span></a>
+                <button class="button bg" type="reset">重置</button>
+                <button class="button bg-main" type="submit">保存</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage().table({});
+    });
+</script>

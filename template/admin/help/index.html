@@ -1,0 +1,46 @@
+<div class="tab admin-tab">
+    <div class="panel admin-box active">
+        <div class="tab-body">
+            <div class="tab-panel active" id="tab-1">
+                <div class="panel admin-box">
+                    <div class="table-responsive">
+                        <table id="table" class="table table-hover ">
+                            <tbody>
+                            <tr>
+                                <th>问题名称</th>
+                                <th>可见角色</th>
+                                <th width="70px">状态</th>
+                                <th width="70px">排序</th>
+                                <th width="215px">操作</th>
+                            </tr>
+                            {notempty name="list"}
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td>{:sub_str($vo.title,30)}</td>
+                                <td>{$vo.visible_store_type??''}</td>
+                                <td>{if $vo.status}启用{else /}禁用{/if}</td>
+                                <td>{$vo.sort_order ??''}</td>
+                                <td width="250px"><span class="button-group">{if $vo.parent_id==0 }<a class="button button-small icon-plus bg-sub" href="{:url('add',['parent_id'=>$vo.id])}">新增问题</a>{/if}<a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
+                            </tr>
+                            {/volist}
+                            {/notempty}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel-foot table-foot clearfix">{$page|raw|default=''}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#table').Table({});
+    });
+</script>
+
+
