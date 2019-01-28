@@ -2273,10 +2273,8 @@ class Admin extends Index
         $detail['com_status_desc']=get_commission_status($detail['commission_status']);
         $this->_returnMsg(['detail' => $detail]);
     }
-
-
     //获取服务商收益列表
-    protected function getServerIncomeList()
+    protected function getServiceIncomeList()
     {
         $user = $this->_checkUser();
         if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
@@ -2305,9 +2303,8 @@ class Admin extends Index
         },$list);
         $this->_returnMsg(['list' => $list]);
     }
-
     //获取服务商收益详情
-    protected function getServerIncomeDetail()
+    protected function getServiceIncomeDetail()
     {
         $user = $this->_checkUser();
         if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
