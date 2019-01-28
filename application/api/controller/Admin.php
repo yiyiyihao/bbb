@@ -2260,7 +2260,7 @@ class Admin extends Index
             'C.store_id'=>$user['store_id'],
             'C.log_id'=>$id,
         ];
-        $field='C.log_id id,C.income_amount,C.order_amount,C.commission_status,G.`name` goods_name,S.`name` store_name,C.add_time';
+        $field='C.log_id id,C.order_sn,C.income_amount,C.order_amount,C.commission_status,G.`name` goods_name,S.`name` store_name,C.add_time';
         $join=[
             ['store S', 'S.store_id = C.from_store_id', 'LEFT'],
             ['goods G', 'G.goods_id = C.goods_id', 'LEFT'],
