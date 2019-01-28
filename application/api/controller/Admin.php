@@ -88,7 +88,7 @@ class Admin extends Index
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
             session('api_user_data', $oauth);
-            $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'loginStep' => 2]);
+            $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
     }
@@ -1257,6 +1257,17 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        if (!$orderSn){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $result = $orderModel->orderCancel($orderSn, $user);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
+        }else{
+            $this->_returnMsg(['msg' => '取消订单成功']);
+        }
     }
     //获取订单商品详情
     protected function getOrderSkuSubDetail()
@@ -1954,7 +1965,6 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 5, 'errMsg' => '操作失败']);
         }
     }
-
     //获取工程师详情
     protected function getInstallerDetail()
     {
@@ -2042,7 +2052,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['msg' => '工程师删除成功']);
     }
-    
     //获取当前商户的财务数据[渠道商/服务商]
     protected function getFinanceData()
     {
@@ -2053,33 +2062,6 @@ class Admin extends Index
         $result=$this->_withdrawConfig($user);
         $this->_returnMsg(['detail' => $result]);
     }
-
-    private function _withdrawConfig($user)
-    {
-        $model=new \app\common\model\StoreFinance;
-        $info=$model->where('store_id',$user['store_id'])->find()->toArray();
-        if (empty($info)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
-        }
-        $config = get_store_config($user['factory_id'], TRUE, 'default');
-        $setting['withdraw_start_date']='';
-        $setting['withdraw_end_date']='';
-        $setting['is_withdraw']=0;
-        $setting['withdraw_min_amount']=isset($config['withdraw_min_amount'])?$config['withdraw_min_amount']:100;
-        //判断商户是否可提现
-        if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
-            $setting['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
-            $setting['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
-            $day = intval(date('d'));
-            if ($day >= $min && $day <= $max) {
-                $setting['is_withdraw']=1;
-            }
-        }
-        $ret=array_merge($info,$setting);
-        unset($ret['store_id']);
-        return $ret;
-    }
-    
     //申请提现[渠道商/服务商]
     protected function applyWithdraw()
     {
@@ -2175,14 +2157,13 @@ class Admin extends Index
         $field='log_id id,add_time,amount,withdraw_status';
         $order='add_time DESC';
         $list=$this->_getModelList(db('store_withdraw'),$where,$field,$order);
-        if (empty($list)) {
-            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        if ($list) {
+            $list=array_map(function ($item){
+                $item['add_time']=time_to_date($item['add_time']);
+                $item['status_desc']=get_withdraw_status($item['withdraw_status']);
+                return $item;
+            },$list);
         }
-        $list=array_map(function ($item){
-            $item['add_time']=time_to_date($item['add_time']);
-            $item['status_desc']=get_withdraw_status($item['withdraw_status']);
-            return $item;
-        },$list);
         $this->_returnMsg(['list' => $list]);
     }
     //获取提现详情[渠道商/服务商]
@@ -2211,8 +2192,6 @@ class Admin extends Index
         $detail['bank_no']=str_encode($detail['bank_no'],0,4);
         $this->_returnMsg(['detail' => $detail]);
     }
-
-
     //获取渠道商收益列表
     protected function getChannelIncomeList()
     {
@@ -2288,19 +2267,16 @@ class Admin extends Index
         $field='SI.log_id id,SI.worder_sn,SI.income_amount,UI.realname,SI.income_status,SI.add_time';
         $join=[
             ['user_installer UI', 'UI.installer_id = SI.installer_id', 'LEFT'],
-            //['goods G', 'G.goods_id = SI.goods_id', 'LEFT'],
         ];
         $order='SI.add_time DESC';
         $list=$this->_getModelList($model,$where,$field,$order,'SI',$join);
-
-        if (empty($list)) {
-            $this->_returnMsg(['errCode' =>104, 'errMsg' => '暂无数据']);
+        if ($list) {
+            $list=array_map(function ($item) {
+                $item['add_time']=time_to_date($item['add_time']);
+                $item['income_status_desc']=get_commission_status($item['income_status']);
+                return $item;
+            },$list);
         }
-        $list=array_map(function ($item) {
-            $item['add_time']=time_to_date($item['add_time']);
-            $item['income_status_desc']=get_commission_status($item['income_status']);
-            return $item;
-        },$list);
         $this->_returnMsg(['list' => $list]);
     }
     //获取服务商收益详情
@@ -2327,14 +2303,13 @@ class Admin extends Index
         ];
         $detail=$model->alias('SI')->field($field)->where($where)->join($join)->find();
         if (empty($detail)) {
-            $this->_returnMsg(['errCode' =>1, 'errMsg' => '查无该工单的收入信息']);
+            $this->_returnMsg(['errCode' =>1, 'errMsg' => '收益不存在']);
         }
         //dump($model->getLastSql());
         $detail['add_time']=time_to_date($detail['add_time']);
         $detail['income_status_desc']=get_commission_status($detail['income_status']);
         $this->_returnMsg(['detail' => $detail]);
     }
-
     //获取服务商 、服务商提现配置
     protected function getWithdrawConfig()
     {
@@ -2359,7 +2334,6 @@ class Admin extends Index
         //pre($model->getLastSql(),1);
         $this->_returnMsg(['detail' => $info]);
     }
-
     //添加提现银行卡
     protected function addWithdrawConfig()
     {
@@ -2388,37 +2362,6 @@ class Admin extends Index
         }
         $this->_returnMsg(['msg' => '添加成功']);
     }
-
-    private function _withdrawCheck()
-    {
-        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
-        $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
-        $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
-        $data['bank_branch'] = isset($this->postParams['bank_branch']) ? trim($this->postParams['bank_branch']) : '';
-        $data['bank_no'] = isset($this->postParams['bank_no']) ? trim($this->postParams['bank_no']) : '';
-        $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
-        $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
-        if (!$data['realname']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人姓名']);
-        }
-        if (!$data['id_card']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人身份证号']);
-        }
-        if (!$data['bank_name']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡名称']);
-        }
-        if (!$data['bank_branch']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写开户行支行信息']);
-        }
-        if (!$data['bank_no']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡号']);
-        }
-        if (!$data['region_name'] || $data['region_id']<=0 ) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
-        }
-        return $data;
-    }
-
     //编辑提现银行卡
     protected function editWithdrawConfig()
     {
@@ -2448,11 +2391,62 @@ class Admin extends Index
         }
         $this->_returnMsg(['msg' => '保存成功']);
     }
-
-
     /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
-     * 
      */
+    private function _withdrawConfig($user)
+    {
+        $model=new \app\common\model\StoreFinance;
+        $info=$model->where('store_id', $user['store_id'])->find()->toArray();
+        if (empty($info)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
+        }
+        $config = get_store_config($user['factory_id'], TRUE, 'default');
+        $setting['withdraw_start_date']='';
+        $setting['withdraw_end_date']='';
+        $setting['is_withdraw']=0;
+        $setting['withdraw_min_amount']=isset($config['withdraw_min_amount'])?$config['withdraw_min_amount']:100;
+        //判断商户是否可提现
+        if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
+            $setting['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
+            $setting['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
+            $day = intval(date('d'));
+            if ($day >= $min && $day <= $max) {
+                $setting['is_withdraw']=1;
+            }
+        }
+        $return =array_merge($info,$setting);
+        unset($return['store_id']);
+        return $return;
+    }
+    private function _withdrawCheck()
+    {
+        $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
+        $data['id_card'] = isset($this->postParams['id_card']) ? trim($this->postParams['id_card']) : '';
+        $data['bank_name'] = isset($this->postParams['bank_name']) ? trim($this->postParams['bank_name']) : '';
+        $data['bank_branch'] = isset($this->postParams['bank_branch']) ? trim($this->postParams['bank_branch']) : '';
+        $data['bank_no'] = isset($this->postParams['bank_no']) ? trim($this->postParams['bank_no']) : '';
+        $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        if (!$data['realname']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人姓名']);
+        }
+        if (!$data['id_card']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写持卡人身份证号']);
+        }
+        if (!$data['bank_name']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡名称']);
+        }
+        if (!$data['bank_branch']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写开户行支行信息']);
+        }
+        if (!$data['bank_no']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写银行卡号']);
+        }
+        if (!$data['region_name'] || $data['region_id']<=0 ) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择开户行所在地']);
+        }
+        return $data;
+    }
     /**
      * 用户提交参数处理
      */
@@ -2474,7 +2468,7 @@ class Admin extends Index
      * 处理接口返回信息
      */
     protected function _returnMsg($data, $echo = TRUE){
-        $data['loginStep'] = isset($data['loginStep']) ? intval($data['loginStep']) : 0;
+        $data['errLogin'] = isset($data['errLogin']) ? intval($data['errLogin']) : 0;
         $result = parent::_returnMsg($data);
     }
     /**
@@ -2558,10 +2552,10 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        //$userId = 2;//厂商
-        //$userId =4;//渠道商
+        $userId = 2;//厂商
+        $userId =4;//渠道商
         //$userId = 5;//零售商
-        $userId = 6;//服务商
+//         $userId = 6;//服务商
         
         $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
         $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
@@ -2591,9 +2585,9 @@ class Admin extends Index
         }
         $sessionUdata = session('api_user_data');
         if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
-            $this->_returnMsg(['msg' => '前往授权页面', 'loginStep' => 1]);
+            $this->_returnMsg(['msg' => '前往授权页面', 'errLogin' => 1]);
         }
-        $this->_returnMsg(['msg' => '已授权,前往登录页面', 'loginStep' => 2]);//已授权未绑定
+        $this->_returnMsg(['msg' => '已授权,前往登录页面', 'errLogin' => 2]);//已授权未绑定
     }
     /**
      * 获取微信授权用户信息
@@ -2602,17 +2596,17 @@ class Admin extends Index
     private function _getScopeUser()
     {
         if (session('api_admin_user')) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您已经登录', 'loginStep' => 0]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您已经登录', 'errLogin' => 0]);
         }
         $sessionUdata = session('api_user_data');
         if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后登录', 'loginStep' => 1]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后登录', 'errLogin' => 1]);
         }
         //判断授权微信用户是否已经绑定用户信息
         $udata = db('user_data')->where(['udata_id' => $sessionUdata['udata_id'], 'factory_id' => $this->factory['store_id'], 'third_type' => $this->thirdType])->find();
         if (!$udata) {
             session('api_user_data', []);
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户不存在,请重新授权', 'loginStep' => 1]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户不存在,请重新授权', 'errLogin' => 1]);
         }
         if ($udata['user_id'] > 0 && isset($sessionUdata['store_id']) && $sessionUdata['store_id']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '不能重复绑定']);
@@ -2637,7 +2631,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             session('api_user_data', []);
-            $this->_returnMsg(['msg' => '登录成功', 'loginStep' => 0]);
+            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
 }

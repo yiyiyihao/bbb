@@ -189,7 +189,18 @@ class Finance extends FactoryForm
         $bankModel = db('store_bank');
         $bankType = 1;//银行卡
         $info = $bankModel->where(['is_del' => 0, 'bank_type' => $bankType, 'store_id' => $this->adminUser['store_id']])->find();
+        $update = TRUE;
+        $day = 30;
+        if ($info && $info['update_time']) {
+            $startDay = mktime(0,0,0,date('m', $info['update_time']),date('d', $info['update_time']),date('Y', $info['update_time']));
+            if ($startDay + $day*24*60*60 >= mktime(0,0,0,date('m'),date('d'),date('Y'))) {
+                $update = FALSE;
+            }
+        }
         if (IS_POST) {
+            if (!$update) {
+                $this->error($day.'天内仅允许修改一次');
+            }
             $params = $this->request->param();
             $realname = isset($params['realname']) ? trim($params['realname']) : '';
             $idCard = isset($params['id_card']) ? trim($params['id_card']) : '';
@@ -242,6 +253,8 @@ class Finance extends FactoryForm
                 $this->error('操作错误');
             }
         }else{
+            $this->assign('day', $day);
+            $this->assign('update', $update);
             $this->assign('info', $info);
             return $this->fetch();
         }
