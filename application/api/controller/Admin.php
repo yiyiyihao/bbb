@@ -2109,7 +2109,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 5, 'errMsg' => '单笔最低提现金额为'.$minAmount.'元，余额不足，暂不允许提现']);
         }
         $amount = isset($this->postParams['amount']) && $this->postParams['amount'] ? floatval($this->postParams['amount']) : 0;
-        $remark = isset($this->postParams['remark']) && $this->postParams['remark'] ? trim($this->postParams['remark']) : '';
+        $msg = isset($this->postParams['remark']) && $this->postParams['remark'] ? trim($this->postParams['remark']) : '';
         if ($amount <= 0) {
             $this->_returnMsg(['errCode' => 6, 'errMsg' => '提现金额有误，请重新输入，确认无误后再提交']);
         }
@@ -2126,7 +2126,7 @@ class Admin extends Index
             'status'=>1,
         ])->value('store_type');
         $data = [
-            'store_id'  => $user['store_id'],
+            'store_id'  => $this->factory['store_id'],
             'user_id'   => $user['user_id'],
             'amount'    => $amount,
             'add_time'  => time(),
@@ -2136,7 +2136,7 @@ class Admin extends Index
             'bank_name' => $bank['bank_name'],
             'bank_no'   => $bank['bank_no'],
             'bank_detail' => json_encode($bank),
-            'remark' => $remark,
+            'apply_msg' => $msg,
 
             'update_time' => time(),
             'from_store_id'=> $user['store_id'],

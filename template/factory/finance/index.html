@@ -46,6 +46,7 @@
           <th width="*">提现状态</th>
           <th width="*">申请时间</th>
           <th width="*">处理时间</th>
+          <th width="*">申请留言</th>
           <th width="*">审核备注</th>
           <th width="*">操作</th>
         </tr>
@@ -72,6 +73,7 @@
               	{else/}-
               	{/if}
               </td>
+              <td>{$vo['apply_msg']}</td>
               <td>{$vo['remark']}</td>
               <td>
               	{if condition="$vo['withdraw_status'] == 0"}
