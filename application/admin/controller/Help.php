@@ -17,16 +17,30 @@ class Help extends AdminForm
 
     public function __construct()
     {
-        $this->modelName = 'help';
+        $this->modelName = '帮助';
         $this->model = model('help');
         parent::__construct();
+        $this->init();
+
+    }
+
+    private function init()
+    {
         $this->storeType=[
             STORE_CHANNEL => '渠道商',
             STORE_DEALER => '零售商',
             STORE_SERVICE => '服务商',
         ];
+        $this->subMenu['add'] = [
+            'name' => '新增帮助分类',
+            'url' => url('helpCate/add'),
+        ];
         $this->assign('storeType',$this->storeType);
+        $helpCateModel=model('HelpCate');
+        $cates=$helpCateModel->field('id,name')->where(['is_del'=>0])->select();
+        $this->assign('cates',$cates);
     }
+
 
     public function add()
     {
@@ -42,21 +56,21 @@ class Help extends AdminForm
 
     public function _afterDel($info=[])
     {
-        //删除下级元素
-        if ($info['parent_id']==0) {
-            $this->model->where(['parent_id'=>$info['id']])->update(['is_del'=>1]);
-        }
+
     }
 
 
     public function _getField()
     {
-        return 'H.id,H.parent_id,H.title,H.answer,H.add_time,H.status,H.sort_order,H.visible_store_type';
+        return 'H.id,H.cate_id,C.status cate_status,C.name,H.title,H.answer,H.add_time,H.status,H.sort_order,C.sort_order cate_order,H.visible_store_type';
     }
 
     public function _getWhere()
     {
-        $where=['H.is_del'=>0];
+        $where=[
+            'H.is_del'=>0,
+            'C.is_del'=>0,
+        ];
         return $where;
     }
 
@@ -68,30 +82,40 @@ class Help extends AdminForm
 
     public function _getJoin()
     {
+        return [
+            ['help_cate C','H.cate_id=C.id']
+        ];
 
     }
 
     public function _getOrder()
     {
+        return 'C.sort_order ASC,H.sort_order ASC';
 
     }
 
     public function _afterList($list)
     {
         $store = $this->storeType;
-        foreach ($list as $key => &$value) {
+        $arr=[];
+        foreach ($list as $key=>$value) {
             if (isset($value['visible_store_type'])){
                 $storeType=$value['visible_store_type'];
-                $arr=array_map(function ($item) use ($store) {
+                $tem=array_map(function ($item) use ($store) {
                     if (isset($store[$item])) {
                         return $store[$item];
                     }
                 },$storeType);
-                $value['visible_store_type']=implode('、',$arr);
+                $value['visible_store_type']=implode('、',$tem);
             }
+            $arr[$value['cate_id']]=isset($arr[$value['cate_id']])?$arr[$value['cate_id']]:[];
+            $arr[$value['cate_id']]['cate_id']=$value['cate_id'];
+            $arr[$value['cate_id']]['cate_name']=$value['name'];
+            $arr[$value['cate_id']]['cate_status']=$value['cate_status'];
+            $arr[$value['cate_id']]['cate_order']=$value['cate_order'];
+            $arr[$value['cate_id']]['sub'][]=$value;
         }
-        $treeService = new \app\common\service\Tree('id',['2'=>'title']);
-        $list = $treeService->getTree($list, 0, 'id');
+        $list=array_merge($arr);
         return $list;
     }
 

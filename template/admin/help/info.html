@@ -13,7 +13,7 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-0">
-                    {if $parentId>0}
+
                     <div class="form-group">
                         <div class="label">
                             <label>问题名称</label>
@@ -23,20 +23,20 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
                             <div class="input-note"></div>
                         </div>
                     </div>
-                    {else /}
                     <div class="form-group">
                         <div class="label">
                             <label>分类名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" size="40" class="input" id="title" placeholder="请输入分类名称，最多10个字" maxlength="10" name="title" datatype="*1-10" value="{$info['title'] ?? ''}">
-                            <div class="input-note"></div>
+                            <select class="input" name="cate_id" id="cate_id" datatype="n" nullmsg="请选择问题分类！">
+                                <option value="">==选择问题分类==</option>
+                                {foreach name="cates" item="cate"}
+                                <option value="{$cate['id']}" {if condition="$info && $cate['id'] == $info['cate_id']"}selected="selected"{/if} >{$cate.name}</option>
+                                {/foreach}
+                            </select>
+                            <div class="input-note">择选择问题分类</div>
                         </div>
                     </div>
-                    {/if}
-
-
-                    {notempty name='parentId'}
                     <input type="hidden" name="parent_id" value="{$parentId}">
                     <div class="form-group">
                         <div class="label">
@@ -75,7 +75,6 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
                             </div>
                         </div>
                     </div>
-                    {/notempty}
                     <div class="form-group">
                         <div class="label">
                             <label>排序</label>

@@ -1,0 +1,52 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-0">新增/编辑问题分类</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-0">
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分类名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="title" placeholder="请输入分类名称，最多10个字" maxlength="30" name="name" datatype="*1-30" value="{$info['name'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" id="sort_order" placeholder=""  name="sort_order" datatype="n1-4" value="{$info['sort_order'] ?? '0'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="panel-foot">
+            <div class="form-button">
+                <a href="{:url('help/index')}"><span class="button bg-back">返回</span></a>
+                <button class="button bg" type="reset">重置</button>
+                <button class="button bg-main" type="submit">保存</button>
+                <div id="tips"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage().table({});
+    });
+</script>
