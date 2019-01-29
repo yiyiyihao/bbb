@@ -21,12 +21,18 @@ class HelpCate extends AdminForm
 
 
     //删除下级元素
-    public function _afterDel($info=[])
+    public function _afterDel($info = [])
     {
         model('help')->where([
-            'cate_id'=>$info['id'],
-            'is_del'=>0,
-        ])->update(['is_del'=>1,'update_time'=>time()]);
+            'cate_id' => $info['id'],
+            'is_del' => 0,
+        ])->update(['is_del' => 1, 'update_time' => time()]);
+    }
+
+    public function _afterAdd($pkId=0, $data=[])
+    {
+        $this->success('分类添加成功', url("help/index"));
+
     }
 
 }
