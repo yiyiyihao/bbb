@@ -8,7 +8,8 @@
                             <tbody>
                             <tr>
                                 <th>问题名称</th>
-                                <th>可见角色</th>
+                                <th width="210px">问题分类</th>
+                                <th width="180px">可见角色</th>
                                 <th width="70px">状态</th>
                                 <th width="70px">排序</th>
                                 <th width="250px">操作</th>
@@ -16,24 +17,13 @@
                             {notempty name="list"}
                             {volist name="list" id="vo" key="key"}
                             <tr>
-                                <td>{:sub_str($vo.cate_name,10)}</td>
-                                <td></td>
+                                <td>{:sub_str($vo.title,30)}</td>
+                                <td>{$vo.name ??''}</td>
+                                <td>{$vo.visible_store_type ??''}</td>
                                 <td>{if $vo.cate_status}启用{else /}禁用{/if}</td>
-                                <td>{$vo.cate_order ??''}</td>
-                                <td width="250px"><span class="button-group"><a class="button button-small icon-plus bg-sub" href="{:url('add',['cate_id'=>$vo.cate_id])}">新增问题</a><a class="button button-small bg-main icon-edit" href="{:url('helpCate/edit',['id'=>$vo.cate_id])}">编辑</a><a class="button button-small icon-delete bg-red js-action" url="{:url('helpCate/del')}" data-id="{$vo.cate_id}" title="删除分类，该分类下的所有问题，都将被删除，确定要删除" href="javascript:;"   refresh="true">删除</a></span></td>
+                                <td>{$vo.sort_order ??''}</td>
+                                <td><span class="button-group"><a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-anwer="{$vo.answer}" data-title="{$vo.title}" >预览</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
                             </tr>
-                            {notempty name="vo.sub"}
-                            {foreach $vo.sub as $k=>$v}
-                            <tr>
-                                <td>{if $k==count($vo.sub)-1}└ {else /}├ {/if} {:sub_str($v.title,30)}</td>
-                                <td>{$v.visible_store_type??''}</td>
-                                <td>{if $v.status}启用{else /}禁用{/if}</td>
-                                <td>{$v.sort_order ??''}</td>
-                                <td><span class="button-group"><a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-anwer="{$v.answer}" data-title="{$v.title}" >预览</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$v.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$v.id}" title="删除" href="javascript:;">删除</a></span></td>
-                            </tr>
-                            {/foreach}
-                            {/notempty}
-
                             {/volist}
                             {/notempty}
                             </tbody>

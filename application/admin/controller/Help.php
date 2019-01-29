@@ -31,10 +31,10 @@ class Help extends AdminForm
             STORE_DEALER => '零售商',
             STORE_SERVICE => '服务商',
         ];
-        $this->subMenu['add'] = [
-            'name' => '新增帮助分类',
-            'url' => url('helpCate/add'),
-        ];
+        //$this->subMenu['add'] = [
+        //    'name' => '新增问题',
+        //    'url' => url('add'),
+        //];
         $this->assign('storeType',$this->storeType);
         $helpCateModel=model('HelpCate');
         $cates=$helpCateModel->field('id,name')->where(['is_del'=>0])->select();
@@ -91,7 +91,6 @@ class Help extends AdminForm
     public function _getOrder()
     {
         return 'C.sort_order ASC,H.sort_order ASC';
-
     }
 
     public function _afterList($list)
@@ -108,14 +107,16 @@ class Help extends AdminForm
                 },$storeType);
                 $value['visible_store_type']=implode('、',$tem);
             }
-            $arr[$value['cate_id']]=isset($arr[$value['cate_id']])?$arr[$value['cate_id']]:[];
-            $arr[$value['cate_id']]['cate_id']=$value['cate_id'];
-            $arr[$value['cate_id']]['cate_name']=$value['name'];
-            $arr[$value['cate_id']]['cate_status']=$value['cate_status'];
-            $arr[$value['cate_id']]['cate_order']=$value['cate_order'];
-            $arr[$value['cate_id']]['sub'][]=$value;
+            $arr[]=$value;
+            //$arr[$value['cate_id']]=isset($arr[$value['cate_id']])?$arr[$value['cate_id']]:[];
+            //$arr[$value['cate_id']]['cate_id']=$value['cate_id'];
+            //$arr[$value['cate_id']]['cate_name']=$value['name'];
+            //$arr[$value['cate_id']]['cate_status']=$value['cate_status'];
+            //$arr[$value['cate_id']]['cate_order']=$value['cate_order'];
+            //$arr[$value['cate_id']]['sub'][]=$value;
         }
         $list=array_merge($arr);
+        //pre($list);
         return $list;
     }
 

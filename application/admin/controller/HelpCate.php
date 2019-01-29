@@ -13,10 +13,9 @@ class HelpCate extends AdminForm
 {
     public function __construct()
     {
-        $this->modelName = '问题分类';
+        $this->modelName = 'help_cate';
         $this->model = model('helpCate');
         parent::__construct();
-
     }
 
 
@@ -29,10 +28,47 @@ class HelpCate extends AdminForm
         ])->update(['is_del' => 1, 'update_time' => time()]);
     }
 
-    public function _afterAdd($pkId=0, $data=[])
-    {
-        $this->success('分类添加成功', url("help/index"));
+    public function _afterList($list){
+        //pre($list);
+        return $list;
+    }
 
+    //public function _afterAdd($pkId=0, $data=[])
+    //{
+    //    $this->success('分类添加成功', url("help/index"));
+    //}
+
+
+    public function _getField()
+    {
+        return 'C.id,C.name,C.sort_order,C.status';
+    }
+
+    public function _getWhere()
+    {
+        $where=[
+            'C.is_del'=>0,
+        ];
+        return $where;
+    }
+
+    public function _getAlias()
+    {
+        return 'C';
+    }
+    public function _getOrder()
+    {
+        return 'C.sort_order ASC';
+    }
+
+    /**
+     * 列表项配置
+     */
+    function _tableData()
+    {
+        $table = parent::_tableData();
+        //pre($table);
+        return $table;
     }
 
 }
