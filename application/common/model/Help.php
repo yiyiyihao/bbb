@@ -16,9 +16,9 @@ class Help extends Model
     protected $createTime = 'add_time';
     protected $updateTime = 'update_time';
     protected $autoWriteTimestamp = 'int';
-    protected $type = [
-        'visible_store_type' => 'array',
-    ];
+    //protected $type = [
+    //    'visible_store_type' => 'array',
+    //];
 
     public function setAnswerAttr($value)
     {
