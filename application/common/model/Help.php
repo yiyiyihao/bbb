@@ -25,6 +25,16 @@ class Help extends Model
         return trim($value);
     }
 
+    public function setVisibleStoreTypeAttr($value)
+    {
+        $arr=array_filter($value);
+        return implode(',',$arr);
+    }
+    public function getVisibleStoreTypeAttr($value)
+    {
+        return explode(',',$value);
+    }
+
     public function setTitleAttr($value)
     {
         return trim($value);
