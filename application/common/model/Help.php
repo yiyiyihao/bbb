@@ -20,4 +20,16 @@ class Help extends Model
         'visible_store_type' => 'array',
     ];
 
+    public function setAnswerAttr($value)
+    {
+        return trim($value);
+    }
+
+    public function setTitleAttr($value)
+    {
+        return trim($value);
+    }
+
+
+
 }

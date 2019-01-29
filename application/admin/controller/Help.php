@@ -44,12 +44,13 @@ class Help extends AdminForm
 
     public function _getField()
     {
-        return 'H.id,H.parent_id,H.title,H.add_time,H.status,H.sort_order,H.visible_store_type';
+        return 'H.id,H.parent_id,H.title,H.answer,H.add_time,H.status,H.sort_order,H.visible_store_type';
     }
 
     public function _getWhere()
     {
-
+        $where=['H.is_del'=>0];
+        return $where;
     }
 
     public function _getAlias()
@@ -82,7 +83,7 @@ class Help extends AdminForm
                 $value['visible_store_type']=implode('、',$arr);
             }
         }
-        $treeService = new \app\common\service\Tree('id',['2'=>'title','3'=>'title']);
+        $treeService = new \app\common\service\Tree('id',['2'=>'title']);
         $list = $treeService->getTree($list, 0, 'id');
         return $list;
     }
