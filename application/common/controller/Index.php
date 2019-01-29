@@ -183,10 +183,10 @@ class Index extends CommonBase
                 $tpl = 'factory';
                 //今日订单数据统计
                 $where = [
-                    'store_id' => $storeId,
-                    'add_time' => ['>=', $beginToday],
-                    'order_status'  => ['<>', 2],
-                    'pay_status'    => 1,
+                    ['add_time','>=',$beginToday],
+                    ['store_id','=',$storeId],
+                    ['order_status','<>',2],
+                    ['pay_status','=',1],
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //今日订单数
@@ -196,9 +196,9 @@ class Index extends CommonBase
                 
                 //累计订单数据统计
                 $where = [
-                    'store_id' => $storeId,
-                    'order_status'  => ['<>', 2],
-                    'pay_status'    => 1,
+                    ['store_id','=',$storeId],
+                    ['order_status','<>',2],
+                    ['pay_status','=',1],
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
@@ -208,17 +208,17 @@ class Index extends CommonBase
                 
                 //今日新增零售商数量
                 $where = [
-                    'factory_id'=> $storeId,
-                    'add_time'  => ['>=', $beginToday],
-                    'store_type'=> STORE_DEALER,
-                    'is_del'    => 0,
+                    ['factory_id','=',$storeId],
+                    ['add_time','>=',$beginToday],
+                    ['store_type','=',STORE_DEALER],
+                    ['is_del','=',0],
                 ];
                 $today['dealer_count'] = $storeModel->where($where)->count();
                 
                 //累计商户数据统计
                 $where = [
-                    'factory_id' => $storeId,
-                    'is_del'    => 0,
+                    ['factory_id','=',$storeId],
+                    ['is_del','=',0],
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
@@ -236,8 +236,8 @@ class Index extends CommonBase
                 
                 //累计工程师数量
                 $where = [
-                    'factory_id' => $storeId,
-                    'is_del' => 0
+                    ['factory_id','=',$storeId],
+                    ['is_del','=',0],
                 ];
                 $totalInstaller = $userInstallerModel->where($where)->count();
                 $total['installer_count'] = intval($totalInstaller);
@@ -246,9 +246,9 @@ class Index extends CommonBase
                     ['store_finance SF', 'S.store_id = SF.store_id', 'INNER'],
                 ];
                 $where = [
-                    'S.factory_id' => $storeId,
-                    'S.is_del'    => 0,
-                    'S.store_type' => ['IN', [STORE_CHANNEL, STORE_SERVICE]],
+                    ['S.factory_id','=',$storeId],
+                    ['S.is_del','=',0],
+                    ['S.store_type','IN',[STORE_CHANNEL, STORE_SERVICE]],
                 ];
                 $field = ' sum(if(store_type = '.STORE_CHANNEL.', withdraw_amount, 0)) as channel_withdraw_amount';
                 $field .= ', sum(if(store_type = '.STORE_SERVICE.', withdraw_amount, 0)) as servicer_withdraw_amount';
@@ -260,8 +260,8 @@ class Index extends CommonBase
                 
                 $orderSku=db('order_sku_service');
                 $where = [
-                    'store_id' => $storeId,
-                    'service_status' => 3,
+                    ['store_id','=',$storeId],
+                    ['service_status','=',3],
                 ];
                 $field='count(distinct(order_id)) count,sum(refund_amount) amount';
                 $refund=$orderSku->field($field)->where($where)->find();
@@ -277,9 +277,9 @@ class Index extends CommonBase
                 //3.今日提交维修工单数量
                 //4.今日提交维修工单数量
                 $where = [
-                    'factory_id' => $storeId,
-                    'is_del' => 0,
-                    'add_time' => ['>=',$beginToday],
+                    ['factory_id','=',$storeId],
+                    ['is_del','=',0],
+                    ['add_time','>=',$beginToday],
                 ];
                 $field = 'count(if(work_order_type = 1 && add_time >= '.$beginToday.', true, NULL)) as post_count_1';
                 $field .= ', count(if(work_order_type = 1 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_1';
@@ -293,8 +293,8 @@ class Index extends CommonBase
                 $today['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
                 
                 $where = [
-                    'factory_id' => $storeId,
-                    'is_del' => 0,
+                    ['factory_id','=',$storeId],
+                    ['is_del','=',0],
                 ];
                 $field = 'count(if(work_order_type = 1, true, NULL)) as post_count_1';
                 $field .= ', count(if(work_order_type = 1 && sign_time > 0, true, NULL)) as sign_count_1';
@@ -315,9 +315,9 @@ class Index extends CommonBase
                     ['store S','C.store_id = S.store_id','INNER'],
                 ];
                 $where=[
-                    'S.store_id'=>$storeId,
-                    'C.commission_status'=>['IN',[0,1]],
-                    'C.add_time'=>['>=',$beginToday],
+                    ['S.store_id','=',$storeId],
+                    ['C.commission_status','IN',[0,1]],
+                    ['C.add_time','>=',$beginToday],
                 ];
                 $today['commission_amount']=$commissionModel->alias('C')->join($join)->where($where)->sum('C.income_amount');
                 //累计佣金收益
@@ -327,12 +327,12 @@ class Index extends CommonBase
                 //今日订单数(渠道下的零售商订单数量)
                 //累计订单数(渠道下的零售商订单数量)
                 $where = [
-                    'S.is_del' => 0,
-                    'S.store_type'=> 2,
-                    'S.store_id'=> $storeId,
-                    'O.add_time' => ['>=', $beginToday],
-                    'O.order_status'  => ['<>', 2],
-                    'O.pay_status'    => 1,//已支付
+                    ['S.is_del','=',0],
+                    ['S.store_type','=',2],
+                    ['S.store_id','=',$storeId],
+                    ['O.add_time','>=',$beginToday],
+                    ['O.order_status','<>',2],
+                    ['O.pay_status','=',1],
                 ];
                 $join=[
                     ['store_dealer SD','O.user_store_id=SD.store_id'],
@@ -355,18 +355,18 @@ class Index extends CommonBase
                 
                 //今日新增零售商数量
                 $where = [
-                    'add_time'  => ['>=', $beginToday],
-                    'store_type'=> STORE_DEALER,
-                    'S.is_del'    => 0,
-                    'SD.ostore_id' => $storeId,
+                    ['add_time','>=',$beginToday],
+                    ['store_type','=',STORE_DEALER],
+                    ['S.is_del','=',0],
+                    ['SD.ostore_id','=',$storeId],
                 ];
                 $today['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
                 
                 //累计零售商数量统计
                 $where = [
-                    'S.is_del'     => 0,
-                    'SD.ostore_id' => $storeId,
-                    'store_type'=> STORE_DEALER,
+                    ['S.is_del','=',0],
+                    ['SD.ostore_id','=',$storeId],
+                    ['store_type','=',STORE_DEALER]
                 ];
                 $total['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
                 
@@ -375,10 +375,10 @@ class Index extends CommonBase
                 $tpl = 'dealer';
                 //今日订单数据统计
                 $where = [
-                    'user_store_id' => $storeId,
-                    'add_time' => ['>=', $beginToday],
-                    'order_status'  => ['<>', 2],
-                    'pay_status'    => 1,
+                    ['user_store_id','=',$storeId],
+                    ['add_time','>=',$beginToday],
+                    ['order_status','<>',2],
+                    ['pay_status','=',1],
                 ];
                 $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //今日订单数
@@ -388,9 +388,9 @@ class Index extends CommonBase
                 
                 //累计订单数据统计
                 $where = [
-                    'user_store_id' => $storeId,
-                    'order_status'  => ['<>', 2],
-                    'pay_status'    => 1,
+                    ['user_store_id','=',$storeId],
+                    ['order_status','<>',2],
+                    ['pay_status','=',1],
                 ];
                 $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
                 //累计订单数
@@ -406,19 +406,19 @@ class Index extends CommonBase
                     ['store S','C.store_id = S.store_id','INNER'],
                 ];
                 $where=[
-                    'C.is_del'  => 0,
-                    'S.store_id'=>$storeId,
-                    'C.income_status'=>['IN',[0,1]],
-                    'C.add_time'=>['>=',$beginToday],
+                    ['C.is_del','=',0],
+                    ['S.store_id','=',$storeId],
+                    ['C.income_status','IN',[0,1]],
+                    ['C.add_time','>=',$beginToday],
                 ];
                 $today['commission_amount']=db('store_service_income')->alias('C')->join($join)->where($where)->sum('C.install_amount');
                 //累计佣金收益
                 $total['commission_amount']=db('store_finance')->where(['store_id' => $storeId])->value('total_amount');
                 
                 $where = [
-                    'store_id' => $storeId,
-                    'is_del' => 0,
-                    'add_time' => ['>=',$beginToday],
+                    ['store_id','=',$storeId],
+                    ['is_del','=',0],
+                    ['add_time','>=',$beginToday],
                 ];
                 $field = 'count(if(work_order_type = 1 && add_time >= '.$beginToday.', true, NULL)) as post_count_1';
                 $field .= ', count(if(work_order_type = 1 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_1';
@@ -432,9 +432,9 @@ class Index extends CommonBase
                 $today['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
                 
                 $where = [
-                    'store_id' => $storeId,
-                    'is_del' => 0,
-                    'sign_time' => ['>', 0],
+                    ['store_id','=',$storeId],
+                    ['is_del','=',0],
+                    ['sign_time','>',0],
                 ];
                 $field = 'count(if(work_order_type = 1, true, NULL)) as workorder_count_1';
                 $field .= ', count(if(work_order_type = 2, true, NULL)) as workorder_count_2';

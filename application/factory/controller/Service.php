@@ -185,33 +185,33 @@ class Service extends FactoryForm
     function _getWhere(){
         $params = $this->request->param();
         $where = [
-            'S.is_del' => 0,
-            'O.order_type' => 1,
+            ['S.is_del','=',0],
+            ['O.order_type','=',1],
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $where['S.store_id'] = $this->adminUser['store_id'];
+            $where[] = ['S.store_id','=',$this->adminUser['store_id']];
         }else{
-            $where['S.user_store_id'] = $this->adminUser['store_id'];
+            $where[] = ['S.user_store_id','=',$this->adminUser['store_id']];
         }
         if ($params) {
             $type = isset($params['type']) ? intval($params['type']) : '';
             if($type){
-                $where['S.service_type'] = $type;
+                $where[] = ['S.service_type','=',$type];
             }
             if(isset($params['status'])){
-                $where['S.service_status'] = intval($params['status']);
+                $where[] = ['S.service_status','=',intval($params['status'])];
             }
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
             if($sn){
-                $where['S.order_sn'] = ['like','%'.$sn.'%'];
+                $where[] = ['S.order_sn','like','%'.$sn.'%'];
             }
             $gname = isset($params['gname']) ? trim($params['gname']) : '';
             if($gname){
-                $where['OS.sku_name'] = ['like','%'.$gname.'%'];
+                $where[] = ['OS.sku_name','like','%'.$gname.'%'];
             }
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['S.name|S.mobile|U.username'] = ['like','%'.$name.'%'];
+                $where[] = ['S.name|S.mobile|U.username','like','%'.$name.'%'];
             }
         }
         return $where;

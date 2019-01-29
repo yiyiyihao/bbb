@@ -236,24 +236,24 @@ class Goods extends FormBase
     function _getWhere(){
         $params = $this->request->param();
         $where = [
-            'G.is_del' => 0,
-            'G.activity_id' => 0,
+            ['G.is_del','=',0],
+            ['G.activity_id','=',0],
         ];
         if ($this->adminUser['store_id']) {
-            $where['G.store_id'] = $this->adminUser['store_id'];
+            $where[] = ['G.store_id','=',$this->adminUser['store_id']];
         }
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['G.name'] = ['like','%'.$name.'%'];
+                $where[] = ['G.name','like','%'.$name.'%'];
             }
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
             if($sn){
-                $where['G.goods_sn'] = ['like','%'.$sn.'%'];
+                $where[] = ['G.goods_sn','like','%'.$sn.'%'];
             }
             $goodsType = isset($params['goods_type']) ? intval($params['goods_type']) : '';
             if($goodsType){
-                $where['G.goods_type'] = $goodsType;
+                $where[] = ['G.goods_type','=',$goodsType];
             }
         }
         return $where;

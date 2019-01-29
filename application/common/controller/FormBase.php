@@ -300,7 +300,7 @@ class FormBase extends CommonBase
      */
     function _getWhere(){
         $where = $this->where;
-        $where['is_del'] = 0;
+        $where[] = ['is_del','=',0];
         return $where;
     }
     /**

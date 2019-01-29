@@ -33,11 +33,11 @@ class AuthRule extends Model
 	    }
 	    if(!$authRule){
 	        $where = [
-	            'module'        => $module,
-	            'menustatus'    => 1,
-	            'parent_id'     => ['neq',0],
-	            'status'        => 1,
-	            'is_del'        => 0,
+	            ['module','=',$module],
+	            ['menustatus','=',1],
+	            ['parent_id','<>',0],
+	            ['status','=',1],
+	            ['is_del','=',0],
 	        ];
 	        $authRule = db('auth_rule')->where($where)->order('sort_order')->column('*','id');
 	        cache($domain.'authRule', $authRule);
@@ -59,10 +59,10 @@ class AuthRule extends Model
 	    }
 	    if(!$allRules){
 	        $where = [
-	            'module'        => $module,
-	            'parent_id'     => ['neq',0],
-	            'status'        => 1,
-	            'is_del'        => 0,
+	            ['module','=',$module],
+	            ['parent_id','<>',0],
+	            ['status','=',1],
+	            ['is_del','=',0],
 	        ];
 	        $allRules = db('auth_rule')->where($where)->order('sort_order')->column('*','id');
 	        cache($domain.'allRules', $allRules);
