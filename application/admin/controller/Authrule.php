@@ -60,7 +60,7 @@ class Authrule extends AdminForm
         if(isset($params['pid'])) {
             $pid = $params['pid'];
         }
-        $where['parent_id'] = $pid;
+        $where[] = ['parent_id', '=', $pid];
         return $where;
     }
     
