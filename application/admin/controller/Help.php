@@ -38,7 +38,14 @@ class Help extends AdminForm
             }
         }
         return parent::add();
+    }
 
+    public function _afterDel($info=[])
+    {
+        //删除下级元素
+        if ($info['parent_id']==0) {
+            $this->model->where(['parent_id'=>$info['id']])->update(['is_del'=>1]);
+        }
     }
 
 

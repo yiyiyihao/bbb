@@ -20,7 +20,11 @@
                                 <td>{$vo.visible_store_type??''}</td>
                                 <td>{if $vo.status}启用{else /}禁用{/if}</td>
                                 <td>{$vo.sort_order ??''}</td>
-                                <td width="250px"><span class="button-group">{if $vo.parent_id==0 }<a class="button button-small icon-plus bg-sub" href="{:url('add',['parent_id'=>$vo.id])}">新增问题</a>{else /}<a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-anwer="{$vo.answer}" data-title="{$vo.title}" >预览</a>{/if}<a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
+                                {if $vo.parent_id==0}
+                                <td width="250px"><span class="button-group"><a class="button button-small icon-plus bg-sub" href="{:url('add',['parent_id'=>$vo.id])}">新增问题</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a><a class="button button-small icon-delete bg-red js-action" url="{:url('del')}" data-id="{$vo.id}" title="删除分类，该分类下的所有问题，都将被删除，确定要删除" href="javascript:;"   refresh="true">删除</a></span></td>
+                                {else /}
+                                <td width="250px"><span class="button-group"><a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-anwer="{$vo.answer}" data-title="{$vo.title}" >预览</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
+                                {/if}
                             </tr>
                             {/volist}
                             {/notempty}
