@@ -1,13 +1,13 @@
 <?php
 // 应用公共文件
 
-function time_to_date($time = 0)
+function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
 {
     if (!$time) {
         return '';
     }
     $time = $time ? $time : time();
-    return date('Y-m-d H:i:s', $time);
+    return date($format, $time);
 }
 /**
  * 审核状态

@@ -125,10 +125,21 @@
 		$("#phoneCode").click(function(){
 			if(flag){
 				flag = false;
-				$("#code").attr("datatype","*");
-				$("#phonecodeform").show();
-				$('#form').FormPage();
-				clock();
+				var phone = $('#phone').val().trim();
+				//发送验证码
+				var url = "{:url('/index/sendSmsCode')}";
+				$.post(url+'/phone/'+phone,function(data){
+					layer.msg(data.msg);
+					if(data.code == 1){
+						$("#code").attr("datatype","*");
+						$("#phonecodeform").show();
+						$('#form').FormPage();
+						clock();
+					}else{
+						$("#phone").attr("readonly",false).prop("readonly",false);
+						flag = true;
+					}
+				})
 			}
 		})
     }); 

@@ -55,6 +55,7 @@ class Index extends CommonBase
             $realname = isset($params['realname']) && $params['realname'] ? trim($params['realname']) : '';
             $nickname = isset($params['nickname']) && $params['nickname'] ? trim($params['nickname']) : '';
             $phone = isset($params['phone']) && $params['phone'] ? trim($params['phone']) : '';
+            $code = isset($params['code']) && $params['code'] ? trim($params['code']) : '';
             if (!$realname) {
                 $this->error('真实姓名不能为空');
             }
@@ -65,11 +66,22 @@ class Index extends CommonBase
             }else{
                 unset($params['phone']);
             }
-            
+            if ($phone != $user['phone'] && !$code) {
+                $this->error('验证码不能为空');
+            }
             $params['user_id'] = $user['user_id'];
             $result = $userModel->checkFormat($this->adminUser['factory_id'], $params);
             if ($result === FALSE) {
                 $this->error($userModel->error);
+            }
+            if ($phone != $user['phone']) {
+                //判断验证码是否正确
+                $codeModel = new \app\common\model\LogCode();
+                $params['type'] = 'change_phone';
+                $result = $codeModel->verifyCode($params);
+                if ($result === FALSE){
+                    $this->error($codeModel->error);
+                }
             }
             $result = $userModel->save($params, ['user_id' => ADMIN_ID]);
             if ($result === FALSE) {
@@ -156,6 +168,40 @@ class Index extends CommonBase
             return $this->fetch();
         }
     }
+    
+    public function sendSmsCode()
+    {
+        $params = $this->request->param();
+        $phone  = isset($params['phone']) ? trim($params['phone']) : '';
+        $type   = isset($params['type']) ? trim($params['type']) : 'change_phone';
+        if (!$phone) {
+            $this->error('手机号不能为空');
+        }
+        if ($type != 'change_phone') {
+            $this->error('参数错误');
+        }
+        if ($phone == $this->adminUser['phone']) {
+            $this->error('手机号未修改');
+        }
+        //验证手机号格式
+        $userModel = new \app\common\model\User();
+        $result = $userModel->checkPhone($this->adminFactory['store_id'], $phone, TRUE, ['user_id' => $this->adminUser['user_id']]);
+        if ($result === FALSE) {
+            $this->error($userModel->error);
+        }
+        $codeModel = new \app\common\model\LogCode();
+        $result = $codeModel->sendSmsCode($this->adminFactory['store_id'], $phone, $type);
+        if ($result === FALSE){
+            $this->error('验证码发送失败:'.$codeModel->error);
+        }else{
+            if ($result['status']) {
+                $this->success('验证码发送成功,5分钟内有效');
+            }else{
+                $this->success('验证码发送失败:'.$result['result']);
+            }
+        }
+    }
+    
     //获取商户首页数据
     public function getStoreHome($user = [], $chart = TRUE)
     {
