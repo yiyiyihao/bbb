@@ -27,6 +27,7 @@ class Help extends AdminForm
     private function init()
     {
         $this->storeType=[
+            STORE_FACTORY => '厂商',
             STORE_CHANNEL => '渠道商',
             STORE_DEALER => '零售商',
             STORE_SERVICE => '服务商',
