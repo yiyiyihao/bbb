@@ -232,7 +232,7 @@ $.ajaxSetup({
             //表单提交
             var form = this;
             Do.ready('form', 'dialog', function () {
-                $(form).Validform({
+                Config['valid'] = $(form).Validform({
                     ajaxPost: true,
                     postonce: true,
                     tiptype: function (msg, o, cssctl) {

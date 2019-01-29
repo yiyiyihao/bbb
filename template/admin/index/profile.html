@@ -67,8 +67,19 @@
                             <label>联系电话</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="phone" name="phone" size="40" value="{$info['phone'] ?? ''}">
+                        	<div class="button-group">
+                            <input type="text" class="input button" id="phone" name="phone" size="25" datatype="n11-11" value="{$info['phone'] ?? ''}"> <span class="button bg-main" id="phoneCode" disabled="disabled">获取验证码</span>
+                            </div>
                             <div class="input-note">请填写负责人联系电话</div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="phonecodeform" style="display:none">
+                        <div class="label">
+                            <label>验证码</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="code" name="code" size="10" value="">
+                            <div class="input-note">请填写您收到的手机短信验证码</div>
                         </div>
                     </div>
                 </div>
@@ -85,8 +96,18 @@
 </form>
 <script>
     Do.ready('base', function () {
-        //表单综合处理
         $('#form').FormPage();
-		
+		$("#phone").change(function(){
+			var valid = Config['valid'];
+			//console.log(valid.check(false,"#phone"));
+			if(valid.check(true,"#phone")){
+				$("#phoneCode").attr("disabled",false).prop("disabled",false);
+			}
+		})
+		$("#phoneCode").click(function(){
+			$("#code").attr("datatype","*").show();
+			//valid.check(true,"#code")			
+        	$('#form').FormPage();
+		})
     }); 
 </script>
