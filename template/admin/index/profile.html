@@ -96,18 +96,37 @@
 </form>
 <script>
     Do.ready('base', function () {
+		var flag = false;
+		var countdown = 60;
         $('#form').FormPage();
 		$("#phone").change(function(){
 			var valid = Config['valid'];
-			//console.log(valid.check(false,"#phone"));
 			if(valid.check(true,"#phone")){
 				$("#phoneCode").attr("disabled",false).prop("disabled",false);
+				$("#phone").attr("readonly",true).prop("readonly",true);
+				flag = true;
 			}
 		})
+		function clock(){
+			if(countdown == 0){
+				$("#phone").attr("readonly",false).prop("readonly",false);
+				flag = true;
+				$("#phoneCode").text("获取验证码");
+			}else{
+				$("#phoneCode").text("重新获取("+countdown+")");
+				countdown--;
+				setTimeout(function() {
+					clock()
+				},1000)
+			}
+		}
 		$("#phoneCode").click(function(){
-			$("#code").attr("datatype","*").show();
-			//valid.check(true,"#code")			
-        	$('#form').FormPage();
+			if(flag){
+				$("#code").attr("datatype","*");
+				$("#phonecodeform").show();
+				$('#form').FormPage();
+				clock();
+			}
 		})
     }); 
 </script>
