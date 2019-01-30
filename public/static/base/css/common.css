@@ -279,6 +279,16 @@ textarea.input{height:auto;}
 .pagination.border-yellow .active a, .pagination.border-blue .active a, .pagination.border-green .active a{color:#fff;}
 
 .table-tools{padding:10px;border-bottom:1px solid #ddd;}
+.cate-tree{border-bottom:1px solid #ddd;}
+.cate-tree .panel-head{ height: 62px;line-height: 62px;}
+.cate-tree .panel-body{padding:0px 0px;}
+.cate-tree ul li{height: 40px;line-height: 40px;padding-left: 10px; cursor: pointer; font-size: 14px;}
+.cate-tree ul li.current{background: #009688; color: #FFFFFF;}
+.cate-body .panel-head {border-bottom: none; color: #666666;}
+.cate-body ul{padding: 10px 30px 30px 30px;}
+.cate-body ul li{list-style:inside; line-height: 50px;height: 50px; border-bottom: 1px solid #f0f3f7; cursor: pointer;}
+.layer-msg-box{ max-width: 90%;}
+.layer-msg-box img{ max-width:100%; max-height: 90%;}
 .table-responsive{ padding:15px 10px;}
 .table{width:100%;max-width:100%; font-size:14px;}
 .table th{ border:1px solid #ddd;border-bottom:2px solid #ddd;vertical-align:bottom;padding:5px 10px;text-align:left; line-height:30px; background:#f6f6f6;}

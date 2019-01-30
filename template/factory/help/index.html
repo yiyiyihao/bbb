@@ -1,0 +1,104 @@
+<div class="line-big col-space15">
+    <div class="xm2">
+        <div class="line-big">
+            <div class="panel admin-dashboard boxShadow cate-tree">
+                <div class="panel-head"><span>常见问题</span></div>
+                <ul class="panel-body">
+                    {notempty name="cates"}
+                    {volist name="cates" id="vo" key="key"}
+                    <li data-id="{$vo.cate_id}">{$vo.name}</li>
+                    {/volist}
+                    {/notempty}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="xm10">
+        <div class="panel admin-box">
+            <div class="table-tools clearfix ">
+                <div class="float-right">
+                    <form method="get" action="">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <div class="field">
+                                    <input type="text" class="input" id="title" name="title" size="40" value="{$_GET['title'] ?? ''}" placeholder="请输入问题关键词">
+                                </div>
+                            </div>
+                            <div class="form-button">
+                                <button class="button icon-search bg-main" type="submit">搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="tab-panel active" id="tab-1">
+                <div class="panel admin-box cate-body">
+                    <div class="panel-head"><span>常见问题</span></div>
+                    <ul id="cate-list">
+                        {notempty name="list"}
+                        {volist name="list" id="vo" key="key"}
+                        <li class="preview" data-title="{$vo.title}" data-answer='{$vo.answer}'>{:sub_str($vo.title,30)}</li>
+                        {/volist}
+                        {/notempty}
+                    </ul>
+                </div>
+                {notempty name="page"}
+                <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+                {/notempty}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#table').Table({});
+    });
+
+    Do.ready('dialog', function () {
+        $('.cate-tree li').click(function () {
+            $(this).addClass('current').siblings().removeClass('current');
+            $('.cate-body .panel-head span').text($(this).text());
+            id=$(this).data('id');
+            $.post('{:url("help/getList")}',{cate_id:id},function (data) {
+                let html='';
+                for (let i = 0; i <data.length ; i++) {
+                    html+='<li class="preview" data-title="'+data[i].title+'" data-answer=\''+data[i].answer+'\'>'+data[i].title+'</li>';
+                }
+                $('#cate-list').html(html);
+                $('.preview').click(function () {
+                    layer.open({
+                        type:1,
+                        shade: [0.3, '#000000'],
+                        title: false, //不显示标题
+                        area: 'auto',
+                        move : '.layer-msg-box',
+                        maxWidth:'800px',
+                        scrollbar: true,
+                        shadeClose: true,
+                        content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
+                    });
+                });
+                //console.log(data);
+            });
+        });
+
+        $('.preview').click(function () {
+            layer.open({
+                type:1,
+                shade: [0.3, '#000000'],
+                title: false, //不显示标题
+                area: 'auto',
+                move : '.layer-msg-box',
+                maxWidth:'800px',
+                scrollbar: true,
+                shadeClose: true,
+                content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
+            });
+        });
+    });
+
+
+</script>
+

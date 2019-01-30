@@ -7,6 +7,9 @@
             <li class="nav-item"><a href="javascript:;" title="返回首页" id="backHome"><span class="icon-home"></span></a></li>
         </ul>
         <ul class="nav-inline nav-right">
+            <li class="nav-item">
+                <a title="帮助中心" href="{:url('help/index')}" target="admin-iframe"><span class="icon-tips" ></span></a></a>
+            </li>
         	{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_SYSTEM"}
             <li class="nav-item" id="sysmsg"><a title="系统消息"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
             <div class="nav-tab-list animate">
