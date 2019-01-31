@@ -80,6 +80,8 @@
                         content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
                     });
                 });
+                //异步先不分页@TODO
+                $('.table-foot').html('');
                 //console.log(data);
             });
         });
