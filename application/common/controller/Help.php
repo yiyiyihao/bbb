@@ -15,7 +15,7 @@ class Help extends FormBase
 
     public function __construct()
     {
-        $this->modelName = '帮助';
+        $this->modelName = 'help';
         $this->model = model('help');
         parent::__construct();
         $this->init();
@@ -37,6 +37,14 @@ class Help extends FormBase
         $helpCateModel = model('HelpCate');
         $cates = $helpCateModel->field('id,name')->where(['is_del' => 0])->select();
         $this->assign('cates', $cates);
+    }
+
+    public function detail()
+    {
+        $info=$this->_assignInfo();
+        $info['name']=model('HelpCate')->where(['id'=>$info['cate_id']])->value('name');
+        $info['visible']=$this->getStoreName($info['visible_store_type']);
+        return $this->fetch();
     }
 
 
@@ -91,27 +99,27 @@ class Help extends FormBase
         return 'C.sort_order ASC,H.sort_order ASC';
     }
 
-    public function _afterList($list)
+    private function getStoreName($storeType)
     {
         $store = $this->storeType;
+        //pre($storeType);
+        $tem = array_map(function ($item) use ($store) {
+            if (isset($store[$item])) {
+                return $store[$item];
+            }
+        }, $storeType);
+        $result=implode('、',$tem);
+        return $result;
+    }
+
+    public function _afterList($list)
+    {
         $arr = [];
         foreach ($list as $key => $value) {
             if (isset($value['visible_store_type'])) {
-                $storeType = $value['visible_store_type'];
-                $tem = array_map(function ($item) use ($store) {
-                    if (isset($store[$item])) {
-                        return $store[$item];
-                    }
-                }, $storeType);
-                $value['visible_store_type'] = implode('、', $tem);
+                $value['visible_store_type'] =$this->getStoreName($value['visible_store_type']);
             }
             $arr[] = $value;
-            //$arr[$value['cate_id']]=isset($arr[$value['cate_id']])?$arr[$value['cate_id']]:[];
-            //$arr[$value['cate_id']]['cate_id']=$value['cate_id'];
-            //$arr[$value['cate_id']]['cate_name']=$value['name'];
-            //$arr[$value['cate_id']]['cate_status']=$value['cate_status'];
-            //$arr[$value['cate_id']]['cate_order']=$value['cate_order'];
-            //$arr[$value['cate_id']]['sub'][]=$value;
         }
         $list = array_merge($arr);
         //pre($list);
@@ -137,7 +145,7 @@ class Help extends FormBase
     {
         $table = parent::_tableData();
         if ($table['actions']['button']) {
-            $preview = ['text' => '预览', 'action' => 'edit', 'icon' => 'detail', 'bgClass' => 'bg-blue'];
+            $preview = ['text'  => '详情', 'action'=> 'detail','icon'  => 'detail','bgClass'=> 'bg-green'];
             array_unshift($table['actions']['button'], $preview);
             $table['actions']['width'] = '210';
         }
