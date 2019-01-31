@@ -22,7 +22,7 @@
                                 <td>{$vo.visible_store_type ??''}</td>
                                 <td>{if $vo.cate_status}启用{else /}禁用{/if}</td>
                                 <td>{$vo.sort_order ??''}</td>
-                                <td><span class="button-group"><a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-anwer="{$vo.answer}" data-title="{$vo.title}" >预览</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
+                                <td><span class="button-group"><a class="preview button button-small icon-detail bg-blue" href="javascript:;" data-answer="{$vo.answer}" data-title="{$vo.title}" >预览</a><a class="button button-small bg-main icon-edit" href="{:url('edit',['id'=>$vo.id])}">编辑</a>  <a class="button button-small icon-delete bg-red js-del" url="{:url('del')}" data-id="{$vo.id}" title="删除" href="javascript:;">删除</a></span></td>
                             </tr>
                             {/volist}
                             {/notempty}
@@ -45,16 +45,18 @@
     });
     Do.ready('dialog', function () {
        $('.preview').click(function () {
-           layer.open({
-               type:1,
-               shade: [0.3, '#000000'],
-               title: false, //不显示标题
-               area: 'auto',
-               maxWidth:'550px',
-               scrollbar: false,
-               content:'<div style="padding:10px 20px;width: 400px; height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('anwer')+'</div></div>'
-           });
-       });
+        layer.open({
+            type:1,
+            shade: [0.3, '#000000'],
+            title: false, //不显示标题
+            area: 'auto',
+            move : '.layer-msg-box',
+            maxWidth:'800px',
+            scrollbar: true,
+            shadeClose: true,
+            content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
+        });
+    });
 
     });
 
