@@ -89,9 +89,10 @@
         $('.cate-tree li').click(function () {
             $(this).addClass('current').siblings().removeClass('current');
             $('.cate-body .panel-head span').text($(this).text());
+            let keyword=$('#title').val();
             id=$(this).data('id');
             $('#cate_id').val(id);
-            postData({cate_id:id});
+            postData({cate_id:id,title:keyword});
         });
         show();
     });
