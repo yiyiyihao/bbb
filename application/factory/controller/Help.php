@@ -48,6 +48,7 @@ class Help extends CommonHelp
         $alias=$this->_getAlias();
         $order=$this->_getOrder();
         $field='H.cate_id,C.`name`';
+        unset($where['C.id']);
         $result=$this->model->alias($alias)->field($field)->where($where)->join($join)->order($order)->group('H.cate_id')->select();
         //dump($this->model->getLastSql());
         //pre($result);
@@ -59,19 +60,16 @@ class Help extends CommonHelp
 
     public function _getWhere()
     {
-
-        $where=[
-            ['H.is_del','=',0],
-            ['C.is_del','=',0],
-        ];
+        $where['H.is_del']=0;
+        $where['C.is_del']=0;
         $where[]=['','EXP',Db::raw('FIND_IN_SET('.$this->adminStore['store_type'].',H.visible_store_type)')];
         $cateId=$this->request->param('cate_id',0,'intval');
         $title=$this->request->param('title','','trim');
         if ($cateId>0) {
-            $where[]=['C.id','=',$cateId];
+            $where['C.id']=$cateId;
         }
         if ($title) {
-            $where[]=['H.title','like','%'.$title.'%'];
+            $where['H.title']=['like','%'.$title.'%'];
         }
         return $where;
     }
