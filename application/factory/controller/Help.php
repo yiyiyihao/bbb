@@ -18,18 +18,25 @@ class Help extends CommonHelp
         //dump($this->adminStore);
     }
 
-    
-
-
     public function getList()
     {
-        $where=$this->_getWhere();
-        $join=$this->_getJoin();
-        $alias=$this->_getAlias();
-        $order=$this->_getOrder();
         $field='H.title,H.answer';
-        $data=$this->model->alias($alias)->field($field)->where($where)->join($join)->order($order)->select();
-        $this->ajaxJsonReturn($data);
+        $alias=$this->_getAlias();
+        $join=$this->_getJoin();
+        $where=$this->_getWhere();
+        $order=$this->_getOrder();
+        $count =$this->model->alias($alias)->field($field)->where($where)->join($join)->count();
+        $list=$this->model->alias($alias)
+            ->field($field)
+            ->where($where)
+            ->join($join)
+            ->order($order)
+            ->paginate($this->perPage,$count, ['query' => input('param.'),'path'=>url('help/index')]);
+        $result=[
+            'page'=>$list->render(),
+            'list'=>$list->toArray()['data']
+        ];
+        $this->ajaxJsonReturn($result);
     }
 
 

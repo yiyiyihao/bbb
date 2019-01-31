@@ -63,8 +63,8 @@
             id=$(this).data('id');
             $.post('{:url("help/getList")}',{cate_id:id},function (data) {
                 let html='';
-                for (let i = 0; i <data.length ; i++) {
-                    html+='<li class="preview" data-title="'+data[i].title+'" data-answer=\''+data[i].answer+'\'>'+data[i].title+'</li>';
+                for (let i = 0; i <data.list.length ; i++) {
+                    html+='<li class="preview" data-title="'+data.list[i].title+'" data-answer=\''+data.list[i].answer+'\'>'+data.list[i].title+'</li>';
                 }
                 $('#cate-list').html(html);
                 $('.preview').click(function () {
@@ -80,9 +80,8 @@
                         content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
                     });
                 });
-                //异步先不分页@TODO
-                $('.table-foot').html('');
-                //console.log(data);
+                //分页
+                $('.table-foot').html(data.page);
             });
         });
 
