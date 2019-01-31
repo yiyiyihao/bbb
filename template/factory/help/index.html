@@ -21,6 +21,7 @@
                         <div class="form-inline">
                             <div class="form-group">
                                 <div class="field">
+                                    <input type="hidden" id="cate_id" name="cate_id" value="">
                                     <input type="text" class="input" id="title" name="title" size="40" value="{$_GET['title'] ?? ''}" placeholder="请输入问题关键词">
                                 </div>
                             </div>
@@ -89,6 +90,7 @@
             $(this).addClass('current').siblings().removeClass('current');
             $('.cate-body .panel-head span').text($(this).text());
             id=$(this).data('id');
+            $('#cate_id').val(id);
             postData({cate_id:id});
         });
         show();
