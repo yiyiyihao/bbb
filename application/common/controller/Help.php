@@ -60,11 +60,6 @@ class Help extends FormBase
         return parent::add();
     }
 
-    public function _afterDel($info = [])
-    {
-
-    }
-
 
     public function _getField()
     {
