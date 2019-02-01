@@ -302,7 +302,7 @@ class Pay extends ApiBase
             return false;
         }
         $order = $detail['order'];
-        $return = $this->_checkActivity($order);
+        $return = $this->_checkActivity($order,$user);
         $returnType = $return['return_type'];
         if ($returnType <= 0) {
             Log::error('当前订单不允许退款，原因【' . $model->error . '】,参数：', $param);
@@ -325,28 +325,32 @@ class Pay extends ApiBase
     }
     
     
-    private function _checkActivity($order)
+    private function _checkActivity($order,$user)
     {
-        $goodsId=2;
-        $now = time();
-        $config = db('activity')->where([
-            ['start_time', '<=', $now],
-            ['end_time', '>=', $now],
-            ['is_del','=', 0],
-            ['status', '=',1],
-            ['id', '=',1],
+        $actInfo=db('activity')->where([
+            'is_del'=>0,
+            'status'=>1,
+            'store_id'=>$user['factory_id'],
+            'start_time'=>['<=',time()],
+            'end_time'=>['<=',time()],
         ])->find();
-        if (empty($config)) {
-            Log::error('活动未配置');
-            return true;
+        if (empty($actInfo)) {
+            Log::error('当前没有可用活动');
+            return [
+                'return_type' => -1,
+                'return_name' => '当前没有可用活动',
+                'return_amount' => 0,
+                'return_flag'   => false,
+            ];
         }
-        $total = 2019;
-        $activityPrice = $config['activity_price'];
-        $startTime = $config['start_time'];//活动开始时间
-        $entTime = $config['end_time'];//活动结束书剑
+        $goodsId=explode(',',$actInfo['goods_id']);
+        $total = $actInfo['activity_total'];
+        $activityPrice = $actInfo['activity_price'];
+        $startTime = $actInfo['start_time'];//活动开始时间
+        $entTime = $actInfo['end_time'];//活动结束书剑
         $returnType = $returnAmount = 0;
         $name = '';
-        $num = 9;
+        $num = $actInfo['free_num'];
         $flag = FALSE;
         //1.计算订单下单时间是否在活动时间范围内
         if ($order['order_status'] == 1 && $order['pay_status'] == 1 && $order['close_refund_status'] == 0 && $order['pay_time'] >= $startTime && $order['pay_time'] <= $entTime) {
@@ -362,7 +366,7 @@ class Pay extends ApiBase
             $count = db('Order')->alias('O')->join('order_sku OS','O.order_sn=OS.order_sn')->where($where)->count();
             //$count = Order::a->where($where)->order('order_id ASC')->count();
             if ($count <= $total) {
-                if ($count % 10 == $num) {
+                if ($num>=0 && $count % 10 == $num) {
                     $returnType = 1;//逢九免单
                     $name = '前'.$total.'位,按实际支付顺序,逢九免单';
                     $returnAmount = $order['paid_amount'];

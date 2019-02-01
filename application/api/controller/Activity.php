@@ -30,6 +30,22 @@ class Activity extends BaseApi
         header('Access-Control-Allow-Origin:' . $origin);
         header('Access-Control-Allow-Methods:POST');
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
+
+    }
+
+    private function checkActInfo()
+    {
+        $actInfo=db('activity')->where([
+            'is_del'=>0,
+            'status'=>1,
+            'store_id'=>$this->factoryId,
+            'start_time'=>['<=',time()],
+            'end_time'=>['<=',time()],
+        ])->find();
+        if (empty($actInfo)) {
+            return returnMsg(110, '活动未始或已过期');
+        }
+        return $actInfo;
     }
 
     //授权-第1步
@@ -88,43 +104,32 @@ class Activity extends BaseApi
     //商品列表
     public function getGoodsList()
     {
+        $actInfo=$this->checkActInfo();
         $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = db('goods')->where(['activity_id' => $this->activityId])->field($field)->order('sort_order DESC, add_time DESC')->select();
+        $list = db('goods')->whereIn('goods_id',$actInfo['goods_id'])->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
     //商品详情
     public function getGoodsDetail()
     {
+        $actInfo=$this->checkActInfo();
         $id = input('goods_id', 0, 'intval');
         if ($id <= 0) {
             return returnMsg(1, lang('PARAM_ERROR'));
         }
 
-        $now = time();
-        $config = db('activity')->where([
-            ['start_time', '<=', $now],
-            ['end_time', '>=', $now],
-            ['is_del', '=', 0],
-            ['status', '=', 1],
-            ['store_id', '=', $this->factoryId],
-            ['id', '=', $this->activityId],
-        ])->find();
-
-        if (empty($config)) {
-            return returnMsg(1, '活动未开始或已经结束');
-        }
         $where = [
             ['status', '=', 1],
             ['is_del', '=', 0],
-            ['activity_id', '=', $config['id']],
+            ['goods_id', 'in', explode(',',$actInfo['goods_id'])],
         ];
         $field = 'goods_id,name,thumb,content,min_price,install_price,imgs';
         $goods = Goods::where($where)->field($field)->find();
         if (empty($goods)) {
             return returnMsg(1, '没能找到您要的商品，或许已下架');
         }
-        $goods['activity_price'] = $config['activity_price'];
+        $goods['activity_price'] = $actInfo['activity_price'];
         $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1];
         $field = 'sku_id,sku_name,sku_thumb,sku_stock,price,install_price,sales,spec_json';
         $skuList = db('goods_sku')->field($field)->where($where)->order("sku_id")->select();
@@ -247,29 +252,7 @@ class Activity extends BaseApi
                 $order[$key]['status_des'] = $data['status_text'];
             }
         }
-        
-        /* $order = $order->map(function ($item) use ($status, $order_status, $status_des, $udata_id) {
-            if (empty($status_des)) {
-                if ($item['order_status'] == 2) {
-                    $order_status = 5;
-                    $status_des = '已消取';
-                } elseif ($item['order_status'] == 3) {
-                    $order_status = 6;
-                    $status_des = '已关闭';
-                }
-            }
-            $arr['order_id'] = $item['order_id'];
-            $arr['order_sn'] = $item['order_sn'];
-            $arr['goods_name'] = $item['name'];
-            $arr['sku_name'] = $item['sku_name'];
-            $arr['real_amount'] = $item['real_amount'];
-            $arr['total_amount'] = $item['real_amount'];
-            
-            $arr['status_des'] = $status_des;
-            $arr['udata_id'] = $udata_id;
-            return $arr;
-        }); */
-//             return returnMsg(0, 'ok', ['order' => $order, 'where' => $where, 'udata_id' => $udata_id]);
+
         return returnMsg(0, 'ok', $order);
     }
 
@@ -392,6 +375,7 @@ class Activity extends BaseApi
     //用户下单
     public function order()
     {
+        $actInfo=$this->checkActInfo();
         $sku_id = input('sku_id', 0, 'intval');
         if (empty($sku_id)) {
             return returnMsg(1, lang('PARAM_ERROR'));
@@ -475,6 +459,7 @@ class Activity extends BaseApi
     //生成JSPay微信付款请求数据
     public function pay()
     {
+        $actInfo=$this->checkActInfo();
         $order_sn = input('order_sn', '', 'trim');
         if (empty($order_sn)) {
             return returnMsg(1, lang('PARAM_ERROR'));

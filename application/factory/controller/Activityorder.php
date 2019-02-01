@@ -70,10 +70,24 @@ class Activityorder extends commonOrder
     }
     private function _checkActivity($order)
     {
-        $total = '2019';
-        $activityPrice = 399;
-        $startTime = time() - 1*24*60*60;//活动开始时间
-        $entTime = time();//活动结束书剑
+        $actInfo=db('activity')->where([
+            'is_del'=>0,
+            'status'=>1,
+            'store_id'=>$this->adminUser['store_id'],
+            'start_time'=>['<=',time()],
+            'end_time'=>['<=',time()],
+        ])->find();
+        if (empty($actInfo)) {
+            return [
+                'return_type' => -1,
+                'return_name' => '当前没有可用活动',
+                'return_amount' =>0,
+            ];
+        }
+        $total =$actInfo['activity_total'];
+        $activityPrice =$actInfo['activity_price'];
+        $startTime = $actInfo['start_time'];//活动开始时间
+        $entTime = $actInfo['end_time'];//活动结束书剑
         $returnType = $returnAmount = 0;
         $name  = '';
         //1.计算订单下单时间是否在活动时间范围内
@@ -87,7 +101,7 @@ class Activityorder extends commonOrder
             $where[] = ['', 'EXP', \think\Db::raw('pay_time >= '.$startTime.' AND pay_time <=' .$order['pay_time'])];
             $count = db('order')->where($where)->order('order_id ASC')->count();
             if ($count <= $total) {
-                if ($count%10 == 9) {
+                if ($actInfo['free_num']>=0 && $count%10 == $actInfo['free_num']) {
                     $returnType = 1;//逢九免单
                     $name = '前2019位,按实际支付顺序,逢九免单';
                     $returnAmount = $order['paid_amount'];
