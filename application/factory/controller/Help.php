@@ -64,6 +64,15 @@ class Help extends CommonHelp
         $where['C.is_del']=0;
         $where[]=['','EXP',Db::raw('FIND_IN_SET('.$this->adminStore['store_type'].',H.visible_store_type)')];
         $cateId=$this->request->param('cate_id',0,'intval');
+        if ($cateId == 0) {//默认打开第一个分类菜单
+            $join=$this->_getJoin();
+            $alias=$this->_getAlias();
+            $order=$this->_getOrder();
+            $field='H.cate_id,C.`name`';
+            $cate=$this->model->alias($alias)->field($field)->where($where)->join($join)->order($order)->group('H.cate_id')->find();
+            $cateId=$cate['cate_id'];
+            $this->assign('cate_name',$cate['name']);
+        }
         $title=$this->request->param('title','','trim');
         if ($cateId>0) {
             $where['C.id']=$cateId;
