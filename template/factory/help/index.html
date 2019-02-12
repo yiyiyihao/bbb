@@ -3,7 +3,7 @@
         <div class="line-big">
             <div class="panel admin-dashboard boxShadow cate-tree">
                 <div class="panel-head"><span>常见问题</span></div>
-                <ul class="panel-body">
+                <ul class="panel-body" style="height: 640px;">
                     {notempty name="cates"}
                     {volist name="cates" id="vo" key="key"}
                     <li class="{if (isset($_GET['cate_id']) && $_GET['cate_id']==$vo.cate_id) ||(!isset($_GET['cate_id']) && $key==1)}current{/if}"  data-id="{$vo.cate_id}">{$vo.name}</li>
@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="tab-panel active" id="tab-1">
-                <div class="panel admin-box cate-body">
+                <div class="panel admin-box cate-body" style="height: 590px;">
                     <div class="panel-head"><span>{$cate_name??'常见问题'}</span></div>
                     <ul id="cate-list">
                         {notempty name="list"}
@@ -43,23 +43,14 @@
                         {/notempty}
                     </ul>
                 </div>
-                {notempty name="page"}
-                <div class="panel-foot table-foot clearfix">{$page|raw}</div>
-                {/notempty}
+                <div class="panel-foot table-foot clearfix" style="height: 50px;">{if isset($page)}{$page|raw}{/if}</div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    $(document).ready(function(){
-        hr=$('#tab-1').height();
-        hl=$('.panel-body').height();
-        h=hr>hl?hr:hl;
-        $('#tab-1').height(h);
-        $('.panel-body').height(h);
-    });
 
+<script>
 
 
     Do.ready('base', function () {
@@ -95,11 +86,7 @@
             //分页
             $('.table-foot').html(data.page);
 
-            hr=$('#tab-1').height();
-            hl=$('.panel-body').height();
-            h=hr>hl?hr:hl;
-            $('#tab-1').height(h);
-            $('.panel-body').height(h);
+
         });
     }
     Do.ready('dialog', function () {
