@@ -20,7 +20,7 @@ class Help extends CommonHelp
 
     public function getList()
     {
-        $field='H.title,H.answer';
+        $field='H.title,H.id';
         $alias=$this->_getAlias();
         $join=$this->_getJoin();
         $where=$this->_getWhere();

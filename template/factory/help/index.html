@@ -38,7 +38,7 @@
                     <ul id="cate-list">
                         {notempty name="list"}
                         {volist name="list" id="vo" key="key"}
-                        <li class="preview" data-title="{$vo.title}" data-answer='{$vo.answer}'>{:sub_str($vo.title,30)}</li>
+                        <li><a href="{:url('detail',['id'=>$vo.id])}">{:sub_str($vo.title,30)}</a></li>
                         {/volist}
                         {/notempty}
                     </ul>
@@ -51,42 +51,19 @@
 
 
 <script>
-
-
     Do.ready('base', function () {
         //表单综合处理
         $('#table').Table({});
     });
-
-    function show(){
-        $('.preview').click(function () {
-            layer.open({
-                type:1,
-                shade: [0.3, '#000000'],
-                title: false, //不显示标题
-                resize : true,
-                area: 'auto',
-                move : '.layer-msg-box',
-                maxWidth:'800px',
-                scrollbar: true,
-                shadeClose: true,
-                content:'<div class="layer-msg-box" style="padding:10px 20px;min-width: 400px; min-height: 500px;"><h2 style="height: 40px;line-height: 40px;border-bottom: 1px solid #c9c9c9;text-align: center">'+$(this).data('title')+'</h2><div style="padding: 10px;">'+$(this).data('answer')+'</div></div>'
-            });
-        });
-    }
-
     function postData(data){
         $.post('{:url("help/getList")}',data,function (data) {
             let html='';
             for (let i = 0; i <data.list.length ; i++) {
-                html+='<li class="preview" data-title="'+data.list[i].title+'" data-answer=\''+data.list[i].answer+'\'>'+data.list[i].title+'</li>';
+                html+='<li><a href="/help/detail/id/'+data.list[i].id+'">'+data.list[i].title+'</a></li>';
             }
             $('#cate-list').html(html);
-            show();
             //分页
             $('.table-foot').html(data.page);
-
-
         });
     }
     Do.ready('dialog', function () {
@@ -98,7 +75,6 @@
             $('#cate_id').val(id);
             postData({cate_id:id,title:keyword});
         });
-        show();
     });
 </script>
 

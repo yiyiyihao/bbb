@@ -1,0 +1,55 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">帮助问题详情</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>问题</label>
+                        </div>
+                        <div class="field">
+                            <span class="field-text">{$info.title??''}</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分类</label>
+                        </div>
+                        <div class="field">
+                            <span class="field-text">{$info.name??''}</span>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>回复</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <span class="field-text answer-detail">{$info['answer']|raw}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <a href="{:url('index')}" class="button bg-main">返回列表</a>
+                    <div id="tips"></div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</form>
