@@ -6,7 +6,7 @@
                 <ul class="panel-body" style="min-height: 700px;">
                     {notempty name="cates"}
                     {volist name="cates" id="vo" key="key"}
-                    <li class="{if (isset($_GET['cate_id']) && $_GET['cate_id']==$vo.cate_id) ||(!isset($_GET['cate_id']) && $key==1)}current{/if}"><a href="{:url('help/index')}?cate_id={$vo.cate_id}">{$vo.name}</a></li>
+                    <a href="{:url('help/index')}?cate_id={$vo.cate_id}"><li class="{if (isset($_GET['cate_id']) && $_GET['cate_id']==$vo.cate_id) ||(!isset($_GET['cate_id']) && $key==1)}current{/if}">{$vo.name}</li></a>
                     {/volist}
                     {/notempty}
                 </ul>
