@@ -284,9 +284,12 @@ textarea.input{height:auto;}
 .cate-tree .panel-body{padding:0px 0px;}
 .cate-tree ul li{height: 40px;line-height: 40px;padding-left: 10px; cursor: pointer; font-size: 14px;}
 .cate-tree ul li.current{background: #009688; color: #FFFFFF;}
+.cate-tree ul li.current a{background: #009688; color: #FFFFFF;}
 .cate-body .panel-head {border-bottom: none; color: #666666;}
 .cate-body ul{padding: 10px 30px 30px 30px;}
 .cate-body ul li{list-style:inside; line-height: 50px;height: 50px; border-bottom: 1px solid #f0f3f7; cursor: pointer;}
+.cate-body .content{padding: 10px 30px 30px 30px;}
+.cate-body .content img{max-width:95%;}
 .layer-msg-box{ max-width: 90%;}
 .layer-msg-box img,.answer-detail img{ max-width:100%; max-height: 90%;}
 .table-responsive{ padding:15px 10px;}

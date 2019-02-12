@@ -3,7 +3,7 @@
         <div class="line-big">
             <div class="panel admin-dashboard boxShadow cate-tree">
                 <div class="panel-head"><span>常见问题</span></div>
-                <ul class="panel-body" style="height: 640px;">
+                <ul class="panel-body" style="min-height: 700px;">
                     {notempty name="cates"}
                     {volist name="cates" id="vo" key="key"}
                     <li class="{if (isset($_GET['cate_id']) && $_GET['cate_id']==$vo.cate_id) ||(!isset($_GET['cate_id']) && $key==1)}current{/if}"  data-id="{$vo.cate_id}">{$vo.name}</li>
@@ -33,12 +33,12 @@
                 </div>
             </div>
             <div class="tab-panel active" id="tab-1">
-                <div class="panel admin-box cate-body" style="height: 590px;">
+                <div class="panel admin-box cate-body" style="min-height: 650px;">
                     <div class="panel-head"><span>{$cate_name??'常见问题'}</span></div>
                     <ul id="cate-list">
                         {notempty name="list"}
                         {volist name="list" id="vo" key="key"}
-                        <li><a href="{:url('detail',['id'=>$vo.id])}" target="_blank">{:sub_str($vo.title,30)}</a></li>
+                        <li><a href="{:url('detail')}?id={$vo.id}&cate_id={$vo.cate_id}">{:sub_str($vo.title,30)}</a></li>
                         {/volist}
                         {/notempty}
                     </ul>
@@ -59,7 +59,7 @@
         $.post('{:url("help/getList")}',data,function (data) {
             let html='';
             for (let i = 0; i <data.list.length ; i++) {
-                html+='<li><a href="/help/detail/id/'+data.list[i].id+'" target="_blank">'+data.list[i].title+'</a></li>';
+                html+='<li><a href="/help/detail?id='+data.list[i].id+'&cate_id='+data.list[i].cate_id+'">'+data.list[i].title+'</a></li>';
             }
             $('#cate-list').html(html);
             //分页

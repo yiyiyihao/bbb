@@ -1,48 +1,60 @@
-<form method="post" class="form-x admin-form form-auto" id="form">
-    <div class="tab admin-tab">
-        <div class="panel admin-box active">
-            <div class="panel-head">
-                <div class="tab-head">
-                    <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">帮助问题详情</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
-                    <div class="form-group">
-                        <div class="label">
-                            <label>问题</label>
-                        </div>
-                        <div class="field">
-                            <span class="field-text">{$info.title??''}</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="label">
-                            <label>分类</label>
-                        </div>
-                        <div class="field">
-                            <span class="field-text">{$info.name??''}</span>
-                        </div>
-                    </div>
-
-
-                    <div class="form-group">
-                        <div class="label">
-                            <label>回复</label>
-                        </div>
-                        <div class="field">
-                            <div class="button-group radio">
-                                <span class="field-text answer-detail">{$info['answer']|raw}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+<div class="line-big col-space15">
+    <div class="xm2">
+        <div class="line-big">
+            <div class="panel admin-dashboard boxShadow cate-tree">
+                <div class="panel-head"><span>常见问题</span></div>
+                <ul class="panel-body" style="min-height: 700px;">
+                    {notempty name="cates"}
+                    {volist name="cates" id="vo" key="key"}
+                    <li class="{if (isset($_GET['cate_id']) && $_GET['cate_id']==$vo.cate_id) ||(!isset($_GET['cate_id']) && $key==1)}current{/if}"><a href="{:url('help/index')}?cate_id={$vo.cate_id}">{$vo.name}</a></li>
+                    {/volist}
+                    {/notempty}
+                </ul>
             </div>
         </div>
     </div>
-</form>
+    <div class="xm10">
+        <div class="panel admin-box">
+            <div class="table-tools clearfix ">
+                <div class="float-right">
+                    <form method="get" action="{:url('help/index')}">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <div class="field">
+                                    <input type="hidden" id="cate_id" name="cate_id" value="{$_GET['cate_id'] ?? ''}">
+                                    <input type="text" class="input" id="title" name="title" size="40" value="{$_GET['title'] ?? ''}" placeholder="请输入问题关键词">
+                                </div>
+                            </div>
+                            <div class="form-button">
+                                <button class="button icon-search bg-main" type="submit">搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="tab-panel active" id="tab-1">
+                <div class="panel admin-box cate-body" style="min-height: 650px;">
+                    <div class="panel-head"><span>{$info.title??'常见问题'}</span></div>
+                    <div class="content">{$info['answer']|raw}</div>
+                </div>
+                <div class="panel-foot table-foot clearfix" style="height: 50px;">{if isset($page)}{$page|raw}{/if}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#table').Table({});
+    });
+
+    var r=$('.cate-body');
+    var l=$('.panel-body');
+    var hr=r.height();
+    var hl=l.height();
+    var h=hr-hl>50 ?hr:hl;
+    l.height(h+50);
+    r.height(h);
+</script>

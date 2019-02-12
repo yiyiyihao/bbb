@@ -20,7 +20,7 @@ class Help extends CommonHelp
 
     public function getList()
     {
-        $field='H.title,H.id';
+        $field='H.id,H.cate_id,H.title';
         $alias=$this->_getAlias();
         $join=$this->_getJoin();
         $where=$this->_getWhere();
@@ -39,6 +39,11 @@ class Help extends CommonHelp
         $this->ajaxJsonReturn($result);
     }
 
+    public function detail()
+    {
+        $this->_afterList([]);
+        return parent::detail();
+    }
 
 
     public function _afterList($list)
