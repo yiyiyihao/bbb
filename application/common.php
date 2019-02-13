@@ -935,11 +935,11 @@ function check_auth($controller='',$action='index'){
     $whiteList=[
         'upload','login','logout'
     ];
-    if (IS_AJAX || in_array($action,$whiteList)) {
+    $request=request();
+    if ($request->isAjax() || in_array($action,$whiteList)) {
         $flag=true;
         return $flag;
     }
-    $request=request();
     $domain = $request->panDomain();
     $adminUser = session($domain.'_user');
     //超级管理员
