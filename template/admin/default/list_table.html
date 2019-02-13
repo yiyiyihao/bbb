@@ -34,7 +34,7 @@
                                         <a href="{:url('edit', array('id' => $vo[$td['value']]))}" class="button button-small icon-{$button.icon} {$button.bgClass}">{$button.text}</a>  
                                     {/case}
 		                            {case del}
-                                        <a href="javascript:;" url="{:url('del')}" class="button button-small icon-{$button.icon} {$button.bgClass} js-del" title="{$button.text}" data-id="{$vo[$td['value']]}">{$button.text}</a> 
+                                        <a href="javascript:;" url="{:url('del')}" class="button button-small icon-{$button.icon} {$button.bgClass} js-del" data-title="{$button.title ??''}" title="{$button.text}" data-id="{$vo[$td['value']]}">{$button.text}</a>
                                     {/case}
                                     {case index}
                                     	{php}

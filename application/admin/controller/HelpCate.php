@@ -67,6 +67,7 @@ class HelpCate extends AdminForm
     function _tableData()
     {
         $table = parent::_tableData();
+        $table['actions']['button'][1]['title']='删除后，该分类下的所有问题，都将会被删除，确定要删除吗？';
         //pre($table);
         return $table;
     }
