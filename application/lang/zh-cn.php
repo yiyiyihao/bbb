@@ -31,6 +31,9 @@ RETURN [
     'GOODS_SPEC'            =>  '商品规格',
     'PAYMENT'               =>  '支付',
     
+    'HELP'                 =>  '问题',
+    'HELP_CATE'            =>  '问题分类',
+    
     'AUTH_RULE'             =>  '权限节点',
     'SYSTEM'                =>  '系统管理',
     'ASSESS_CONFIG'         =>  '评价配置',
