@@ -928,3 +928,34 @@ function str_encode($str,$prefix=0,$suffix=0){
     $_mid=str_pad('',$_len,'*');
     return $_pre.$_mid.$_suf;
 }
+
+//权限检测
+function check_auth($controller='',$action='index'){
+    $flag=false;
+    $whiteList=[
+        'upload','login','logout'
+    ];
+    if (IS_AJAX || in_array($action,$whiteList)) {
+        $flag=true;
+        return $flag;
+    }
+    $request=request();
+    $domain = $request->panDomain();
+    $adminUser = session($domain.'_user');
+    //超级管理员
+    if ($adminUser['user_id']==1){
+        return true;
+    }
+    $groupPurview = $adminUser['groupPurview'];
+    $groupPurview   = $groupPurview ? json_decode($groupPurview,true) : [];
+    foreach ($groupPurview as $item) {
+        if ($item['module']==$request->module() && $item['controller']==$controller ) {
+            $actName=empty($item['action'])? 'index':$item['action'];
+            if ($actName=='*' ||$actName==$action ) {
+                $flag=true;
+                break;
+            }
+        }
+    }
+    return $flag;
+}
