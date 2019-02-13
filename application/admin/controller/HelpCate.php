@@ -18,7 +18,6 @@ class HelpCate extends AdminForm
         parent::__construct();
     }
 
-
     //删除下级元素
     public function _afterDel($info = [])
     {
@@ -27,17 +26,6 @@ class HelpCate extends AdminForm
             'is_del' => 0,
         ])->update(['is_del' => 1, 'update_time' => time()]);
     }
-
-    public function _afterList($list){
-        //pre($list);
-        return $list;
-    }
-
-    //public function _afterAdd($pkId=0, $data=[])
-    //{
-    //    $this->success('分类添加成功', url("help/index"));
-    //}
-
 
     public function _getField()
     {
