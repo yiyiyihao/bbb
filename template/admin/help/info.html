@@ -16,7 +16,7 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
 
                     <div class="form-group">
                         <div class="label">
-                            <label>问题名称</label>
+                            <label>问题</label>
                         </div>
                         <div class="field">
                             <input type="text" size="40" class="input" id="title" placeholder="请输入问题名称，最多30个字" maxlength="30" name="title" datatype="*1-30" value="{$info['title'] ?? ''}">
@@ -25,7 +25,7 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
                     </div>
                     <div class="form-group">
                         <div class="label">
-                            <label>分类名称</label>
+                            <label>分类</label>
                         </div>
                         <div class="field">
                             <select class="input" name="cate_id" id="cate_id" datatype="n" nullmsg="请选择问题分类！">
@@ -40,7 +40,7 @@ $parentId=isset($info['parent_id']) && $info['parent_id']?$info['parent_id']:(is
                     <input type="hidden" name="parent_id" value="{$parentId}">
                     <div class="form-group">
                         <div class="label">
-                            <label>问题答案</label>
+                            <label>回复</label>
                         </div>
                         <div class="field">
                             <textarea class="input js-editor"  name="answer" rows="20">
