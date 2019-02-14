@@ -332,7 +332,7 @@ class Pay extends ApiBase
             'status'=>1,
             'store_id'=>$user['factory_id'],
             'start_time'=>['<=',time()],
-            'end_time'=>['<=',time()],
+            'end_time'=>['>=',time()],
         ])->find();
         if (empty($actInfo)) {
             Log::error('当前没有可用活动');

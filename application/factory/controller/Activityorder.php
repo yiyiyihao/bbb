@@ -75,7 +75,7 @@ class Activityorder extends commonOrder
             'status'=>1,
             'store_id'=>$this->adminUser['store_id'],
             'start_time'=>['<=',time()],
-            'end_time'=>['<=',time()],
+            'end_time'=>['>=',time()],
         ])->find();
         if (empty($actInfo)) {
             return [

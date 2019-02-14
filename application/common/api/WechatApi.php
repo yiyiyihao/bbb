@@ -36,24 +36,24 @@ class WechatApi
     public function getOauthOpenid($code, $flag = FALSE)
     {
         #TODO DELETE  测试删除
-        $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
-        $openid = 'o5hVy1m7mU7HdJ3UDYhDyWLHg7HI';
-        $return = [
-            'openid'    => $openid,
-            'appid'     => $appid,
-        ];
+        //$appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
+        //$openid = 'o5hVy1m7mU7HdJ3UDYhDyWLHg7HI';
+        //$return = [
+        //    'openid'    => $openid,
+        //    'appid'     => $appid,
+        //];
         /* $userinfo = $this->getWechatUserInfo($openid);
         if ($userinfo === FALSE) {
             return FALSE;
         } */
-//         pre($userinfo, 1);
-        $userinfo = [
-            'avatar' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/hpWZHBOvoeNpmUCWCjsFUKME1vBkDStMzUddJ0Eib5TF6kSJNDiacVooxA2qfsISsKf5icWQRtIc29msFToXQMzZQ/132',
-            'nickname' => '小君',
-            'gender' => 2,
-        ];
-        $return = array_merge($return, $userinfo);
-        return $return;
+        // pre($userinfo, 1);
+        //$userinfo = [
+        //    'avatar' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/hpWZHBOvoeNpmUCWCjsFUKME1vBkDStMzUddJ0Eib5TF6kSJNDiacVooxA2qfsISsKf5icWQRtIc29msFToXQMzZQ/132',
+        //    'nickname' => '小君',
+        //    'gender' => 2,
+        //];
+        //$return = array_merge($return, $userinfo);
+        //return $return;
         
         
         $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';

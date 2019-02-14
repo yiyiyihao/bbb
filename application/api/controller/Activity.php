@@ -40,7 +40,7 @@ class Activity extends BaseApi
             'status'=>1,
             'store_id'=>$this->factoryId,
             'start_time'=>['<=',time()],
-            'end_time'=>['<=',time()],
+            'end_time'=>['>=',time()],
         ])->find();
         if (empty($actInfo)) {
             return returnMsg(110, '活动未始或已过期');
@@ -106,7 +106,11 @@ class Activity extends BaseApi
     {
         $actInfo=$this->checkActInfo();
         $field = 'goods_id, name, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = db('goods')->whereIn('goods_id',$actInfo['goods_id'])->field($field)->order('sort_order DESC, add_time DESC')->select();
+        $where=[
+            'is_del'=>0,
+            'status'=>1,
+        ];
+        $list = db('goods')->where($where)->whereIn('goods_id',$actInfo['goods_id'])->field($field)->order('sort_order DESC, add_time DESC')->select();
         return returnMsg(0, 'ok', $list);
     }
 
@@ -410,26 +414,14 @@ class Activity extends BaseApi
             return returnMsg(2, lang('PARAM_ERROR'));
         }
 
-        $now = time();
-        $config = db('activity')->where([
-            ['start_time', '<=', $now],
-            ['end_time', '>=', $now],
-            ['is_del', '=', 0],
-            ['status', '=', 1],
-            ['id', '=', $this->activityId],
-        ])->find();
-        if (empty($config)) {
-            return returnMsg(1, '活动未开始或已经结束');
-        }
-
         $orderModel = new Order();
         $count = $orderModel->alias('O')
             ->join('order_sku OS', 'O.order_sn=OS.order_sn')
             ->where([
                 ['O.udata_id', '=', $udata_id],
                 ['O.pay_status', '=', 1],
-                ['OS.add_time', '>=', $config['start_time']],
-                ['OS.add_time', '<=', $config['end_time']],
+                ['OS.add_time', '>=', $actInfo['start_time']],
+                ['OS.add_time', '<=', $actInfo['end_time']],
             ])->count();
         if ($count > 0) {
             return returnMsg(1, '活动期内每位用户只能购买1单');
