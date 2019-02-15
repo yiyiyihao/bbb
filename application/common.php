@@ -229,7 +229,7 @@ function yesorno($status = 0){
  * 是/否状态文字格式化
  */
 function yorn($status = 0){
-    return $status > 1 ? '<span class="tag bg-green">是</span>' : '<span class="tag bg-gray">否</span>';
+    return $status == 1 ? '<span class="tag bg-green">是</span>' : '<span class="tag bg-gray">否</span>';
 }
 
 /**

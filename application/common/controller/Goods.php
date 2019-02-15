@@ -32,8 +32,9 @@ class Goods extends FormBase
     {
         if ($list) {
             foreach ($list as $key => $value) {
-                $list[$key]['min_price'] = $value['min_price'] + $value['install_price'];
-                $list[$key]['max_price'] = $value['max_price'] + $value['install_price'];
+                $minPrice = bcadd($value['min_price'],$value['install_price'],2);
+                $maxPrice = bcadd($value['max_price'],$value['install_price'],2);
+                $list[$key]['price'] =$minPrice==$maxPrice? $minPrice:  $minPrice.'~'. $maxPrice;
             }
         }
         return $list;
@@ -560,7 +561,12 @@ class Goods extends FormBase
         foreach ($table as $key => $value) {
             if (isset($value['value']) && $value['value'] == 'goods_stock') {
                 $table[$key]['warning'] = TRUE;
-                break;
+                //break;
+            }
+            if (isset($value['value']) && $value['value'] == 'status') {
+                $table[$key]['title'] = '是否上架';
+                $table[$key]['width'] = 80;
+                $table[$key]['function'] = 'yorn';
             }
         }
         return $table;
