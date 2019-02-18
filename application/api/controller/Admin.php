@@ -4,6 +4,7 @@ class Admin extends Index
 {
     private $visitIp;
     private $thirdType = 'wechat_h5';
+    private $version;
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -12,6 +13,13 @@ class Admin extends Index
         header('Access-Control-Allow-Credentials:true');
         $this->mchKey = '1458745225';
         parent::__construct();
+        $this->version = isset($this->postParams['version']) ? trim($this->postParams['version']) : '';
+        if (!$this->version) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本不能为空')]);
+        }
+        if ($this->version != '1.0'){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本错误')]);
+        }
     }
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
