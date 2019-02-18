@@ -83,7 +83,7 @@ class Authrule extends AdminForm
         //取得现有的权限树形图
         $treeService = new \app\common\service\RuleTree();
         $where = ['is_del' => 0];
-        $rule = $this->model->field("*")->where($where)->order("sort_order ASC,parent_id")->select();
+        $rule = db('auth_rule')->field("*")->where($where)->order("sort_order ASC,parent_id")->select();
         if ($rule) {
             $rule = $treeService->getTree($rule);
         }

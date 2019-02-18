@@ -42,6 +42,7 @@ class Field extends Model
 	    //重新格式化数据
 	    $fields = [];
 	    foreach ($fieldList as $k=>$v){
+            $temp=[];
 	        $temp['title']     = $v['title'];
 	        $temp['name']      = $v['field'];
 	        $temp['datatype']  = $v['datatype'];
