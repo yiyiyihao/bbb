@@ -2670,9 +2670,16 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
+            $userinfo = [
+                'admin_type' => $user['admin_type'],
+                'username' => $user['username'],
+                'realname' => $user['realname'],
+                'nickname' => $user['nickname'],
+                'phone' => $user['phone'],
+                'status' => $user['status'],
+            ];
             session('api_user_data', []);
-            $user = db('user')->field('admin_type, username, realname, nickname, phone, status')->where('user_id', $user['user_id'])->find();
-            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $user]);//0无异常 1前往授权 2授权成功,需绑定账号
+            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
 }
