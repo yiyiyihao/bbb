@@ -94,10 +94,10 @@ class Admin extends Index
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
         }
-//         $result = $wechatApi->getOauthOpenid($code, TRUE);
-//         if ($result === FALSE) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-//         }
+        //$result = $wechatApi->getOauthOpenid($code, TRUE);
+        //if ($result === FALSE) {
+        // $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+        //}
         #TODO 删除模拟用户数据
         $result = [
             'appid' => 'wx8389c5dbe29dace0',
@@ -127,6 +127,12 @@ class Admin extends Index
             session('api_user_data', $oauth);
             $this->_logResult("API_session:\r\n".json_encode($oauth));
             $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
+        }else{
+            $user=$userModel->field('admin_type,username,realname,nickname,phone,status')->where('is_del',0)->find($oauth['user_id']);
+            if (empty($user)) {
+                $this->_returnMsg(['msg' => '用户不存在','errCode' => 1, 'errLogin' => 3]);
+            }
+            $this->_returnMsg($user->toArray());
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
     }
