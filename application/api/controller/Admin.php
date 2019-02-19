@@ -127,12 +127,6 @@ class Admin extends Index
             session('api_user_data', $oauth);
             $this->_logResult("API_session:\r\n".json_encode($oauth));
             $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
-        }else{
-            $user=$userModel->field('admin_type,username,realname,nickname,phone,status')->where('is_del',0)->find($oauth['user_id']);
-            if (empty($user)) {
-                $this->_returnMsg(['msg' => '绑定用户不存在','errCode' => 1, 'errLogin' => 3]);
-            }
-            $this->_returnMsg($user->toArray());
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
     }
@@ -2677,7 +2671,8 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             session('api_user_data', []);
-            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0]);//0无异常 1前往授权 2授权成功,需绑定账号
+            $user = db('user')->field('admin_type, username, realname, nickname, phone, status')->where('user_id', $user['user_id'])->find();
+            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $user]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
 }
