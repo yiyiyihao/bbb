@@ -130,7 +130,7 @@ class Admin extends Index
         }else{
             $user=$userModel->field('admin_type,username,realname,nickname,phone,status')->where('is_del',0)->find($oauth['user_id']);
             if (empty($user)) {
-                $this->_returnMsg(['msg' => '用户不存在','errCode' => 1, 'errLogin' => 3]);
+                $this->_returnMsg(['msg' => '绑定用户不存在','errCode' => 1, 'errLogin' => 3]);
             }
             $this->_returnMsg($user->toArray());
         }
