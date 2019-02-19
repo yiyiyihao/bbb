@@ -1011,7 +1011,7 @@ class Admin extends Index
             'store_id' => $user['factory_id'],
         ];
         $order = 'sort_order ASC, add_time desc';
-        $field = 'goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
+        $field = 'name,goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
         $list = $this->_getModelList(db('goods'), $where, $field, $order);
         $this->_returnMsg(['list' => $list]);
     }
