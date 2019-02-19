@@ -178,7 +178,7 @@ class FormBase extends CommonBase
                 if (method_exists($this->model, 'save')) {
                     $result = $this->model->save($data, $where);
                 }else{
-                    $result = $this->model->where($where)->update($data);
+                    $result = db($this->modelName)->where($where)->update($data);
                 }
                 if($result){
                     $this->_afterEdit($pkId, $data);
