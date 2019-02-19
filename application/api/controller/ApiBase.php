@@ -26,6 +26,8 @@ class ApiBase extends Base
         }
         if (!$tempData) {
             $tempData = $data ? $data : (isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '');
+            $this->_logResult("HTTP_RAW_POST_DATA\r\n".$tempData);
+            $this->_logResult("request\r\n".json_encode($this->request));
         }
         if(!is_array($tempData)) {
             $this->postParams = json_decode($tempData, true);
@@ -56,5 +58,14 @@ class ApiBase extends Base
     protected function _getMillisecond() {
         list($t1, $t2) = explode(' ', microtime());
         return (float)sprintf('%.0f',(floatval($t1)+floatval($t2))*1000);
+    }
+    /**
+     * 写日志，方便测试（看网站需求，也可以改成把记录存入数据库）
+     * 注意：服务器需要开通fopen配置
+     * @param $word 要写入日志里的文本内容 默认值：空值
+     */
+    protected function _logResult($word='', $logTxt = '_log') {
+        $errorFile = env('runtime_path')."/log/api".$logTxt.".txt";
+        file_put_contents($errorFile, date('Y-m-d H:i:s')."\r\n".$word."\r\n", FILE_APPEND);
     }
 }    

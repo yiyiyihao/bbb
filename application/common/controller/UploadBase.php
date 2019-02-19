@@ -85,34 +85,59 @@ class UploadBase extends Base
                 'info' => $result['msg'],
             ];
         }else{
-            $filePath = $result['file']['path'];
-            $fileModel = db('file');
-            //判断数据库是否存在当前文件
-            $exist = $fileModel->where(['qiniu_hash' => $result['file']['hash'], 'qiniu_domain' => $result['domain']])->find();
-            if (!$exist) {
-                //将对应文件保存到数据库
-                $data = [
-                    'qiniu_hash'    => $result['file']['hash'],
-                    'qiniu_key'     => $result['file']['key'],
-                    'qiniu_domain'  => $result['domain'],
-                    'file_path'     => $filePath,
-                    'file_name'     => $this->_oname,
-                    'file_size'     => $fileSize,
-                    'add_time'      => time(),
-                    'update_time'   => time(),
-                ];
-                $fileId = $fileModel->insertGetId($data);
-            }else{
-                $fileId = $exist['file_id'];
-            }
-            $thumb = isset($result['file']['thumb']) && $result['file']['thumb'] ? $result['file']['thumb'] : $filePath;
-            $return = [
-                'status'    => 1,
-                'thumb'     => $thumb,
-                'thumbMid'  => $thumb,
-                'file'      => $filePath,
-            ];
+            $return = $this->_fileUpload($result, $fileSize);
         }
+        return $return;
+    }
+    public function qiniuUploadData($data, $prex, $thumbType = '', $fileSize = 0)
+    {
+        $qiniuApi = new \app\common\api\QiniuApi();
+        $name = date('YmdHis').get_nonce_str(8).'.png';
+        $name = ($prex ? $prex : $this->prex).$name;
+        $result = $qiniuApi->uploadFileData($data, $name, $thumbType);
+        if (isset($result['error']) && $result['error'] > 0) {
+            $this->error($result['msg']);
+        }
+        if ($result['error'] == 1) {
+            $return = [
+                'status' => 0,
+                'info' => $result['msg'],
+            ];
+        }else{
+            $return = $this->_fileUpload($result, $fileSize);
+        }
+        return $return;
+    }
+    
+    private function _fileUpload($result, $fileSize = 0)
+    {
+        $filePath = $result['file']['path'];
+        $fileModel = db('file');
+        //判断数据库是否存在当前文件
+        $exist = $fileModel->where(['qiniu_hash' => $result['file']['hash'], 'qiniu_domain' => $result['domain']])->find();
+        if (!$exist) {
+            //将对应文件保存到数据库
+            $data = [
+                'qiniu_hash'    => $result['file']['hash'],
+                'qiniu_key'     => $result['file']['key'],
+                'qiniu_domain'  => $result['domain'],
+                'file_path'     => $filePath,
+                'file_name'     => $this->_oname,
+                'file_size'     => $fileSize,
+                'add_time'      => time(),
+                'update_time'   => time(),
+            ];
+            $fileId = $fileModel->insertGetId($data);
+        }else{
+            $fileId = $exist['file_id'];
+        }
+        $thumb = isset($result['file']['thumb']) && $result['file']['thumb'] ? $result['file']['thumb'] : $filePath;
+        $return = [
+            'status'    => 1,
+            'thumb'     => $thumb,
+            'thumbMid'  => $thumb,
+            'file'      => $filePath,
+        ];
         return $return;
     }
 }

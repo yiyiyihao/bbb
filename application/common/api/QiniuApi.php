@@ -44,7 +44,7 @@ class QiniuApi
         }else{
             $body = isset($result['body']) && $result['body'] ? json_decode($result['body'], TRUE) : [];
             $filePath = 'http://'.$this->config['domain'].'/'.$body['key'];
-            if (isset($this->config['thumb_config']) && $thumbType && $this->config['thumb_config'][$thumbType]) {
+            if (isset($this->config['thumb_config']) && $thumbType && isset($this->config['thumb_config'][$thumbType])) {
                 $thumb = $filePath.$this->config['thumb_config'][$thumbType];
             }else{
                 $thumb = '';

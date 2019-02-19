@@ -976,6 +976,31 @@ class Index extends ApiBase
         unset($result['status']);
         $this->_returnMsg(['msg' => '图片上传成功', 'file' => $result]);
     }
+    protected function uploadImageSource($verifyUser = TRUE)
+    {
+        if ($verifyUser){
+            $user = $this->_checkOpenid();
+        }
+        $image = isset($this->postParams['image-data']) ? trim($this->postParams['image-data']) : '';
+        
+        if (!$image) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片数据不能为空']);
+        }
+        $type = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
+        $type = 'idcard';
+        if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片类型错误']);
+        }
+        $fileSize = strlen(file_get_contents($image))."<br>";
+        //图片上传到七牛
+        $upload = new \app\common\controller\UploadBase();
+        $result = $upload->qiniuUploadData(base64_decode($image), 'api_'.$type.'_', $type, $fileSize);
+        if (!$result || !$result['status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['info']]);
+        }
+        unset($result['status']);
+        $this->_returnMsg(['msg' => '图片上传成功', 'file' => $result]);
+    }
     /****************************************************************====================================================================*************************************************************/
     private function _checkGoods($goodsId = 0, $field = FALSE)
     {

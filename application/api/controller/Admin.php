@@ -21,11 +21,27 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本错误')]);
         }
     }
+    protected function getSession()
+    {
+        $session = session('api_test');
+        if (!$session){
+            $session = get_nonce_str(10, 2);
+            session('api_test', $session);
+        }
+        $this->_returnMsg(['session' => $session]);
+    }
+    
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
     {
         $udata = $this->_getScopeUser();
         parent::uploadImage($verifyUser);
+    }
+    //上传图片
+    protected function uploadImageSource($verifyUser = FALSE)
+    {
+        $udata = $this->_getScopeUser();
+        parent::uploadImageSource($verifyUser);
     }
     //发送短信验证码
     protected function sendSmsCode()
@@ -62,22 +78,35 @@ class Admin extends Index
         if (!$appid || !$appsecret) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'Appid/AppSecret配置不能为空']);
         }
-        $uri = urlEncode('http://m.smarlife.cn');
+        $url = 'http://h5.smarlife.cn';
+        $url = 'http://h5.imliuchang.cn';
+        $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
         $this->_returnMsg(['scopeUrl' => $scopeUrl]);
     }
     //微信授权-第2步，返回微信Openid
     protected function getWechatOpenid()
     {
+        session('api_user_data', []);
+        session('api_admin_user', []);
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
         }
-        $result = $wechatApi->getOauthOpenid($code, TRUE);
-        if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-        }
+//         $result = $wechatApi->getOauthOpenid($code, TRUE);
+//         if ($result === FALSE) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+//         }
+        #TODO 删除模拟用户数据
+        $result = [
+            'appid' => 'wx8389c5dbe29dace0',
+            'openid' => 'oTLegtyL8RhaN-XYrbO3XH-JEr6A',
+            'nickname' => 'John',
+            'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
+            'sex' => 1,
+            'unionid' => '',
+        ];
         $userModel = new \app\common\model\User();
         $params = [
             'user_type'     => 'user',
@@ -96,6 +125,7 @@ class Admin extends Index
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
             session('api_user_data', $oauth);
+            $this->_logResult("API_session:\r\n".json_encode($oauth));
             $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
@@ -2469,8 +2499,10 @@ class Admin extends Index
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
         }
-        unset($this->postParams['callback']);
-        unset($this->postParams['_']);
+        if (isset($this->postParams['callback'])) {
+            unset($this->postParams['callback']);
+            unset($this->postParams['_']);
+        }
     }
     /**
      * 处理接口返回信息
@@ -2560,7 +2592,7 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        $userId = 2;//厂商
+        /* $userId = 2;//厂商
         $userId =4;//渠道商
         //$userId = 5;//零售商
 //         $userId = 6;//服务商
@@ -2570,7 +2602,7 @@ class Admin extends Index
         if (!$loginUser) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
         }
-        return $loginUser ? $loginUser : [];
+        return $loginUser ? $loginUser : []; */
         $loginUser = session('api_admin_user');
         if ($loginUser) {
             if (!$checkFlag) {
