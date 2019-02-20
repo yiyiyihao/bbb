@@ -920,9 +920,13 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $where = [
-            'is_del'        => 0,
-            'enter_type'    => 1,
+            'S.is_del'        => 0,
+            'S.enter_type'    => 1,
         ];
+        $checkStatus=isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
+        if (''!==$checkStatus) {
+            $where['S.check_status']=$checkStatus;
+        }
         $field = 'S.store_no, S.name, store_type, security_money, sample_amount, check_status, user_name, mobile, region_name, address, add_time';
         $order = 'S.add_time desc';
         $join[] = ['store_dealer SD', 'SD.store_id = S.store_id', 'LEFT'];
