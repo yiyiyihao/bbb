@@ -28,11 +28,11 @@
                 {if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}
                 <ul class="nav-tab-box" id="sysnotice">
                     {volist name="bulletins" id="vo" empty="<li class='empty icon-message-squre'> 暂无公告消息</li>"}
-                    <li class="noticeBox">
-                    	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span> {$vo.name|default=''}
-                    	<p>{$vo.description} <a target="admin-iframe" href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}">>>查看详情</a></p>
-                        <span class="nav-time">{$vo.publish_time|date='Y-m-d'}</span>
-                    </li>
+                    <a target="admin-iframe" href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}"><li class="noticeBox">
+                    	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span>{notempty name="$vo.name"}{:sub_str($vo.name,20)}{/notempty}
+                        <p>{$vo.description}</p>
+                        <!--<span class="nav-time">{$vo.publish_time|date='Y-m-d'}</span>-->
+                    </li></a>
                     {/volist}
                 </ul>
                 {/if}

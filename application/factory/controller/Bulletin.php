@@ -11,6 +11,8 @@ class Bulletin extends FactoryForm
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])){
             $this->error(lang('NO ACCESS'));
         }
+        $this->perPage=15;
+
     }
     public function _afterList($list){
         if ($list && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
