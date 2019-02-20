@@ -20,6 +20,10 @@ class Bulletin extends FactoryForm
                 $list[$key]['is_read'] = $exist ? 1: 0;
             }
         }
+        //非厂商
+        if ($this->adminUser['admin_type']!=ADMIN_FACTORY) {
+            $this->indextempfile='index_service';
+        }
         return $list;
     }
     
@@ -110,6 +114,21 @@ class Bulletin extends FactoryForm
             //发送给群组内在线的人,如果store_type == 0 代表发给所有角色
             $group = $info['store_type'] == 0 ? 'factory'.$info['store_id'] : $info['store_type'];
             $push->sendToGroup($group , json_encode($data));
+            //如置顶超过5条，则把最早置顶的公告取消
+            $where['B.store_id'] = $this->adminUser['factory_id'];
+            $where['B.publish_status'] = 1;
+            $where['B.is_top']=1;
+            $where['B.publish_status']=1;
+            $order='B.publish_time DESC';
+            unset($where['B.name']);
+            $lastOne=db($this->modelName)->alias($this->_getAlias())
+                ->where($where)->order($order)->limit(5,1)->select();
+            if ($lastOne) {
+                $lastOne=$lastOne[0];
+                $where['B.publish_time']=['<=',$lastOne['publish_time']];
+                db($this->modelName)->alias($this->_getAlias())
+                    ->where($where)->update(['is_top'=>0,'update_time'=>time()]);
+            }
             $this->success('公告发布成功','index');
         }else{
             $this->error('发布失败');

@@ -1,0 +1,24 @@
+<div class="panel admin-box">
+    <div class="panel-head">
+        <div class="tab-head">
+            <strong>系统公告</strong>
+        </div>
+    </div>
+    <div class="table-responsive table-list">
+        <ul>
+            {notempty name="list"}
+            {volist name="list" key="k" id="vo"}
+            <li class="list-box clearfix"><span class="float-left"><a href="{:url('bulletin/detail',['id'=>$vo.bulletin_id])}">{$vo.name}</a>{if condition="$vo.is_top"}&nbsp;&nbsp;<span class="tag bg-red">置顶</span>{/if}</span><span class="float-right data-time">{$vo.update_time|date="Y-m-d"}</span></li>
+            {/volist}
+            {/notempty}
+        </ul>
+    </div>
+    {notempty name="page"}
+    <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+    {/notempty}
+</div>
+<script>
+    Do.ready('base', function () {
+        $('#table').Table({});
+    });
+</script>

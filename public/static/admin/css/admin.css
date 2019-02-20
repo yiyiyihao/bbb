@@ -241,6 +241,7 @@ body .admin-logo img{ display:none;}
 .table-list .list-box .list-info p.list-desc{ color:#888;}
 .table-list .list-box .list-info p .cateName{position:absolute; bottom:10px; display:inline-block; padding:3px 15px; border-radius:10px; background:#ea0a11; color:#fff; font-size:12px;}
 .table-list .list-box .list-info p .infoTime{position:absolute; bottom:10px; right:10px;}
+.table-list .list-box .data-time{font-size: 12px;}
 
 .personListBox{font-size:12px;}
 .personListBox .timeBox{ padding:15px 30px 15px 190px; width:100%;-moz-box-sizing: border-box;box-sizing: border-box; position:relative;}

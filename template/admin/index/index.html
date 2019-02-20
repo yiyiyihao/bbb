@@ -9,7 +9,7 @@
         <ul class="nav-inline nav-right">
         	{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_SYSTEM"}
             {if condition="check_auth('help','index') && check_auth('help','detail')"}<li class="nav-item"><a title="帮助中心" href="{:url('help/index')}" target="admin-iframe">帮助中心</a></li>{/if}
-            <li class="nav-item" id="sysmsg"><a title="系统消息"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
+            <li class="nav-item" id="sysmsg"><a href="{:url('bulletin/index')}" title="系统消息" target="admin-iframe"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
             <div class="nav-tab-list animate">
             	<!-- <ul class="nav-tab-title">
             		<li class="icon-message tab-active"> 消息</li>
@@ -36,7 +36,7 @@
                     {/volist}
                 </ul>
                 {/if}
-                <a href="{:url('bulletin/index')}" target="admin-iframe" class="nav-tab-bottom">前往通知中心</a>
+                <!--<a href="{:url('bulletin/index')}" target="admin-iframe" class="nav-tab-bottom">前往通知中心</a>-->
             </div>
             </li>
             {/if}
