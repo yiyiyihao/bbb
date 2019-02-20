@@ -120,7 +120,6 @@ class Bulletin extends FactoryForm
             $where['B.is_top']=1;
             $where['B.publish_status']=1;
             $order='B.publish_time DESC';
-            unset($where['B.name']);
             $lastOne=db($this->modelName)->alias($this->_getAlias())
                 ->where($where)->order($order)->limit(5,1)->select();
             if ($lastOne) {
