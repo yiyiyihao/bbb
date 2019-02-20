@@ -359,7 +359,7 @@ class Web extends BaseApi
             'status' => 1,
         ])->find();
         if (empty($user)) {
-            return returnMsg(1, '商户不存在或已被删除');
+            return returnMsg(1, '用户不存在或已被删除');
         }
         if ($user['store_id'] > 0) {
             $check_status = Store::where([

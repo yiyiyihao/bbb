@@ -626,7 +626,6 @@ class Admin extends Index
                 $order .= 'sample_amount DESC, ';
             }
         }
-        
         $order .= 'S.add_time DESC';
         $list = $this->_getModelList(db('store'), $where, $field, $order, 'S', $join);
         if ($list) {
@@ -1015,7 +1014,7 @@ class Admin extends Index
             'store_id' => $user['factory_id'],
         ];
         $order = 'sort_order ASC, add_time desc';
-        $field = 'name,goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
+        $field = 'goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
         $list = $this->_getModelList(db('goods'), $where, $field, $order);
         $this->_returnMsg(['list' => $list]);
     }
@@ -1030,7 +1029,7 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $field = 'name,goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content';
+        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
         $where = [
             'goods_id'  => $goodsId,
             'is_del'    => 0,
@@ -1042,6 +1041,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
         }
         $detail['imgs'] = $detail['imgs'] ? json_decode($detail['imgs'], 1) : [];
+        $detail['specs_json'] = $detail['specs_json'] ? json_decode($detail['specs_json'], 1) : [];
         $goodsModel = new \app\common\model\Goods();
         $skus = $goodsModel->getGoodsSkus($goodsId);
         $detail['sku_id'] = 0;
@@ -1071,7 +1071,7 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content';
+        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
         $where = [
             'goods_id'  => $goodsId,
             'is_del'    => 0,
@@ -1082,6 +1082,7 @@ class Admin extends Index
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
         }
+        $specs = $detail['specs_json'] ? json_decode($detail['specs_json'], 1) : [];
         $goodsModel = new \app\common\model\Goods();
         $skus = $goodsModel->getGoodsSkus($goodsId);
         if ($skus && is_array($skus)) {
@@ -1091,11 +1092,50 @@ class Admin extends Index
                 unset($skus[$key]['install_price']);
             }
             $detail['skus'] = $skus;
-            $this->_returnMsg(['skus' => $skus]);
+            $this->_returnMsg(['skus' => $skus, 'specs' => $specs]);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品无对应规格信息']);
         }
     }
+    protected function getGoodsSpec(){
+        $goodsId = isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : 0;
+        $specs = isset($this->postParams['specs']) ? trim($this->postParams['specs']) : '';
+        if (!$goodsId){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
+        }
+        if (!$specs){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品规格不能为空']);
+        }
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
+        $where = [
+            'goods_id'  => $goodsId,
+            'is_del'    => 0,
+            'status'    => 1,
+            'store_id'  => $user['factory_id'],
+        ];
+        $detail = db('goods')->where($where)->find();
+        if (!$detail) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
+        }
+        
+        $skuInfo = db('goods_sku')->where("goods_id = {$goodsId} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+        if(!$skuInfo){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品对应规格不存在或已删除']);
+        }
+        $return = array(
+            'sku_id'    => $skuInfo['sku_id'],
+            'sku_thumb' => ($skuInfo['sku_thumb'] ? $skuInfo['sku_thumb'] : $detail['thumb']),
+            'price'     => ($skuInfo['price'] + $skuInfo['install_price']),
+            'sku_stock' => $skuInfo['sku_stock'],
+            'sales'     => $skuInfo['sales'],
+        );
+        $this->_returnMsg(['errCode' => 1, 'data' => $return]);
+    }
+    
     //创建订单
     protected function createOrder()
     {
