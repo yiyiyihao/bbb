@@ -1600,7 +1600,7 @@ class Admin extends Index
                 $where['S.user_store_id'] = ['IN', $storeIds];
             }
         }
-        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.real_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone';
+        $field='OS.sku_name,OS.sku_spec,OS.price,S.order_sn,S.num,OS.sku_thumb,O.real_amount,S.imgs,S.remark,S.add_time,S.refund_amount,S.service_status,O.pay_time,U.realname,U.phone, refund_time';
         $join=[
             ['order_sku_sub OSS', 'OSS.ossub_id = S.ossub_id', 'INNER'],
             ['order_sku OS', 'OS.osku_id = OSS.osku_id', 'INNER'],
