@@ -53,5 +53,19 @@ $(function(){
 		//TODO 点击后将消息置为已读
 		$(this).find("p.hide").show();
 	})
+
+    $('#sysnotice').on('click','a',function () {
+        var span=$(this).children('li').children('span');
+        if (span.hasClass('text-red')){
+            span.text('[已读]').removeClass('text-red');
+            var badge=$('.badge-dot');
+            var unread=parseInt(badge.text());
+            if (unread>1) {
+                badge.text(unread-1);
+            }else if(unread==1){
+                badge.remove();
+            }
+         }
+    });
 })
 </script>

@@ -21,7 +21,7 @@ $(function(){
 			var badgeObj = $(".badge-dot");
 			var badgeLen = badgeObj.length;
 			var num = 0;
-			if(badgeLen > 0) num = badgeObj.text();
+			if(badgeLen > 0) num = parseInt(badgeObj.text());
 			switch(type){
 				case 1://增一
 				num += 1;
@@ -56,11 +56,9 @@ $(function(){
 				//更新消息数+1
 				badgeNum(1);
 				//加入公告列表	
-				var html = '<li class="noticeBox">'
+				var html = '<a target="admin-iframe" href="/bulletin/detail/id\\/'+data.id+'"><li class="noticeBox">'
                     	 + '<span class="text-red">[未读]</span> '+data.title
-                    	 + '<p>'+data.desc+' <a target="admin-iframe" href="/bulletin/detail/id/'+data.id+'">>>查看详情</a></p>'
-                         + '<span class="nav-time">'+data.time+'</span>'
-                         + '</li>';
+                         + '</li></a>';
 				if($("#sysnotice .noticeBox").length == 0){
 					$("#sysnotice").html(html);
 				}else{
