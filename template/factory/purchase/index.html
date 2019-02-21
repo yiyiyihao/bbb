@@ -5,7 +5,7 @@
                 <div class="form-inline">
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="30" value="{$_GET['name'] ?? ''}" placeholder="产品名称">
+                            <input type="text" class="input" id="name" name="name" size="30" value="{$_GET['name'] ?? ''}" placeholder="商品名称">
                         </div>
                     </div>
                     <div class="form-button">
@@ -19,10 +19,10 @@
     <table id="table" class="table table-hover ">
       <tbody>
         <tr>
-          <th width="100">产品图片</th>
-          <th width="*">产品名称</th>
-          <!-- <th width="100">产品类型</th> -->
-          <th width="*">产品金额</th>
+          <th width="100">商品图片</th>
+          <th width="*">商品名称</th>
+          <!-- <th width="100">商品类型</th> -->
+          <th width="*">商品金额</th>
           <th width="130">操作</th>
         </tr>
         {notempty name="list"}
@@ -30,7 +30,7 @@
             <tr>
               <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="50"></td>
               <td>{$vo['name']}</td>
-              <!-- <td>{$vo.goods_type == 1 ? '普通产品' : '样品'}</td> -->
+              <!-- <td>{$vo.goods_type == 1 ? '普通商品' : '样品'}</td> -->
               <td>
               	{$vo.min_price + $vo.install_price}
               	{if condition="$vo.min_price != $vo.max_price"}
