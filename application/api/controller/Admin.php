@@ -1133,7 +1133,7 @@ class Admin extends Index
             'sku_stock' => $skuInfo['sku_stock'],
             'sales'     => $skuInfo['sales'],
         );
-        $this->_returnMsg(['errCode' => 1, 'data' => $return]);
+        $this->_returnMsg(['errCode' => 0, 'data' => $return]);
     }
     
     //创建订单
