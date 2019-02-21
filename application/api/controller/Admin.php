@@ -1643,6 +1643,39 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '售后取消成功']);
         }
     }
+
+    //售后订单审核
+    protected function serviceOrderCheck()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前管理员无操作权限']);
+        }
+        $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $checkStatus = isset($this->postParams['check_status']) && intval($this->postParams['check_status']) ? 1 :0;
+        if (empty($serviceSn)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后单号不能为空']);
+        }
+        if (!$checkStatus && !$remark) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请填写拒绝理由']);
+        }
+        $serviceModel = new \app\common\model\OrderService();
+        $service=$serviceModel->where(['service_sn'=>$serviceSn,'is_del'=>0])->find();
+        if (empty($service)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '查无该售后订单']);
+        }
+        if ($service['service_status'] != 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '审核已处理，不能重复操作']);
+        }
+        $result = $serviceModel->serviceCheck($service, $user,['check_status'=>$checkStatus,'admin_remark'=>$remark]);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' =>'审核失败【'. $serviceModel->error].'】');
+        }else {
+            $this->_returnMsg(['msg' => '审核成功']);
+        }
+    }
+    
     //获取工单列表(厂商/渠道商/零售商/服务商)
     protected function getWorkOrderList()
     {
