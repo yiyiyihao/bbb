@@ -107,7 +107,7 @@ class Bulletin extends FactoryForm
             $push = new \app\common\service\PushBase();
             $data = [
                 'type'  => 'notice',
-                'title' => sub_str($info['name'],20),
+                'title' => sub_str($info['name'],18),
                 'desc'  => $info['description'],
                 'content'=>$info['content'],
                 'id'    => $info['bulletin_id'],
