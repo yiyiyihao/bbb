@@ -15,13 +15,13 @@ class Bulletin extends FactoryForm
 
     }
     public function _afterList($list){
-        if ($list && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
-            foreach ($list as $key => $value) {
-                //判断当前登录用户是否已读
-                $exist = db('bulletin_log')->where(['bulletin_id' => $value['bulletin_id'], 'user_id' => ADMIN_ID, 'is_read' => 1])->find();
-                $list[$key]['is_read'] = $exist ? 1: 0;
-            }
-        }
+        //if ($list && $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+        //    foreach ($list as $key => $value) {
+        //        //判断当前登录用户是否已读
+        //        $exist = db('bulletin_log')->where(['bulletin_id' => $value['bulletin_id'], 'user_id' => ADMIN_ID, 'is_read' => 1])->find();
+        //        $list[$key]['is_read'] = $exist ? 1: 0;
+        //    }
+        //}
         //非厂商
         if ($this->adminUser['admin_type']!=ADMIN_FACTORY) {
             $this->indextempfile='index_service';
@@ -195,8 +195,24 @@ class Bulletin extends FactoryForm
     }
     function _getOrder()
     {
-        return 'is_top DESC, sort_order ASC, add_time DESC';
+        return 'B.is_top DESC,B.sort_order ASC, B.add_time DESC';
     }
+
+
+    function _getJoin(){
+        $join = [
+            ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.ADMIN_ID, 'LEFT']
+        ];
+        return $join;
+    }
+
+    function _getField()
+    {
+        return 'B.*,BR.is_read';
+    }
+
+
+
     function _getAlias()
     {
         return 'B';

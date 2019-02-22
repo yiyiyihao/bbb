@@ -5,10 +5,10 @@
         </div>
     </div>
     <div class="table-responsive table-list">
-        <ul>
+        <ul id="bulletin">
             {notempty name="list"}
             {volist name="list" key="k" id="vo"}
-            <li class="list-box clearfix"><span class="float-left"><a href="{:url('bulletin/detail',['id'=>$vo.bulletin_id])}">{$vo.name}</a>{if condition="$vo.is_top"}&nbsp;&nbsp;<span class="tag bg-red">置顶</span>{/if}</span><span class="float-right data-time">{$vo.update_time|date="Y-m-d"}</span></li>
+            <li class="list-box clearfix"><span class="float-left"><a {if condition="$vo.is_read"}class="text-gray"{/if} href="{:url('bulletin/detail',['id'=>$vo.bulletin_id])}">{$vo.name}</a>{if condition="$vo.is_top"}&nbsp;&nbsp;<span class="tag bg-red">置顶</span>{/if}</span><span class="float-right data-time">{$vo.update_time|date="Y-m-d"}</span></li>
             {/volist}
             {/notempty}
         </ul>
@@ -20,5 +20,20 @@
 <script>
     Do.ready('base', function () {
         $('#table').Table({});
+    });
+
+    $('#bulletin li  a').click(function (e) {
+        if (!$(this).hasClass('text-gray')) {
+            $(this).addClass('text-gray');
+            var badge=$(window.parent.document).find('.badge-dot');
+            if (badge.length>0){
+                var unread=parseInt(badge.text());
+                if (unread>1) {
+                    badge.text(unread-1);
+                }else if(unread==1){
+                    badge.remove();
+                }
+            }
+        }
     });
 </script>
