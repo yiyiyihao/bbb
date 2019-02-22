@@ -448,7 +448,7 @@ class Admin extends Index
         $user = $this->_checkUser();
         $indexController = new \app\common\controller\Index();
         $flag = $user['admin_type'] == ADMIN_FACTORY ? FALSE : TRUE;
-        $result = $indexController->getStoreHome($user, $flag);
+        $result = $indexController->getStoreHome($user, $flag,true);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $indexController->error]);
         }
@@ -2677,9 +2677,9 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        /**/
-        $userId = 2;//厂商
-        //$userId =4;//渠道商
+        /*
+        //$userId = 2;//厂商
+        $userId =4;//渠道商
         //$userId = 5;//零售商
         //$userId = 6;//服务商
         
@@ -2688,7 +2688,7 @@ class Admin extends Index
         if (!$loginUser) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
         }
-        return $loginUser ? $loginUser : [];
+        return $loginUser ? $loginUser : [];*/
         $loginUser = session('api_admin_user');
         if ($loginUser) {
             if (!$checkFlag) {

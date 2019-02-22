@@ -203,7 +203,7 @@ class Index extends CommonBase
     }
     
     //获取商户首页数据
-    public function getStoreHome($user = [], $chart = TRUE)
+    public function getStoreHome($user = [], $chart = TRUE,$isRaw=false)
     {
         $user = $user ? $user : $this->adminUser;
         if (!$user) {
@@ -500,11 +500,11 @@ class Index extends CommonBase
             $from = date('Y-m-d',$beginToday-86400*6);//图表统计开始时间
             $to = date('Y-m-d',$beginToday);//图表统计结束时间
             if ($adminType != ADMIN_SERVICE) {
-                $orderOverview = $this->orderOverView($from, $to, $storeId);
-                $orderStatistics = $this->orderAmount($from, $to, $storeId);
+                $orderOverview = $this->orderOverView($from, $to, $storeId,$isRaw);
+                $orderStatistics = $this->orderAmount($from, $to, $storeId,$isRaw);
             }else{
-                $worderOverview = $this->workOrderOverView($from, $to, $storeId);
-                $worderStatistics = $this->workOrderIncome($from, $to, $storeId);
+                $worderOverview = $this->workOrderOverView($from, $to, $storeId,$isRaw);
+                $worderStatistics = $this->workOrderIncome($from, $to, $storeId,$isRaw);
             }
         }
         return [
@@ -519,7 +519,7 @@ class Index extends CommonBase
     }
     
     //订单概况
-    protected function orderOverView($startTime,$endTime,$storeId)
+    protected function orderOverView($startTime,$endTime,$storeId,$isRaw=false)
     {
         
         $data=[];
@@ -636,7 +636,10 @@ class Index extends CommonBase
                 $begin=$end;
             }
         }
-        
+
+        if ($isRaw) {
+            return $data;
+        }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
@@ -648,7 +651,7 @@ class Index extends CommonBase
     }
     
     //订单金额统计
-    protected function orderAmount($startTime,$endTime,$storeId)
+    protected function orderAmount($startTime,$endTime,$storeId,$isRaw=false)
     {
         $data=[];
         $lable=[];
@@ -771,7 +774,10 @@ class Index extends CommonBase
                 $begin=$end;
             }
         }
-        
+
+        if ($isRaw) {
+            return $data;
+        }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
@@ -782,7 +788,7 @@ class Index extends CommonBase
         }
     }
     //工单概况
-    protected function workOrderOverView($startTime,$endTime,$storeId)
+    protected function workOrderOverView($startTime,$endTime,$storeId,$isRaw=false)
     {
         $data=[];
         $lable=[];
@@ -855,7 +861,11 @@ class Index extends CommonBase
                 $begin=$end;
             }
         }
-        
+
+        if ($isRaw) {
+            return $data;
+        }
+
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
@@ -867,7 +877,7 @@ class Index extends CommonBase
     }
     
     //工单佣金统计
-    protected function workOrderIncome($startTime,$endTime,$storeId)
+    protected function workOrderIncome($startTime,$endTime,$storeId,$isRaw=false)
     {
         
         $data=[];
@@ -943,7 +953,10 @@ class Index extends CommonBase
                 $begin=$end;
             }
         }
-        
+
+        if ($isRaw) {
+            return $data;
+        }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
         $result=$chart->getOption();
