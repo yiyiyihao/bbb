@@ -1352,8 +1352,36 @@ class Admin extends Index
                 $applyStatus = 2;
             }
         }
-        $detail['apply_status']=$applyStatus;
-        $detail['apply_status_text']=get_order_apply_status($applyStatus);
+        $detail['_service'] = [
+            'ossub_id' => 0,
+        ];
+        if ($detail['pay_status'] == 1) {
+            if ($applyStatus != 2) {
+                //获取可申请安装的订单商品
+                $where = [
+                    'OSSUB.order_id'    => $detail['order_id'],
+                ];
+                $where[] = ['', 'EXP', \think\Db::raw("service_status = -2 OR service_status is NULL")];
+                $where[] = ['', 'EXP', \think\Db::raw("work_order_status = -1 OR work_order_status is NULL")];
+                
+                $join = [
+                    ['order_sku_service OSSE', 'OSSE.ossub_id = OSSUB.ossub_id', 'LEFT'],
+                    ['work_order WO', 'WO.ossub_id = OSSUB.ossub_id', 'LEFT'],
+                ];
+                $ossubId = db('order_sku_sub')->alias('OSSUB')->join($join)->where($where)->value('OSSUB.ossub_id');
+            }
+            if ($detail['order_status'] == 1 && $detail['close_refund_status'] != 2) {
+                $detail['_service'] = [
+                    'ossub_id' => $ossubId,
+                ];
+            }
+        }
+        $detail['_apply_status'] = [
+            'ossub_id' => $ossubId,
+            'status' => $applyStatus,
+            'status_text' => get_order_apply_status($applyStatus),
+            'count' => $worderCount,
+        ];
 
         unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
