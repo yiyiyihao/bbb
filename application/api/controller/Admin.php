@@ -1352,6 +1352,7 @@ class Admin extends Index
                 $applyStatus = 2;
             }
         }
+        $detail['apply_status']=$applyStatus;
         $detail['apply_status_text']=get_order_apply_status($applyStatus);
 
         unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
