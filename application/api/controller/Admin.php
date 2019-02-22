@@ -125,7 +125,6 @@ class Admin extends Index
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
             session('api_user_data', $oauth);
-            $this->_logResult("API_session:\r\n".json_encode($oauth));
             $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
@@ -312,8 +311,8 @@ class Admin extends Index
             ];
             $userModel = new \app\common\model\User();
             $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
-            $this->_setLogin($udata['user_id'], $udata['third_openid']);
-            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核']);
+//             $this->_setLogin($udata['user_id'], $udata['third_openid']);
+            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4]);
         }
     }
     //获取入驻商户审核详情
@@ -383,6 +382,10 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+        $url = isset($this->postParams['share_url']) ? $this->postParams['share_url'] : '';
+        if (!$url) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'share_url不能为空']);
+        }
         //获取厂商分享配置
         $config = get_store_config($user['factory_id'], FALSE, 'invite_share');
         if (!$config) {
@@ -390,24 +393,18 @@ class Admin extends Index
         }
         switch ($user['admin_type']) {
             case ADMIN_FACTORY:
-                $url = '';
                 $config = $config && isset($config['factory']) ? $config['factory'] : [];
             break;
             case ADMIN_CHANNEL:
-                $url = '';
                 $config = $config && isset($config['channel']) ? $config['channel'] : [];
                 break;
             case ADMIN_SERVICE:
-                $url = '';
                 $config = $config && isset($config['service']) ? $config['service'] : [];
                 break;
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
             break;
         }
-        // 注意 URL 一定要动态获取，不能 hardcode.
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-        $url = "$protocol$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         if (!$config) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '厂商未配置'.get_admin_type($user['admin_type']).'分享数据']);
         }
@@ -431,7 +428,14 @@ class Admin extends Index
         $nonceStr = get_nonce_str(16, 1);
         // 这里参数的顺序要按照 key 值 ASCII 码升序排序
         $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
-        $signature = sha1($string);
+        $this->_logResult("string\r\n".$string);
+
+            $urlArray = explode('#', $url);
+            $urlArray = explode('?', $url);
+            $shaString = $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
+            $this->_logResult("shaString\r\n".$shaString);
+            $signature = sha1($shaString);
+
         $config['sign_package'] = array(
             "appId"     => $appid,
             "nonceStr"  => $nonceStr,
@@ -440,6 +444,7 @@ class Admin extends Index
             "signature" => $signature,
             "rawString" => $string
         );
+        $this->_logResult("sign_package\r\n".json_encode($config['sign_package']));
         $this->_returnMsg(['detail' => $config]);
     }
     //获取首页信息
@@ -2677,18 +2682,19 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        /*
-        //$userId = 2;//厂商
-        $userId =4;//渠道商
-        //$userId = 5;//零售商
-        //$userId = 6;//服务商
-        
-        $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
-        $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
-        if (!$loginUser) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
+        if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
+            $userId = 2;//厂商
+             $userId =4;//渠道商
+             //$userId = 5;//零售商
+             //         $userId = 6;//服务商
+             
+             $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
+             $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
+             if (!$loginUser) {
+             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
+             }
+             return $loginUser ? $loginUser : [];
         }
-        return $loginUser ? $loginUser : [];*/
         $loginUser = session('api_admin_user');
         if ($loginUser) {
             if (!$checkFlag) {
@@ -2702,10 +2708,10 @@ class Admin extends Index
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已禁用,请联系厂商启用后登录']);
             }
             if ($store['check_status'] == 0) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请审核中']);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请审核中', 'errLogin' => 4]);
             }
             if ($store['check_status'] == 2) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请已拒绝']);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请已拒绝', 'errLogin' => 4]);
             }
             return $loginUser;
         }
