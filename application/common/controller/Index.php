@@ -638,7 +638,7 @@ class Index extends CommonBase
         }
 
         if ($isRaw) {
-            return $data;
+            return $this->rawSimple($data);
         }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
@@ -649,7 +649,16 @@ class Index extends CommonBase
             return json_encode($result);
         }
     }
-    
+
+    private function rawSimple($data)
+    {
+        $result= array_map(function ($item) {
+            $item['time']=date('n.j',strtotime($item['time']));
+            return $item;
+        },$data);
+        return $result;
+    }
+
     //订单金额统计
     protected function orderAmount($startTime,$endTime,$storeId,$isRaw=false)
     {
@@ -776,7 +785,7 @@ class Index extends CommonBase
         }
 
         if ($isRaw) {
-            return $data;
+            return $this->rawSimple($data);
         }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
@@ -863,7 +872,7 @@ class Index extends CommonBase
         }
 
         if ($isRaw) {
-            return $data;
+            return $this->rawSimple($data);
         }
 
         $color=['#009688'];
@@ -955,7 +964,7 @@ class Index extends CommonBase
         }
 
         if ($isRaw) {
-            return $data;
+            return $this->rawSimple($data);
         }
         $color=['#009688'];
         $chart=new\app\common\service\Chart('group',[''],$lable,$dataset,$color,false);
