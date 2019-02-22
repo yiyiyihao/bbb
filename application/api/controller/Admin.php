@@ -1333,14 +1333,27 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
         }
         $orderModel = new \app\common\model\Order();
-        $orderField = 'order_id, order_type, order_sn, real_amount, order_status, pay_status, delivery_status, finish_status';
-        $orderField .= ', pay_code, store_id, pay_time, close_refund_status, add_time, remark';
-        $skuField = 'sku_name, sku_thumb, sku_spec, num, price';
+        $orderField = 'order_id,order_type,order_sn,real_amount,order_status,pay_status,delivery_status,finish_status';
+        $orderField .= ',pay_code,store_id,pay_time,address_phone,close_refund_status,add_time,remark';
+        $skuField = 'sku_name,sku_thumb,sku_spec,num,price';
         $result = $orderModel->getOrderDetail($orderSn, $user, FALSE, FALSE, $orderField, $skuField);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
         $detail = $result['order'];
+        //判断订单申请安装状态
+        $applyStatus = 0;
+        $worderCount = db('work_order')->where(['order_sn' => $orderSn, 'work_order_status' => ['<>', -1]])->count();
+        if ($worderCount > 0) {
+            $orderCount = $orderModel->where(['order_id' => $detail['order_id']])->sum('num');
+            if ($orderCount > $worderCount) {
+                $applyStatus = 1;
+            }else{
+                $applyStatus = 2;
+            }
+        }
+        $detail['apply_status_text']=get_order_apply_status($applyStatus);
+
         unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
         unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
         $this->_returnMsg(['detail' => $detail]);
@@ -2683,10 +2696,10 @@ class Admin extends Index
     private function _checkUser($checkFlag = TRUE)
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
-            $userId = 2;//厂商
+             //$userId = 2;//厂商
              $userId =4;//渠道商
              //$userId = 5;//零售商
-             //         $userId = 6;//服务商
+             //$userId = 6;//服务商
              
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
