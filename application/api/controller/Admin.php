@@ -1008,13 +1008,21 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+
+        $salesOrder = isset($this->postParams['sales_order'])  && $this->postParams['sales_order'] ? 'sales DESC' : 'sales ASC';
+
+        $keyword = isset($this->postParams['keyword'])  && trim($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
+
         $where = [
             'is_del' => 0,
             'status' => 1,
             'store_id' => $user['factory_id'],
         ];
-        $order = 'sort_order ASC, add_time desc';
-        $field = 'goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
+        if (!empty($keyword)) {
+            $where[] = ['', 'EXP', \think\Db::raw('name like "%'.$keyword.'%" or goods_sn like "%'.$keyword.'%"')];
+        }
+        $order = $salesOrder.',sort_order ASC, add_time desc';
+        $field = 'name,goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
         $list = $this->_getModelList(db('goods'), $where, $field, $order);
         $this->_returnMsg(['list' => $list]);
     }
@@ -2669,17 +2677,18 @@ class Admin extends Index
      */
     private function _checkUser($checkFlag = TRUE)
     {
-        /* $userId = 2;//厂商
-        $userId =4;//渠道商
+        /**/
+        $userId = 2;//厂商
+        //$userId =4;//渠道商
         //$userId = 5;//零售商
-//         $userId = 6;//服务商
+        //$userId = 6;//服务商
         
         $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
         $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
         if (!$loginUser) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
         }
-        return $loginUser ? $loginUser : []; */
+        return $loginUser ? $loginUser : [];
         $loginUser = session('api_admin_user');
         if ($loginUser) {
             if (!$checkFlag) {
