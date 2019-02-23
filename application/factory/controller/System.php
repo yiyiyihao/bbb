@@ -158,7 +158,7 @@ class System extends adminSystem
                     if (!is_array($value)) {
                         $config[$configKey][$key] = trim($value);
                     }else{
-                        $config[$key] = $value;
+                        $config[$key] =array_merge($config[$key],$value);
                     }
                 }
                 $configJson = $config ? json_encode($config): '';
