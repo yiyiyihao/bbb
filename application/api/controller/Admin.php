@@ -2581,6 +2581,34 @@ class Admin extends Index
         }
         $this->_returnMsg(['msg' => '保存成功']);
     }
+
+	//启用、禁用零售商
+    protected function setDealerStatus()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
+        if (!isset($this->postParams['status'])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[STATUS]']);
+        }
+        $status =intval($this->postParams['status']) ? 1 : 0;
+        $status=$status? 1:0;
+        if (empty($storeNo)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误[STORE_NO]']);
+        }
+        $store=db('store')->where(['is_del'=>0,'store_no'=>$storeNo,'store_type'=>STORE_DEALER])->find();
+        if (empty($store)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '编号不正确或该零售商不存在']);
+        }
+        $result=db('store')->where('store_id',$store['store_id'])->update(['status'=>$status]);
+        if ($result === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
+        }
+        $this->_returnMsg(['msg' => '保存成功']);
+    }
+
     /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
      */
     private function _withdrawConfig($user)
