@@ -158,6 +158,7 @@ class System extends adminSystem
                     if (!is_array($value)) {
                         $config[$configKey][$key] = trim($value);
                     }else{
+                        $config[$key]=isset($config[$key])? $config[$key]:[];
                         $config[$key] =array_merge($config[$key],$value);
                     }
                 }

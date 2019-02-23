@@ -177,12 +177,18 @@
         var url="{:url('Upload/upload', ['prex' => 'wechat_share_', 'thumb_type' => 'wechat_share_thumb_'])}";
         $('#form1').FormPage({
             'uploadUrl' :url,
+            // 'returnFun' :callback($('#form1')),
         });
         $('#form2').FormPage({
             'uploadUrl' : url,
+            // 'returnFun' :callback($('#form2')),
         });
         $('#form3').FormPage({
             'uploadUrl' : url,
+            // 'returnFun' :callback($('#form3')),
         });
+        // function callback(form) {
+        //     form.find('.tab-head').append('<span class="icon icon-check">保存成功</span>');
+        // }
     })
 </script>
