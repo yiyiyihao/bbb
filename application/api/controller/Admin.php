@@ -37,19 +37,19 @@ class Admin extends Index
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
     {
-        $udata = $this->_getScopeUser();
+//         $udata = $this->_getScopeUser();
         parent::uploadImage($verifyUser);
     }
     //上传图片
     protected function uploadImageSource($verifyUser = FALSE)
     {
-        $udata = $this->_getScopeUser();
+//         $udata = $this->_getScopeUser();
         parent::uploadImageSource($verifyUser);
     }
     //发送短信验证码
     protected function sendSmsCode()
     {
-        $udata = $this->_getScopeUser();
+//         $udata = $this->_getScopeUser();
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
@@ -62,7 +62,7 @@ class Admin extends Index
     //短信验证码验证
     protected function checkSmsCode()
     {
-        $udata = $this->_getScopeUser();
+//         $udata = $this->_getScopeUser();
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
