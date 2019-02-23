@@ -701,7 +701,7 @@ class Admin extends Index
         }else{
             $where['store_no'] = $storeNo;
         }
-        $field = $returnField ? $returnField : 'store_id, store_type, store_no, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, status';
+        $field = $returnField ? $returnField : 'store_id, store_type, store_no, name, user_name, mobile, security_money, region_name,address, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, status';
         $info = db('store')->field($field)->where($where)->find();
         if (!$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
