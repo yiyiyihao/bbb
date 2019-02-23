@@ -5,6 +5,7 @@ class Admin extends Index
     private $visitIp;
     private $thirdType = 'wechat_h5';
     private $version;
+    private $returnLogin = TRUE;
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -13,6 +14,8 @@ class Admin extends Index
         header('Access-Control-Allow-Credentials:true');
         $this->mchKey = '1458745225';
         parent::__construct();
+//         session('api_user_data', []);
+//         session('api_admin_user', []);
         $this->version = isset($this->postParams['version']) ? trim($this->postParams['version']) : '';
         if (!$this->version) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本不能为空')]);
@@ -82,7 +85,7 @@ class Admin extends Index
         $url = 'http://h5.imliuchang.cn';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
-        $this->_returnMsg(['scopeUrl' => $scopeUrl]);
+        $this->_returnMsg(['scopeUrl' => $scopeUrl, 'errLogin' => 1]);
     }
     //微信授权-第2步，返回微信Openid
     protected function getWechatOpenid()
@@ -94,14 +97,22 @@ class Admin extends Index
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
         }
-        //$result = $wechatApi->getOauthOpenid($code, TRUE);
-        //if ($result === FALSE) {
-        // $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-        //}
-        #TODO 删除模拟用户数据
+//         $result = $wechatApi->getOauthOpenid($code, TRUE);
+//         if ($result === FALSE) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+//         }
+//         #TODO 删除模拟用户数据
+//         $result = [
+//             'appid' => 'wx8389c5dbe29dace0',
+//             'openid' => 'oTLegtyL8RhaN-XYrbO3XH-JEr6A',
+//             'nickname' => 'John',
+//             'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
+//             'sex' => 1,
+//             'unionid' => '',
+//         ];
         $result = [
-            'appid' => 'wx8389c5dbe29dace0',
-            'openid' => 'oTLegtyL8RhaN-XYrbO3XH-JEr6A',
+            'appid' => 'wxa57c32c95d2999e5',
+            'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
             'nickname' => 'John',
             'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
             'sex' => 1,
@@ -427,14 +438,11 @@ class Admin extends Index
         $timestamp = time();
         $nonceStr = get_nonce_str(16, 1);
         // 这里参数的顺序要按照 key 值 ASCII 码升序排序
-        $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
-        $this->_logResult("string\r\n".$string);
-
-            $urlArray = explode('#', $url);
-            $urlArray = explode('?', $url);
-            $shaString = $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
-            $this->_logResult("shaString\r\n".$shaString);
-            $signature = sha1($shaString);
+        $rawString = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
+//         $urlArray = explode('#', $url);
+        $urlArray = explode('?', $url);
+        $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
+        $signature = sha1($string);
 
         $config['sign_package'] = array(
             "appId"     => $appid,
@@ -442,7 +450,7 @@ class Admin extends Index
             "timestamp" => $timestamp,
             "url"       => $url,
             "signature" => $signature,
-            "rawString" => $string
+            "rawString" => $rawString
         );
         $this->_logResult("sign_package\r\n".json_encode($config['sign_package']));
         $this->_returnMsg(['detail' => $config]);
@@ -1196,11 +1204,14 @@ class Admin extends Index
         if (!empty($user['third_openid'])) {
             $order['openid'] = $user['third_openid'];
         }else{
+            $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
+            $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
             //获取当前用户h5微信openid
             $where = [
-                'user_id' => $user['user_id'],
-                'factory_id' => $user['factory_id'],
-                'third_type' => $this->thirdType,
+                'user_id'       => $user['user_id'],
+                'factory_id'    => $user['factory_id'],
+                'third_type'    => $this->thirdType,
+                'appid'         => $appid,
             ];
             $order['openid'] = db('user_data')->where($where)->value('third_openid');
         }
@@ -1334,13 +1345,15 @@ class Admin extends Index
         }
         $orderModel = new \app\common\model\Order();
         $orderField = 'order_id,order_type,order_sn,real_amount,order_status,pay_status,delivery_status,finish_status';
-        $orderField .= ',pay_code,store_id,pay_time,address_phone,close_refund_status,add_time,remark';
+        $orderField .= ',pay_code,store_id,pay_time,close_refund_status,add_time,remark, user_store_id, user_id';
         $skuField = 'sku_name,sku_thumb,sku_spec,num,price';
         $result = $orderModel->getOrderDetail($orderSn, $user, FALSE, FALSE, $orderField, $skuField);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
         $detail = $result['order'];
+        $detail['store_name'] = db('store')->where('store_id', $detail['user_store_id'])->value('name');
+        $detail['user_phone'] = db('user')->where('user_id', $detail['user_id'])->value('phone');
         //判断订单申请安装状态
         $applyStatus = 0;
         $worderCount = db('work_order')->where(['order_sn' => $orderSn, 'work_order_status' => ['<>', -1]])->count();
@@ -1352,6 +1365,7 @@ class Admin extends Index
                 $applyStatus = 2;
             }
         }
+        $ossubId = 0;
         $detail['_service'] = [
             'ossub_id' => 0,
         ];
@@ -1384,7 +1398,7 @@ class Admin extends Index
         ];
 
         unset($detail['order_id'], $detail['pay_time'],$detail['pay_type'], $detail['pay_code'], $detail['order_status'], $detail['pay_status'], $detail['delivery_status'], $detail['finish_status']);
-        unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type']);
+        unset($detail['close_refund_status'], $detail['store_id'], $detail['order_type'], $detail['user_store_id'], $detail['user_id']);
         $this->_returnMsg(['detail' => $detail]);
     }
     //取消订单
@@ -1925,7 +1939,13 @@ class Admin extends Index
     //获取省份列表
     protected function getProvinceRegions()
     {
+        $this->returnLogin = FALSE;
         $this->getRegions('region_id, region_name');
+    }
+    protected function getRegions($field = "")
+    {
+        $this->returnLogin = FALSE;
+        parent::getRegions();
     }
     //根据省份获取服务商列表
     protected function getServiceListByRegion()
@@ -2640,7 +2660,11 @@ class Admin extends Index
      * 处理接口返回信息
      */
     protected function _returnMsg($data, $echo = TRUE){
-        $data['errLogin'] = isset($data['errLogin']) ? intval($data['errLogin']) : 0;
+        if ($this->returnLogin) {
+            $data['errLogin'] = isset($data['errLogin']) ? intval($data['errLogin']) : 0;
+        }else{
+            $data['errLogin'] = FALSE;
+        }
         $result = parent::_returnMsg($data);
     }
     /**
@@ -2733,7 +2757,7 @@ class Admin extends Index
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
              if (!$loginUser) {
-             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员不存在或已删除']);
              }
              return $loginUser ? $loginUser : [];
         }
@@ -2804,16 +2828,17 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
+            $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->column('store_no, name, store_type');
             $userinfo = [
-                'admin_type' => $user['admin_type'],
-                'username' => $user['username'],
-                'realname' => $user['realname'],
-                'nickname' => $user['nickname'],
-                'phone' => $user['phone'],
-                'status' => $user['status'],
+                'admin_type'=> $user['admin_type'],
+                'username'  => $user['username'],
+                'realname'  => $user['realname'],
+                'nickname'  => $user['nickname'],
+                'phone'     => $user['phone'],
+                'status'    => $user['status'],
             ];
             session('api_user_data', []);
-            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo]);//0无异常 1前往授权 2授权成功,需绑定账号
+            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
 }

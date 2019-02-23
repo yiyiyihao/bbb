@@ -85,7 +85,12 @@ class PaymentApi
         }
         $this->payCode = strtolower($payCode);
 //         $this->apiHost = 'http://zxjapi.zhidekan.me/';
-        $this->apiHost = 'http://api.smarlife.cn/';
+        if ($_SERVER['SERVER_ADDR'] == '120.24.97.163') {
+            $this->apiHost = 'http://api.imliuchang.cn/';
+        }else{
+            $this->apiHost = 'http://api.smarlife.cn/';
+        }
+        
     }
     /**
      * 初始化支付数据

@@ -11,11 +11,15 @@ class WechatPayApi
     var $error;
     var $storeId;
     var $templateCodes;
+    var $payCode;
+    var $rsaPrivateKey;
     public function __construct($storeId, $payCode = '', $option = []){
         if (!$storeId) {
             $this->error = lang('paran_error');
             return FALSE;
         }
+        $this->payCode = strtolower($payCode);
+        $this->storeId = $storeId;
         if ($option) {
             $this->config = $option;
         }else{
@@ -23,12 +27,10 @@ class WechatPayApi
             $this->config = $payment && $payment['config_json'] ? json_decode($payment['config_json'], TRUE): [];
         }
         $this->rsaPrivateKey = isset($this->config['merchant_private_key']) ? trim($this->config['merchant_private_key']) : '';
-        if (!$this->config['mch_key']) {
+        if (!isset($this->config['mch_key']) || !$this->config['mch_key']) {
             $this->error = '私钥配置错误，请检查配置';
             return FALSE;
         }
-        $this->payCode = strtolower($payCode);
-        $this->storeId = $storeId;
     }
     /**
      * 微信统一下单功能

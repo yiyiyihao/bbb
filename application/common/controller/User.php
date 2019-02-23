@@ -153,6 +153,7 @@ class User extends FormBase
         $data['factory_id'] = $this->adminUser['factory_id'];
         $data['store_id'] = $this->adminUser['store_id'];
         $data['admin_type'] = $this->adminUser['admin_type'];
+        $data['is_admin'] = 2;
         return $data;
     }
     function _assignInfo($pkId = 0){

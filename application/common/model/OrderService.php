@@ -250,7 +250,6 @@ class OrderService extends Model
 //             $this->error = '请填写退款转账流水号';
 //             return FALSE;
 //         }
-        
         $service = $this->getServiceDetail($service['service_sn'], $user);
         if (!$service){
             return FALSE;
