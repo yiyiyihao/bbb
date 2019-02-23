@@ -1628,7 +1628,7 @@ class Admin extends Index
         }else{
             $where['S.user_store_id'] = $user['store_id'];
         }
-        $field='S.service_sn,S.order_sn,S.service_status,S.refund_amount,S.add_time,S1.name store_name,S1.mobile';
+        $field='S.service_sn,S.order_sn,S.service_status,S.refund_amount,S.add_time,S1.name store_name,S1.user_name,S1.mobile';
         $join=[
             ['store S1', 'S1.store_id = S.user_store_id', 'LEFT'],
         ];
