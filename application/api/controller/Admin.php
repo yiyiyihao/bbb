@@ -6,6 +6,7 @@ class Admin extends Index
     private $thirdType = 'wechat_h5';
     private $version;
     private $returnLogin = TRUE;
+    private $debug = FALSE;
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -22,6 +23,9 @@ class Admin extends Index
         }
         if ($this->version != '1.0'){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本错误')]);
+        }
+        if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
+            $this->debug = TRUE;
         }
     }
     protected function getSession()
@@ -1754,7 +1758,7 @@ class Admin extends Index
             'status' => 1,
         ];
         $workOrderType = isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
-        $workOrderStatus = isset($this->postParams['status']) ? intval($this->postParams['status']) : '';
+        $workOrderStatus = isset($this->postParams['status']) && is_numeric($this->postParams['status']) ? intval($this->postParams['status']) : FALSE;
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
             $where['work_order_type']=$workOrderType;
         }
@@ -1766,7 +1770,7 @@ class Admin extends Index
                 $where['installer_id']=$installerId;
             }
         }
-        if ( ''!==$workOrderStatus &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
+        if ($workOrderStatus !== FALSE &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
             $where['work_order_status']=$workOrderStatus;
         }
         switch ($user['admin_type']) {
@@ -2856,7 +2860,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
-            $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->column('store_no, name, store_type');
+            $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->field('store_no, name, store_type')->find();
             $userinfo = [
                 'admin_type'=> $user['admin_type'],
                 'username'  => $user['username'],
