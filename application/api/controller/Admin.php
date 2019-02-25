@@ -588,7 +588,7 @@ class Admin extends Index
             'S.check_status'=> 1,
             'S.factory_id'  => $user['factory_id'],
         ];
-        $field = 'S.store_id,S.store_no,S.name,S.store_type,S.region_name,S.address';
+        $field = 'S.store_id,S.store_no,S.name,S.store_type,S.region_name,S.address,S.status';
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : 0;
             if (!$storeType){
