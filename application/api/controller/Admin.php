@@ -631,6 +631,7 @@ class Admin extends Index
             $where['S.factory_id'] = $user['factory_id'];
         }else{
             $storeType = STORE_DEALER;
+            unset($where['S.status']);
             $where['OS.ostore_id'] = $user['store_id'];
             $join[] = ['store_dealer OS', 'S.store_id = OS.store_id', 'INNER'];
             $field .= ', sample_amount, address';
