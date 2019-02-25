@@ -1833,16 +1833,31 @@ class Admin extends Index
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
         }
-        $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images';
+        $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images,install_price,real_price,store_id,installer_id,dispatch_time,receive_time,sign_time,finish_time';
         $workOrderModel=new \app\common\model\WorkOrder();
-        $info = $workOrderModel->field($field)->where($where)->find();
+        $info = $workOrderModel->alias('')->field($field)->where($where)->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
         }
+        $info['store_name']=db('store')->where(['store_id'=>$info['store_id']])->value('name');
+        $installer=db('user_installer')->field('realname,phone')->where(['installer_id'=>$info['installer_id']])->find();
+        $info['installer_name']=$installer['realname'];
+        $info['installer_phone']=$installer['phone'];
+        unset($info['store_id'],$info['installer_id']);
+        $dispatchStatus=db('work_order_installer_record')->where(['worder_id'=>$info['worder_id'],'is_del'=>0])->order('log_id desc')->value('action');
         $info['images']= $info['images'] ? explode(',',$info['images']) : [];
         $regionName=str_replace(' ','',$info['region_name']);
         $info['address']=$regionName.$info['address'];
-        $info['work_order_status_desc']=get_work_order_status($info['work_order_status']);
+        $workOrderStatusDesc=get_work_order_status($info['work_order_status']);
+        if ($dispatchStatus=='refuse'){
+            $workOrderStatusDesc='拒绝接单';
+        }
+        $info['dispatch_time']=date('Y-m-d h:i',$info['dispatch_time']);
+        $info['receive_time']=date('Y-m-d h:i',$info['receive_time']);
+        $info['sign_time']=date('Y-m-d h:i',$info['sign_time']);
+        $info['work_order_status_desc']=$workOrderStatusDesc;
+        $info['msg']=db('work_order_log')->where(['worder_id'=>$info['worder_id']])->order('log_id desc')->value('msg');
+
         $info['work_order_type_desc']=get_work_order_type($info['work_order_type']);
         $info['appointment']=time_to_date($info['appointment']);
         $info['finish_time']=time_to_date($info['finish_time']);
