@@ -991,10 +991,14 @@ class Index extends ApiBase
         if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片类型错误']);
         }
-        $fileSize = strlen(file_get_contents($image))."<br>";
+        
+        if (preg_match('/^(data:\s*image\/(\w+);base64,)/',$image, $res)) {
+            $image = base64_decode(str_replace($res[1],'', $image));
+        }
+        $fileSize = strlen($image);
         //图片上传到七牛
         $upload = new \app\common\controller\UploadBase();
-        $result = $upload->qiniuUploadData(base64_decode($image), 'api_'.$type.'_', $type, $fileSize);
+        $result = $upload->qiniuUploadData($image, 'api_'.$type.'_', $type, $fileSize);
         if (!$result || !$result['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['info']]);
         }

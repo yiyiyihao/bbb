@@ -1361,9 +1361,10 @@ class Admin extends Index
         $detail['user_phone'] = db('user')->where('user_id', $detail['user_id'])->value('phone');
         //判断订单申请安装状态
         $applyStatus = 0;
+        $orderSkuModel = db('order_sku');
         $worderCount = db('work_order')->where(['order_sn' => $orderSn, 'work_order_status' => ['<>', -1]])->count();
         if ($worderCount > 0) {
-            $orderCount = $orderModel->where(['order_id' => $detail['order_id']])->sum('num');
+            $orderCount = $orderSkuModel->where(['order_id' => $detail['order_id']])->sum('num');
             if ($orderCount > $worderCount) {
                 $applyStatus = 1;
             }else{

@@ -23,7 +23,9 @@ class Order extends Model
             $orderSkuModel = db('order_sku');
             $workOrderModel = db('work_order');
             foreach ($list as $key => $value) {
-                $list[$key]['_service'] = [];
+                $list[$key]['_service'] = [
+                    'ossub_id' => 0,
+                ];;
                 $ossubId = 0;//可申请安装/售后的订单商品ID
                 $list[$key]['_status'] = get_order_status($value);
                 //判断订单申请安装状态
