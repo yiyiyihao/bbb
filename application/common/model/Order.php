@@ -20,24 +20,24 @@ class Order extends Model
     public function getOrderList($list, $getother = FALSE)
     {
         if ($list) {
-            $orderSkuModel = db('order_sku');
-            $workOrderModel = db('work_order');
             foreach ($list as $key => $value) {
+                $ossubId = 0;
                 $list[$key]['_service'] = [
-                    'ossub_id' => 0,
+                    'ossub_id' => $ossubId,//可申请安装/售后的订单商品ID
                 ];;
-                $ossubId = 0;//可申请安装/售后的订单商品ID
                 $list[$key]['_status'] = get_order_status($value);
                 //判断订单申请安装状态
                 $applyStatus = 0;
-                $worderCount = $workOrderModel->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
+                $worderCount = db('work_order')->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
                 if ($worderCount > 0) {
-                    $orderCount = $orderSkuModel->where(['order_id' => $value['order_id']])->sum('num');
+                    $orderCount = db('order_sku')->where(['order_id' => $value['order_id']])->sum('num');
                     if ($orderCount > $worderCount) {
                         $applyStatus = 1;
                     }else{
                         $applyStatus = 2;
                     }
+                }
+                if ($value['order_sn'] == '20190222203403989910692869709') {
                 }
                 if ($getother && $value['pay_status'] == 1) {
                     if ($applyStatus != 2) {
@@ -56,12 +56,12 @@ class Order extends Model
                     }
                     if ($value['order_status'] == 1 && $value['close_refund_status'] != 2) {
                         $list[$key]['_service'] = [
-                            'ossub_id' => $ossubId,
+                            'ossub_id' => intval($ossubId),
                         ];
                     }
                 }
                 $list[$key]['_apply_status'] = [
-                    'ossub_id' => $ossubId,
+                    'ossub_id' => intval($ossubId),
                     'status' => $applyStatus,
                     'status_text' => get_order_apply_status($applyStatus),
                     'count' => $worderCount,
@@ -949,18 +949,15 @@ class Order extends Model
     {
         $oskus = db('order_sku')->where(['order_id' => $order['order_id']])->field($field)->select();
         if ($oskus && $getsub) {
-            $orderSkuSubModel = db('order_sku_sub');
-            $orderSkuServiceModel = db('order_sku_service');
-            $workOrderModel = db('work_order');
             foreach ($oskus as $key => $osku) {
-                $subs = $orderSkuSubModel->where(['osku_id' => $osku['osku_id']])->select();
+                $subs = db('order_sku_sub')->where(['osku_id' => $osku['osku_id']])->select();
                 if ($subs) {
                     foreach ($subs as $key1 => $sub) {
                         //获取未取消的售后申请(售后状态(-2已取消 -1拒绝申请 0申请中 1等待买家退货 2等待买家退款 3退款成功))
-                        $service = $orderSkuServiceModel->order('add_time DESC, service_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
+                        $service = db('order_sku_service')->order('add_time DESC, service_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
                         $subs[$key1]['service'] = isset($service) ? $service : [];
                         //获取安装工单(状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成))
-                        $subs[$key1]['work_order'] = $workOrderModel->order('add_time DESC, worder_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
+                        $subs[$key1]['work_order'] = db('work_order')->order('add_time DESC, worder_id DESC')->where(['ossub_id' => $sub['ossub_id']])->find();
                     }
                 }
                 $oskus[$key]['subs'] = $subs;
