@@ -586,12 +586,23 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $sortOrder = isset($this->postParams['sortorder']) ? trim($this->postParams['sortorder']) : '';
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         $where = [
             'S.is_del' => 0,
             'S.status' => 1,
             'S.check_status'=> 1,
             'S.factory_id'  => $user['factory_id'],
         ];
+        $isStoreSn=false;
+        $isStoreName=false;
+        if (!empty($keyword)) {
+            if (preg_match('/^\d{9,}$/',$keyword)) {
+                $isStoreSn=true;
+            } else {
+                $isStoreName=true;
+            }
+        }
+
         $field = 'S.store_id,S.store_no,S.name,S.store_type,S.region_name,S.address,S.status';
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : 0;
@@ -643,6 +654,12 @@ class Admin extends Index
             }else{
                 $order .= 'sample_amount DESC, ';
             }
+        }
+        if ($isStoreName) {
+            $where['S.name']=['like','%'.$keyword.'%'];
+        }
+        if ($isStoreSn) {
+            $where['S.store_no']=$keyword;
         }
         $order .= 'S.add_time DESC';
         $list = $this->_getModelList(db('store'), $where, $field, $order, 'S', $join);
@@ -1238,6 +1255,16 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
+        $isOrderSn=false;
+        $isGoodsName=false;
+        if (!empty($keyword)) {
+            if (preg_match('/^\d{29}$/',$keyword)) {
+                $isOrderSn=true;
+            } else {
+                $isGoodsName=true;
+            }
+        }
         $where = [
             'order_type' => 1,
         ];
@@ -1267,23 +1294,37 @@ class Admin extends Index
             $where['user_store_type'] = $user['store_type'];
             $flag = TRUE;
         }
+        if ($isOrderSn) {
+            $where['order_sn'] = $keyword;
+        }
+
         $order = 'add_time DESC';
         $field = 'order_id, store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
-        if ($list) {
-            $orderModel = new \app\common\model\Order();
-            $list = $orderModel->getOrderList($list, $flag);
-            if ($list) {
-                foreach ($list as $key => $value) {
-                    $list[$key]['add_time'] = time_to_date($value['add_time']);
-                    $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
-                    $list[$key]['skus'] = $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where(['order_id' => $value['order_id']])->select();
-                    unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
-                    unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
-                }
+
+        if (empty($list)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无订单记录']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $list = $orderModel->getOrderList($list, $flag);
+        $result=[];
+        foreach ($list as $key => $value) {
+            $whereSku=[];
+            $whereSku['order_id']=$value['order_id'];
+            if ($isGoodsName) {
+                $whereSku['sku_name']=['like','%'.$keyword.'%'];
+            }
+            $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
+            $list[$key]['add_time'] = time_to_date($value['add_time']);
+            $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
+            $list[$key]['skus'] = $skus;
+            unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
+            unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+            if (!empty($skus)){
+                $result[]=$list[$key];
             }
         }
-        $this->_returnMsg(['list' => $list]);
+        $this->_returnMsg(['list' => $result]);
     }
     //获取零售商订单列表[渠道商]
     protected function getDealerOrderList()
@@ -1292,10 +1333,20 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
         }
-        $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
         $where = [
             'order_type' => 1,
         ];
+        $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
+        $isOrderSn=false;
+        $isSkuName=false;
+        if (!empty($keyword)) {
+            if (preg_match('/^\d{29}$/',$keyword)) {
+                $isOrderSn=true;
+            } else {
+                $isSkuName=true;
+            }
+        }
         if ($status > 0) {
             switch ($status) {
                 case 1://待支付
@@ -1321,21 +1372,36 @@ class Admin extends Index
             ['store S', 'O.user_store_id = S.store_id', 'LEFT'],
             ['store_dealer AS', 'O.user_store_id = AS.store_id', 'LEFT'],
         ];
+
+        if ($isOrderSn) {
+            $where['O.order_sn'] = $keyword;
+        }
+
         $list = $this->_getModelList(db('order'), $where, $field, $order, 'O', $join);
-        if ($list) {
-            $orderModel = new \app\common\model\Order();
-            $list = $orderModel->getOrderList($list, FALSE);
-            if ($list) {
-                foreach ($list as $key => $value) {
-                    $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
-                    $list[$key]['skus'] = $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where(['order_id' => $value['order_id']])->select();
-                    unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
-                    unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
-                    unset($list[$key]['_service'], $list[$key]['_apply_status']);
-                }
+        if (empty($list)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无订单记录']);
+        }
+        $result=[];
+        $orderModel = new \app\common\model\Order();
+        $list = $orderModel->getOrderList($list, FALSE);
+        foreach ($list as $key => $value) {
+            $whereSku=[];
+            $whereSku['order_id']=$value['order_id'];
+            if ($isSkuName) {
+                $whereSku['sku_name']=['like','%'.$keyword.'%'];
+            }
+            $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
+            $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
+
+            $list[$key]['skus'] = $skus;
+            unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
+            unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+            unset($list[$key]['_service'], $list[$key]['_apply_status']);
+            if (!empty($skus)){
+                $result[]=$list[$key];
             }
         }
-        $this->_returnMsg(['list' => $list]);
+        $this->_returnMsg(['list' => $result]);
     }
     //获取订单详情
     protected function getOrderDetail()
@@ -1625,6 +1691,19 @@ class Admin extends Index
             'S.is_del' => 0,
         ];
         $serviceStatus = isset($this->postParams['status']) ? $this->postParams['status'] : '';
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
+
+        if (!empty($keyword)) {
+            if (preg_match('/^\d{29}$/',$keyword)) {
+                $where['S.order_sn'] =$keyword;
+            } else if (preg_match('/^\d{18}$/',$keyword)) {
+                $where['S.service_sn'] =$keyword;
+            }else if (preg_match('/^\d{11}$/',$keyword)) {
+                $where['S1.mobile'] =$keyword;
+            }else{
+                $where['S1.name'] =['like','%'.$keyword.'%'];
+            }
+        }
         if (''!==$serviceStatus && in_array($serviceStatus,[-2,-1,0,1,2,3])) {
             $where['S.service_status']=$serviceStatus;
         }
@@ -1760,6 +1839,7 @@ class Admin extends Index
             'status' => 1,
         ];
         $workOrderType = isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         $workOrderStatus = isset($this->postParams['status']) && is_numeric($this->postParams['status']) ? intval($this->postParams['status']) : FALSE;
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
             $where['work_order_type']=$workOrderType;
@@ -1772,6 +1852,22 @@ class Admin extends Index
                 $where['installer_id']=$installerId;
             }
         }
+        $isOrderSn=false;
+        $isWorkSn=false;
+        $isMobile=false;
+        $isUserName=false;
+        if (!empty($keyword)) {
+            if (preg_match('/^\d{29}$/',$keyword)) {
+                $isOrderSn=true;
+            } else if (preg_match('/^\d{20}$/',$keyword)) {
+                $isWorkSn=true;
+            }else if (preg_match('/^\d{11}$/',$keyword)) {
+                $isMobile=true;
+            }else{
+                $isUserName=true;
+            }
+        }
+
         if ($workOrderStatus !== FALSE &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
             $where['work_order_status']=$workOrderStatus;
         }
@@ -1791,6 +1887,18 @@ class Admin extends Index
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
+        }
+        if ($isOrderSn) {
+            $where['order_sn']=$keyword;
+        }
+        if ($isWorkSn) {
+            $where['worder_sn']=$keyword;
+        }
+        if ($isMobile) {
+            $where['phone']=$keyword;
+        }
+        if ($isUserName) {
+            $where['user_name']=$keyword;
         }
         $order = 'worder_id desc';
         $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name';
