@@ -2313,16 +2313,13 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
-        if ($info['check_status']==1) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已通过审核']);
-        }
         $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
         $data['phone'] = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         if (empty($data['realname'])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师姓名不能为空']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师姓名不能为空']);
         }
         if (empty($data['phone'])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师手机号不能为空']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师手机号不能为空']);
         }
         $user=new \app\common\model\User;
         if ($user->checkPhone(0,$data['phone'])===FALSE) {
