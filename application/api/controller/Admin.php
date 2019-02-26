@@ -2159,8 +2159,19 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $field='job_no,realname,phone,status,check_status,admin_remark,add_time';
-        $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
+        $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
+
+        $isMobile=false;
+        $isUserName=false;
+        if (!empty($keyword)) {
+             if (preg_match('/^\d{11}$/',$keyword)) {
+                $isMobile=true;
+            }else{
+                $isUserName=true;
+            }
+        }
+
         $where=['is_del'=>0];
         switch ($status) {
             case 1://待审核
@@ -2175,9 +2186,15 @@ class Admin extends Index
             default://全部
                 break;
         }
-        if (!empty($key)) {
-            $where['realname|phone']=['like','%'.$key.'%'];
+        if ($isMobile) {
+            $where['phone']=$keyword;
         }
+        if ($isUserName) {
+            $where['realname']=['like','%'.$keyword.'%'];
+        }
+        //if (!empty($key)) {
+        //    $where['realname|phone']=['like','%'.$key.'%'];
+        //}
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $where['factory_id']=$user['store_id'];
         } elseif ($user['admin_type'] == ADMIN_SERVICE) {
@@ -2903,9 +2920,9 @@ class Admin extends Index
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
              //$userId = 2;//厂商
-             $userId =4;//渠道商
+             //$userId =4;//渠道商
              //$userId = 5;//零售商
-             //$userId = 6;//服务商
+             $userId = 6;//服务商
              
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
