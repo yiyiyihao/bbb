@@ -958,8 +958,16 @@ class Admin extends Index
             'S.enter_type'    => 1,
         ];
         $checkStatus=isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
+        $keyword=isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         if (''!==$checkStatus) {
             $where['S.check_status']=$checkStatus;
+        }
+        if ('' !== $keyword) {
+            if (preg_match('/^\d{11}$/', $keyword)) {
+                $where['S.mobile']=$keyword;
+            } else {
+                $where['S.name|S.user_name']=['like',$keyword];
+            }
         }
         $field = 'S.store_no, S.name, store_type, security_money, sample_amount, check_status, user_name, mobile, region_name, address, add_time';
         $order = 'S.add_time desc';
@@ -2916,10 +2924,10 @@ class Admin extends Index
     private function _checkUser($checkFlag = TRUE)
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
-             //$userId = 2;//厂商
+             $userId = 2;//厂商
              //$userId =4;//渠道商
              //$userId = 5;//零售商
-             $userId = 6;//服务商
+             //$userId = 6;//服务商
              
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
@@ -2996,6 +3004,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->field('store_no, name, store_type')->find();
+            $avatar=db('user_data')->where(['user_id'=>$userId,'is_del'=>0])->value('avatar');
             $userinfo = [
                 'admin_type'=> $user['admin_type'],
                 'username'  => $user['username'],
@@ -3003,6 +3012,7 @@ class Admin extends Index
                 'nickname'  => $user['nickname'],
                 'phone'     => $user['phone'],
                 'status'    => $user['status'],
+                'avatar'    => $avatar,
             ];
             session('api_user_data', []);
             $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
