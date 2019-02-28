@@ -28,6 +28,13 @@ class Admin extends Index
             $this->debug = TRUE;
         }
     }
+    protected function logout()
+    {
+        session('api_user_data', []);
+        session('api_admin_user', []);
+        $this->_returnMsg(['msg' => '登录数据清理成功']);
+    }
+    
     protected function getSession()
     {
         $session = session('api_test');
@@ -41,19 +48,19 @@ class Admin extends Index
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
     {
-//         $udata = $this->_getScopeUser();
+        $this->returnLogin = FALSE;
         parent::uploadImage($verifyUser);
     }
     //上传图片
     protected function uploadImageSource($verifyUser = FALSE)
     {
-//         $udata = $this->_getScopeUser();
+        $this->returnLogin = FALSE;
         parent::uploadImageSource($verifyUser);
     }
     //发送短信验证码
     protected function sendSmsCode()
     {
-//         $udata = $this->_getScopeUser();
+        $this->returnLogin = FALSE;
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
@@ -66,7 +73,7 @@ class Admin extends Index
     //短信验证码验证
     protected function checkSmsCode()
     {
-//         $udata = $this->_getScopeUser();
+        $this->returnLogin = FALSE;
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
@@ -140,7 +147,7 @@ class Admin extends Index
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
             session('api_user_data', $oauth);
-            $this->_returnMsg(['msg' => '授权成功,请绑定用户账号', 'errLogin' => 2]);
+            $this->_returnMsg(['msg' => '授权成功', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
     }
@@ -242,7 +249,7 @@ class Admin extends Index
             $udata['user_id'] = $userId;
             $udata['store_id'] = 0;
             session('api_user_data', $udata);
-            $this->_returnMsg(['msg' => '注册成功,请完善资料']);
+            $this->_returnMsg(['msg' => '注册成功,请填写商家资料', 'errLogin' => 3]);
         }
     }
     //商户入驻-完善商户资料
@@ -459,6 +466,27 @@ class Admin extends Index
         $this->_logResult("sign_package\r\n".json_encode($config['sign_package']));
         $this->_returnMsg(['detail' => $config]);
     }
+    protected function getShareCode()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $info = db('store')->where('store_id',$user['store_id'])->find();
+        $codeUrl = '';
+        if ($info['wxacode']) {
+            $codeArray = json_decode($info['wxacode'], 1);
+            $codeUrl = isset($codeArray['installer']) ? trim($codeArray['installer']) : ''; 
+        }
+        if (!$codeUrl) {
+            $wxcodeService = new \app\common\service\Wxcode();
+            $codeUrl = $wxcodeService->getStoreAppletCode($info, 'installer');
+            if ($codeUrl === FALSE) {
+                $this->error($wxcodeService->error);
+            }
+        }
+        $this->_returnMsg(['code' => $codeUrl]);
+    }
     //获取首页信息
     protected function getHomeDetail()
     {
@@ -472,6 +500,28 @@ class Admin extends Index
         unset($result['tpl']);
         $this->_returnMsg(['detail' => $result]);
     }
+    //获取厂商公告列表(全部/未读)
+    protected function getFactoryBulletinList()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $where = [
+            'is_del' => 0,
+            'store_id' => $user['store_id'],
+        ];
+        $field = 'bulletin_id, name, special_display, store_type, publish_time, is_top, publish_status';
+        $order = 'is_top DESC, sort_order ASC, add_time DESC';
+        $list = $this->_getModelList(db('bulletin'), $where, $field, $order);
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $list[$key]['store_type_name'] = get_store_type($value['store_type']);
+            }
+        }
+        $this->_returnMsg(['list' => $list]);
+    }
+    
     //获取用户公告列表(全部/未读)
     protected function getBulletinList()
     {
@@ -507,30 +557,42 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告ID不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $join = [
-            ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.$user['user_id'], 'LEFT']
-        ];
-        $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read, IFNULL(BR.is_del, 0) as is_del';
-        $where = [
-            'B.publish_status' => 1,
-            'B.bulletin_id' => $bulletinId,
-        ];
-        $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))')];
-        $where[] = ['', 'EXP', \think\Db::raw('B.store_type IN(0, '.$user['store_type'].')')];
-        $where[] = ['', 'EXP', \think\Db::raw('(BR.bulletin_id IS NULL OR BR.is_del = 0)')];
-        
-        $detail = db('bulletin')->alias('B')->join($join)->where($where)->field($field)->find();
-        if (!$detail || $detail['is_del']) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
-        }
-        if ($return) {
-            return $detail;
-        }
-        if (!$detail['is_read']) {
-            $detail = $this->setBulletinRead($detail);
+        if ($user['admin_type'] != ADMIN_FACTORY) {
+            $join = [
+                ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.$user['user_id'], 'LEFT']
+            ];
+            $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read, IFNULL(BR.is_del, 0) as is_del';
+            $where = [
+                'B.publish_status' => 1,
+                'B.bulletin_id' => $bulletinId,
+            ];
+            $where[] = ['', 'EXP', \think\Db::raw('B.visible_range = 1 OR (visible_range = 0 AND find_in_set('.$user['store_id'].', B.to_store_ids))')];
+            $where[] = ['', 'EXP', \think\Db::raw('B.store_type IN(0, '.$user['store_type'].')')];
+            $where[] = ['', 'EXP', \think\Db::raw('(BR.bulletin_id IS NULL OR BR.is_del = 0)')];
+            
+            $detail = db('bulletin')->alias('B')->join($join)->where($where)->field($field)->find();
+            if (!$detail) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
+            }
+            if ($return) {
+                return $detail;
+            }
+            if (!$detail['is_read']) {
+                $detail = $this->setBulletinRead($detail);
+            }
+        }else{
+            $field = 'bulletin_id, name, special_display, content, store_type, publish_time, is_top, publish_status';
+            $where = [
+                'is_del' => 0,
+                'store_id' => $user['store_id'],
+            ];
+            $detail = db('bulletin')->where($where)->field($field)->find();
+            if (!$detail) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
+            }
         }
         $this->_returnMsg(['detail' => $detail]);
     }
@@ -2931,7 +2993,7 @@ class Admin extends Index
              $userId = 2;//厂商
              //$userId =4;//渠道商
              //$userId = 5;//零售商
-             //$userId = 6;//服务商
+             $userId = 6;//服务商
              
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
@@ -2977,7 +3039,7 @@ class Admin extends Index
         }
         $sessionUdata = session('api_user_data');
         if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后登录', 'errLogin' => 1]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请授权后操作', 'errLogin' => 1]);
         }
         //判断授权微信用户是否已经绑定用户信息
         $udata = db('user_data')->where(['udata_id' => $sessionUdata['udata_id'], 'factory_id' => $this->factory['store_id'], 'third_type' => $this->thirdType])->find();
@@ -3001,6 +3063,9 @@ class Admin extends Index
         $user = $userModel->where(['user_id' => $userId, 'is_del' => 0])->find();
         if (!$user) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
+        }
+        if (!$user['store_id']) {
+            $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3]);
         }
         $user['third_openid'] = $thirdOpenid;
         $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
