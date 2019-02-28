@@ -108,10 +108,10 @@ class Admin extends Index
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
         }
-//         $result = $wechatApi->getOauthOpenid($code, TRUE);
-//         if ($result === FALSE) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-//         }
+        $result = $wechatApi->getOauthOpenid($code, TRUE);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+        }
 //         #TODO 删除模拟用户数据
 //         $result = [
 //             'appid' => 'wx8389c5dbe29dace0',
@@ -121,14 +121,14 @@ class Admin extends Index
 //             'sex' => 1,
 //             'unionid' => '',
 //         ];
-        $result = [
-            'appid' => 'wxa57c32c95d2999e5',
-            'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
-            'nickname' => 'John',
-            'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
-            'sex' => 1,
-            'unionid' => '',
-        ];
+//         $result = [
+//             'appid' => 'wxa57c32c95d2999e5',
+//             'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
+//             'nickname' => 'John',
+//             'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
+//             'sex' => 1,
+//             'unionid' => '',
+//         ];
         $userModel = new \app\common\model\User();
         $params = [
             'user_type'     => 'user',
@@ -589,6 +589,7 @@ class Admin extends Index
             $where = [
                 'is_del' => 0,
                 'store_id' => $user['store_id'],
+                'bulletin_id' => $bulletinId,
             ];
             $detail = db('bulletin')->where($where)->field($field)->find();
             if (!$detail) {
