@@ -491,9 +491,12 @@ class Admin extends Index
         $join = [
             ['bulletin_log BR', 'B.bulletin_id = BR.bulletin_id AND BR.user_id = '.$user['user_id'], 'LEFT']
         ];
-        $field = 'B.bulletin_id, B.name, B.special_display, B.content, B.publish_time, B.is_top, IFNULL(BR.is_read, 0) as is_read';
+        $field = 'B.bulletin_id,B.name,B.special_display,B.publish_time,B.is_top,IFNULL(BR.is_read, 0) as is_read';
         $order = 'is_top DESC, publish_time DESC';
         $list = $this->_getModelList(db('bulletin'), $where, $field, $order, 'B', $join);
+        foreach ($list as $key=>$item) {
+            $list[$key]['publish_time']=time_to_date($item['publish_time']);
+        }
         $this->_returnMsg(['list' => $list]);
     }
     //获取公告详情
@@ -1909,12 +1912,13 @@ class Admin extends Index
             $where['user_name']=$keyword;
         }
         $order = 'worder_id desc';
-        $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name';
+        $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name,receive_time';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
         $list=array_map(function ($item) {
             $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
             $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
             $item['work_order_type_desc']=get_work_order_type($item['work_order_type']);
+            $item['receive_time']=time_to_date($item['receive_time']);
             unset($item['region_name']);
             return $item;
         },$list);
