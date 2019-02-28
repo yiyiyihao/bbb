@@ -606,7 +606,7 @@ class Admin extends Index
             }
         }
 
-        $field = 'S.store_id,S.store_no,S.name,S.store_type,S.region_name,S.address,S.status';
+        $field = 'S.store_id,S.store_no,S.name,S.store_type,S.region_name,S.address,S.status,S.user_name,S.mobile';
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : 0;
             if (!$storeType){

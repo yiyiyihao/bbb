@@ -728,6 +728,28 @@ function pre($array, $undie = 0)
 }
 
 /**
+ * 打印数据
+ * @param $var
+ * @param bool $flag
+ */
+function p($var,$flag=false){
+    $debugInfo = debug_backtrace();
+    $message= $debugInfo[0]['file']. ':'.$debugInfo[0]['line'];
+    $len=(mb_strlen($message)-6)/2;
+    $len=$len>0 && $len<=100 ? ceil($len):10;
+    echo '<p>[file path]: '.$message.'</p>';
+    echo '<p>[var type]:  '.gettype($var).'</p>';
+    echo '<pre>';
+    var_export($var);
+    echo '</pre>';
+    echo '<p>'.str_pad('',$len,'=').'华丽的分割线'.str_pad('',$len,'=').'</p>';
+    if(!$flag){
+        exit();
+    }
+}
+
+
+/**
  * 格式化时间戳
  * @param int $timediff 时间戳
  * @param number $return_type 返回数据类型 1：带单位字符串 2：返回分钟数 3： 数组
