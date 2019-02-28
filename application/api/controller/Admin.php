@@ -585,7 +585,7 @@ class Admin extends Index
                 $detail = $this->setBulletinRead($detail);
             }
         }else{
-            $field = 'bulletin_id, name, special_display, content, store_type, publish_time, is_top, publish_status';
+            $field = 'bulletin_id,name,special_display,content,store_type,publish_time,is_top,publish_status';
             $where = [
                 'is_del' => 0,
                 'store_id' => $user['store_id'],
@@ -596,6 +596,7 @@ class Admin extends Index
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告不存在或已删除']);
             }
         }
+        $detail['publish_time']=date('Y-m-d H:i');
         $this->_returnMsg(['detail' => $detail]);
     }
     //设置公告已读
@@ -2992,10 +2993,10 @@ class Admin extends Index
     private function _checkUser($checkFlag = TRUE)
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
-             $userId = 2;//厂商
-             //$userId =4;//渠道商
+             //$userId = 2;//厂商
+             $userId =4;//渠道商
              //$userId = 5;//零售商
-             $userId = 6;//服务商
+             //$userId = 6;//服务商
              
              $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
              $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
