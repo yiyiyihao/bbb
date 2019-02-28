@@ -511,12 +511,13 @@ class Admin extends Index
             'is_del' => 0,
             'store_id' => $user['store_id'],
         ];
-        $field = 'bulletin_id, name, special_display, store_type, publish_time, is_top, publish_status';
+        $field = 'bulletin_id,name,special_display,store_type,publish_time,is_top,publish_status';
         $order = 'is_top DESC, sort_order ASC, add_time DESC';
         $list = $this->_getModelList(db('bulletin'), $where, $field, $order);
         if ($list) {
             foreach ($list as $key => $value) {
                 $list[$key]['store_type_name'] = get_store_type($value['store_type']);
+                $list[$key]['publish_time'] = time_to_date($value['publish_time']);
             }
         }
         $this->_returnMsg(['list' => $list]);
