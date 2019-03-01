@@ -2133,7 +2133,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
         }
         $model=new \app\common\model\WorkOrder();
-        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn,'store_id'=>$user['store_id']])->find();
+        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn,'post_store_id'=>$user['store_id']])->find();
         if (empty($worder)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
         }
