@@ -2030,15 +2030,22 @@ class Admin extends Index
         $info['installer_name']=isset($installer['realname'])?$installer['realname']:'';
         $info['installer_phone']=isset($installer['phone'])?$installer['phone']:'';
         unset($info['store_id'],$info['installer_id']);
+
         $dispatchStatus=db('work_order_installer_record')->where(['worder_id'=>$info['worder_id'],'is_del'=>0])->order('log_id desc')->value('action');
+
         $info['images']= $info['images'] ? explode(',',$info['images']) : [];
         $regionName=str_replace(' ','',$info['region_name']);
         $info['address']=$regionName.$info['address'];
-        $info['msg']=db('work_order_log')->where(['worder_id'=>$info['worder_id']])->order('log_id desc')->value('msg');
+        $log = db('work_order_log')->where(['worder_id' => $info['worder_id']])->order('log_id desc')->find();
+
+        $info['msg']= $log['msg'];
+        $info['dispatch_status']=$dispatchStatus;
+
+        $info['log_action']=$log['action'];
+        $info['log_msg']=$log['msg'];
         $info['dispatch_time']=time_to_date($info['dispatch_time']);
         $info['receive_time']=time_to_date($info['receive_time']);
         $info['sign_time']=time_to_date($info['sign_time']);
-        $info['dispatch_status']=$dispatchStatus;
         $info['work_order_status_text']=get_work_order_status($info['work_order_status']);
         $info['work_order_type_text']=get_work_order_type($info['work_order_type']);
         $info['appointment']=time_to_date($info['appointment']);
@@ -2114,11 +2121,11 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败【'.$model->error.'】']);
         }
     }
-    //取消工单操作【服务商】
+    //取消工单操作【服务商，零售商，服务商】
     protected function cancelWorkOrder()
     {
         $user=$this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_DEALER,ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
