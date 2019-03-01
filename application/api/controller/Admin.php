@@ -2133,14 +2133,33 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不能为空']);
         }
         $model=new \app\common\model\WorkOrder();
-        $worder=$model->where(['is_del'=>0,'worder_sn'=>$worderSn,'post_store_id'=>$user['store_id']])->find();
+        $where['is_del']=0;
+        $where['worder_sn']=$worderSn;
+        switch ($user['admin_type']) {
+            case ADMIN_FACTORY://厂商
+                $where['factory_id'] = $user['store_id'];
+                break;
+            case ADMIN_SERVICE://服务商
+                $where['store_id'] = $user['store_id'];
+                break;
+            case ADMIN_CHANNEL://渠道商
+                $where['post_store_id'] = $user['store_id'];
+                break;
+            case ADMIN_DEALER://零售商
+                $where['post_store_id'] = $user['store_id'];
+                break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+                break;
+        }
+        $worder=$model->where($where)->find();
         if (empty($worder)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单号不存在或已删除']);
         }
 
         $result = $model->worderCancel($worder, $user);
         if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '取消失败【'.$model->error.'】']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败，'.$model->error.'']);
         }else{
             $this->_returnMsg(['msg' => '取消工单成功']);
         }

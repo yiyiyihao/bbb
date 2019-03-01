@@ -477,13 +477,13 @@ class WorkOrder extends Model
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($worder['work_order_status']) {
             case -1:
-                $this->error = '工单已取消,无操作权限';
+                $this->error = '工单已取消';
                 return FALSE;
             case 3:
-                $this->error = '工程师服务中,无操作权限';
+                $this->error = '工程师服务中';
                 return FALSE;
             case 4:
-                $this->error = '服务已完成,无操作权限';
+                $this->error = '服务已完成';
                 return FALSE;
             default:
                 ;
