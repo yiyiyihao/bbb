@@ -116,7 +116,12 @@ class System extends adminSystem
         $name = $platType == 1? 'installer' : 'user';
         $codeUrl = isset($wxacode[$name]) ?trim($wxacode[$name]) : '';
         if (!$codeUrl) {
-            //远程判断图片是否存在
+            $wxcodeService = new \app\common\service\Wxcode(); 
+            $codeUrl = $wxcodeService->getStoreAppletCode($info, $name);
+            if ($codeUrl === FALSE) {
+                $this->error($wxcodeService->error);
+            }
+            /* //远程判断图片是否存在
             $qiniuApi = new \app\common\api\QiniuApi();
             $config = $qiniuApi->config;
             $domain = $config ? 'http://'.$config['domain'].'/': '';
@@ -139,7 +144,7 @@ class System extends adminSystem
                     'wxacode' => json_encode($wxacode),
                 ];
                 $result = $storeModel->save($data, ['store_id' => $info['store_id']]);
-            }
+            } */
         }
         $this->assign('info', $info);
         $this->assign('codeUrl', $codeUrl);

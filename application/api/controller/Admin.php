@@ -28,6 +28,21 @@ class Admin extends Index
             $this->debug = TRUE;
         }
     }
+    protected function unbindUser()
+    {
+        #TODO 测试解绑用 
+        $userDataId = isset($this->postParams['udata_id']) ? intval($this->postParams['udata_id']) : 0;
+        if ($userDataId) {
+            $result = db('user_data')->where(['udata_id' => $userDataId])->update(['user_id' => 0]);
+            if ($result){
+                pre('success');
+            }
+        }else{
+            $list = db('user_data')->field('udata_id, user_id, nickname, appid')->where('third_type', 'wechat_h5')->order('udata_id DESC')->select();
+            pre($list);
+        }
+    }
+    
     protected function logout()
     {
         session('api_user_data', []);
