@@ -75,14 +75,18 @@ class User extends Model
             $params['openid']       = $openid;
             $params['user_type']    = $userType;
             $params['appid']        = $appid;
+            $params['avatar']       = $avatar;
+            $params['nickname']     = $nickname;
+            $params['gender']       = $gender;
             $udataId = $userDataModel->save($params);
         }else{
             $udataId = $exist['udata_id'];
             $openid = $exist['openid'];
             $userId = $exist['user_id'];
             //修改第三方更新的数据
+            //@updated by Joe 框架升级修复BUG
             $data = [];
-            foreach ($exist as $key => $value) {
+            foreach ($exist->toArray() as $key => $value) {
                 if (isset($params[$key]) && trim($value) != trim($params[$key])) {
                     $data[$key] = trim($params[$key]);
                 }
