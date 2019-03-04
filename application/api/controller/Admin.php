@@ -102,6 +102,7 @@ class Admin extends Index
     protected function getWechatScope()
     {
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
+        $state = isset($this->postParams['state']) && trim($this->postParams['state']) ? trim($this->postParams['state']) : 'STATE';
         $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
         $appsecret = isset($wechatApi->config['appsecret']) ? trim($wechatApi->config['appsecret']) : '';
         if (!$appid || !$appsecret) {
@@ -110,7 +111,7 @@ class Admin extends Index
         $url = 'http://h5.smarlife.cn';
         $url = 'http://h5.imliuchang.cn';
         $uri = urlEncode($url);
-        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+        $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
         $this->_returnMsg(['scopeUrl' => $scopeUrl, 'errLogin' => 1]);
     }
     //微信授权-第2步，返回微信Openid
