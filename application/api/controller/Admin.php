@@ -1645,7 +1645,7 @@ class Admin extends Index
         $regionName = $data['region_name']  = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
         $address    = $data['address']      = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
         $appointment= $data['appointment']  = isset($this->postParams['appointment']) ? trim($this->postParams['appointment']) : '';
-        $remark     = $data['remark']       = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $remark     = $data['fault_desc']   = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if(!$userName){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户姓名不能为空']);
         }
