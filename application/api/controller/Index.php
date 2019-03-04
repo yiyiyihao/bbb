@@ -718,18 +718,22 @@ class Index extends ApiBase
         if (!$worderSn) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
         }
-        $where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
+        //$where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
+        $where='WO.worder_sn='.$worderSn.' AND WO.is_del=0';
+
         $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
         $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
         $join = [];
         if ($installer) {
-            $where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+            //$where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+            $where .= ' AND ( WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].'))';
             $join = [
                 ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
             ];
             $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         }else{
-            $where['WO.post_user_id'] = $user['user_id'];
+            //$where['WO.post_user_id'] = $user['user_id'];
+            $where.=' AND WO.post_user_id='.$user['user_id'];
         }
         $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
         if (!$detail) {
@@ -765,11 +769,12 @@ class Index extends ApiBase
         $logs = [];
         if ($user['installer']) {
             //获取工程师工单日志
-            $logs = db('work_order_log')->field('worder_sn, action, msg, FROM_UNIXTIME(add_time)')->where(['worder_id' => $detail['worder_id'], 'installer_id' => $user['installer']['installer_id']])->select();
+            $logs = db('work_order_log')->field('worder_sn, action, msg, FROM_UNIXTIME(add_time) add_time')->where(['worder_id' => $detail['worder_id'], 'installer_id' => $user['installer']['installer_id']])->select();
         }
         $logs = $logs ? $logs : [];
         unset($detail['worder_id'], $detail['installer_id'], $detail['osku_id']);
-        $this->_returnMsg(['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess, 'logs' => $logs]);
+        $result = ['detail' => $detail, 'installer' => $installer, 'sku' => $sku, 'assess_list' => $assess, 'logs' => $logs];
+        $this->_returnMsg($result);
     }
     //服务工程师拒绝接单
     protected function refuseWorkOrder()
