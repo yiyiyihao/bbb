@@ -221,6 +221,7 @@ class Admin extends Index
         $password = isset($this->postParams['password']) ? trim($this->postParams['password']) : '';
         $rePwd = isset($this->postParams['re_pwd']) ? trim($this->postParams['re_pwd']) : '';
         $allow = isset($this->postParams['allow']) ? intval($this->postParams['allow']) : 0;
+        $source = isset($this->postParams['source']) ? trim($this->postParams['source']) : '';
         if (!$phone) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码不能为空']);
         }
@@ -265,7 +266,7 @@ class Admin extends Index
             $udata['user_id'] = $userId;
             $udata['store_id'] = 0;
             session('api_user_data', $udata);
-            $this->_returnMsg(['msg' => '注册成功,请填写商家资料', 'errLogin' => 3]);
+            $this->_returnMsg(['msg' => '注册成功,请填写商家资料', 'errLogin' => 3,'source'=>$source]);
         }
     }
     //商户入驻-完善商户资料
