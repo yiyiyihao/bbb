@@ -562,6 +562,10 @@ class Index extends ApiBase
         if (isset($user['phone']) && !$user['phone']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '未绑定手机号不能申请']);
         }
+        $exist=db('user_installer')->where(['phone'=>$user['phone'],'is_del'=>0])->find();
+        if (!empty($exist)){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该号码已经被注册']);
+        }
         if ($user['installer'] && !in_array($user['installer']['check_status'], [-2, -4])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '不能重复申请']);
         }
