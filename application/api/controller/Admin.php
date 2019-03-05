@@ -80,7 +80,7 @@ class Admin extends Index
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
         }
-        if ($type != 'register'){
+        if (!in_array($type,['register','change_phone'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
         parent::sendSmsCode();
@@ -93,8 +93,8 @@ class Admin extends Index
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
         }
-        if ($type != 'register'){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型错误')]);
+        if (!in_array($type,['register','change_phone'])){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
         parent::checkSmsCode();
     }
