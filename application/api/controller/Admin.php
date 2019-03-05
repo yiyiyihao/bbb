@@ -1540,7 +1540,11 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
-        $detail = $result['order'];
+        $detail = json_decode(json_encode($result['order']),true);
+        if (isset($detail['_pay_status']['pay_code']) && $detail['_pay_status']['pay_code'] == 'wechat_js') {
+            $detail['_pay_status']['name']='微信支付';
+        }
+
         $detail['store_name'] = db('store')->where('store_id', $detail['user_store_id'])->value('name');
         $detail['user_phone'] = db('user')->where('user_id', $detail['user_id'])->value('phone');
         //判断订单申请安装状态
