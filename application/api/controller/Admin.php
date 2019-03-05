@@ -414,6 +414,31 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '修改密码成功']);
         }
     }
+
+    //更换手机号
+    protected function changePhone()
+    {
+        $user = $this->_checkUser();
+        if (!isset($user['phone']) || !$user['phone']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您还未绑定手机号，不能更换']);
+        }
+        $oldPhone = isset($this->postParams['old_phone']) ? trim($this->postParams['old_phone']) : '';
+        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        if (!$oldPhone) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '原手机号不能为空']);
+        }
+        if (!$phone) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '新手机号不能为空']);
+        }
+        $userModel = new \app\common\model\User();
+        $result = $userModel->changePhone($user, $oldPhone, $phone);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'msg' => $userModel->error]);
+        }else{
+            $this->_returnMsg(['msg' => '手机号更换成功']);
+        }
+    }
+
     //获取分享页面信息【厂商/渠道商】
     protected function getShareDetail()
     {
