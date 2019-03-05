@@ -1994,13 +1994,14 @@ class Admin extends Index
             $where['user_name']=$keyword;
         }
         $order = 'worder_id desc';
-        $field = 'worder_sn, order_sn, work_order_type, work_order_status, region_name, address, phone, user_name,receive_time';
+        $field = 'worder_sn,order_sn,work_order_type,work_order_status,region_name,address,phone,user_name,receive_time,add_time';
         $list = $this->_getModelList(db('work_order'), $where, $field, $order);
         $list=array_map(function ($item) {
             $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
             $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
             $item['work_order_type_desc']=get_work_order_type($item['work_order_type']);
             $item['receive_time']=time_to_date($item['receive_time']);
+            $item['add_time']=time_to_date($item['add_time']);
             unset($item['region_name']);
             return $item;
         },$list);
