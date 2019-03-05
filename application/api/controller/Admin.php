@@ -1928,21 +1928,21 @@ class Admin extends Index
     {
         $user = $this->_checkUser();
         $where = [
-            'is_del' => 0,
-            'status' => 1,
+            'WO.is_del' => 0,
+            'WO.status' => 1,
         ];
         $workOrderType = isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
         $keyword = isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         $workOrderStatus = isset($this->postParams['status']) && is_numeric($this->postParams['status']) ? intval($this->postParams['status']) : FALSE;
         if (''!==$workOrderType && in_array($workOrderType,[1,2])) {
-            $where['work_order_type']=$workOrderType;
+            $where['WO.work_order_type']=$workOrderType;
         }
         //查找工程师的工单
         $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
         if (!empty($jobNo)) {
             $installerId=db('user_installer')->where('job_no',$jobNo)->value('installer_id');
             if ($installerId) {
-                $where['installer_id']=$installerId;
+                $where['WO.installer_id']=$installerId;
             }
         }
         $isOrderSn=false;
@@ -1962,40 +1962,43 @@ class Admin extends Index
         }
 
         if ($workOrderStatus !== FALSE &&in_array($workOrderStatus, [-1,0,1,2,3,4])) {
-            $where['work_order_status']=$workOrderStatus;
+            $where['WO.work_order_status']=$workOrderStatus;
         }
         switch ($user['admin_type']) {
             case ADMIN_FACTORY://厂商
-                $where['factory_id']=$user['store_id'];
+                $where['WO.factory_id']=$user['store_id'];
                 break;
             case ADMIN_SERVICE://服务商
-                $where['store_id'] = $user['store_id'];
+                $where['WO.store_id'] = $user['store_id'];
                 break;
             case ADMIN_CHANNEL://渠道商
-                $where['post_store_id'] = $user['store_id'];
+                $where['WO.post_store_id'] = $user['store_id'];
                 break;
             case ADMIN_DEALER://零售商
-                $where['post_store_id'] = $user['store_id'];
+                $where['WO.post_store_id'] = $user['store_id'];
                 break;
             default:
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
                 break;
         }
         if ($isOrderSn) {
-            $where['order_sn']=$keyword;
+            $where['WO.order_sn']=$keyword;
         }
         if ($isWorkSn) {
-            $where['worder_sn']=$keyword;
+            $where['WO.worder_sn']=$keyword;
         }
         if ($isMobile) {
-            $where['phone']=$keyword;
+            $where['WO.phone']=$keyword;
         }
         if ($isUserName) {
-            $where['user_name']=$keyword;
+            $where['WO.user_name']=$keyword;
         }
-        $order = 'worder_id desc';
-        $field = 'worder_sn,order_sn,work_order_type,work_order_status,region_name,address,phone,user_name,receive_time,add_time';
-        $list = $this->_getModelList(db('work_order'), $where, $field, $order);
+        $order = 'WO.worder_id desc';
+        $field = 'WO.worder_sn,WO.order_sn,UI.job_no,WO.work_order_type,WO.work_order_status,WO.region_name,WO.address,WO.phone,WO.user_name,WO.receive_time,WO.add_time';
+        $join=[
+            ['user_installer UI', 'WO.installer_id=UI.installer_id', 'LEFT'],
+        ];
+        $list = $this->_getModelList(db('work_order'), $where, $field, $order,'WO',$join);
         $list=array_map(function ($item) {
             $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
             $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
