@@ -44,30 +44,16 @@ class ApiBase extends Base
      */
     protected function _returnMsg($data, $echo = TRUE)
     {
-        $arr=[
-            'errCode'=>0,
-            'errMsg'=>'ok',
-        ];
-        $data = json_decode(json_encode($data), true);
-        $ret=array_merge($arr, $data);
-        $ret['msg']=$ret['errMsg'];//兼容以前代码
+        if (!isset($data['errCode']) || !$data['errCode']) {
+            $tempArr = ['errCode' => 0, 'errMsg' => 'ok'];
+            $data = $data ? ($tempArr + $data) : $data;
+        }
         $result = json_encode($data);
         if ($echo) {
             header('Content-Type:application/json');
             echo $result;
-        }else{
-            return $result;
         }
-        //if (!isset($data['errCode']) || !$data['errCode']) {
-        //    $tempArr = ['errCode' => 0, 'errMsg' => 'ok'];
-        //    $data = $data ? ($tempArr + $data) : $data;
-        //}
-        //$result = json_encode($data);
-        //if ($echo) {
-        //    header('Content-Type:application/json');
-        //    echo $result;
-        //}
-        //return $result;
+        return $result;
     }
     protected function _getMillisecond() {
         list($t1, $t2) = explode(' ', microtime());

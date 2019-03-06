@@ -753,8 +753,6 @@ function log_msg($message='',$type='debug'){
     $msg=var_export($message,true);
     \think\facade\Log::write($msg,$type);
 }
-
-
 /**
  * 格式化时间戳
  * @param int $timediff 时间戳

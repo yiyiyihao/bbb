@@ -47,7 +47,7 @@ class Admin extends Index
     {
         session('api_user_data', []);
         session('api_admin_user', []);
-        $this->_returnMsg(['errMsg' => '登录数据清理成功']);
+        $this->_returnMsg(['msg' => '登录数据清理成功']);
     }
     
     protected function getSession()
@@ -163,7 +163,7 @@ class Admin extends Index
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
             session('api_user_data', $oauth);
-            $this->_returnMsg(['errMsg' => '授权成功', 'errLogin' => 2]);
+            $this->_returnMsg(['msg' => '授权成功', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
     }
@@ -266,7 +266,7 @@ class Admin extends Index
             $udata['user_id'] = $userId;
             $udata['store_id'] = 0;
             session('api_user_data', $udata);
-            $this->_returnMsg(['errMsg' => '注册成功,请填写商家资料', 'errLogin' => 3,'source'=>$source]);
+            $this->_returnMsg(['msg' => '注册成功,请填写商家资料', 'errLogin' => 3,'source'=>$source]);
         }
     }
     //商户入驻-完善商户资料
@@ -351,7 +351,7 @@ class Admin extends Index
             $userModel = new \app\common\model\User();
             $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
 //             $this->_setLogin($udata['user_id'], $udata['third_openid']);
-            $this->_returnMsg(['errMsg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4]);
+            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4]);
         }
     }
     //获取入驻商户审核详情
@@ -411,7 +411,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '修改密码成功']);
+            $this->_returnMsg(['msg' => '修改密码成功']);
         }
     }
 
@@ -433,9 +433,9 @@ class Admin extends Index
         $userModel = new \app\common\model\User();
         $result = $userModel->changePhone($user, $oldPhone, $phone);
         if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+            $this->_returnMsg(['errCode' => 1, 'msg' => $userModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '手机号更换成功']);
+            $this->_returnMsg(['msg' => '手机号更换成功']);
         }
     }
 
@@ -661,7 +661,7 @@ class Admin extends Index
             $detail['is_read'] = 1;
             return $detail;
         }
-        $this->_returnMsg(['errMsg' => '已读操作成功']);
+        $this->_returnMsg(['msg' => '已读操作成功']);
     }
     //获取未读公告数量
     protected function getUnreadBulletinCount(){
@@ -919,7 +919,7 @@ class Admin extends Index
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
             }else{
-                $this->_returnMsg(['errMsg' => '新增零售商成功']);
+                $this->_returnMsg(['msg' => '新增零售商成功']);
             }
         }else{
             $data = [
@@ -940,7 +940,7 @@ class Admin extends Index
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
             }else{
-                $this->_returnMsg(['errMsg' => '新增零售商成功，等待厂商审核']);
+                $this->_returnMsg(['msg' => '新增零售商成功，等待厂商审核']);
             }
         }
     }
@@ -981,7 +981,7 @@ class Admin extends Index
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
             }else{
-                $this->_returnMsg(['errMsg' => '编辑零售商成功']);
+                $this->_returnMsg(['msg' => '编辑零售商成功']);
             }
         }else{
             $temp = [];
@@ -1009,7 +1009,7 @@ class Admin extends Index
                 if ($result === FALSE) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
                 }else{
-                    $this->_returnMsg(['errMsg' => '编辑零售商成功，等待厂商审核']);
+                    $this->_returnMsg(['msg' => '编辑零售商成功，等待厂商审核']);
                 }
             }else{
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '未修改零售商信息']);
@@ -1053,7 +1053,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeModel->error]);
         }else{
             $msg = $check ? '删除零售商操作提交，请等待厂商审核' : '删除商户成功';
-            $this->_returnMsg(['errMsg' => $msg]);
+            $this->_returnMsg(['msg' => $msg]);
         }
     }
     //获取入驻审核列表
@@ -1149,7 +1149,7 @@ class Admin extends Index
         $storeModel = new \app\common\model\Store();
         $result = $storeModel->save($data, ['store_id' => $detail['store_id']]);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => 'ok']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
@@ -1611,7 +1611,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '取消订单成功']);
+            $this->_returnMsg(['msg' => '取消订单成功']);
         }
     }
     //获取订单商品详情
@@ -1745,7 +1745,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
-        $this->_returnMsg(['errMsg' => lang('申请安装成功'), 'worder_sn' => $result]);
+        $this->_returnMsg(['msg' => lang('申请安装成功'), 'worder_sn' => $result]);
     }
     //申请退款
     protected function applyServiceOrder()
@@ -1799,7 +1799,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderSkuServiceModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '退款申请成功,请耐心等待厂商审核']);
+            $this->_returnMsg(['msg' => '退款申请成功,请耐心等待厂商审核']);
         }
     }
     //获取售后订单列表
@@ -1916,7 +1916,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $serviceModel->error]);
         }else {
-            $this->_returnMsg(['errMsg' => '售后取消成功']);
+            $this->_returnMsg(['msg' => '售后取消成功']);
         }
     }
 
@@ -1948,7 +1948,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' =>'审核失败【'. $serviceModel->error].'】');
         }else {
-            $this->_returnMsg(['errMsg' => '审核成功']);
+            $this->_returnMsg(['msg' => '审核成功']);
         }
     }
     
@@ -2166,7 +2166,7 @@ class Admin extends Index
             ];
             //发送给服务商在线管理员
             $push->sendToUid(md5($installer['installer_id']), json_encode($sendData));
-            $this->_returnMsg(['errMsg' => '售后工程师指派成功']);
+            $this->_returnMsg(['msg' => '售后工程师指派成功']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败【'.$model->error.'】']);
         }
@@ -2211,7 +2211,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败，'.$model->error.'']);
         }else{
-            $this->_returnMsg(['errMsg' => '取消工单成功']);
+            $this->_returnMsg(['msg' => '取消工单成功']);
         }
     }
     //获取省份列表
@@ -2445,7 +2445,7 @@ class Admin extends Index
             } else {
                 $informModel->sendInform($user['factory_id'], 'sms', $toUser, 'installer_check_fail');
             }
-            $this->_returnMsg(['errMsg' => '操作成功']);
+            $this->_returnMsg(['msg' => '操作成功']);
         } else {
             $this->_returnMsg(['errCode' => 5, 'errMsg' => '操作失败']);
         }
@@ -2489,7 +2489,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请提交要保存的数据']);
         }
         if (db('user_installer')->where('installer_id',$info['installer_id'])->update($data)) {
-            $this->_returnMsg(['errMsg' => 'ok']);
+            $this->_returnMsg(['msg' => 'ok']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
     }
@@ -2510,7 +2510,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该工程师已被'.$desc.'!']);
         }
         if (db('user_installer')->where('installer_id',$info['installer_id'])->update(['status'=>$status])) {
-            $this->_returnMsg(['errMsg' => $desc.'工程师操作成功']);
+            $this->_returnMsg(['msg' => $desc.'工程师操作成功']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => $desc.'失败']);
     }
@@ -2532,7 +2532,7 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '删除失败']);
         }
-        $this->_returnMsg(['errMsg' => '工程师删除成功']);
+        $this->_returnMsg(['msg' => '工程师删除成功']);
     }
     //获取当前商户的财务数据[渠道商/服务商]
     protected function getFinanceData()
@@ -2615,7 +2615,7 @@ class Admin extends Index
             if (!$result) {
                 db('store_withdraw')->where(['log_id' => $logId])->update(['status' => 0, 'is_del' => 1]);
             }
-            $this->_returnMsg(['errMsg' => '提现申请成功,请耐心等待审核']);
+            $this->_returnMsg(['msg' => '提现申请成功,请耐心等待审核']);
         }else{
             $this->_returnMsg(['errCode' => 9, 'errMsg' => '申请提交异常']);
         }
@@ -2842,7 +2842,7 @@ class Admin extends Index
         if (!$result){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '添加失败']);
         }
-        $this->_returnMsg(['errMsg' => '添加成功']);
+        $this->_returnMsg(['msg' => '添加成功']);
     }
     //编辑提现银行卡
     protected function editWithdrawConfig()
@@ -2871,7 +2871,7 @@ class Admin extends Index
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
         }
-        $this->_returnMsg(['errMsg' => '保存成功']);
+        $this->_returnMsg(['msg' => '保存成功']);
     }
 
 	//启用、禁用零售商
@@ -2898,7 +2898,7 @@ class Admin extends Index
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '保存失败']);
         }
-        $this->_returnMsg(['errMsg' => '成功']);
+        $this->_returnMsg(['msg' => '成功']);
     }
 
     /**NOTICE:============以下为封装函数信息,不允许第三方接口直接调用================================================================*****************************************************************、
@@ -3103,9 +3103,9 @@ class Admin extends Index
         }
         $sessionUdata = session('api_user_data');
         if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
-            $this->_returnMsg(['errMsg' => '前往授权页面', 'errLogin' => 1]);
+            $this->_returnMsg(['msg' => '前往授权页面', 'errLogin' => 1]);
         }
-        $this->_returnMsg(['errMsg' => '已授权,前往登录页面', 'errLogin' => 2]);//已授权未绑定
+        $this->_returnMsg(['msg' => '已授权,前往登录页面', 'errLogin' => 2]);//已授权未绑定
     }
     /**
      * 获取微信授权用户信息
@@ -3144,7 +3144,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
         }
         if (!$user['store_id']) {
-            $this->_returnMsg(['errMsg' => '请填写商家资料', 'errLogin' => 3]);
+            $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3]);
         }
         $user['third_openid'] = $thirdOpenid;
         $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
@@ -3163,7 +3163,7 @@ class Admin extends Index
                 'avatar'    => $avatar,
             ];
             session('api_user_data', []);
-            $this->_returnMsg(['errMsg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
+            $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
 }
