@@ -3013,9 +3013,9 @@ class Admin extends Index
         if (!$userName){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系人姓名不能为空']);
         }
-        if (!$mobile){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
-        }
+        //if (!$mobile){
+        //    $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
+        //}
         if ($storeType == STORE_DEALER && $sampleAmount < 0){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
         }
