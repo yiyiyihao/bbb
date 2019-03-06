@@ -279,6 +279,24 @@ class Workorder extends FactoryForm
             if($installerName){
                 $where['I.realname|I.phone'] = ['like','%'.$installerName.'%'];
             }
+            $address=isset($params['address']) ? trim($params['address']) : '';
+            if(''!==$address){
+                $where['WO.address'] = ['like','%'.$address.'%'];
+            }
+            $regionLen=isset($params['region_len']) ? intval($params['region_len']) : '';
+            $regionId=isset($params['region_id']) ? intval($params['region_id']) : '';
+            $region_name=isset($params['region_name']) ? trim($params['region_name']) : '';
+            if ($regionId>0){
+                switch ($regionLen) {
+                    case 3:
+                        $where['WO.region_id']=$regionId;
+                        break;
+                    case 2:
+                    case 1:
+                        $where['WO.region_name'] = ['like',''.$region_name.'%'];
+                        break;
+                }
+            }
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
                 $sname = isset($params['sname']) ? trim($params['sname']) : '';
                 if($sname){

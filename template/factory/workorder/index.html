@@ -1,38 +1,56 @@
 <div class="panel admin-box">
-	<div class="table-tools clearfix ">
+    <div class="table-tools clearfix ">
         <div class="float-left">
-            <form method="get" action="">
+            <form method="post" class="form-x admin-form form-auto " id="form">
                 <div class="form-inline">
-                	<div class="form-group">
-                        <div class="field">
-                            <input type="text" class="input" id="sn" name="sn" size="30" value="{$_GET['sn'] ?? ''}" placeholder="工单编号">
-                        </div>
-                    </div>
-                	{if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="sname" name="sname" size="30" value="{$_GET['sname'] ?? ''}" placeholder="服务商名称">
+                            <input type="text" class="input" id="sn" name="sn" size="30" value="{:input('sn','','trim')}" placeholder="工单编号">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="sname" name="sname" size="30" datatype="" value="{:input('sname','','trim')}" placeholder="服务商名称">
+                            <div class="input-note"></div>
                         </div>
                     </div>
                     {/if}
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="30" value="{$_GET['name'] ?? ''}" placeholder="客户姓名/电话">
+                            <input type="text" class="input" id="name" name="name" size="30" datatype="" value="{:input('name','','trim')}" placeholder="客户姓名/电话">
+                            <div class="input-note"></div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="field">
-                            <input type="text" class="input" id="installer_name" name="installer_name" size="30" value="{$_GET['installer_name'] ?? ''}" placeholder="工程师姓名/电话">
+                            <input type="text" class="input" id="installer_name" name="installer_name" size="30" datatype="" value="{:input('installer_name','','trim')}" placeholder="工程师姓名/电话">
+                            <div class="input-note"></div>
                         </div>
                     </div>
-                    <div class="form-button">
-                        <button class="button" type="submit">搜索</button>
+                    <div class="form-group">
+                        <button class="button bg-main" type="submit">搜索</button>
+                        <div id="tips"></div>
+                    </div>
+
+                </div>
+                <div class="clearfix">
+                    <div class="form-group float-left" style="min-width: 100%">
+                        <div class="label" style="text-align: left; width: 100px;">
+                            <label>客户地址</label>
+                        </div>
+                        <div class="field" >
+                            <div class="js-select-child float-left" posturl="{:url('Region/getAjaxList')}" formlength="3" formname="region_id" formvalue='{:input("region_id","")}' formstr='{:input("region_name","")}' validtype=''></div>
+                            <input type="text" class="input  float-left" id="address" name="address" size="30" value="{:input('address')}" placeholder="地址" style="margin-left: 5px;">
+                            <div class="input-note"></div>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-  <div class="table-responsive">
+    <div class="table-responsive">
     <table id="table" class="table table-hover ">
       <tbody>
         <tr>
@@ -78,43 +96,49 @@
               <td>{$vo.add_time|date="Y-m-d H:i:s"}</td>
               <td><span class="tag bg-green">{:get_work_order_status($vo['work_order_status'])}</span></td>
               <td>
-              	<span class="button-group">
-              		{if condition="($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && ($adminUser.admin_type == $Think.const.ADMIN_SERVICE)"}
-	              	<a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">{$vo.installer_id ? '重新': ''}派单</a>
-	              	{/if}
-	              	{if condition="$vo['work_order_status'] == 0"}
-	              		{if condition="(($vo.work_order_type==1 && in_array($adminUser.admin_type, [$Think.const.ADMIN_CHANNEL, $Think.const.ADMIN_DEALER]) || ($vo.work_order_type==2 && in_array($adminUser.admin_type, [$Think.const.ADMIN_FACTORY, $Think.const.ADMIN_SERVICE]))))""}
-	              		<a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
-	              		{/if}
-	              	{/if}
+                <span class="button-group">
+                    {if condition="($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && ($adminUser.admin_type == $Think.const.ADMIN_SERVICE)"}
+                    <a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">{$vo.installer_id ? '重新': ''}派单</a>
+                    {/if}
+                    {if condition="$vo['work_order_status'] == 0"}
+                        {if condition="(($vo.work_order_type==1 && in_array($adminUser.admin_type, [$Think.const.ADMIN_CHANNEL, $Think.const.ADMIN_DEALER]) || ($vo.work_order_type==2 && in_array($adminUser.admin_type, [$Think.const.ADMIN_FACTORY, $Think.const.ADMIN_SERVICE]))))""}
+                        <a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
+                        {/if}
+                    {/if}
                     {if $vo.work_order_status==4 && $adminUser.admin_type == $Think.const.ADMIN_FACTORY}
-                    	{if (!$vo['first_assess'] || !$vo['append_assess'])}
-		              	<a href="{:url('assess', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-message"> {$vo['first_assess'] ? '追加' : '首次'}评价</a>
-		              	{/if}
-		              	{if ($vo.work_order_type==1)}
-		              		{if (!$vo.fix_id)}
-		              			<a href="{:url('add', ['ossub_id' => $vo['ossub_id'], 'type' => 2, 'wid' => $vo['worder_id']])}" class="button button-small bg-blue">申请维修</a>
-		              		{else/}
-		              			<a href="{:url('detail', ['id' => $vo['fix_id']])}" class="button button-small bg-gray icon-edit">查看维修详情</a>
-		              		{/if}
-		              	{/if}
-	              	{/if}
-	              	{if condition="!in_array($vo.work_order_status, [-1, 3, 4])"}
-	              	<a href="javascript:;" url="{:url('cancel', ['id' => $vo['worder_id']])}" class="button button-small bg-gray js-action" refresh="true" title="确定取消当前工单">取消</a>
-	              	{/if}
-	              	<a href="{:url('detail', ['id' => $vo['worder_id']])}" class="button button-small bg-green icon-edit">查看详情</a>
-              	</span>
+                        {if (!$vo['first_assess'] || !$vo['append_assess'])}
+                        <a href="{:url('assess', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-message"> {$vo['first_assess'] ? '追加' : '首次'}评价</a>
+                        {/if}
+                        {if ($vo.work_order_type==1)}
+                            {if (!$vo.fix_id)}
+                                <a href="{:url('add', ['ossub_id' => $vo['ossub_id'], 'type' => 2, 'wid' => $vo['worder_id']])}" class="button button-small bg-blue">申请维修</a>
+                            {else/}
+                                <a href="{:url('detail', ['id' => $vo['fix_id']])}" class="button button-small bg-gray icon-edit">查看维修详情</a>
+                            {/if}
+                        {/if}
+                    {/if}
+                    {if condition="!in_array($vo.work_order_status, [-1, 3, 4])"}
+                    <a href="javascript:;" url="{:url('cancel', ['id' => $vo['worder_id']])}" class="button button-small bg-gray js-action" refresh="true" title="确定取消当前工单">取消</a>
+                    {/if}
+                    <a href="{:url('detail', ['id' => $vo['worder_id']])}" class="button button-small bg-green icon-edit">查看详情</a>
+                </span>
               </td>
             </tr>
           {/volist}
         {/notempty}
       </tbody>
     </table>
-  </div>
-  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+    </div>
+    <div class="panel-foot table-foot clearfix">{$page|raw}</div>
 </div>
 <script>
     Do.ready('base', function () {
        $('#table').Table({});
+        //表单综合处理
+        $('#form').FormPage({});
     });
+
 </script>
+<style>
+#regiondata{line-height: 36px;}
+</style>

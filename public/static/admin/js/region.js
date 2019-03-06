@@ -10,7 +10,7 @@
 		if(opt.notmsg != undefined){
 			notmsg = opt.notmsg;
 		}
-		var html = '<input type="hidden" id="region_id" name="'+opt.name+'" '+dataType+' value="'+opt.value+'"><input type="hidden" id="region_name" name="region_name" value="'+opt.formstr+'">'
+		var html = '<input type="hidden" id="region_id" name="'+opt.name+'" '+dataType+' value="'+opt.value+'"><input type="hidden" id="region_name" name="region_name" value="'+opt.formstr+'"><input type="hidden" id="region_len" name="region_len">'
 				  +'<div id="regiondata"></div>'
    				  +'';
 		$(this).html(html);
@@ -20,22 +20,23 @@
 			$("#regiondata").append(formStr);
 		}else{	
 			var postParam = false;
-			getRegionList(opt.postUrl, postParam,tis);
+			getRegionList(opt, postParam,tis);
 		}
 		$(".form-group").on('change','#regiondata select',function(){
 			var region_id = $(this).val();
 			$(this).nextAll().remove();
 			if(region_id != ''){
 				tis.region_id = region_id;
-				getRegionList(opt.postUrl, {parent_id:region_id}, tis,length);
+				getRegionList(opt, {parent_id:region_id}, tis,length);
 			}
 		})
 		$(".form-group").on('click','.changeRegion',function(){
 			$("#regiondata").html("");
-			getRegionList(opt.postUrl, false,tis,length);
+			getRegionList(opt, false,tis,length);
 		})
 	}
-	function getRegionList(url,postParam,tis,length){
+	function getRegionList(opt,postParam,tis,length){
+		url=opt.postUrl;
 		if(!url){
 			layer.alert('ajax post 地址不存在，请检查错误！');
 			return false;
@@ -51,6 +52,19 @@
 		$.post(url, postData,function(data){
 			var data = data.data;
 			var nowLen = $("#regiondata select").length;
+			//@20190306 zhou
+			var region_name = '';
+			var option = tis.find("select.input option:selected");
+			$.each(option,function(i,e){
+				region_name += e.text+' ';
+			});
+			region_name = $.trim(region_name);
+			//debug(region_name);
+			$("#region_id").val(tis.region_id);
+			$("#region_name").val(region_name);
+			$("#region_len").val(nowLen);
+
+
 			if(data && data.length > 0 && nowLen < (length)){
 				var option = '<select class="input">';
 					option +='<option value="">--请选择--</option>';
@@ -59,18 +73,11 @@
 				})
 				option += '</select> ';
 				$("#regiondata").append(option);
-				$("#region_id").val('');
-			}else{
-				if(tis.region_id > 0){
-					var region_name = '';
-					var option = tis.find("select.input option:selected");
-					$.each(option,function(i,e){
-						region_name += e.text+' ';
-					})
-					region_name = $.trim(region_name);
-					//debug(region_name);
-					$("#region_id").val(tis.region_id);
-					$("#region_name").val(region_name);
+				//按地址搜索等操作时可以只选择部分地址
+				if (opt.datatype){
+					$("#region_id").val('');
+					$("#region_name").val('');
+					$("#region_len").val('');
 				}
 			}
 			layer.close(load);
