@@ -211,7 +211,7 @@ class Workorder extends FactoryForm
     public function getAjaxList($where = [], $field = '')
     {
         $this->model = db('user_installer');
-        parent::getAjaxList([], 'installer_id as id,  CONCAT(realname, " | ", phone) as name');
+        parent::getAjaxList([], ['installer_id'=>'id','concat(realname," （ ", phone,"）")'=>'name']);
     }
     public function del()
     {
