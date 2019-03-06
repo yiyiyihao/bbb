@@ -748,6 +748,12 @@ function p($var,$flag=false){
     }
 }
 
+//实时写入日志
+function log_msg($message='',$type='debug'){
+    $msg=var_export($message,true);
+    \think\facade\Log::write($msg,$type);
+}
+
 
 /**
  * 格式化时间戳
