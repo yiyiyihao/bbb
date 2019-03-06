@@ -49,7 +49,8 @@ class LogCode extends Model
         }
         //判断短信验证码发送时间间隔
         $exist = $this->where(['phone' => $phone])->order('add_time DESC')->find();
-        if ($exist && $exist['add_time'] + 60 >= time()) {
+        $addTime=isset($exist['add_time']) && $exist['add_time']? intval($exist['add_time']):0;
+        if ($addTime>0 && $addTime + 60 >= time()) {
             $this->error = '验证码发送太频繁，请稍后再试';
             return FALSE;
         }

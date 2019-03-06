@@ -1210,7 +1210,7 @@ class Admin extends Index
         if ($skus) {
             if (is_array($skus)) {
                 foreach ($skus as $key => $value) {
-                    $skus[$key]['price'] = $value['price'] + $value['install_price'];
+                    $skus[$key]['price'] = bcadd($value['price'],$value['install_price'],2);
                     $skus[$key]['sku_thumb'] = $value['sku_thumb'] ? $value['sku_thumb'] : $detail['thumb'];
                     unset($skus[$key]['install_price']);
                 }
@@ -1290,7 +1290,7 @@ class Admin extends Index
         $return = array(
             'sku_id'    => $skuInfo['sku_id'],
             'sku_thumb' => ($skuInfo['sku_thumb'] ? $skuInfo['sku_thumb'] : $detail['thumb']),
-            'price'     => ($skuInfo['price'] + $skuInfo['install_price']),
+            'price'     => bcadd($skuInfo['price'],$skuInfo['install_price'],2),
             'sku_stock' => $skuInfo['sku_stock'],
             'sales'     => $skuInfo['sales'],
         );
