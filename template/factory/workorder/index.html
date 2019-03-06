@@ -29,16 +29,12 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
-
-
-                </div>
-                <div class="clearfix form-inline">
-                    <div class="form-group" style="min-width: 930px;">
-                        <div class="label" style="text-align: left; width: 100px;">
-                            <label>客户地址</label>
+                    <div class="form-group" style="min-width: 750px;">
+                        <div class="label" style="text-align: right; width: 80px;">
+                            <label>地区</label>
                         </div>
                         <div class="field" >
-                            <div class="js-select-child float-left" posturl="{:url('Region/getAjaxList')}" formlength="2" formname="region_id" formvalue='{:input("region_id","")}' formstr='{:input("region_name","")}' validtype=''></div>
+                            <div class="js-select-child float-left" posturl="{:url('Region/getAjaxList')}" formlength="3" formname="region_id" formvalue='{:input("region_id","")}' formstr='{:input("region_name","")}' validtype=''></div>
                             <input type="text" class="input  float-left" id="address" name="address" size="30" value="{:input('address')}" placeholder="地址" style="margin-left: 5px;">
                             <div class="input-note"></div>
                         </div>
