@@ -47,6 +47,7 @@ class Admin extends Index
     {
         session('api_user_data', []);
         session('api_admin_user', []);
+        session('udata', []);
         $this->_returnMsg(['msg' => '登录数据清理成功']);
     }
     
@@ -1344,16 +1345,17 @@ class Admin extends Index
         if (!empty($user['third_openid'])) {
             $order['openid'] = $user['third_openid'];
         }else{
-            $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
-            $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
-            //获取当前用户h5微信openid
-            $where = [
-                'user_id'       => $user['user_id'],
-                'factory_id'    => $user['factory_id'],
-                'third_type'    => $this->thirdType,
-                'appid'         => $appid,
-            ];
-            $order['openid'] = db('user_data')->where($where)->value('third_openid');
+            //$wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
+            //$appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
+            ////获取当前用户h5微信openid
+            //$where = [
+            //    'user_id'       => $user['user_id'],
+            //    'factory_id'    => $user['factory_id'],
+            //    'third_type'    => $this->thirdType,
+            //    'appid'         => $appid,
+            //];
+            //$order['openid'] = db('user_data')->where($where)->value('third_openid');
+            $order['openid'] = session('udata.third_openid');
         }
         if (!$order['openid']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
@@ -3082,6 +3084,7 @@ class Admin extends Index
              return $loginUser ? $loginUser : [];
         }
         $loginUser = session('api_admin_user');
+        $sessionUdata = session('api_user_data');
         if ($loginUser) {
             if (!$checkFlag) {
                 return $loginUser;
@@ -3101,7 +3104,6 @@ class Admin extends Index
             }
             return $loginUser;
         }
-        $sessionUdata = session('api_user_data');
         if (!$sessionUdata || !isset($sessionUdata['udata_id'])) {
             $this->_returnMsg(['msg' => '前往授权页面', 'errLogin' => 1]);
         }
@@ -3152,7 +3154,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->field('store_no, name, store_type')->find();
-            $avatar=db('user_data')->where(['third_type'=>$thirdOpenid,'is_del'=>0])->value('avatar');
+            $udata=db('user_data')->where(['third_openid'=>$thirdOpenid,'is_del'=>0])->find();
             $userinfo = [
                 'admin_type'=> $user['admin_type'],
                 'username'  => $user['username'],
@@ -3160,9 +3162,10 @@ class Admin extends Index
                 'nickname'  => $user['nickname'],
                 'phone'     => $user['phone'],
                 'status'    => $user['status'],
-                'avatar'    => $avatar,
+                'avatar'    => isset($udata['avatar'])?$udata['avatar']:'',
             ];
             session('api_user_data', []);
+            session('udata',$udata);
             $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
     }
