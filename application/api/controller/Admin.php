@@ -265,6 +265,7 @@ class Admin extends Index
             'is_admin'  => 1,
             'password'  => $userModel->pwdEncryption($password),
             'group_id'  => 0,
+            'source'    => $source,
         ];
         $userId = $userModel->save($data);
         if ($userId === FALSE) {
@@ -382,9 +383,9 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已被删除']);
         }
         //$user = $this->_checkUser(FALSE);
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-        }
+        //if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        //    $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        //}
         $field = 'store_id, enter_type, address, store_type, store_no, check_status, admin_remark, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, add_time';
         $detail = $this->getStoreDetail($field, $user['store_id']);
         if ($detail['enter_type'] != 1) {
@@ -3173,8 +3174,9 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已被禁用']);
         }
         $storeId=(int)$user['store_id'];
+        $source=$user['source'] ? $user['source']: session('api_source');
         if ($storeId <= 0) {
-            $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3]);
+            $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3,'source'=>$source]);
         }
         $store = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
 
@@ -3184,7 +3186,7 @@ class Admin extends Index
         if ($store['status'] != 1) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该商户已被禁用']);
         }
-        $source=session('api_source');
+
         if ($store['check_status'] == 0 && $store['name'] && $store['user_name']) {
             $this->_returnMsg(['msg' => '审核中，请需心等候', 'errLogin' => 4,'source'=>$source]);
         }
