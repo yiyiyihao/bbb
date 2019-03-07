@@ -186,7 +186,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$codeModel->error]);
         }else{
             if ($result['status']) {
-                $this->_returnMsg(['errMsg' => '验证码发送成功,5分钟内有效']);
+                $this->_returnMsg(['msg' => '验证码发送成功,5分钟内有效']);
             }else{
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$result['result']]);
             }
@@ -200,7 +200,7 @@ class Index extends ApiBase
         if ($result === FALSE){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $codeModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '验证成功']);
+            $this->_returnMsg(['msg' => '验证成功']);
         }
     }
     //手机号绑定
@@ -234,7 +234,7 @@ class Index extends ApiBase
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '手机号绑定成功']);
+            $this->_returnMsg(['msg' => '手机号绑定成功']);
         }
     }
     //更换手机号
@@ -257,7 +257,7 @@ class Index extends ApiBase
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
-            $this->_returnMsg(['errMsg' => '手机号更换成功']);
+            $this->_returnMsg(['msg' => '手机号更换成功']);
         }
     }
     //更新个人信息
@@ -273,7 +273,7 @@ class Index extends ApiBase
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
-        $this->_returnMsg(['errMsg' => '个人资料更新成功']);
+        $this->_returnMsg(['msg' => '个人资料更新成功']);
     }
     //用户个人信息
     protected function getUserProfile($openid = '')
@@ -438,7 +438,7 @@ class Index extends ApiBase
             db('UserAddress')->where($where)->update(['isdefault' => 0, 'update_time' => time()]);
         }
         unset($data['add_time'], $data['update_time']);
-        $this->_returnMsg(['errMsg' => '收货地址'.$msg.'成功', 'address' => $data]);
+        $this->_returnMsg(['msg' => '收货地址'.$msg.'成功', 'address' => $data]);
     }
    
     //设置默认收货地址
@@ -448,7 +448,7 @@ class Index extends ApiBase
         $address = $this->_checkAddress($user['user_id']);
         $result = db('UserAddress')->where(['user_id' => $user['user_id'], 'is_del'    => 0])->update(['isdefault' => 0, 'update_time' => time()]);
         $result = db('UserAddress')->where(['address_id' => $address['address_id']])->update(['isdefault' => 1, 'update_time' => time()]);
-        $this->_returnMsg(['errMsg' => '设置默认地址成功']);
+        $this->_returnMsg(['msg' => '设置默认地址成功']);
     }
     //删除用户收货地址
     protected function delUserAddress()
@@ -459,7 +459,7 @@ class Index extends ApiBase
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '收货地址删除失败']);
         }
-        $this->_returnMsg(['errMsg' => '收货地址删除成功']);
+        $this->_returnMsg(['msg' => '收货地址删除成功']);
     }
     //获取维修产品列表
     protected function getWorkOrderGoodsList()
@@ -550,7 +550,7 @@ class Index extends ApiBase
         $this->postParams['images'] = implode(',', $images);
         $sn = $workOrderModel->save($this->postParams);
         if ($sn) {
-            $this->_returnMsg(['errMsg' => '维修工单提交成功', 'worder_sn' => $sn]);
+            $this->_returnMsg(['msg' => '维修工单提交成功', 'worder_sn' => $sn]);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
         }
@@ -617,7 +617,7 @@ class Index extends ApiBase
         }else{
             //修改用户真实姓名
             db('user')->where(['user_id' => $user['user_id']])->update(['realname' => $realname]);
-            $this->_returnMsg(['errMsg' => $msg]);
+            $this->_returnMsg(['msg' => $msg]);
         }
     }
     //获取工程师详情
@@ -795,7 +795,7 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         $result = $worderModel->worderRefuse($detail, $user, $installer, $remark);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '已拒绝']);
+            $this->_returnMsg(['msg' => '已拒绝']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -831,7 +831,7 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         $result = $worderModel->worderReceive($detail, $user, $installer);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '接单成功,请联系客户上门服务']);
+            $this->_returnMsg(['msg' => '接单成功,请联系客户上门服务']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -851,7 +851,7 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         $result = $worderModel->worderSign($detail, $user, $installer);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '签到成功,服务开始']);
+            $this->_returnMsg(['msg' => '签到成功,服务开始']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -871,7 +871,7 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '服务完成,等待评价']);
+            $this->_returnMsg(['msg' => '服务完成,等待评价']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -892,7 +892,7 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         $result = $worderModel->worderCancel($detail, $user, $remark);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '工单取消成功']);
+            $this->_returnMsg(['msg' => '工单取消成功']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -942,7 +942,7 @@ class Index extends ApiBase
         }
         $result = $worderModel->worderAssess($detail, $user, $params);
         if ($result !== FALSE) {
-            $this->_returnMsg(['errMsg' => '操作成功:评价完成']);
+            $this->_returnMsg(['msg' => '操作成功:评价完成']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
@@ -983,7 +983,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['info']]);
         }
         unset($result['status']);
-        $this->_returnMsg(['errMsg' => '图片上传成功', 'file' => $result]);
+        $this->_returnMsg(['msg' => '图片上传成功', 'file' => $result]);
     }
     protected function uploadImageSource($verifyUser = TRUE)
     {
@@ -1012,7 +1012,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['info']]);
         }
         unset($result['status']);
-        $this->_returnMsg(['errMsg' => '图片上传成功', 'file' => $result]);
+        $this->_returnMsg(['msg' => '图片上传成功', 'file' => $result]);
     }
     /****************************************************************====================================================================*************************************************************/
     private function _checkGoods($goodsId = 0, $field = FALSE)
