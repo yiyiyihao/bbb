@@ -371,6 +371,40 @@ class Admin extends Index
             $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
         }
     }
+
+    protected function getStoreApplyInfo()
+    {
+        $userId=session('api_user_data.user_id');
+        if (empty($userId)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请退出重新访问']);
+        }
+        $user=db('user')->where(['is_del'=>0,'status'=>1])->find($userId);
+        if (empty($user)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已被删除']);
+        }
+        if ($user['status']==0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已被禁用']);
+        }
+        $storeId = $user['store_id'];
+        if ($storeId<=0) {
+            $this->_returnMsg(['errCode' => 200, 'errMsg' => '您还未提交商户注册资料']);
+        }
+        $field='store_id,check_status,store_type,store_no,name,user_name,mobile,security_money,region_id,region_name,address,idcard_font_img,idcard_back_img,signing_contract_img,license_img,group_photo,status';
+        $store=db('store')->field($field)->where(['is_del'=>0,'status'=>1])->find($storeId);
+        if (empty($store)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已被删除']);
+        }
+        if ($store['status']==0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已被禁用']);
+        }
+        $store['sample_amount']=0;
+        if ($store['store_type']==STORE_DEALER) {
+            $store['sample_amount']=db('store_dealer')->where(['store_id'=>$storeId])->value('sample_amount');
+        }
+        unset($store['status'],$store['store_id']);
+        $this->_returnMsg(['detail'=>$store]);
+    }
+
     //获取入驻商户审核详情
     protected function getApplyDetail()
     {
