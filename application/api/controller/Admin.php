@@ -1067,10 +1067,10 @@ class Admin extends Index
             'S.is_del'        => 0,
             'S.enter_type'    => 1,
         ];
-        $checkStatus=isset($this->postParams['check_status']) ? intval($this->postParams['check_status']) : '';
+        $checkStatus=isset($this->postParams['check_status']) ? $this->postParams['check_status'] : '';
         $keyword=isset($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         if (''!==$checkStatus) {
-            $where['S.check_status']=$checkStatus;
+            $where['S.check_status']=intval($checkStatus);
         }
         if ('' !== $keyword) {
             if (preg_match('/^\d{11}$/', $keyword)) {
