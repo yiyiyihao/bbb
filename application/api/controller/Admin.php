@@ -48,6 +48,7 @@ class Admin extends Index
         session('api_user_data', []);
         session('api_admin_user', []);
         session('udata', []);
+        session('api_source', '');
         $this->_returnMsg(['msg' => '登录数据清理成功']);
     }
     
@@ -91,11 +92,16 @@ class Admin extends Index
     {
         $this->returnLogin = FALSE;
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
+        $code   = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
         }
         if (!in_array($type,['register','change_phone'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
+        }
+        ## @todo 测试专用
+        if ($code == '666666') {
+            $this->_returnMsg(['msg' => '验证成功']);
         }
         parent::checkSmsCode();
     }
@@ -113,6 +119,7 @@ class Admin extends Index
         $url = 'http://h5.imliuchang.cn';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
+        session('api_source',$state);
         $this->_returnMsg(['scopeUrl' => $scopeUrl, 'errLogin' => 1]);
     }
     //微信授权-第2步，返回微信Openid
@@ -161,9 +168,10 @@ class Admin extends Index
         if ($oauth === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
+        //记录登陆信息['openid' => 'abc', 'user_id' => 123, 'udata_id'=> 456];
+        session('api_user_data', $oauth);
         if (!$oauth['user_id']) {
             $oauth['third_openid'] = $result['openid'];
-            session('api_user_data', $oauth);
             $this->_returnMsg(['msg' => '授权成功', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
@@ -333,9 +341,15 @@ class Admin extends Index
                 $params['security_money'] = $amount;
             }
         }
+        $phone='';
+        if (isset($udata['phone'])&& $udata['phone']){
+            $phone=$udata['phone'];
+        }else{
+            $phone=db('user')->where(['is_del'=>0,'status'=>1,'user_id'=>$udata['user_id']])->value('phone');
+        }
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
-        $params['mobile']     = $udata['phone'];
+        $params['mobile']     = $phone;
         $params['config_json'] = '';
         $params['check_status'] = 0;
         $params['enter_type'] = 1;
@@ -351,14 +365,23 @@ class Admin extends Index
             ];
             $userModel = new \app\common\model\User();
             $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
-//             $this->_setLogin($udata['user_id'], $udata['third_openid']);
-            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4]);
+            //$this->_setLogin($udata['user_id'], $udata['third_openid']);
+            $source=session('api_source');
+            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
         }
     }
     //获取入驻商户审核详情
     protected function getApplyDetail()
     {
-        $user = $this->_checkUser(FALSE);
+        $userId=session('api_user_data.user_id');
+        if (empty($userId)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请退出重新访问']);
+        }
+        $user=db('user')->where(['is_del'=>0,'status'=>1])->find($userId);
+        if (empty($user)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已被删除']);
+        }
+        //$user = $this->_checkUser(FALSE);
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
@@ -1125,7 +1148,7 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $checkStatus = isset($this->postParams['check_result']) ? intval($this->postParams['check_result']) : FALSE;
+        $checkStatus = isset($this->postParams['check_result'])  ? intval($this->postParams['check_result']) : FALSE;
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if (!$checkStatus || !in_array($checkStatus, [-1, 1])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '审核结果错误']);
@@ -3093,14 +3116,15 @@ class Admin extends Index
             if (!$store) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
             }
+            $source=session('api_source');
             if (!$store['status']) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已禁用,请联系厂商启用后登录']);
             }
             if ($store['check_status'] == 0) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请审核中', 'errLogin' => 4]);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请审核中', 'errLogin' => 4,'source'=>$source]);
             }
             if ($store['check_status'] == 2) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请已拒绝', 'errLogin' => 4]);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户申请已拒绝', 'errLogin' => 4,'source'=>$source]);
             }
             return $loginUser;
         }
@@ -3145,8 +3169,27 @@ class Admin extends Index
         if (!$user) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
         }
-        if (!$user['store_id']) {
+        if ($user['status'] !== 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已被禁用']);
+        }
+        $storeId=(int)$user['store_id'];
+        if ($storeId <= 0) {
             $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3]);
+        }
+        $store = db('store')->where(['store_id' => $storeId, 'is_del' => 0])->find();
+
+        if (empty($store)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该商户不存在或已被删除']);
+        }
+        if ($store['status'] != 1) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该商户已被禁用']);
+        }
+        $source=session('api_source');
+        if ($store['check_status'] == 0 && $store['name'] && $store['user_name']) {
+            $this->_returnMsg(['msg' => '审核中，请需心等候', 'errLogin' => 4,'source'=>$source]);
+        }
+        if ($store['check_status']==2) {
+            $this->_returnMsg(['msg' => '审核已不通过，请重新提交资料', 'errLogin' => 4,'source'=>$source]);
         }
         $user['third_openid'] = $thirdOpenid;
         $result = $userModel->setLogin($user, $user['user_id'], 'api_admin');
@@ -3164,7 +3207,7 @@ class Admin extends Index
                 'status'    => $user['status'],
                 'avatar'    => isset($udata['avatar'])?$udata['avatar']:'',
             ];
-            session('api_user_data', []);
+            session('api_user_data', []);//商户绑定以及审核之前的临时变量，走注册完流程后，删除
             session('udata',$udata);
             $this->_returnMsg(['msg' => '登录成功', 'errLogin' => 0, 'user' => $userinfo, 'store' => $store]);//0无异常 1前往授权 2授权成功,需绑定账号
         }
