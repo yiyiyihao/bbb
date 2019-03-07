@@ -3152,7 +3152,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }else{
             $store = db('store')->where(['store_id' => $user['store_id'], 'is_del' => 0])->field('store_no, name, store_type')->find();
-            $avatar=db('user_data')->where(['user_id'=>$userId,'is_del'=>0])->value('avatar');
+            $avatar=db('user_data')->where(['third_type'=>$thirdOpenid,'is_del'=>0])->value('avatar');
             $userinfo = [
                 'admin_type'=> $user['admin_type'],
                 'username'  => $user['username'],
