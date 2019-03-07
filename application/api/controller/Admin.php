@@ -137,21 +137,17 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
         }
         //#TODO 删除模拟用户数据
-        //$result = [
-        //     'appid' => 'wx8389c5dbe29dace0',
-        //     'openid' => 'oTLegtyL8RhaN-XYrbO3XH-JEr6A',
-        //     'nickname' => 'John',
-        //     'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
-        //     'sex' => 1,
-        //     'unionid' => '',
-        //];
-        //$result = [
-        //     'appid' => 'wxa57c32c95d2999e5',
-        //     'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
-        //     'nickname' => 'John',
-        //     'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/HYHibamqC4qTzKKl0SIK02ibx3cYlCN7JeuscOicqQQ8f5ee25AxRg0KjlVj3Sja6oxGIDMJR7ibbhBdic0dGmTXd3w/132',
-        //     'sex' => 1,
-        //     'unionid' => '',
+        //$result=[
+        //    'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
+        //    'appid' => 'wxa57c32c95d2999e5',
+        //    'nickname' => 'John',
+        //    'sex' => 1,
+        //    'language' => 'zh_CN',
+        //    'city' => '深圳',
+        //    'province' => '广东',
+        //    'country' => '中国',
+        //    'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/6ntVHaKIrYePQicia4vSnzoCVlnjHDrOg5fwhiciaJmyDC785qC5ibMJdzDq3KF92ZzEaHCrBm2w8QsnPnh2TZbIEkg/132',
+        //    'privilege' =>[],
         //];
         $userModel = new \app\common\model\User();
         $params = [
