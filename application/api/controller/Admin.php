@@ -32,15 +32,24 @@ class Admin extends Index
     {
         #TODO 测试解绑用 
         $userDataId = isset($this->postParams['udata_id']) ? intval($this->postParams['udata_id']) : 0;
-        if ($userDataId) {
-            $result = db('user_data')->where(['udata_id' => $userDataId])->update(['user_id' => 0]);
-            if ($result){
-                pre('success');
+        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : 0;
+        $where=[];
+        if ($phone) {
+            $userId=db('user')->where(['phone'=>$phone,'is_del'=>0])->value('user_id');
+            if (empty($userId)) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在']);
             }
-        }else{
-            $list = db('user_data')->field('udata_id, user_id, nickname, appid')->where('third_type', 'wechat_h5')->order('udata_id DESC')->select();
-            pre($list);
+            $where['user_id']=$userId;
         }
+        if ($where) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误']);
+        }
+
+        $result=db('user_data')->where($where)->update(['user_id' => 0]);
+        if ($result===false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '解绑失败！']);
+        }
+        $this->_returnMsg(['errCode' => 1, 'errMsg' => '成功！']);
     }
     
     protected function logout()
@@ -164,10 +173,9 @@ class Admin extends Index
         if ($oauth === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
-        //记录登陆信息['openid' => 'abc', 'user_id' => 123, 'udata_id'=> 456];
+        //记录登陆信息['openid' => 'abc', 'user_id' => 123, 'udata_id'=> 456,'third_openid'=>'abc'];
         session('api_user_data', $oauth);
         if (!$oauth['user_id']) {
-            $oauth['third_openid'] = $result['openid'];
             $this->_returnMsg(['msg' => '授权成功', 'errLogin' => 2]);
         }
         $this->_setLogin($oauth['user_id'], $result['openid']);
