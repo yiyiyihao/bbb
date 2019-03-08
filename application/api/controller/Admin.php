@@ -1,5 +1,8 @@
 <?php
 namespace app\api\controller;
+use app\common\model\StoreModel;
+use app\common\model\User;
+
 class Admin extends Index
 {
     private $visitIp;
@@ -312,12 +315,12 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户类型错误')]);
         }
         $channelNo = isset($this->postParams['channel_no']) ? trim($this->postParams['channel_no']) : '';
-        $storeModel = new \app\common\model\Store();
+        //$storeModel = new \app\common\model\Store();
         if ($storeType == STORE_DEALER) {
             if (!$channelNo) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
             }
-            $channel = $storeModel->where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            $channel = StoreModel::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
             if (!$channel) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
             }
@@ -346,26 +349,30 @@ class Admin extends Index
                 $params['security_money'] = $amount;
             }
         }
-        $phone='';
-        if (isset($udata['phone'])&& $udata['phone']){
-            $phone=$udata['phone'];
-        }else{
-            $phone=db('user')->where(['is_del'=>0,'status'=>1,'user_id'=>$udata['user_id']])->value('phone');
+        $where=['is_del'=>0,'status'=>1];
+        $user=User::where($where)->find($udata['user_id']);
+        if (empty($user) || empty($user['phone'])) {
+            $this->_returnMsg(['errCode' => '未绑定手机号，请重新绑定']);
+        }
+        $store=StoreModel::where($where)->find($user['store_id']);
+        if (empty($store)) {
+            $store=new StoreModel();
         }
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
-        $params['mobile']     = $phone;
+        $params['mobile']     = $user['phone'];
         $params['config_json'] = '';
         $params['check_status'] = 0;
         $params['enter_type'] = 1;
-        $storeId = $storeModel->save($params);
-        if ($storeId === FALSE) {
+        //$storeId = $storeModel->save($params);
+        $result=$store->allowField(true)->save($params);
+        if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }else{
             $data = [
                 'admin_type'    => $types[$storeType]['admin_type'],
                 'group_id'      => $types[$storeType]['group_id'],
-                'store_id'      => $storeId,
+                'store_id'      => isset($store['store_id'])? $store['store_id']:$user['store_id'],
                 'realname'      => trim($params['user_name'])
             ];
             $userModel = new \app\common\model\User();
@@ -3066,13 +3073,13 @@ class Admin extends Index
     private function _verifyStoreForm($storeType = STORE_DEALER)
     {
         $data = [];
-        $sname      = $data['name'] = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
-        $userName   = $data['user_name'] = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
-        $mobile     = $data['mobile'] = isset($this->postParams['mobile']) ? trim($this->postParams['mobile']) : '';
-        $sampleAmount   = $data['sample_amount'] = isset($this->postParams['sample_amount']) ? trim($this->postParams['sample_amount']) : '';
+        $sname      = $data['name'] = isset($this->postParams['name']) ? htmlspecialchars(trim($this->postParams['name'])) : '';
+        $userName   = $data['user_name'] = isset($this->postParams['user_name']) ? htmlspecialchars(trim($this->postParams['user_name'])) : '';
+        $mobile     = $data['mobile'] = isset($this->postParams['mobile']) ? htmlspecialchars(trim($this->postParams['mobile'])) : '';
+        $sampleAmount   = $data['sample_amount'] = isset($this->postParams['sample_amount']) ? intval($this->postParams['sample_amount']) : '';
         $regionId   = $data['region_id'] = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : '';
-        $regionName = $data['region_name'] = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
-        $address    = $data['address'] = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $regionName = $data['region_name'] = isset($this->postParams['region_name']) ? htmlspecialchars(trim($this->postParams['region_name'])) : '';
+        $address    = $data['address'] = isset($this->postParams['address']) ? htmlspecialchars(trim($this->postParams['address'])) : '';
         $idcardFontImg  = $data['idcard_font_img'] = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
         $idcardBackImg  = $data['idcard_back_img'] = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
         $signingContractImg = $data['signing_contract_img'] = isset($this->postParams['signing_contract_img']) ? trim($this->postParams['signing_contract_img']) : '';
