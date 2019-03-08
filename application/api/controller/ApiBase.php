@@ -26,7 +26,7 @@ class ApiBase extends Base
         }
         if (!$tempData) {
             $tempData = $data ? $data : (isset($GLOBALS["HTTP_RAW_POST_DATA"]) ? $GLOBALS["HTTP_RAW_POST_DATA"] : '');
-            $this->_logResult("HTTP_RAW_POST_DATA\r\n".$tempData);
+            //$this->_logResult("HTTP_RAW_POST_DATA\r\n".$tempData);
             $this->_logResult("request\r\n".json_encode($this->request));
         }
         if(!is_array($tempData)) {
