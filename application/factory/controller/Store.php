@@ -1,5 +1,7 @@
 <?php
 namespace app\factory\controller;
+use think\Db;
+
 class Store extends FactoryForm
 {
     public function __construct()
@@ -95,15 +97,26 @@ class Store extends FactoryForm
             if (empty($mobile)) {
                 $this->error('请填写有效手机号');
             }
-            $userIds=db('user')->whereIn('phone',$mobile)->where(['is_del'=>0,'factory_id'=>$factoryId])->column('user_id');
+            $user=db('user')->whereIn('phone',$mobile)->where(['is_del'=>0,'factory_id'=>$factoryId])->column('store_id','user_id');
+            $userIds=array_keys($user);
+            $storeIds=array_unique(array_filter(array_values($user)));
             if (empty($userIds)) {
                 $this->error('该手机号未绑定');
             }
+            Db::startTrans();
             $result=db('user_data')->whereIn('user_id',$userIds)->update(['user_id'=>0]);
             if ($result===false) {
+                Db::rollback();
                 $this->error('解绑失败');
             }
             if ($result > 0) {
+                $ret1=db('user')->whereIn('user_id',$userIds)->where(['is_del'=>0,'factory_id'=>$factoryId])->update(['is_del'=>1]);
+                $ret2=db('store')->whereIn('store_id',$storeIds)->where(['is_del'=>0,'factory_id'=>$factoryId])->update(['is_del'=>1]);
+                if ($ret1 === false || $ret2 === false) {
+                    Db::rollback();
+                    $this->error('解绑失败');
+                }
+                Db::commit();
                 $this->success('成功解绑'.$result.'条数据');
             }
             $this->error('数据无修改');
