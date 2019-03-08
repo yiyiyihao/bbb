@@ -1,6 +1,6 @@
 <?php
 namespace app\api\controller;
-use app\common\model\StoreModel;
+use app\common\model\Store;
 use app\common\model\User;
 
 class Admin extends Index
@@ -31,6 +31,10 @@ class Admin extends Index
             $this->debug = TRUE;
         }
     }
+
+
+
+
     protected function unbindUser()
     {
         #TODO 测试解绑用 
@@ -97,7 +101,32 @@ class Admin extends Index
         if (!in_array($type,['register','change_phone'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
-        parent::sendSmsCode();
+
+        $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
+        $codeModel = new \app\common\model\LogCode();
+        if (empty($phone)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请输入手机号码']);
+        }
+        if (!check_mobile($phone)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码无效']);
+        }
+        if (in_array($type,['register','bind_phone','change_phone'])) {
+            $exist=db('user')->where(['phone'=>$phone,'is_del'=>0])->find();
+            if (!empty($exist)){
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '该号码已经被注册']);
+            }
+        }
+        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type);
+        if ($result === FALSE){
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$codeModel->error]);
+        }else{
+            if ($result['status']) {
+                $this->_returnMsg(['msg' => '验证码发送成功,5分钟内有效']);
+            }else{
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$result['result']]);
+            }
+        }
     }
     //短信验证码验证
     protected function checkSmsCode()
@@ -315,12 +344,12 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户类型错误')]);
         }
         $channelNo = isset($this->postParams['channel_no']) ? trim($this->postParams['channel_no']) : '';
-        //$storeModel = new \app\common\model\Store();
+
         if ($storeType == STORE_DEALER) {
             if (!$channelNo) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
             }
-            $channel = StoreModel::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            $channel = Store::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
             if (!$channel) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
             }
@@ -354,33 +383,33 @@ class Admin extends Index
         if (empty($user) || empty($user['phone'])) {
             $this->_returnMsg(['errCode' => '未绑定手机号，请重新绑定']);
         }
-        $store=StoreModel::where($where)->find($user['store_id']);
-        if (empty($store)) {
-            $store=new StoreModel();
-        }
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
         $params['mobile']     = $user['phone'];
         $params['config_json'] = '';
         $params['check_status'] = 0;
         $params['enter_type'] = 1;
-        //$storeId = $storeModel->save($params);
-        $result=$store->allowField(true)->save($params);
-        if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        $storeId=$user['store_id'];
+        $storeModel = new \app\common\model\Store();
+        if (empty($storeId)) {
+            $storeId = $storeModel->save($params);
         }else{
-            $data = [
-                'admin_type'    => $types[$storeType]['admin_type'],
-                'group_id'      => $types[$storeType]['group_id'],
-                'store_id'      => isset($store['store_id'])? $store['store_id']:$user['store_id'],
-                'realname'      => trim($params['user_name'])
-            ];
-            $userModel = new \app\common\model\User();
-            $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
-            //$this->_setLogin($udata['user_id'], $udata['third_openid']);
-            $source=session('api_source');
-            $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
+            $flag=$storeModel->save($params,['store_id'=>$storeId]);
         }
+        if ($storeId===false || $flag === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        }
+        $data = [
+            'admin_type'    => $types[$storeType]['admin_type'],
+            'group_id'      => $types[$storeType]['group_id'],
+            'store_id'      => $storeId,
+            'realname'      => trim($params['user_name'])
+        ];
+        $userModel = new \app\common\model\User();
+        $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
+        //$this->_setLogin($udata['user_id'], $udata['third_openid']);
+        $source=session('api_source');
+        $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
     }
 
     protected function getStoreApplyInfo()

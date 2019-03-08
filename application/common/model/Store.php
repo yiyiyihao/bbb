@@ -276,7 +276,7 @@ class Store extends Model
         }
         return $model;
     }
-    private static function _getMchKey($storeType = 1)
+    public static function _getMchKey($storeType = 1)
     {
         $key = get_nonce_str(10, 2);
         //商户编号：商户类型+“年月日”+“4位随机数字”
