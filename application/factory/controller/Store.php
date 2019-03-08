@@ -69,6 +69,51 @@ class Store extends FactoryForm
             return $this->fetch('store/check');
         }
     }
+
+    public function unbindwechat()
+    {
+        $this->subMenu['menu']=[];
+        //只有厂商才有权限
+        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+
+        if (IS_POST) {
+            $factoryId=$this->adminUser['factory_id'];
+            $mobile=input('mobile','','trim');
+            if (empty($mobile)) {
+                $this->error('请填写要解绑的商户注册手机号');
+            }
+            $mobile=explode(',',str_replace('，',',',$mobile));
+            $mobile=array_map(function ($item){
+                $v=trim($item);
+                if ($v && preg_match('/^1\d{10}$/', $v)) {
+                    return $v;
+                }
+            },$mobile);
+            $mobile=array_unique(array_filter($mobile));
+            if (empty($mobile)) {
+                $this->error('请填写有效手机号');
+            }
+            $userIds=db('user')->whereIn('phone',$mobile)->where(['is_del'=>0,'factory_id'=>$factoryId])->column('user_id');
+            if (empty($userIds)) {
+                $this->error('该手机号未绑定');
+            }
+            $result=db('user_data')->whereIn('user_id',$userIds)->update(['user_id'=>0]);
+            if ($result===false) {
+                $this->error('解绑失败');
+            }
+            if ($result > 0) {
+                $this->success('成功解绑'.$result.'条数据');
+            }
+            $this->error('数据无修改');
+        } else {
+            return $this->fetch('unbind_wechat');
+        }
+
+
+    }
+
 //     function _getAlias()
 //     {
 //         return 'SAR';
