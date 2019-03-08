@@ -402,8 +402,16 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户已被禁用']);
         }
         $store['sample_amount']=0;
+        $store['store_no']='';
         if ($store['store_type']==STORE_DEALER) {
-            $store['sample_amount']=db('store_dealer')->where(['store_id'=>$storeId])->value('sample_amount');
+            $channel=db('store_dealer')
+                ->alias('p1')
+                ->field('p1.sample_amount,p2.store_no')
+                ->join('store p2','p1.ostore_id=p2.store_id')
+                ->where(['p1.store_id'=>$storeId,'p2.is_del'=>0,'status'=>1])
+                ->find();
+            $store['sample_amount']=isset($channel['sample_amount'])?$channel['sample_amount']:'';
+            $store['store_no']=isset($channel['store_no'])?$channel['store_no']:'';
         }
         unset($store['status'],$store['store_id']);
         $this->_returnMsg(['detail'=>$store]);
