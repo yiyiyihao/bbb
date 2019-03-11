@@ -37,7 +37,7 @@ class Login extends CommonBase
                     ['is_del',      '=', 0],
                     ['is_admin',    '<>', 0],
                 ];
-                $user = $userModel->where($where)->fetchSql()->find();
+                $user = $userModel->where($where)->find();
             }else{
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
