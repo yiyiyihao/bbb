@@ -3014,10 +3014,11 @@ class Admin extends Index
     private function _withdrawConfig($user)
     {
         $model=new \app\common\model\StoreFinance;
-        $info=$model->where('store_id', $user['store_id'])->find()->toArray();
+        $info=$model->where('store_id', $user['store_id'])->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无数据']);
         }
+        $info=$info->toArray();
         $config = get_store_config($user['factory_id'], TRUE, 'default');
         $setting['withdraw_start_date']='';
         $setting['withdraw_end_date']='';

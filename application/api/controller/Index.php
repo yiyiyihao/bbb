@@ -187,7 +187,7 @@ class Index extends ApiBase
         if (!check_mobile($phone)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码无效']);
         }
-        if (in_array($type,['register','bind_phone'])) {
+        if (in_array($type,['register'])) {
             $exist=db('user_installer')->where(['phone'=>$phone,'is_del'=>0])->find();
             if (!empty($exist)){
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '该号码已经被注册']);
