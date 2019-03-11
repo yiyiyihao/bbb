@@ -32,12 +32,12 @@ class Login extends CommonBase
             }elseif ($this->adminFactory){
                 $factoryId = $this->adminFactory['store_id'];
                 $where = [
-                    'U.username'    => $userName,
-                    'U.factory_id'  => $factoryId,
-                    'U.is_admin'    => ['<>', 0],
-                    'U.is_del'      => 0,
+                    ['username',    '=', $userName],
+                    ['factory_id',  '=', $factoryId],
+                    ['is_del',      '=', 0],
+                    ['is_admin',    '<>', 0],
                 ];
-                $user = $userModel->where($map)->find();
+                $user = $userModel->where($where)->fetchSql()->find();
             }else{
                 return $this->error(lang('LOGIN_FORBIDDEN'));
             }
