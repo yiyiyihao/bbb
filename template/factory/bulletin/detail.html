@@ -1,16 +1,17 @@
 <div class="admin-detail panel">
 	<div class="panel-head">
-    	<div class="clearfix"><span class="panel-head-title float-left">{$info.name ?? ''}</span><a href="{:url('index')}"><span class="float-right bg-main icon button icon-left">返回</span></a></div>
+        <a href="{:url('index')}"><span class="bg-main icon button icon-left">返回</span></a>
     </div>
-	<div class="panel-body">
-        <p class="pageDescription">{$info.description ?? ''}</p>
+    <div class="panel-body">
+        <div class="pageTitle"><span class="">{$info.name ?? ''}</span></div>
+        {notEmpty name='info.description'}<p class="pageDescription">{$info.description ?? ''}</p>{/notEmpty}
         <div class="pageDetail">
         	{$info.content|raw|default=''}
         </div>
     </div>
-    <div class="panel-foot">
-    	<div class="form-button">
-        	<a class="icon-left icon button bg-main" href="{:url('index')}">返回</a>
-        </div>
-    </div>
+    <!--<div class="panel-foot">-->
+    	<!--<div class="form-button">-->
+        	<!--<a class="icon-left icon button bg-main" href="{:url('index')}">返回</a>-->
+        <!--</div>-->
+    <!--</div>-->
 </div>
