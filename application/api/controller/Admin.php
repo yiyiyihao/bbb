@@ -101,8 +101,8 @@ class Admin extends Index
         if (!in_array($type,['register','change_phone'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
-
-        $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        parent::sendSmsCode();
+        /* $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
         $codeModel = new \app\common\model\LogCode();
         if (empty($phone)) {
@@ -126,7 +126,7 @@ class Admin extends Index
             }else{
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$result['result']]);
             }
-        }
+        } */
     }
     //短信验证码验证
     protected function checkSmsCode()

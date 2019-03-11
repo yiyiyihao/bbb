@@ -181,21 +181,9 @@ class Index extends ApiBase
         $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
         $codeModel = new \app\common\model\LogCode();
-        if (empty($phone)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请输入手机号码']);
-        }
-        if (!check_mobile($phone)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码无效']);
-        }
-        if (in_array($type,['register'])) {
-            $exist=db('user_installer')->where(['phone'=>$phone,'is_del'=>0])->find();
-            if (!empty($exist)){
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '该号码已经被注册']);
-            }
-        }
-        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type);
+        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type, $this->fromSource);
         if ($result === FALSE){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$codeModel->error]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $codeModel->error]);
         }else{
             if ($result['status']) {
                 $this->_returnMsg(['msg' => '验证码发送成功,5分钟内有效']);

@@ -26,12 +26,16 @@ class LogCode extends Model
      * @param string $codeType
      * @return boolean|array
      */
-    public function sendSmsCode($storeId, $phone, $codeType = 'bind_phone')
+    public function sendSmsCode($storeId, $phone, $codeType = 'bind_phone', $source = 'User')
     {
         // 获取短信验证配置
         $config = get_store_config($storeId, TRUE, 'sms');
         if (!$phone) {
             $this->error = '手机号不能为空';
+            return FALSE;
+        }
+        if (!check_mobile($phone)) {
+            $this->error = '手机号码格式错误';
             return FALSE;
         }
         if (!$codeType) {
@@ -45,6 +49,16 @@ class LogCode extends Model
         $templateCode = isset($config['send_code']['template_code']) ? trim($config['send_code']['template_code']) : '';
         if (!$templateCode) {
             $this->error = '短信配置错误';
+            return FALSE;
+        }
+        if (in_array($codeType, ['register','bind_phone','change_phone'])) {
+            //判断当前手机号是否已经注册
+            if($source == 'APPLETS_INTALLER'){
+                $exist = db('user_installer')->where(['phone' => $phone, 'factory_id' => $storeId, 'is_del' => 0])->find();
+            }else{
+                $exist = db('user')->where(['phone' => $phone, 'factory_id' => $storeId, 'is_del' => 0])->find();
+            }
+            $this->error = '该号码已经被注册';
             return FALSE;
         }
         //判断短信验证码发送时间间隔
@@ -78,7 +92,8 @@ class LogCode extends Model
             }else{
                 $this->error = isset($result['Message']) ? $result['Message'] : '';
                 $data['status'] = 0;
-                $data['result'] = '验证码发送失败('.trim($result['Message']).')';
+//                 $data['result'] = '验证码发送失败('.trim($result['Message']).')';
+                $data['result'] = trim($result['Message']);
             }
             $this->save($data, ['code_id' => $codeId]);
             return $data;
