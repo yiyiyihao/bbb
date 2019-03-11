@@ -18,8 +18,6 @@ class Admin extends Index
         header('Access-Control-Allow-Credentials:true');
         $this->mchKey = '1458745225';
         parent::__construct();
-//         session('api_user_data', []);
-//         session('api_admin_user', []);
         $this->version = isset($this->postParams['version']) ? trim($this->postParams['version']) : '';
         if (!$this->version) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('调用的接口版本不能为空')]);
@@ -31,34 +29,6 @@ class Admin extends Index
             $this->debug = TRUE;
         }
     }
-
-
-
-
-    protected function unbindUser()
-    {
-        #TODO 测试解绑用 
-        $userDataId = isset($this->postParams['udata_id']) ? intval($this->postParams['udata_id']) : 0;
-        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : 0;
-        $where=[];
-        if ($phone) {
-            $userId=db('user')->where(['phone'=>$phone,'is_del'=>0])->value('user_id');
-            if (empty($userId)) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在']);
-            }
-            $where['user_id']=$userId;
-        }
-        if ($where) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误']);
-        }
-
-        $result=db('user_data')->where($where)->update(['user_id' => 0]);
-        if ($result===false) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '解绑失败！']);
-        }
-        $this->_returnMsg(['errCode' => 1, 'errMsg' => '成功！']);
-    }
-    
     protected function logout()
     {
         session('api_user_data', []);
@@ -67,17 +37,25 @@ class Admin extends Index
         session('api_source', '');
         $this->_returnMsg(['msg' => '登录数据清理成功']);
     }
-    
-    protected function getSession()
+    //获取当前登录状态
+    protected function getLoginInfo()
     {
-        $session = session('api_test');
-        if (!$session){
-            $session = get_nonce_str(10, 2);
-            session('api_test', $session);
-        }
-        $this->_returnMsg(['session' => $session]);
+        $loginUser = session('api_admin_user');
+        $this->_returnMsg(['loginStatus' => $loginUser ? 1: 0]);
+        
+//         $user = $this->_checkUser();
+//         if (!$user) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
+//         }
+//         if ($user['status'] !== 1) {
+//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已被禁用']);
+//         }
+//         $storeId = (int)$user['store_id'];
+//         if ($storeId <= 0) {
+//             $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3, 'source'=>$source]);
+//         }
+//         $this->_setLogin($user['user_id'], $user['third_openid']);
     }
-    
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
     {
@@ -102,31 +80,6 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
         parent::sendSmsCode();
-        /* $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
-        $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
-        $codeModel = new \app\common\model\LogCode();
-        if (empty($phone)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请输入手机号码']);
-        }
-        if (!check_mobile($phone)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号码无效']);
-        }
-        if (in_array($type,['register','bind_phone','change_phone'])) {
-            $exist=db('user')->where(['phone'=>$phone,'is_del'=>0])->find();
-            if (!empty($exist)){
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '该号码已经被注册']);
-            }
-        }
-        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type);
-        if ($result === FALSE){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$codeModel->error]);
-        }else{
-            if ($result['status']) {
-                $this->_returnMsg(['msg' => '验证码发送成功,5分钟内有效']);
-            }else{
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '验证码发送失败:'.$result['result']]);
-            }
-        } */
     }
     //短信验证码验证
     protected function checkSmsCode()
