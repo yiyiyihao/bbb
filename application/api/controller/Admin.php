@@ -41,8 +41,17 @@ class Admin extends Index
     protected function getLoginInfo()
     {
         $loginUser = session('api_admin_user');
-        $this->_returnMsg(['loginStatus' => $loginUser ? 1: 0]);
-        
+        $sessionUdata = session('api_user_data');
+        if ($loginUser) {
+            $status = 1;//已登录
+        }else{
+            if ($sessionUdata) {
+                $status = 2;//已未登录获取微信信息
+            }else{
+                $status = 0;//未登录
+            }
+        }
+        $this->_returnMsg(['loginStatus' => $status]);
 //         $user = $this->_checkUser();
 //         if (!$user) {
 //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
@@ -346,6 +355,7 @@ class Admin extends Index
         $storeModel = new \app\common\model\Store();
         if (empty($storeId)) {
             $storeId = $storeModel->save($params);
+            $flag = TRUE;
         }else{
             $flag=$storeModel->save($params,['store_id'=>$storeId]);
         }
