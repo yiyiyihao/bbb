@@ -21,15 +21,18 @@ class StoreModel extends Model
     protected $autoWriteTimestamp = true;
 
 
-    //public static function init()
-    //{
-    //    self::event('after_write', function ($store) {
-    //        if (!isset($store['store_no']) || empty($store['store_no'])) {
-    //            self::getMchKey($store['store_type']);
-    //            return false;
-    //        }
-    //    });
-    //}
+    public static function init()
+    {
+        self::event('after_write', function ($store) {
+            //p($store->add_time);
+            log_msg($store);
+            return false;
+            //if (!isset($store['store_no']) || empty($store['store_no'])) {
+            //    self::getMchKey($store['store_type']);
+            //    return false;
+            //}
+        });
+    }
 
 
     private static function getMchKey($storeType = 1)

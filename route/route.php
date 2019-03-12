@@ -13,5 +13,6 @@ Route::domain('www', 'index');
 Route::domain('admin', 'admin');
 Route::domain('api', 'api');
 Route::domain('ws', 'worker');
-Route::domain('*', 'factory');
+Route::domain('open', 'open');
+//Route::domain('*', 'factory');
 return [];
