@@ -36,14 +36,18 @@ class WorkOrderVal extends Validate
         'keyword.chsAlphaNum' => '请输入汉字、英文或数字',
         'phone.require'       => '手机号码不能为空',
         'phone.mobile'        => '手机号码格式不正确',
+        'remark.require'      => '备注信息不能为空',
+        'remark.max'          => '备注信息最多80个字符',
+        'remark.chsAlphaNum'  => '备注信息只能汉字、字母和数字',
     ];
 
     protected function num_code($value, $rule, $data = [])
     {
-        $rule = preg_match('/^\d{4,}$/', $value) ? true : false;
+        $rule = preg_match('/^\d{8,50}$/', $value) ? true : false;
         return $rule;
     }
 
+    //工单列表
     public function sceneList()
     {
         return $this->only(['phone', 'type', 'status', 'job_no', 'keyword'])
@@ -56,12 +60,21 @@ class WorkOrderVal extends Validate
     }
 
 
-    // 详情 验证场景定义
+    //工单详情 验证场景定义
     public function sceneDetail()
     {
         return $this->only(['phone', 'worder_sn'])
             ->append('phone', 'mobile|require')
             ->append('worder_sn', 'require|num_code');
+    }
+
+    //取消工单
+    public function sceneCancel()
+    {
+        return $this->only(['phone', 'worder_sn','remark'])
+            ->append('phone', 'mobile|require')
+            ->append('worder_sn', 'require|num_code')
+            ->append('remark', 'require|chsAlphaNum|max:80');
     }
 
 }

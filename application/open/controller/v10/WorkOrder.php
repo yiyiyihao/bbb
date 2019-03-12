@@ -87,10 +87,10 @@ class WorkOrder extends Base
             'WO.post_user_id' => $user['user_id'],
             'WO.worder_sn'    => $worderSn,
         ];
-        $join=[];
+        $join = [];
         $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
         if (empty($detail)) {
-            return $this->dataReturn(100103,'工单号不存在或已被删除');
+            return $this->dataReturn(100103, '工单号不存在或已被删除');
         }
         $detail['add_time'] = time_to_date($detail['add_time']);
         $detail['dispatch_time'] = time_to_date($detail['dispatch_time']);
@@ -111,7 +111,39 @@ class WorkOrder extends Base
         $workOrderModel = new \app\common\model\WorkOrder();
         $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
         $result = ['detail' => $detail, 'sku' => $sku, 'assess_list' => $assess];
-        return $this->dataReturn(0,'ok',$result);
+        return $this->dataReturn(0, 'ok', $result);
+    }
+
+    //取消工单
+    public function cancel(Request $request)
+    {
+        $check = new WorkOrderVal();
+        if (!$check->scene('cancel')->check($request->param())) {
+            return $this->dataReturn(100100, $check->getError());
+        }
+        $userCheck = $this->getUser($request);
+        if ($userCheck['code'] != 0) {
+            return $this->dataReturn($userCheck);
+        }
+        $user = $userCheck['data'];
+        $worderSn = $request->param('worder_sn', '', 'trim');
+        $remark = $request->param('remark');
+        $where = [
+            'is_del'       => 0,
+            'post_user_id' => $user['user_id'],
+            'worder_sn'    => $worderSn,
+        ];
+        $workOrder=db('work_order')->where($where)->find();
+        if (empty($workOrder)) {
+            return $this->dataReturn(100103, '工单号不存在或已被删除');
+        }
+        $worderModel = new \app\common\model\WorkOrder();
+        $result = $worderModel->worderCancel($workOrder, $user, $remark);
+        if ($result !== FALSE) {
+            return $this->dataReturn(0, '工单取消成功');
+        } else {
+            return $this->dataReturn(0, $worderModel->error);
+        }
     }
 
 
