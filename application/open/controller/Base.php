@@ -12,22 +12,24 @@ class Base extends \app\common\controller\Base
     protected $pageSize;
     protected $page;
     protected $paginate = true;
+    protected $factory;
+    protected $factoryId=1;
 
     public function initialize()
     {
         $this->pageSize = input('page_size', 10, 'intval');
         $this->page = input('page', 1, 'intval');
         if ($this->pageSize > 50) {
-            echo json_encode(dataFormat(100100,'单页显示数量不能大于50'));
+            echo json_encode(dataFormat(100100, '单页显示数量不能大于50'));
             exit();
         }
-
+        $this->factory = db('store')->where(['is_del' => 0, 'status' => 1])->find($this->factoryId);
     }
 
 
     public function dataReturn(...$code)
     {
-        $args=[];
+        $args = [];
         if (func_num_args() == 1 && is_array(func_get_arg(0))) {
             $args = func_get_arg(0);
         } else {

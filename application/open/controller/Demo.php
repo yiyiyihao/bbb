@@ -38,20 +38,20 @@ class Demo extends Controller
         echo '|参数名 |是否必填|类型   |说明    |<br>';
         echo '|:---- |:---  |:----- |------ |<br>';
         foreach ($param as $k => $v) {
-            $desc='';
-            $isRequired='否';
+            $desc = '';
+            $isRequired = '否';
             switch ($k) {
                 case 'page':
-                    $desc='分页，第几页，默认1';
+                    $desc = '分页，第几页，默认1';
                     break;
                 case 'page_size':
-                    $desc='分页，每页几条，默认10';
+                    $desc = '分页，每页几条，默认10';
                     break;
                 default:
-                    $isRequired='是';
-                    $desc=$k;
+                    $isRequired = '是';
+                    $desc = $k;
             }
-            echo '|' . $k . '  |'.$isRequired.'  |string | ' . $desc . ' |<br>';
+            echo '|' . $k . '  |' . $isRequired . '  |string | ' . $desc . ' |<br>';
         }
         echo '</pre>';
 
@@ -66,7 +66,7 @@ class Demo extends Controller
         echo '|参数名|类型|说明|<br>';
         echo '|:-----  |:-----|-----|<br>';
         if (isset($result['data'][0]) && $result['data'][0] && is_array($result['data'][0])) {
-            $result['data']=$result['data'][0];
+            $result['data'] = $result['data'][0];
         }
         $this->showTable($result);
         echo '</pre>';
@@ -77,16 +77,19 @@ class Demo extends Controller
     private function showTable($data, $subTxt = '')
     {
         foreach ($data as $k => $v) {
-            $desc='';
+            $desc = '';
             switch ($k) {
                 case 'code':
-                    $desc='返回码';
+                    $desc = '返回码';
                     break;
                 case 'msg':
-                    $desc='返回信息';
+                    $desc = '返回信息';
+                    break;
+                case 'data':
+                    $desc = '返回数据';
                     break;
                 default:
-                    $desc=$k;
+                    $desc = $k;
             }
             echo '|' . $subTxt . ' ' . $k . ' |' . gettype($v) . '   |' . $desc . '|<br>';
             if (is_array($v)) {

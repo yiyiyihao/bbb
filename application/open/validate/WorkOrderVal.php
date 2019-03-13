@@ -51,7 +51,14 @@ class WorkOrderVal extends Validate
 
     protected function user_name($value, $rule, $data = [])
     {
-        $pattern='/^[^0-9][\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u';
+        $pattern = '/^[^0-9][\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u';
+        $rule = preg_match($pattern, $value) ? true : false;
+        return $rule;
+    }
+
+    protected function chs_space($value, $rule, $data = [])
+    {
+        $pattern = '/[\x{4e00}-\x{9fa5}\s]+$/u';
         $rule = preg_match($pattern, $value) ? true : false;
         return $rule;
     }
@@ -107,10 +114,16 @@ class WorkOrderVal extends Validate
     //提交维修工单
     public function sceneAdd()
     {
-        return $this->only(['phone'])
+        return $this->only(['phone','goods_id','user_name','user_mobile','region_id','region_name','address','appointment','fault_desc'])
             ->append('phone', 'mobile|require')
-            ->append('goods_id|商品ID', 'require|num_code')
-            ->append('user_name', 'require|');
+            ->append('goods_id|商品ID', 'require|integer')
+            ->append('user_name|客户姓名', 'require|chsAlpha|min:2|max:20')
+            ->append('user_mobile|客户手机号', 'require|mobile')
+            ->append('region_id|服务区域编号', 'require|integer')
+            ->append('region_name|服务区域名', 'require|chs_space')
+            ->append('address|安装地址', 'require|chsDash')
+            ->append('appointment|预约时间', 'require|date|after:' . date('Y-m-d'))
+            ->append('fault_desc|故障描述信息', 'require|max:120');
     }
 
 }
