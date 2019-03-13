@@ -139,7 +139,7 @@ class WechatPayApi
         }
         $result = xml_to_array($returnXml);
         if ($result) {
-            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['return_msg']) && $result['return_msg'] == 'OK') {
                 return TRUE;
             }else{
                 $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
@@ -202,7 +202,7 @@ class WechatPayApi
     /*
      *与微信通讯获得二维码地址信息，必须以xml格式
      */
-    private function _wechatPostXmlCurl($xml, $url, $second = 120, $cert = FALSE)
+    private function _wechatPostXmlCurl($xml, $url, $second = 300, $cert = FALSE)
     {
         //初始化curl
         $ch = curl_init();
