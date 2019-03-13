@@ -14,5 +14,5 @@ Route::domain('admin', 'admin');
 Route::domain('api', 'api');
 Route::domain('ws', 'worker');
 Route::domain('open', 'open');
-//Route::domain('*', 'factory');
+Route::domain('dev', 'factory');
 return [];

@@ -16,7 +16,8 @@ class Login extends CommonBase
     public function index()
     {
         if(IS_POST){
-            $domain = Request::panDomain();
+            //$domain = Request::panDomain();
+            $domain = $domain = $this->request->subDomain();;
             $userName = input('post.username', '', 'trim');
             $passWord = input('post.password', '', 'trim');
             if(empty($userName)||empty($passWord)){
