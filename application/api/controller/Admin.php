@@ -33,6 +33,7 @@ class Admin extends Index
     {
         session('api_user_data', []);
         session('api_admin_user', []);
+        session('api_wechat_oauth', []);
         session('udata', []);
         session('api_source', '');
         $this->_returnMsg(['msg' => '登录数据清理成功']);
@@ -41,11 +42,11 @@ class Admin extends Index
     protected function getLoginInfo()
     {
         $loginUser = session('api_admin_user');
-        $sessionUdata = session('api_user_data');
+        $sessionWechat = session('api_wechat_oauth');
         if ($loginUser) {
             $status = 1;//已登录
         }else{
-            if ($sessionUdata) {
+            if ($sessionWechat) {
                 $status = 2;//已未登录获取微信信息
             }else{
                 $status = 0;//未登录
@@ -128,17 +129,24 @@ class Admin extends Index
     //微信授权-第2步，返回微信Openid
     protected function getWechatOpenid()
     {
-        session('api_user_data', []);
+        $sessionWechat = session('api_wechat_oauth');
+//         session('api_user_data', []);
         session('api_admin_user', []);
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
-        $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
-        if (!$code) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
+        if (!$sessionWechat) {
+            $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
+            if (!$code) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
+            }
+            $result = $wechatApi->getOauthOpenid($code, TRUE);
+            if ($result === FALSE) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+            }
+            session('api_wechat_oauth', $result);
+        }else{
+            $result = $sessionWechat;
         }
-        $result = $wechatApi->getOauthOpenid($code, TRUE);
-        if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-        }
+        
         //#TODO 删除模拟用户数据
         //$result=[
         //    'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
@@ -254,6 +262,11 @@ class Admin extends Index
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
+        //判断手机号对应用户是否存在
+        $user = $userModel->where('phone', $phone)->where('is_del', 0)->find();
+        if (!$user) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前手机号已注册']);
+        }
         $data = [
             'phone'     => $phone,
             'username'  => $phone,
@@ -345,6 +358,11 @@ class Admin extends Index
         if (empty($user) || empty($user['phone'])) {
             $this->_returnMsg(['errCode' => '未绑定手机号，请重新绑定']);
         }
+        //判断当前用户时候已绑定商家
+        if ($user['store_id']) {
+            $this->_returnMsg(['errCode' => '您已绑定商家信息']);
+        }
+        
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
         $params['mobile']     = $user['phone'];

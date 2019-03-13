@@ -421,6 +421,7 @@ class Store extends FormBase
                     break;
             }
         }
+        $field .= ', S.store_id';
         return $field;
     }
     function _getJoin()
