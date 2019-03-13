@@ -39,6 +39,8 @@ class WorkOrderVal extends Validate
         'remark.require'      => '备注信息不能为空',
         'remark.max'          => '备注信息最多80个字符',
         'remark.chsAlphaNum'  => '备注信息只能汉字、字母和数字',
+        'msg.max'             => '评价内容不能超过100个字符',
+        'score.number'        => '非法请求',
     ];
 
     protected function num_code($value, $rule, $data = [])
@@ -71,10 +73,20 @@ class WorkOrderVal extends Validate
     //取消工单
     public function sceneCancel()
     {
-        return $this->only(['phone', 'worder_sn','remark'])
+        return $this->only(['phone', 'worder_sn', 'remark'])
             ->append('phone', 'mobile|require')
             ->append('worder_sn', 'require|num_code')
             ->append('remark', 'require|chsAlphaNum|max:80');
+    }
+
+    //工单评价
+    public function sceneAssess()
+    {
+        return $this->only(['phone', 'type', 'msg', 'score'])
+            ->append('phone', 'mobile|require')
+            ->append('worder_sn', 'require|num_code')
+            ->append('type', 'require|in:1,2')
+            ->append('msg', 'max:100');
     }
 
 }

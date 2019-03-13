@@ -133,7 +133,7 @@ class WorkOrder extends Base
             'post_user_id' => $user['user_id'],
             'worder_sn'    => $worderSn,
         ];
-        $workOrder=db('work_order')->where($where)->find();
+        $workOrder = db('work_order')->where($where)->find();
         if (empty($workOrder)) {
             return $this->dataReturn(100103, '工单号不存在或已被删除');
         }
@@ -142,15 +142,95 @@ class WorkOrder extends Base
         if ($result !== FALSE) {
             return $this->dataReturn(0, '工单取消成功');
         } else {
-            return $this->dataReturn(0, $worderModel->error);
+            return $this->dataReturn(100105, $worderModel->error);
         }
+    }
+
+    public function assess(Request $request)
+    {
+        $check = new WorkOrderVal();
+        if (!$check->scene('assess')->check($request->param())) {
+            return $this->dataReturn(100100, $check->getError());
+        }
+        $userCheck = $this->getUser($request);
+        if ($userCheck['code'] != 0) {
+            return $this->dataReturn($userCheck);
+        }
+        $user = $userCheck['data'];
+        $type = $request->param('type', '', 'intval');
+        $msg = $request->param('msg');
+        $score = $request->param('score', '', 'trim');
+
+        $worderSn = $request->param('worder_sn', '', 'trim');
+        $where = [
+            'is_del'       => 0,
+            'post_user_id' => $user['user_id'],
+            'worder_sn'    => $worderSn,
+        ];
+        $workOrder = db('work_order')->where($where)->find();
+        if (empty($workOrder)) {
+            return $this->dataReturn(100103, '工单号不存在或已被删除');
+        }
+        //1 首次评论 2 追加评论
+        if ($type <= 0 || !in_array($type, [1, 2])) {
+            return $this->dataReturn(100100, '评价类型错误');
+        }
+        if ($type == 1 && empty($score)) {
+            return $this->dataReturn(100100, '评分不能为空');
+        }
+        $scores = $score ? json_decode($score, 1) : [];
+        if ($type == 1 && empty($scores)) {
+            return $this->dataReturn(100100, '评分数据格式不正确');
+        }
+        $params = [
+            'type'  => $type,
+            'msg'   => $msg,
+            'score' => [],
+        ];
+        if ($scores) {
+            $config = $this->getAssessConfig();
+            if ($config['code'] !== '0') {
+                return $this->dataReturn($config);
+            }
+            $config = $config['data'];
+            $scores = array_column($scores, 'score', 'config_id');
+            foreach ($config as $key => $value) {
+                $id = $value['config_id'];
+                $name = $value['name'];
+                if (!isset($scores[$id])) {
+                    return $this->dataReturn(100100, $name . ' 评价不能为空');
+                }
+                if ($scores[$id] <= 0 || $scores[$id] > $value['score']) {
+                    return $this->dataReturn(100100, $name . ' 必须在(1-' . $value['score'] . '分之间)');
+                }
+                $params['score'][$id] = $scores[$id];
+            }
+        }
+        $worderModel = new \app\common\model\WorkOrder();
+        $result = $worderModel->worderAssess($workOrder, $user, $params);
+        if ($result !== FALSE) {
+            return $this->dataReturn(0, '评价完成');
+        } else {
+            return $this->dataReturn(100104, $worderModel->error);
+        }
+    }
+
+    private function getAssessConfig()
+    {
+        $config = db('config')->field('config_id,name,config_value score')
+            ->where(['is_del' => 0, 'status' => 1, 'config_key' => CONFIG_WORKORDER_ASSESS])
+            ->order('sort_order ASC, add_time ASC')
+            ->select();
+        if (empty($config)) {
+            return dataFormat(100106, '系统未配置评分信息');
+        }
+        return dataFormat(0, 'ok', $config);
     }
 
 
     private function getUser(Request $request)
     {
         $phone = $request->param('phone');
-        //$phone = '15602904616';
         $user = db('user')->where(['is_del' => 0, 'phone' => $phone])->find();
         if (empty($user)) {
             return dataFormat(100101, '手机号未绑定');

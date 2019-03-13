@@ -11,8 +11,12 @@ Route::group('v10', function () {
     //工单管理
     Route::group('work_order', function () {
         //工单列表
-        Route::any('/index', 'v10.work_order/index');
+        Route::any('index', 'v10.work_order/index');
         //工单详情
-        Route::any('/detail', 'v10.work_order/detail');
+        Route::any('detail', 'v10.work_order/detail');
+        //取消工单
+        Route::any('cancel', 'v10.work_order/cancel');
+        //评价工单
+        Route::any('assess', 'v10.work_order/assess');
     });
 });
