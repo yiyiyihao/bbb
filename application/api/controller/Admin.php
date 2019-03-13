@@ -269,7 +269,6 @@ class Admin extends Index
         }
         $data = [
             'phone'     => $phone,
-            'username'  => $phone,
             'admin_type'=> 0,
             'factory_id'=> $this->factory['store_id'],
             'store_id'  => 0,
@@ -3252,7 +3251,7 @@ class Admin extends Index
         }
 
         if ($store['check_status'] == 0 && $store['name'] && $store['user_name']) {
-            $this->_returnMsg(['msg' => '审核中，请需心等候', 'errLogin' => 4,'source'=>$source]);
+            $this->_returnMsg(['msg' => '审核中，请耐心等待', 'errLogin' => 4,'source'=>$source]);
         }
         if ($store['check_status']==2) {
             $this->_returnMsg(['msg' => '审核已不通过，请重新提交资料', 'errLogin' => 4,'source'=>$source]);
