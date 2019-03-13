@@ -145,8 +145,8 @@ class WorkOrder extends Base
             return $this->dataReturn(100105, $worderModel->error);
         }
     }
-	
-	//工单评价
+
+    //工单评价
     public function assess(Request $request)
     {
         $check = new WorkOrderVal();
@@ -216,7 +216,7 @@ class WorkOrder extends Base
         }
     }
 
-	//获取工单评分配置
+    //获取工单评分配置
     public function assessConfig(Request $request)
     {
         $check = new WorkOrderVal();
@@ -229,6 +229,95 @@ class WorkOrder extends Base
         }
         $config = $this->getAssessConfig();
         return $this->dataReturn($config);
+    }
+
+    //提交维修工单
+    public function add(Request $request)
+    {
+        $check = new WorkOrderVal();
+        if (!$check->scene('add')->check($request->param())) {
+            return $this->dataReturn(100100, $check->getError());
+        }
+        $userCheck = $this->getUser($request);
+        if ($userCheck['code'] != 0) {
+            return $this->dataReturn($userCheck);
+        }
+        //return db('goods')->where($where)->find();
+
+
+
+        return;
+
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        //         if ($user['installer']) {
+        //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师不允许申请工单']);
+        //         }
+        $goods = $this->_checkGoods();
+        $userName = isset($this->postParams['user_name']) ? trim($this->postParams['user_name']) : '';
+        $phone = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
+        $regionId = isset($this->postParams['region_id']) ? intval($this->postParams['region_id']) : 0;
+        $regionName = isset($this->postParams['region_name']) ? trim($this->postParams['region_name']) : '';
+        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $appointment = isset($this->postParams['appointment']) ? trim($this->postParams['appointment']) : '';
+        $faultDesc = isset($this->postParams['fault_desc']) ? trim($this->postParams['fault_desc']) : '';
+        $images = isset($this->postParams['images']) ? trim($this->postParams['images']) : '';
+        if (!$userName) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户姓名(user_name)缺失']);
+        }
+        if (!$phone) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户电话(phone)缺失']);
+        }
+        if (!$regionId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_id)缺失']);
+        }
+        if (!$regionName) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务区域(region_name)缺失']);
+        }
+        if (!$address) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '客户地址(address)缺失']);
+        }
+        if (!$appointment) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '预约服务时间(appointment)缺失']);
+        }
+        //         if (!$faultDesc) {
+        //             $this->_returnMsg(['errCode' => 1, 'errMsg' => '故障描述(fault_desc)缺失']);
+        //         }
+        $storeModel = new \app\common\model\Store();
+        //根据安装地址分配服务商
+        $storeId = $storeModel->getStoreFromRegion($regionId);
+        if (!$storeId) {
+            //获取当前地址的parent_id
+            $parentId = db('region')->where(['region_id' => $regionId])->value('parent_id');
+            if ($parentId) {
+                $storeId = $storeModel->getStoreFromRegion($parentId);
+            }
+            if (!$storeId) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '抱歉，您选择的区域暂无服务商']);
+            }
+        }
+        $workOrderModel = model('work_order');
+        $this->postParams['install_price'] = $goods['install_price'];
+        $this->postParams['work_order_type'] = 2;
+        $this->postParams['post_user_id'] = $user['user_id'];
+        $this->postParams['user_id'] = $user['user_id'];
+        $this->postParams['factory_id'] = $this->factory['store_id'];
+        $this->postParams['store_id'] = $storeId;
+        $this->postParams['appointment'] = strtotime($appointment);
+        //报修上传故障图片(英文分号分隔)
+        $images = $this->postParams['images'] ? trim($this->postParams['images']) : '';
+        $images = $images ? explode(',', $images) : [];
+        $images = $images ? array_unique($images) : [];
+        $images = $images ? array_filter($images) : [];
+        if (count($images) > 3) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片最大数量(3)']);
+        }
+        $this->postParams['images'] = implode(',', $images);
+        $sn = $workOrderModel->save($this->postParams);
+        if ($sn) {
+            $this->_returnMsg(['msg' => '维修工单提交成功', 'worder_sn' => $sn]);
+        } else {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '系统错误']);
+        }
     }
 
     private function getAssessConfig()

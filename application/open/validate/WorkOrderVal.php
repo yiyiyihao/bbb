@@ -49,6 +49,14 @@ class WorkOrderVal extends Validate
         return $rule;
     }
 
+    protected function user_name($value, $rule, $data = [])
+    {
+        $pattern='/^[^0-9][\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u';
+        $rule = preg_match($pattern, $value) ? true : false;
+        return $rule;
+    }
+
+
     //工单列表
     public function sceneList()
     {
@@ -94,6 +102,15 @@ class WorkOrderVal extends Validate
     {
         return $this->only(['phone'])
             ->append('phone', 'mobile|require');
+    }
+
+    //提交维修工单
+    public function sceneAdd()
+    {
+        return $this->only(['phone'])
+            ->append('phone', 'mobile|require')
+            ->append('goods_id|商品ID', 'require|num_code')
+            ->append('user_name', 'require|');
     }
 
 }
