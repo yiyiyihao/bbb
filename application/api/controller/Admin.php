@@ -621,7 +621,7 @@ class Admin extends Index
         $user = $this->_checkUser();
         $indexController = new \app\common\controller\Index();
         $flag = $user['admin_type'] == ADMIN_FACTORY ? FALSE : TRUE;
-        $result = $indexController->getStoreHome($user, $flag,true);
+        $result = $indexController->getStoreHome($user, $flag,true, $user);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $indexController->error]);
         }

@@ -203,7 +203,7 @@ class Index extends CommonBase
     }
     
     //获取商户首页数据
-    public function getStoreHome($user = [], $chart = TRUE,$isRaw=false)
+    public function getStoreHome($user = [], $chart = TRUE,$isRaw=false, $adminUser = [])
     {
         $user = $user ? $user : $this->adminUser;
         if (!$user) {
@@ -500,8 +500,8 @@ class Index extends CommonBase
             $from = date('Y-m-d',$beginToday-86400*6);//图表统计开始时间
             $to = date('Y-m-d',$beginToday);//图表统计结束时间
             if ($adminType != ADMIN_SERVICE) {
-                $orderOverview = $this->orderOverView($from, $to, $storeId,$isRaw);
-                $orderStatistics = $this->orderAmount($from, $to, $storeId,$isRaw);
+                $orderOverview = $this->orderOverView($from, $to, $storeId,$isRaw, $adminUser);
+                $orderStatistics = $this->orderAmount($from, $to, $storeId,$isRaw, $adminUser);
             }else{
                 $worderOverview = $this->workOrderOverView($from, $to, $storeId,$isRaw);
                 $worderStatistics = $this->workOrderIncome($from, $to, $storeId,$isRaw);
@@ -519,9 +519,9 @@ class Index extends CommonBase
     }
     
     //订单概况
-    protected function orderOverView($startTime,$endTime,$storeId,$isRaw=false)
+    protected function orderOverView($startTime,$endTime,$storeId,$isRaw=false, $adminUser = [])
     {
-        
+        $adminUser = $this->adminUser ? $this->adminUser : $adminUser;
         $data=[];
         $lable=[];
         $dataset[0] = [
@@ -546,7 +546,7 @@ class Index extends CommonBase
                     ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                if ($adminUser['admin_type']==ADMIN_CHANNEL) {
                     //渠道商零售商数据据统计
                     $where=[
                         ['O.add_time','>=',$begin],
@@ -562,7 +562,7 @@ class Index extends CommonBase
                         ['store S','SD.ostore_id=S.store_id'],
                     ];
                     $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+                }else if ($adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
                     $query=$model->where($where);
                 }else{
@@ -600,7 +600,7 @@ class Index extends CommonBase
                     ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                if ($adminUser['admin_type']==ADMIN_CHANNEL) {
                     //渠道商零售商数据据统计
                     $where=[
                         ['O.add_time','>=',$begin],
@@ -616,7 +616,7 @@ class Index extends CommonBase
                         ['store S','SD.ostore_id=S.store_id'],
                     ];
                     $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+                }else if ($adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
                     $query=$model->where($where);
                 }else{
@@ -660,8 +660,9 @@ class Index extends CommonBase
     }
 
     //订单金额统计
-    protected function orderAmount($startTime,$endTime,$storeId,$isRaw=false)
+    protected function orderAmount($startTime,$endTime,$storeId,$isRaw=false, $adminUser = [])
     {
+        $adminUser = $this->adminUser ? $this->adminUser : $adminUser;
         $data=[];
         $lable=[];
         $dataset[0] = [
@@ -691,7 +692,7 @@ class Index extends CommonBase
                     ['pay_status','=',1],
                 ];
                 
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                if ($adminUser['admin_type']==ADMIN_CHANNEL) {
                     //渠道商零售商数据据统计
                     $where=[
                         ['O.add_time','>=',$begin],
@@ -707,7 +708,7 @@ class Index extends CommonBase
                         ['store S','SD.ostore_id=S.store_id'],
                     ];
                     $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+                }else if ($adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
                     $query=$model->where($where);
                 }else{
@@ -747,7 +748,7 @@ class Index extends CommonBase
                     ['pay_status','=',1],
                 ];
                 
-                if ($this->adminUser['admin_type']==ADMIN_CHANNEL) {
+                if ($adminUser['admin_type']==ADMIN_CHANNEL) {
                     //渠道商零售商数据据统计
                     $where=[
                         ['O.add_time','>=',$begin],
@@ -763,7 +764,7 @@ class Index extends CommonBase
                         ['store S','SD.ostore_id=S.store_id'],
                     ];
                     $query = $model->alias('O')->join($join)->where($where);
-                }else if ($this->adminUser['admin_type']==ADMIN_FACTORY){//厂商
+                }else if ($adminUser['admin_type']==ADMIN_FACTORY){//厂商
                     $where[]=['store_id','=',$storeId];
                     $query=$model->where($where);
                 }else{
