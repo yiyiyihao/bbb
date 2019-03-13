@@ -16,7 +16,10 @@ class CommonBase extends Base
 	public function __construct()
     {
     	parent::__construct();
-    	$domain = $this->request->subDomain();
+    	$domain = Request::panDomain();
+    	if (!$domain) {
+    	    $domain = $this->request->subDomain();
+    	}
     	$adminDomain = config('app.admin_domain');
     	$systemKeepsDomains = config('app.system_keeps_domain');
     	if($domain == $adminDomain){

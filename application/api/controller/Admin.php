@@ -263,8 +263,8 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
         //判断手机号对应用户是否存在
-        $user = $userModel->where('phone', $phone)->where('is_del', 0)->find();
-        if (!$user) {
+        $exist = $userModel->where('phone', $phone)->where('is_del', 0)->find();
+        if ($exist) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前手机号已注册']);
         }
         $data = [
@@ -358,10 +358,9 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => '未绑定手机号，请重新绑定']);
         }
         //判断当前用户时候已绑定商家
-        if ($user['store_id']) {
-            $this->_returnMsg(['errCode' => '您已绑定商家信息']);
+        if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
+            $this->_returnMsg(['errCode' => '已绑定商户']);
         }
-        
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
         $params['mobile']     = $user['phone'];
