@@ -1506,27 +1506,25 @@ class Admin extends Index
         $order = 'add_time DESC';
         $field = 'order_id, store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
-
-        if (empty($list)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无订单记录']);
-        }
-        $orderModel = new \app\common\model\Order();
-        $list = $orderModel->getOrderList($list, $flag);
         $result=[];
-        foreach ($list as $key => $value) {
-            $whereSku=[];
-            $whereSku['order_id']=$value['order_id'];
-            if ($isGoodsName) {
-                $whereSku['sku_name']=['like','%'.$keyword.'%'];
-            }
-            $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
-            $list[$key]['add_time'] = time_to_date($value['add_time']);
-            $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
-            $list[$key]['skus'] = $skus;
-            unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
-            unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
-            if (!empty($skus)){
-                $result[]=$list[$key];
+        if ($list) {
+            $orderModel = new \app\common\model\Order();
+            $list = $orderModel->getOrderList($list, $flag);
+            foreach ($list as $key => $value) {
+                $whereSku=[];
+                $whereSku['order_id']=$value['order_id'];
+                if ($isGoodsName) {
+                    $whereSku['sku_name']=['like','%'.$keyword.'%'];
+                }
+                $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
+                $list[$key]['add_time'] = time_to_date($value['add_time']);
+                $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
+                $list[$key]['skus'] = $skus;
+                unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
+                unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+                if (!empty($skus)){
+                    $result[]=$list[$key];
+                }
             }
         }
         $this->_returnMsg(['list' => $result]);
@@ -1583,27 +1581,26 @@ class Admin extends Index
         }
 
         $list = $this->_getModelList(db('order'), $where, $field, $order, 'O', $join);
-        if (empty($list)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '暂无订单记录']);
-        }
         $result=[];
-        $orderModel = new \app\common\model\Order();
-        $list = $orderModel->getOrderList($list, FALSE);
-        foreach ($list as $key => $value) {
-            $whereSku=[];
-            $whereSku['order_id']=$value['order_id'];
-            if ($isSkuName) {
-                $whereSku['sku_name']=['like','%'.$keyword.'%'];
-            }
-            $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
-            $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
-
-            $list[$key]['skus'] = $skus;
-            unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
-            unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
-            unset($list[$key]['_service'], $list[$key]['_apply_status']);
-            if (!empty($skus)){
-                $result[]=$list[$key];
+        if ($list) {
+            $orderModel = new \app\common\model\Order();
+            $list = $orderModel->getOrderList($list, FALSE);
+            foreach ($list as $key => $value) {
+                $whereSku=[];
+                $whereSku['order_id']=$value['order_id'];
+                if ($isSkuName) {
+                    $whereSku['sku_name']=['like','%'.$keyword.'%'];
+                }
+                $skus = db('order_sku')->field('sku_name, sku_thumb, sku_spec, num, price ')->where($whereSku)->select();
+                $list[$key]['pay_name'] = isset($value['pay_name']) ? $value['pay_name'] : '';
+                
+                $list[$key]['skus'] = $skus;
+                unset($list[$key]['order_id'], $list[$key]['pay_code'], $list[$key]['order_status'], $list[$key]['pay_status'], $list[$key]['delivery_status'], $list[$key]['finish_status']);
+                unset($list[$key]['close_refund_status'], $list[$key]['store_id'], $list[$key]['order_type']);
+                unset($list[$key]['_service'], $list[$key]['_apply_status']);
+                if (!empty($skus)){
+                    $result[]=$list[$key];
+                }
             }
         }
         $this->_returnMsg(['list' => $result]);
