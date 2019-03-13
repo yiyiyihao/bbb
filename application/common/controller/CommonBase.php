@@ -12,6 +12,8 @@ class CommonBase extends Base
     var $adminStore;
     var $adminFactory;//厂商二级域名登录赋值
     var $breadCrumb;
+    
+    var $domain;
 	//公共预处理方法
 	public function __construct()
     {
@@ -20,6 +22,7 @@ class CommonBase extends Base
     	if (!$domain) {
     	    $domain = $this->request->subDomain();
     	}
+    	$this->domain = $domain;
     	$adminDomain = config('app.admin_domain');
     	$systemKeepsDomains = config('app.system_keeps_domain');
     	if($domain == $adminDomain){
@@ -134,10 +137,9 @@ class CommonBase extends Base
      * 取得管理员菜单
      */
     protected function getMenu(){
-        $domain = Request::panDomain();
         $menuList = array();
         $menuService = new \app\admin\service\Menu;
-        $menuList = $menuService->getAdminMenu($this->adminUser, $domain);
+        $menuList = $menuService->getAdminMenu($this->adminUser, $this->domain);
         $menuList = array_order($menuList, 'sort_order', 'asc', true);
         return $menuList;
     }
@@ -273,8 +275,7 @@ class CommonBase extends Base
         $module             = strtolower($this->request->module());
         $controller         = strtolower($this->request->controller());
         $action             = strtolower($this->request->action());
-        $domain             = Request::panDomain();
-        $authRule           = AuthRule::getALLRule($domain);
+        $authRule           = AuthRule::getALLRule($this->domain);
 //         pre($authRule);
         //检查是否有上级操作节点
         //检查是否有上一页来源

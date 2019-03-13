@@ -97,10 +97,15 @@ class Merchant extends Base
                     if (!$allow) {
                         $this->error('请先同意用户协议');
                     }
+                    //判断手机号对应用户是否存在
+                    $exist = $userModel->where('phone', $phone)->where('is_del', 0)->find();
+                    if ($exist) {
+                        $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前手机号已注册']);
+                    }
                     $codeModel = new \app\common\model\LogCode();
                     $params['type'] = $this->codeType;
-//                     $result = $codeModel->verifyCode($params);
-                    $result = TRUE;
+                    $result = $codeModel->verifyCode($params);
+//                     $result = TRUE;
                     if ($result === FALSE) {
                         $this->error($codeModel->error);
                     }else{
