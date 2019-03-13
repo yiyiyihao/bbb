@@ -16,8 +16,6 @@ class Login extends CommonBase
     public function index()
     {
         if(IS_POST){
-            //$domain = Request::panDomain();
-            $domain = $domain = $this->request->subDomain();;
             $userName = input('post.username', '', 'trim');
             $passWord = input('post.password', '', 'trim');
             if(empty($userName)||empty($passWord)){
@@ -27,7 +25,7 @@ class Login extends CommonBase
             $map['username'] = $userName;
             $userModel = new \app\common\model\User();
             $adminDomain = config('app.admin_domain');
-            if (strtolower($adminDomain) == strtolower($domain)) {
+            if (strtolower($adminDomain) == strtolower($this->domain)) {
                 $map['admin_type'] = 1;
                 $user = $userModel->where($map)->find();
             }elseif ($this->adminFactory){
@@ -52,8 +50,7 @@ class Login extends CommonBase
             if($user['password']<> $userModel->pwdEncryption($passWord)){
                 return $this->error(lang('PSW_ERROR'));
             }
-            $result = $this->updateLogin($user,$domain);
-
+            $result = $this->updateLogin($user,$this->domain);
 
             if(!$result['error']){
                 return $this->success(lang('LOGIN_SUCCESS'), "/", ['tipmsg'=>'正在登陆...'], 0);
@@ -73,8 +70,7 @@ class Login extends CommonBase
     //页面登出
     public function logout(){
         $userModel = new \app\common\model\User();
-        $domain = Request::panDomain();
-        $userModel->logout($domain);
+        $userModel->logout($this->domain);
         $this->redirect(url('/'));
         //        $this->redirect();
         //        return $this->success(lang('logout_success'), url('/'));
