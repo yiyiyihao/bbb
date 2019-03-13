@@ -145,7 +145,8 @@ class WorkOrder extends Base
             return $this->dataReturn(100105, $worderModel->error);
         }
     }
-
+	
+	//工单评价
     public function assess(Request $request)
     {
         $check = new WorkOrderVal();
@@ -213,6 +214,21 @@ class WorkOrder extends Base
         } else {
             return $this->dataReturn(100104, $worderModel->error);
         }
+    }
+
+	//获取工单评分配置
+    public function assessConfig(Request $request)
+    {
+        $check = new WorkOrderVal();
+        if (!$check->scene('assessConfig')->check($request->param())) {
+            return $this->dataReturn(100100, $check->getError());
+        }
+        $userCheck = $this->getUser($request);
+        if ($userCheck['code'] != 0) {
+            return $this->dataReturn($userCheck);
+        }
+        $config = $this->getAssessConfig();
+        return $this->dataReturn($config);
     }
 
     private function getAssessConfig()

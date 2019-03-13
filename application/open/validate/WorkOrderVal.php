@@ -89,4 +89,11 @@ class WorkOrderVal extends Validate
             ->append('msg', 'max:100');
     }
 
+    //工单评分配置
+    public function sceneAssessConfig()
+    {
+        return $this->only(['phone'])
+            ->append('phone', 'mobile|require');
+    }
+
 }

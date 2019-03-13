@@ -18,5 +18,7 @@ Route::group('v10', function () {
         Route::any('cancel', 'v10.work_order/cancel');
         //评价工单
         Route::any('assess', 'v10.work_order/assess');
+        //评价配置
+        Route::any('assess_config', 'v10.work_order/assessConfig');
     });
 });
