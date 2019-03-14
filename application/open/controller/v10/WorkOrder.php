@@ -357,6 +357,7 @@ class WorkOrder extends Base
         $openid = $request->param('openid');
         $user = model('user_data')->where(['openid' => $openid, 'is_del' => 0])->find();
         if (empty($user)) {
+            $user=model('user_data');
             $user->save([
                 'openid'      => $openid,
                 'add_time'    => time(),
@@ -368,9 +369,9 @@ class WorkOrder extends Base
         //if (empty($user)) {
         //    return dataFormat(100101, '手机号未绑定');
         //}
-        if (!$user['status']) {
-            return dataFormat(100102, '用户已被禁用');
-        }
+        //if (!$user['status']) {
+        //    return dataFormat(100102, '用户已被禁用');
+        //}
         return dataFormat(0, 'ok', $user);
     }
 
