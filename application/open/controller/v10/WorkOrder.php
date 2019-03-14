@@ -296,7 +296,7 @@ class WorkOrder extends Base
         $data['work_order_type'] = 2;
         $data['post_user_id'] = $user['user_id'];
         $data['user_id'] = $user['user_id'];
-        $data['factory_id'] = $user['factory_id'];
+        $data['factory_id'] = $this->factoryId;
         $data['store_id'] = $storeId;
 
         $workOrderModel = model('work_order');
