@@ -115,6 +115,7 @@ class WorkOrder extends Base
         //工单完成后获取首次评价
         $workOrderModel = new \app\common\model\WorkOrder();
         $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
+        unset($detail['installer_id'],$detail['worder_id']);
         $result = ['detail' => $detail, 'sku' => $sku, 'assess_list' => $assess];
         return $this->dataReturn(0, 'ok', $result);
     }
