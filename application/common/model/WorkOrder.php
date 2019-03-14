@@ -17,7 +17,7 @@ class WorkOrder extends Model
     /**
      * 创建工单
      */
-    public function save($data = [], $where = [], $sequence = null)
+    public function save($data = [], $where = [], $sequence = null,$udata_id=0)
     {
         parent::checkBeforeSave($data, $where);
         if (!$this->checkBeforeSave($data, $where)) {
@@ -34,6 +34,9 @@ class WorkOrder extends Model
                 'post_user_id' => $data['post_user_id'],
             ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
+            if (empty($user)) {
+                $user=db('user_data')->where(['is_del' => 0])->find($udata_id);
+            }
             //发送工单通知给服务商
             $push = new \app\common\service\PushBase();
             $sendData = [
@@ -661,7 +664,8 @@ class WorkOrder extends Model
             'worder_id' => $worder['worder_id'],
             'worder_sn' => $worder['worder_sn'],
             'installer_id' => $installerId,
-            'user_id'   => $user ? $user['user_id'] : 0,
+            'user_id'   => isset($user['user_id'])? $user['user_id']:0,
+            'udata_id'   => isset($user['udata_id'])? $user['udata_id']:0,
             'nickname'  => $user ? $nickname : '系统',
             'action'    => $action,
             'msg'       => $msg,
