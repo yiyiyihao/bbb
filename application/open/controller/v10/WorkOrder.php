@@ -135,7 +135,7 @@ class WorkOrder extends Base
         $remark = $request->param('remark');
         $where = [
             'is_del'       => 0,
-            'post_user_id' => $user['user_id'],
+            'post_udata_id' => $user['udata_id'],
             'worder_sn'    => $worderSn,
         ];
         $workOrder = db('work_order')->where($where)->find();

@@ -100,7 +100,7 @@ class WorkOrderVal extends Validate
     //工单评价
     public function sceneAssess()
     {
-        return $this->only(['openid','worder_sn','type', 'msg', 'score'])
+        return $this->only(['openid', 'worder_sn', 'type', 'msg', 'score'])
             ->append('openid', 'require|alphaNum')
             ->append('worder_sn|工单号', 'require|num_code')
             ->append('type|工单类型', 'require|in:1,2')
@@ -134,6 +134,12 @@ class WorkOrderVal extends Validate
     {
         return $this->only(['openid'])
             ->append('openid', 'require|alphaNum');
+    }
+
+    public function sceneRegion()
+    {
+        return $this->only(['id'])
+            ->append('id|地区编号', 'integer');
     }
 
 }
