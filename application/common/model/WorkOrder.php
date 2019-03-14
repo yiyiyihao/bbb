@@ -544,7 +544,7 @@ class WorkOrder extends Model
         $status = $worder['work_order_status'];
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($status) {
-            case 0:
+            case -1:
                 $this->error = '工单已取消,不允许评价';
                 return FALSE;
             case 0:
