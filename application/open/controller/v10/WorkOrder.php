@@ -48,6 +48,7 @@ class WorkOrder extends Base
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($result['code'] !== '0') {
             $result['code'] = 0;
+            $result['data']['list'] = [];
             return $this->dataReturn($result);
         }
         $list = $result['data']['list'];
