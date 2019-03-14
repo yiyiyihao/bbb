@@ -88,9 +88,9 @@ class WorkOrder extends Base
         $field .= ',WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc,WO.work_order_status';
         $field .= ',WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $where = [
-            'WO.is_del'       => 0,
-            'WO.post_user_id' => $user['user_id'],
-            'WO.worder_sn'    => $worderSn,
+            'WO.is_del'        => 0,
+            'WO.post_udata_id' => $user['udata_id'],
+            'WO.worder_sn'     => $worderSn,
         ];
         $join = [];
         $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
@@ -331,7 +331,7 @@ class WorkOrder extends Base
         //$this->paginate = false;//不分页
         $list = $this->getModelList(db('goods'), $where, $field, $order);
         if (empty($list)) {
-            $list['code']=0;
+            $list['code'] = 0;
             return $this->dataReturn($list);
         }
         foreach ($list['data']['list'] as $key => $value) {
