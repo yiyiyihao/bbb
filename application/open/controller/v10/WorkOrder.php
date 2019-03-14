@@ -47,6 +47,7 @@ class WorkOrder extends Base
         $order = 'wstatus ASC,  WO.work_order_status ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($result['code'] !== '0') {
+            $result['code'] = 0;
             return $this->dataReturn($result);
         }
         $list = $result['data']['list'];
@@ -326,14 +327,15 @@ class WorkOrder extends Base
         ];
         $field = 'goods_id, name, cate_thumb, thumb';
         $order = 'sort_order ASC, add_time ASC';
-        $this->paginate = false;//不分页
+        //$this->paginate = false;//不分页
         $list = $this->getModelList(db('goods'), $where, $field, $order);
         if (empty($list)) {
-            return $this->dataReturn(100106, '暂无数据');
+            $list['code']=0;
+            return $this->dataReturn($list);
         }
-        foreach ($list['data'] as $key => $value) {
-            $list['data'][$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
-            unset($list['data'][$key]['cate_thumb']);
+        foreach ($list['data']['list'] as $key => $value) {
+            $list['data']['list'][$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
+            unset($list['data']['list'][$key]['cate_thumb']);
         }
         return $this->dataReturn($list);
     }
@@ -357,7 +359,7 @@ class WorkOrder extends Base
         $openid = $request->param('openid');
         $user = model('user_data')->where(['openid' => $openid, 'is_del' => 0])->find();
         if (empty($user)) {
-            $user=model('user_data');
+            $user = model('user_data');
             $user->save([
                 'openid'      => $openid,
                 'add_time'    => time(),

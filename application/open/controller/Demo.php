@@ -26,7 +26,7 @@ class Demo extends Controller
         echo '<h3>请求接口：</h3>';
         echo '<p>' . $method . '</p>';
         echo '<h3>请求URL</h3>';
-        //echo '<p>' . url($method, $param, '', true) . '</p>';
+        echo '<p>' . url($method, $param, '', true) . '</p>';
 
 
         echo '<h3>请求参数：</h3>';
@@ -50,7 +50,7 @@ class Demo extends Controller
                     $desc = '分页，每页几条，默认10';
                     break;
                 case 'openid':
-                    $desc = '用户开户编码';
+                    $desc = 'openid';
                     $isRequired='是';
                     break;
                 default:

@@ -66,7 +66,7 @@ class Base extends \app\common\controller\Base
             $result = $model->field($field)->select();
         }
         if (empty($result)) {
-            return dataFormat(1000100, '暂无数据!');
+            return dataFormat(404, '暂无数据!');
         }
         return dataFormat(0, 'ok', $result);
     }
