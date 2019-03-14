@@ -13,7 +13,7 @@ class Base extends \app\common\controller\Base
     protected $page;
     protected $paginate = true;
     protected $factory;
-    protected $factoryId=1;
+    protected $factoryId = 1;
 
     public function initialize()
     {
@@ -50,15 +50,25 @@ class Base extends \app\common\controller\Base
         if ($having) $model->having($having);
         if ($order) $model->order($order);
         if ($group) $model->group($group);
+        $result = [];
         if ($this->paginate && $this->pageSize > 0 && $this->page > 0) {
             $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
-            if ($result) {
-                return $result->items();
+            if (!$result->isEmpty()) {
+                $result = [
+                    'total'      => $result->total(),
+                    'page'       => $result->currentPage(),
+                    'page_size'  => $result->listRows(),
+                    'page_count' => $result->lastPage(),
+                    'list'       => $result->items(),
+                ];
             }
-            return $result;
         } else {
-            return $model->field($field)->select();
+            $result = $model->field($field)->select();
         }
+        if (empty($result)) {
+            return dataFormat(1000100, '暂无数据!');
+        }
+        return dataFormat(0, 'ok', $result);
     }
 
 

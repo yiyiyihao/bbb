@@ -67,10 +67,11 @@ class Demo extends Controller
         echo '|:-----  |:-----|-----|<br>';
         if (isset($result['data'][0]) && $result['data'][0] && is_array($result['data'][0])) {
             $result['data'] = $result['data'][0];
+        }else if (isset($result['data']['list'][0]) && $result['data']['list'][0] && is_array($result['data']['list'][0])) {
+            $result['data']['list']=$result['data']['list'][0];
         }
         $this->showTable($result);
         echo '</pre>';
-
         //p($result);
     }
 

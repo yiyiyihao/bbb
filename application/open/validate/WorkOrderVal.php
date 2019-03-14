@@ -24,6 +24,10 @@ class WorkOrderVal extends Validate
      * @var array
      */
     protected $message = [
+        'openid.require'      => '平台编码不能为空',
+        'openid.alphaNum'     => '用户ID错误',
+        'user_id.require'     => '用户ID不能为空',
+        'user_id.number'      => '用户ID错误',
         'store_no.require'    => '商户编号不能为空',
         'store_no.num_code'   => '商户编号不正确',
         'worder_sn.require'   => '工单号不能为空',
@@ -67,7 +71,9 @@ class WorkOrderVal extends Validate
     //工单列表
     public function sceneList()
     {
-        return $this->only(['phone', 'type', 'status', 'job_no', 'keyword'])
+        return $this->only(['user_id', 'openid', 'type', 'status', 'job_no', 'keyword'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require')
             ->append('type', 'number|in:0,1,2')
             ->append('status', 'number|between:-1,4')
@@ -80,7 +86,9 @@ class WorkOrderVal extends Validate
     //工单详情 验证场景定义
     public function sceneDetail()
     {
-        return $this->only(['phone', 'worder_sn'])
+        return $this->only(['openid', 'user_id', 'worder_sn'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require')
             ->append('worder_sn', 'require|num_code');
     }
@@ -88,7 +96,9 @@ class WorkOrderVal extends Validate
     //取消工单
     public function sceneCancel()
     {
-        return $this->only(['phone', 'worder_sn', 'remark'])
+        return $this->only(['openid', 'user_id', 'worder_sn', 'remark'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require')
             ->append('worder_sn', 'require|num_code')
             ->append('remark', 'require|chsAlphaNum|max:80');
@@ -97,7 +107,9 @@ class WorkOrderVal extends Validate
     //工单评价
     public function sceneAssess()
     {
-        return $this->only(['phone', 'type', 'msg', 'score'])
+        return $this->only(['openid', 'user_id', 'type', 'msg', 'score'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require')
             ->append('worder_sn', 'require|num_code')
             ->append('type', 'require|in:1,2')
@@ -107,14 +119,18 @@ class WorkOrderVal extends Validate
     //工单评分配置
     public function sceneAssessConfig()
     {
-        return $this->only(['phone'])
+        return $this->only(['openid', 'user_id'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require');
     }
 
     //提交维修工单
     public function sceneAdd()
     {
-        return $this->only(['phone','goods_id','user_name','user_mobile','region_id','region_name','address','appointment','fault_desc'])
+        return $this->only(['openid', 'user_id', 'goods_id', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment', 'fault_desc'])
+            ->append('openid', 'require|alphaNum')
+            ->append('user_id', 'require|number')
             ->append('phone', 'mobile|require')
             ->append('goods_id|商品ID', 'require|integer')
             ->append('user_name|客户姓名', 'require|chsAlpha|min:2|max:20')

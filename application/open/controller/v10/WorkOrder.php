@@ -45,10 +45,11 @@ class WorkOrder extends Base
             $where['WO.work_order_status'] = $status;
         }
         $order = 'wstatus ASC,  WO.work_order_status ASC';
-        $list = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
-        if (empty($list)) {
-            return $this->dataReturn(1, '暂无数据');
+        $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
+        if ($result['code']!=='0') {
+            return $this->dataReturn($result);
         }
+        $list=$result['data']['list'];
         foreach ($list as $key => $value) {
             $list[$key]['add_time'] = time_to_date($value['add_time']);
             $list[$key]['cancel_time'] = time_to_date($value['cancel_time']);
@@ -62,9 +63,10 @@ class WorkOrder extends Base
             $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
             $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0 ? 1 : 0;
             $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0 ? 1 : 0;
-            unset($list[$key]['installer_id'],$list[$key]['worder_id']);
+            unset($list[$key]['installer_id'], $list[$key]['worder_id']);
         }
-        return $this->dataReturn(0, 'ok', $list);
+        $result['data']['list']=$list;
+        return $this->dataReturn($result);
     }
 
     //工单详情
@@ -317,14 +319,14 @@ class WorkOrder extends Base
         $user = $userCheck['data'];
 
         $where = [
-            'store_id'  => $user['factory_id'],
-            'is_del'    => 0,
-            'goods_type'=> 1,
-            'status'    => 1,
+            'store_id'   => $user['factory_id'],
+            'is_del'     => 0,
+            'goods_type' => 1,
+            'status'     => 1,
         ];
         $field = 'goods_id, name, cate_thumb, thumb';
         $order = 'sort_order ASC, add_time ASC';
-        $this->paginate=false;
+        $this->paginate = false;//不分页
         $list = $this->getModelList(db('goods'), $where, $field, $order);
         if (empty($list)) {
             return $this->dataReturn(100106, '暂无数据');
@@ -333,7 +335,7 @@ class WorkOrder extends Base
             $list[$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
             unset($list[$key]['cate_thumb']);
         }
-        return $this->dataReturn(0, 'ok',$list);
+        return $this->dataReturn(0, 'ok', $list);
     }
 
 
@@ -352,8 +354,8 @@ class WorkOrder extends Base
 
     private function getUser(Request $request)
     {
-        $phone = $request->param('phone');
-        $user = db('user')->where(['is_del' => 0, 'phone' => $phone])->find();
+        $user_id = $request->param('user_id', '', 'intval');
+        $user = db('user')->where(['is_del' => 0])->find($user_id);
         if (empty($user)) {
             return dataFormat(100101, '手机号未绑定');
         }
