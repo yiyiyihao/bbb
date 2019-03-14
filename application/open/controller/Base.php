@@ -52,14 +52,14 @@ class Base extends \app\common\controller\Base
         if ($group) $model->group($group);
         $result = [];
         if ($this->paginate && $this->pageSize > 0 && $this->page > 0) {
-            $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
-            if (!$result->isEmpty()) {
+            $data = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            if (!$data->isEmpty()) {
                 $result = [
-                    'total'      => $result->total(),
-                    'page'       => $result->currentPage(),
-                    'page_size'  => $result->listRows(),
-                    'page_count' => $result->lastPage(),
-                    'list'       => $result->items(),
+                    'total'      => $data->total(),
+                    'page'       => $data->currentPage(),
+                    'page_size'  => $data->listRows(),
+                    'page_count' => $data->lastPage(),
+                    'list'       => $data->items(),
                 ];
             }
         } else {
