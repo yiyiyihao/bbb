@@ -102,9 +102,9 @@ class WorkOrderVal extends Validate
     {
         return $this->only(['openid','worder_sn','type', 'msg', 'score'])
             ->append('openid', 'require|alphaNum')
-            ->append('worder_sn', 'require|num_code')
-            ->append('type', 'require|in:1,2')
-            ->append('msg', 'max:100');
+            ->append('worder_sn|工单号', 'require|num_code')
+            ->append('type|工单类型', 'require|in:1,2')
+            ->append('msg|评价内容', 'require|max:100');
     }
 
     //工单评分配置
