@@ -355,11 +355,24 @@ class Admin extends Index
         $where=['is_del'=>0,'status'=>1];
         $user=User::where($where)->find($udata['user_id']);
         if (empty($user) || empty($user['phone'])) {
-            $this->_returnMsg(['errCode' => '未绑定手机号，请重新绑定']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '未绑定手机号，请重新绑定']);
         }
-        //判断当前用户时候已绑定商家
-        if ($user['admin_type'] > 0 || $user['store_id'] > 0) {
-            $this->_returnMsg(['errCode' => '已绑定商户']);
+        $storeModel = new \app\common\model\Store();
+        $storeId = $user['store_id'];
+        if ($storeId) {
+            $store = $storeModel->where('store_id', $storeId)->where('is_del', 0)->find();
+            if (!$store) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('数据异常')]);
+            }
+            if ($store['check_status'] === 0) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户审核中')]);
+            }
+            if ($store['check_status'] === 1) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户审核已通过')]);
+            }
+            if ($store['enter_type'] !== 1) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('数据异常')]);
+            }
         }
         $params['store_type'] = $storeType;
         $params['factory_id'] = $this->factory['store_id'];
@@ -367,16 +380,13 @@ class Admin extends Index
         $params['config_json'] = '';
         $params['check_status'] = 0;
         $params['enter_type'] = 1;
-        $storeId=$user['store_id'];
-        $storeModel = new \app\common\model\Store();
-        if (empty($storeId)) {
+        if (!$storeId) {
             $storeId = $storeModel->save($params);
-            $flag = TRUE;
         }else{
-            $flag=$storeModel->save($params,['store_id'=>$storeId]);
-        }
-        if ($storeId===false || $flag === false) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+            $result = $storeModel->save($params,['store_id'=>$storeId]);
+            if ($result === false) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+            }
         }
         $data = [
             'admin_type'    => $types[$storeType]['admin_type'],
