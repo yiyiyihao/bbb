@@ -297,7 +297,7 @@ class WorkOrder extends Base
         $data['user_id'] = $user['user_id'];
         $data['factory_id'] = $user['factory_id'];
         $data['store_id'] = $storeId;
-        $data['appointment'] = strtotime($data['appointment']);
+        
         $workOrderModel = model('work_order');
         $sn = $workOrderModel->save($data);
         if ($sn) {
