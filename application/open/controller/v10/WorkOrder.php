@@ -62,7 +62,7 @@ class WorkOrder extends Base
             $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
             $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0 ? 1 : 0;
             $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0 ? 1 : 0;
-            unset($list['installer_id'],$list['worder_id']);
+            unset($list[$key]['installer_id'],$list[$key]['worder_id']);
         }
         return $this->dataReturn(0, 'ok', $list);
     }
