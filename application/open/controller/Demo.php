@@ -25,6 +25,8 @@ class Demo extends Controller
 
         echo '<h3>请求接口：</h3>';
         echo '<p>' . $method . '</p>';
+        echo '<h3>请求URL</h3>';
+        //echo '<p>' . url($method, $param, '', true) . '</p>';
 
 
         echo '<h3>请求参数：</h3>';
@@ -47,6 +49,10 @@ class Demo extends Controller
                 case 'page_size':
                     $desc = '分页，每页几条，默认10';
                     break;
+                case 'openid':
+                    $desc = '用户开户编码';
+                    $isRequired='是';
+                    break;
                 default:
                     $isRequired = '是';
                     $desc = $k;
@@ -65,7 +71,7 @@ class Demo extends Controller
         echo '<pre>';
         echo '|参数名|类型|说明|<br>';
         echo '|:-----  |:-----|-----|<br>';
-        if (isset($result['data'][0]) && $result['data'][0] && is_array($result['data'][0])) {
+        if (isset($result['data'][0]) && is_array($result['data'][0])) {
             $result['data'] = $result['data'][0];
         }else if (isset($result['data']['list'][0]) && $result['data']['list'][0] && is_array($result['data']['list'][0])) {
             $result['data']['list']=$result['data']['list'][0];

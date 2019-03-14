@@ -27,4 +27,4 @@ Route::domain('open', function () {
             Route::any('goods', 'v10.work_order/goods');
         });
     });
-});
+})->middleware('OpenMiddleware');

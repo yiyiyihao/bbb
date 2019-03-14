@@ -36,7 +36,7 @@ class WorkOrder extends Base
         $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name';
         $field .= ',WO.address,WO.appointment,WO.work_order_status,WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time';
         $field .= ',WO.finish_time,G.name as sku_name,if(WO.work_order_status > 0, 0, 1) as wstatus';
-        $where['WO.post_user_id'] = $user['user_id'];
+        $where['WO.post_udata_id'] = $user['udata_id'];
         $field .= ',UG.realname installer_name,UG.phone installer_phone';
         if ($workOrderType) {
             $where['work_order_type'] = $workOrderType;
@@ -46,10 +46,10 @@ class WorkOrder extends Base
         }
         $order = 'wstatus ASC,  WO.work_order_status ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
-        if ($result['code']!=='0') {
+        if ($result['code'] !== '0') {
             return $this->dataReturn($result);
         }
-        $list=$result['data']['list'];
+        $list = $result['data']['list'];
         foreach ($list as $key => $value) {
             $list[$key]['add_time'] = time_to_date($value['add_time']);
             $list[$key]['cancel_time'] = time_to_date($value['cancel_time']);
@@ -65,7 +65,7 @@ class WorkOrder extends Base
             $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0 ? 1 : 0;
             unset($list[$key]['installer_id'], $list[$key]['worder_id']);
         }
-        $result['data']['list']=$list;
+        $result['data']['list'] = $list;
         return $this->dataReturn($result);
     }
 
@@ -163,13 +163,13 @@ class WorkOrder extends Base
         $user = $userCheck['data'];
         $type = $request->param('type', '', 'intval');
         $msg = $request->param('msg');
-        $score = $request->param('score', '', 'trim');
+        $score = $request->param('score');
 
         $worderSn = $request->param('worder_sn', '', 'trim');
         $where = [
-            'is_del'       => 0,
-            'post_user_id' => $user['user_id'],
-            'worder_sn'    => $worderSn,
+            'is_del'        => 0,
+            'post_udata_id' => $user['udata_id'],
+            'worder_sn'     => $worderSn,
         ];
         $workOrder = db('work_order')->where($where)->find();
         if (empty($workOrder)) {
@@ -182,7 +182,8 @@ class WorkOrder extends Base
         if ($type == 1 && empty($score)) {
             return $this->dataReturn(100100, '评分不能为空');
         }
-        $scores = $score ? json_decode($score, 1) : [];
+        //$scores = $score ? json_decode($score, 1) : [];
+        $scores = $score;
         if ($type == 1 && empty($scores)) {
             return $this->dataReturn(100100, '评分数据格式不正确');
         }
@@ -269,7 +270,6 @@ class WorkOrder extends Base
         $where = [
             'goods_id' => $data['goods_id'],
             'is_del'   => 0,
-            //'store_id' => $this->factory['store_id'],
         ];
         $goods = db('goods')->where($where)->find();
         if (empty($goods)) {
@@ -288,6 +288,7 @@ class WorkOrder extends Base
                 return $this->dataReturn(100106, '抱歉，您选择的区域暂无服务商');
             }
         }
+        $data['post_udata_id'] = $user['udata_id'];
         $data['images'] = implode(',', $images);
         $data['install_price'] = $goods['install_price'];
         $data['work_order_type'] = 2;
@@ -319,7 +320,6 @@ class WorkOrder extends Base
         $user = $userCheck['data'];
 
         $where = [
-            'store_id'   => $user['factory_id'],
             'is_del'     => 0,
             'goods_type' => 1,
             'status'     => 1,
@@ -331,11 +331,11 @@ class WorkOrder extends Base
         if (empty($list)) {
             return $this->dataReturn(100106, '暂无数据');
         }
-        foreach ($list as $key => $value) {
-            $list[$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
-            unset($list[$key]['cate_thumb']);
+        foreach ($list['data'] as $key => $value) {
+            $list['data'][$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
+            unset($list['data'][$key]['cate_thumb']);
         }
-        return $this->dataReturn(0, 'ok', $list);
+        return $this->dataReturn($list);
     }
 
 
@@ -354,11 +354,20 @@ class WorkOrder extends Base
 
     private function getUser(Request $request)
     {
-        $user_id = $request->param('user_id', '', 'intval');
-        $user = db('user')->where(['is_del' => 0])->find($user_id);
+        $openid = $request->param('openid');
+        $user = model('user_data')->where(['openid' => $openid, 'is_del' => 0])->find();
         if (empty($user)) {
-            return dataFormat(100101, '手机号未绑定');
+            $user->save([
+                'openid'      => $openid,
+                'add_time'    => time(),
+                'update_time' => time(),
+                'user_type'   => 'open',
+            ]);
         }
+        //$user = db('user')->where(['is_del' => 0])->find($user_id);
+        //if (empty($user)) {
+        //    return dataFormat(100101, '手机号未绑定');
+        //}
         if (!$user['status']) {
             return dataFormat(100102, '用户已被禁用');
         }
