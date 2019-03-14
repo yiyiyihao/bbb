@@ -126,4 +126,11 @@ class WorkOrderVal extends Validate
             ->append('fault_desc|故障描述信息', 'require|max:120');
     }
 
+    //获取可维修商列表
+    public function sceneGoods()
+    {
+        return $this->only(['phone'])
+            ->append('phone', 'mobile|require');
+    }
+
 }

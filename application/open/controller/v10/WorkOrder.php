@@ -296,11 +296,45 @@ class WorkOrder extends Base
         $workOrderModel = model('work_order');
         $sn = $workOrderModel->save($data);
         if ($sn) {
-            return $this->dataReturn(0, '维修工单提交成功',['worder_sn'=>$sn]);
+            return $this->dataReturn(0, '维修工单提交成功', ['worder_sn' => $sn]);
         } else {
             return $this->dataReturn(100107, '系统错误');
         }
     }
+
+    //可维修产品列表
+    public function goods(Request $request)
+    {
+        $check = new WorkOrderVal();
+        if (!$check->scene('goods')->check($request->param())) {
+            return $this->dataReturn(100100, $check->getError());
+        }
+        $userCheck = $this->getUser($request);
+        if ($userCheck['code'] != 0) {
+            return $this->dataReturn($userCheck);
+        }
+        $user = $userCheck['data'];
+
+        $where = [
+            'store_id'  => $user['factory_id'],
+            'is_del'    => 0,
+            'goods_type'=> 1,
+            'status'    => 1,
+        ];
+        $field = 'goods_id, name, cate_thumb, thumb';
+        $order = 'sort_order ASC, add_time ASC';
+        $this->paginate=false;
+        $list = $this->getModelList(db('goods'), $where, $field, $order);
+        if (empty($list)) {
+            return $this->dataReturn(100106, '暂无数据');
+        }
+        foreach ($list as $key => $value) {
+            $list[$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
+            unset($list[$key]['cate_thumb']);
+        }
+        return $this->dataReturn(0, 'ok',$list);
+    }
+
 
     private function getAssessConfig()
     {

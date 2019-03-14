@@ -23,6 +23,8 @@ Route::domain('open', function () {
             Route::any('assess_config', 'v10.work_order/assessConfig');
             //提交维修工单
             Route::any('add', 'v10.work_order/add');
+            //可维修产品列表
+            Route::any('goods', 'v10.work_order/goods');
         });
     });
 });
