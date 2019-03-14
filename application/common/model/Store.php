@@ -216,13 +216,14 @@ class Store extends Model
         return $info;
     }
     //根据region_id获取店铺id
-    public function getStoreFromRegion($regionId = FALSE){
+    public function getStoreFromRegion($regionId = FALSE, $factoryId = 1){
         if(!empty($regionId)){
             $where = [
                 'region_id' =>  $regionId,
                 'store_type'=> STORE_SERVICE,
                 'is_del'    => 0,
                 'status'    => 1,
+                'factory_id'=> $factoryId,
             ];
             $info = db('store')->where($where)->find();
             if($info) return $info['store_id'];
