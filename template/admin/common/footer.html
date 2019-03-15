@@ -18,17 +18,27 @@ Do.ready('dialog', function () {
 	  area: ['600px', '400px'], //宽高
 	  offset: [offsetY+'px', offsetX+'px'],
 	  content: '<div class="admin-main">{$vo.content|raw}</div>',
-	  btn: ['标记已读','关闭'],
+	  btn: ['标记已读'],
 	  yes: function(index, layero){
 		  var url = "{:url('/Bulletin/read',['id'=>$vo.bulletin_id])}";
 		  $.post(url,function(data){
-			if(data.code == 1){
-				layero.close;
-			}
-			layer.msg(data.msg);
-		  })
-	  },btn2: function(index, layero){
-		  layero.close;
+              layer.close(index)
+		      // if(data.code == 1){
+			  //    layero.close;
+			  // }
+			  // layer.msg(data.msg);
+		  });
+          layero.close;
+	  },btn1: function(index, layero){
+        var url = "{:url('/Bulletin/read',['id'=>$vo.bulletin_id])}";
+        $.post(url,function(data){
+            //layero.close;
+            // if(data.code == 1){
+            //     layero.close;
+            // }
+            // layer.msg(data.msg);
+        });
+        layero.close;
 	  }
 	});
 	{/volist}
@@ -43,7 +53,7 @@ $(function(){
 		var index = $(this).index();
 		if(!$(this).hasClass("tab-active")){
 			par.find("li.tab-active").removeClass("tab-active");
-			par.parents(".nav-tab-list").find(".nav-tab-box").addClass("hide");			
+			par.parents(".nav-tab-list").find(".nav-tab-box").addClass("hide");
 			$(this).addClass("tab-active");
 			par.parents(".nav-tab-list").find(".nav-tab-box").eq(index).removeClass("hide");
 		}
