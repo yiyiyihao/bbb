@@ -1224,8 +1224,11 @@ class Index extends ApiBase
 //         if (strlen($this->postParams['timestamp']) == 13) {
 //             $this->postParams['timestamp'] = substr($this->postParams['timestamp'], 0, 10);
 //         }
+        $ret=json_decode($result,true);
         $addData = [
+            'module'        => $this->request->module(),
             'controller'    => strtolower($this->request->controller()),
+            'action'        => $this->request->action(),
             'request_time'  => $this->requestTime,
             'request_source'=> $this->fromSource ? $this->fromSource : '',
             'return_time'   => time(),
@@ -1233,7 +1236,8 @@ class Index extends ApiBase
             'request_params'=> $this->postParams ? json_encode($this->postParams) : '',
             'return_params' => $result,
             'response_time' => $responseTime,
-            'error'         => isset($data['errCode']) && intval($data['errCode']) > 0 ? 1 : 0,
+            'error'         => isset($ret['errCode'])  ? intval($ret['errCode']) : 0,
+            'msg'           => isset($ret['errMsg'])  ? $ret['errMsg'] : '',
         ];
         $apiLogId = db('apilog_app')->insertGetId($addData);
         exit();
