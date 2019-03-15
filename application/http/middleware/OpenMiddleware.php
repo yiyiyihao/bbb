@@ -22,8 +22,9 @@ class OpenMiddleware
         ];
         $response = $next($request);
         $end = microtime(true);
-        $data=$response->getData();
-        $addData['error'] = isset($data['code'])?$data['code']:0;
+        $data = $response->getData();
+        $addData['error'] = isset($data['code']) ? $data['code'] : 0;
+        $addData['msg'] = isset($data['msg']) ? $data['msg'] : '';
         $addData['response_time'] = $end - $start;
         $addData['return_params'] = json_encode($data);
         db('apilog_app')->insertGetId($addData);

@@ -39,7 +39,7 @@ class Base extends \app\common\controller\Base
         $msg = array_shift($args);
         $data = array_shift($args);
         $result = dataFormat($code, $msg, $data);
-        if ($result['code'] == '4040404') {//适配前端
+        if ($result['code'] == '404404') {//适配前端
             $result['code'] = '0';
         }
         return json($result);
@@ -71,7 +71,7 @@ class Base extends \app\common\controller\Base
             $data = $model->field($field)->select();
         }
         if (isset($data['list']) && empty($data['list']) || empty($data)) {
-            $code = '4040404';
+            $code = '404404';
             $msg = '暂无数据';
         }
         return dataFormat($code, $msg, $data);
