@@ -38,7 +38,11 @@ class Base extends \app\common\controller\Base
         $code = array_shift($args);
         $msg = array_shift($args);
         $data = array_shift($args);
-        return json(dataFormat($code, $msg, $data));
+        $result = dataFormat($code, $msg, $data);
+        if ($result['code'] == '4040404') {//适配前端
+            $result['code'] = '0';
+        }
+        return json($result);
     }
 
 
@@ -50,25 +54,27 @@ class Base extends \app\common\controller\Base
         if ($having) $model->having($having);
         if ($order) $model->order($order);
         if ($group) $model->group($group);
-        $result = [];
+
+        $code = 0;
+        $msg = 'ok';
+        $data = [];
         if ($this->paginate && $this->pageSize > 0 && $this->page > 0) {
-            $data = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
-            if (!$data->isEmpty()) {
-                $result = [
-                    'total'      => $data->total(),
-                    'page'       => $data->currentPage(),
-                    'page_size'  => $data->listRows(),
-                    'page_count' => $data->lastPage(),
-                    'list'       => $data->items(),
-                ];
-            }
+            $query = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            $data = [
+                'total'      => $query->total(),
+                'page'       => $query->currentPage(),
+                'page_size'  => $query->listRows(),
+                'page_count' => $query->lastPage(),
+                'list'       => $query->items(),
+            ];
         } else {
-            $result = $model->field($field)->select();
+            $data = $model->field($field)->select();
         }
-        if (empty($result)) {
-            return dataFormat(404, '暂无数据!');
+        if (isset($data['list']) && empty($data['list']) || empty($data)) {
+            $code = '4040404';
+            $msg = '暂无数据';
         }
-        return dataFormat(0, 'ok', $result);
+        return dataFormat($code, $msg, $data);
     }
 
 
