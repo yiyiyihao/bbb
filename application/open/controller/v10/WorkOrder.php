@@ -263,7 +263,7 @@ class WorkOrder extends Base
         $images = $request->param('images');
 
         //报修上传故障图片(英文分号分隔)
-        $images = $request->param('images', 'trim');
+        $images = $request->param('images', '','trim');
         $images = array_unique(array_filter(explode(',', $images)));
         if (count($images) > 3) {
             return $this->dataReturn(100106, '抱歉，图片最多只能保存3张');
