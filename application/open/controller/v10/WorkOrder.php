@@ -44,7 +44,7 @@ class WorkOrder extends Base
         if ('' !== $status) {
             $where['WO.work_order_status'] = $status;
         }
-        $order = 'wstatus ASC,  WO.work_order_status ASC';
+        $order = 'WO.worder_id desc,wstatus ASC,WO.work_order_status ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
         if ($result['code'] !== '0') {
             return $this->dataReturn($result);

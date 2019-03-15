@@ -2100,7 +2100,7 @@ class Admin extends Index
         if ($isUserName) {
             $where['WO.user_name']=$keyword;
         }
-        $order = 'WO.worder_id desc';
+        $order = 'WO.worder_id desc,WO.work_order_status ASC';
         $field = 'WO.worder_sn,WO.order_sn,UI.job_no,WO.work_order_type,WO.work_order_status,WO.region_name,WO.address,WO.phone,WO.user_name,WO.receive_time,WO.add_time';
         $join=[
             ['user_installer UI', 'WO.installer_id=UI.installer_id', 'LEFT'],
