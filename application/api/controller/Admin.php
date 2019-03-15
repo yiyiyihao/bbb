@@ -1229,7 +1229,7 @@ class Admin extends Index
         $storeModel = new \app\common\model\Store();
         $result = $storeModel->save($data, ['store_id' => $detail['store_id']]);
         if ($result !== FALSE) {
-            $this->_returnMsg(['msg' => 'ok']);
+            $this->_returnMsg(['msg' => '操作成功']);
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
