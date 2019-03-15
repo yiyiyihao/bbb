@@ -689,8 +689,8 @@ class Index extends ApiBase
         if ($orderType) {
             $where['work_order_type'] = $orderType;
         }
-        $order = 'WO.add_time ASC';
-        $order = 'wstatus ASC,  WO.work_order_status ASC';
+        $order  = 'WO.add_time ASC';
+        $order .= 'wstatus ASC,  WO.work_order_status ASC';
         $field .= ', if(WO.work_order_status > 0, 0, 1) as wstatus';
         
 //         $field .= ', if(WOA.assess_id > 0, 1, 0) as has_assess';
