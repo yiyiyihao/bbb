@@ -10,7 +10,9 @@ class OpenMiddleware
     {
         $start = microtime(true);
         $addData = [
+            'module'         => $request->module(),
             'controller'     => $request->controller(),
+            'action'         => $request->action(),
             'request_time'   => microtime(true),
             'request_source' => 'open_api',
             'return_time'    => time(),
@@ -20,7 +22,12 @@ class OpenMiddleware
             'response_time'  => 0,
             'error'          => 0,
         ];
-        $response = $next($request);
+        $pageSize = $request->param('page_size', '10', 'intval');
+        if ($pageSize > 50) {
+            $response = json(dataFormat(100100, '单页显示数量不能大于50'));
+        } else {
+            $response = $next($request);
+        }
         $end = microtime(true);
         $data = $response->getData();
         $addData['error'] = isset($data['code']) ? $data['code'] : 0;

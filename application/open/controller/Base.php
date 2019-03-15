@@ -19,10 +19,6 @@ class Base extends \app\common\controller\Base
     {
         $this->pageSize = input('page_size', 10, 'intval');
         $this->page = input('page', 1, 'intval');
-        if ($this->pageSize > 50) {
-            echo json_encode(dataFormat(100100, '单页显示数量不能大于50'));
-            exit();
-        }
         $this->factory = db('store')->where(['is_del' => 0, 'status' => 1])->find($this->factoryId);
     }
 
