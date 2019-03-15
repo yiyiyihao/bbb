@@ -117,6 +117,11 @@ class Store extends FactoryForm
                     $this->error('解绑失败');
                 }
                 Db::commit();
+                session('api_user_data', []);
+                session('api_admin_user', []);
+                session('api_wechat_oauth', []);
+                session('udata', []);
+                session('api_source', '');
                 $this->success('成功解绑'.$result.'条数据');
             }
             $this->error('数据无修改');
