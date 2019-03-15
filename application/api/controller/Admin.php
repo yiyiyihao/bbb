@@ -53,18 +53,6 @@ class Admin extends Index
             }
         }
         $this->_returnMsg(['loginStatus' => $status]);
-//         $user = $this->_checkUser();
-//         if (!$user) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已删除']);
-//         }
-//         if ($user['status'] !== 1) {
-//             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户已被禁用']);
-//         }
-//         $storeId = (int)$user['store_id'];
-//         if ($storeId <= 0) {
-//             $this->_returnMsg(['msg' => '请填写商家资料', 'errLogin' => 3, 'source'=>$source]);
-//         }
-//         $this->_setLogin($user['user_id'], $user['third_openid']);
     }
     //上传图片
     protected function uploadImage($verifyUser = FALSE)
@@ -123,7 +111,7 @@ class Admin extends Index
         $url = 'http://h5.imliuchang.cn';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
-        session('api_source',$state);
+        session('api_source', $state);
         $this->_returnMsg(['scopeUrl' => $scopeUrl, 'errLogin' => 1]);
     }
     //微信授权-第2步，返回微信Openid
@@ -146,7 +134,6 @@ class Admin extends Index
         }else{
             $result = $sessionWechat;
         }
-        
         //#TODO 删除模拟用户数据
         //$result=[
         //    'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
@@ -175,7 +162,7 @@ class Admin extends Index
         if ($oauth === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
         }
-        //记录登陆信息['openid' => 'abc', 'user_id' => 123, 'udata_id'=> 456,'third_openid'=>'abc'];
+        //记录登陆信息
         session('api_user_data', $oauth);
         if (!$oauth['user_id']) {
             $this->_returnMsg(['msg' => '授权成功', 'errLogin' => 2]);
@@ -206,12 +193,12 @@ class Admin extends Index
         }
         //判断登录用户名是否存在
         $where = [
-            'factory_id'=> $this->factory['store_id'],
-            'is_del'    => 0,
-            'username'  => $username,
-            'group_id'  => ['>', 0],
-            'admin_type'=> ['IN', [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE]],
-            'is_admin'  => ['>', 0],
+            ['factory_id',  '=', $this->factory['store_id']],
+            ['is_del',      '=', 0],
+            ['username',    '=', $username],
+            ['group_id',    '>', 0],
+            ['admin_type',  'IN', [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE]],
+            ['is_admin',    '>', 0],
         ];
         $user = $userModel->where($where)->find();
         if (!$user) {
@@ -396,7 +383,9 @@ class Admin extends Index
         ];
         $userModel = new \app\common\model\User();
         $result = $userModel->save($data, ['user_id' => $udata['user_id']]);
-        //$this->_setLogin($udata['user_id'], $udata['third_openid']);
+        if ($result === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
+        }
         $source=session('api_source');
         $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
     }
@@ -445,18 +434,19 @@ class Admin extends Index
     //获取入驻商户审核详情
     protected function getApplyDetail()
     {
-        $userId=session('api_user_data.user_id');
+        $userId = session('api_user_data.user_id');
         if (empty($userId)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请退出重新访问']);
         }
-        $user=db('user')->where(['is_del'=>0,'status'=>1])->find($userId);
+        $where = [
+            ['is_del', '=', 0],
+            ['status', '=', 1],
+            ['user_id','=', $userId],
+        ];
+        $user = db('user')->where($where)->find();
         if (empty($user)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在或已被删除']);
         }
-        //$user = $this->_checkUser(FALSE);
-        //if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
-        //    $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-        //}
         $field = 'store_id, enter_type, address, store_type, store_no, check_status, admin_remark, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, add_time';
         $detail = $this->getStoreDetail($field, $user['store_id']);
         if ($detail['enter_type'] != 1) {
@@ -568,13 +558,6 @@ class Admin extends Index
         if (!$config) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '厂商未配置'.get_admin_type($user['admin_type']).'分享数据']);
         }
-        /* $store = session('api_admin_store');
-        $storeNo = $store ? $store['store_no'] : $user['store_no'];
-        if ($user['admin_type'] == ADMIN_CHANNEL) {
-            $url .= '?channel_no='.$storeNo;
-        }else{
-            $url .= '?factory_no='.$storeNo;
-        } */
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         $appid = $wechatApi ? $wechatApi->config['appid'] : '';
         if (!$appid) {
@@ -601,7 +584,6 @@ class Admin extends Index
             "signature" => $signature,
             "rawString" => $rawString
         );
-        $this->_logResult("sign_package\r\n".json_encode($config['sign_package']));
         $this->_returnMsg(['detail' => $config]);
     }
     protected function getShareCode()
@@ -683,8 +665,10 @@ class Admin extends Index
         $field = 'B.bulletin_id,B.name,B.special_display,B.publish_time,B.is_top,IFNULL(BR.is_read, 0) as is_read';
         $order = 'is_top DESC, publish_time DESC';
         $list = $this->_getModelList(db('bulletin'), $where, $field, $order, 'B', $join);
-        foreach ($list as $key=>$item) {
-            $list[$key]['publish_time']=time_to_date($item['publish_time']);
+        if ($list) {
+            foreach ($list as $key=>$item) {
+                $list[$key]['publish_time']=time_to_date($item['publish_time']);
+            }
         }
         $this->_returnMsg(['list' => $list]);
     }
@@ -2122,15 +2106,17 @@ class Admin extends Index
             ['user_installer UI', 'WO.installer_id=UI.installer_id', 'LEFT'],
         ];
         $list = $this->_getModelList(db('work_order'), $where, $field, $order,'WO',$join);
-        $list=array_map(function ($item) {
-            $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
-            $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
-            $item['work_order_type_desc']=get_work_order_type($item['work_order_type']);
-            $item['receive_time']=time_to_date($item['receive_time']);
-            $item['add_time']=time_to_date($item['add_time']);
-            unset($item['region_name']);
-            return $item;
-        },$list);
+        if ($list) {
+            $list=array_map(function ($item) {
+                $item['address']=str_replace(' ','',$item['region_name']).$item['address'];
+                $item['work_order_status_desc']=get_work_order_status($item['work_order_status']);
+                $item['work_order_type_desc']=get_work_order_type($item['work_order_type']);
+                $item['receive_time']=time_to_date($item['receive_time']);
+                $item['add_time']=time_to_date($item['add_time']);
+                unset($item['region_name']);
+                return $item;
+            },$list);
+        }
         $this->_returnMsg(['list' => $list]);
     }
     //获取工单详情
@@ -2165,7 +2151,7 @@ class Admin extends Index
         }
         $field='worder_id,goods_id,worder_sn,order_sn,ossub_id,work_order_type,work_order_status,user_name,phone,appointment,finish_time,region_name,address,fault_desc,images,install_price,real_price,store_id,installer_id,dispatch_time,receive_time,sign_time,finish_time';
         $workOrderModel=new \app\common\model\WorkOrder();
-        $info = $workOrderModel->alias('')->field($field)->where($where)->find();
+        $info = $workOrderModel->field($field)->where($where)->find();
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单信息不存在']);
         }
@@ -2208,7 +2194,6 @@ class Admin extends Index
             $infoSub = db('goods')->find($info['goods_id']);
             $info['goods_name']=$infoSub['name'];
         }
-
         //获取工单日志
         //$info['logs'] = db('work_order_log')->order('add_time DESC')->where(['worder_id' => $info['worder_id']])->select();
         //获取工单评价记录
@@ -2449,11 +2434,13 @@ class Admin extends Index
         }
         $order='add_time DESC';
         $list = $this->_getModelList(db('user_installer'), $where, $field, $order);
-        $list=array_map(function ($item) {
-            $item['check_status_desc']=get_installer_status($item['check_status']);
-            $item['add_time']=time_to_date($item['add_time']);
-            return $item;
-        },$list);
+        if (!empty($list)) {
+            $list=array_map(function ($item) {
+                $item['check_status_desc']=get_installer_status($item['check_status']);
+                $item['add_time']=time_to_date($item['add_time']);
+                return $item;
+            },$list);
+        }
         $this->_returnMsg(compact('list'));
     }
     //获取工程师审核详情
