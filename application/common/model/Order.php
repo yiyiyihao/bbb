@@ -384,7 +384,7 @@ class Order extends Model
         }
         $payCode = isset($extra['pay_code']) ? trim($extra['pay_code']) : '';
         $paySn = '';
-        if ($order['pay_type'] == 1 && $payCode != 'balance') {
+        if ($order['pay_type'] == 1 && $payCode != 'balance' && !isset($user['udata_id'])) {
             $paySn = isset($extra['pay_sn']) && trim($extra['pay_sn']) ? trim($extra['pay_sn']) : '';
             if (!$paySn) {
                 $this->error = '第三方交易号不能为空';
@@ -532,11 +532,11 @@ class Order extends Model
     public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $addr = [], $remark = '', $orderType = 1)
     {
         if (!$user) {
-            $this->error = lang('param_error').'--1';
+            $this->error = lang('param_error');
             return FALSE;
         }
         if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
-            $this->error = lang('param_error').'--2';
+            $this->error = lang('param_error');
             return FALSE;
         }
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
@@ -544,7 +544,7 @@ class Order extends Model
             $goodsModel = new \app\common\model\Goods();
             $sku = $goodsModel->checkSku($skuId);
             if ($sku === FALSE) {
-                $this->error = $goodsModel->error.'--3';
+                $this->error = $goodsModel->error;
                 return FALSE;
             }
             if ($num <= 0) {
@@ -568,7 +568,13 @@ class Order extends Model
         if (!$submit) {
             return $list;
         }else{
-            $storeId = $list['store_id'];
+            $first = isset($list['skus']) ? reset($list['skus']) : [];
+            $storeId = $first ? $first['store_id'] : 0;
+            $sellerUdataId = $first ? $first['udata_id'] : 0;
+            if (isset($user['udata_id']) && $sellerUdataId && $sellerUdataId == $user['udata_id']) {
+                $this->error = '不允许购买自己的商品';
+                return FALSE;
+            }
             //收货地址
             $addrName = isset($addr['address_name']) && $addr['address_name'] ? trim($addr['address_name']) : '';
             $addrPhone = isset($addr['address_phone']) && $addr['address_phone'] ? trim($addr['address_phone']) : '';
@@ -601,6 +607,7 @@ class Order extends Model
                 'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
                 'user_store_type' => isset($user['store_type']) ? intval($user['store_type']) : 0,
                 
+                'seller_udata_id' => $sellerUdataId,
                 'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
                 
                 'goods_amount'  => $list['sku_amount'],
@@ -621,7 +628,7 @@ class Order extends Model
             $orderSkuSubModel = db('order_sku_sub');
             try{
                 $goodsModel = new \app\common\model\Goods();
-                $skus = $storeIdArray = $cartIds = [];
+                $skus = $cartIds = [];
                 $orderId = $orderModel->insertGetId($orderData);
                 if (!$orderId) {
                     $this->error = '订单创建失败';
@@ -636,11 +643,12 @@ class Order extends Model
                         $sku = [
                             'order_id'      => $orderId,
                             'order_sn'      => $orderSn,
-                            'store_id'      => $list['store_id'],
+                            'store_id'      => $storeId,
                             
                             'user_id'       => $userId,
                             'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
                             
+                            'seller_udata_id' => isset($value['udata_id'])? intval($value['udata_id']) : 0,
                             'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
                             
                             'goods_id'      => $value['goods_id'],
@@ -672,12 +680,13 @@ class Order extends Model
                                 'good_sku_code' => $this->_getGoodsSkuCode('auto', $value['sku_sn']),
                                 'order_id'      => $orderId,
                                 'order_sn'      => $orderSn,
-                                'store_id'      => $list['store_id'],
+                                'store_id'      => $storeId,
                                 'osku_id'       => $oskuId,
                                 
                                 'user_id'       => $userId,
                                 'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
                                 
+                                'seller_udata_id' => isset($value['udata_id'])? intval($value['udata_id']) : 0,
                                 'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
                                 
                                 'goods_id'      => $value['goods_id'],
@@ -871,23 +880,25 @@ class Order extends Model
     public function orderLog($order, $user, $action = '', $msg = '', $serviceId = 0)
     {
         $udataId = $userId = 0;
-        if($user && isset($user['user_id']) && $user['user_id'] > 0){
+        if ($user && ((isset($user['user_id']) && $user['user_id'] > 0) || (isset($user['udata_id']) && $user['udata_id'] > 0))) {
             $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
             $nickname = $nickname ? $nickname : '用户';
-            if ($order['user_store_id'] == $user['store_id']) {
-                $nickname = '[买家]'.$nickname;
+            if (isset($user['udata_id']) && $user['udata_id'] > 0) {
+                if ($order['seller_udata_id'] == $user['udata_id']) {
+                    $nickname = '[卖家]'.$nickname;
+                }else{
+                    $nickname = '[买家]'.$nickname;
+                }
+                $userId = $user['user_id'];
+                $udataId = $user['udata_id'];
             }else{
-                $nickname = '[卖家]'.$nickname;
+                if ($order['user_store_id'] == $user['store_id']) {
+                    $nickname = '[买家]'.$nickname;
+                }else{
+                    $nickname = '[卖家]'.$nickname;
+                }
+                $userId = $user['user_id'];
             }
-            $userId = $user['user_id'];
-        }elseif($user && isset($user['udata_id']) && $user['udata_id'] > 0){
-            $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
-            if (!$nickname) {
-                $nickname = db('user_data')->where(['udata_id' => $user['udata_id']])->value('nickname');
-                $nickname = $nickname ? $nickname : '用户';
-            }
-            $nickname = '[买家]'.$nickname;
-            $udataId = $user['udata_id'];
         }else{
             $nickname = '系统';
         }
@@ -928,7 +939,7 @@ class Order extends Model
                 $where['user_store_id'] = ['IN', $storeIds];
             }
         }elseif (isset($user['udata_id']) && $user['udata_id'] > 0) {
-            $where['udata_id'] = $user['udata_id'];
+            $where[] = ['', 'EXP', \think\Db::raw("udata_id = ".$user['udata_id']." OR seller_udata_id = ".$user['udata_id'])];
         }
         $order = $this->field($field)->where($where)->find();
         if (!$order) {
@@ -1113,7 +1124,7 @@ class Order extends Model
                 'sku_id' => intval($skuIds),
             ];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
-            $field = 'G.activity_id, G.activity_id, S.store_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
+            $field = 'G.activity_id, G.activity_id, S.store_id, S.udata_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
             $list = db('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
@@ -1126,6 +1137,10 @@ class Order extends Model
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
             foreach ($list as $key => $value) {
+                if (isset($user['udata_id']) && $value['udata_id'] == $user['udata_id']) {
+                    $this->error = '不允许购买自己的商品';
+                    return FALSE;
+                }
                 if ($value['activity_id']) {
                     $value['price'] = db('activity')->where(['id' => $value['activity_id']])->value('activity_price');
                 }
@@ -1185,13 +1200,11 @@ class Order extends Model
             'skus'      => $skus,                  //产品列表
             'sku_total' => intval($skuTotal),       //产品总数量
             'sku_count' => intval($skuCount),       //产品种类数量(不重复)
-            'all_amount'        => sprintf("%.2f",$allAmount),      //产品总金额
+            'all_amount'        => sprintf("%.2f",$allAmount),      //订单总金额
             'delivery_amount'   => sprintf("%.2f",$deliveryAmount), //物流费用
             'install_amount'    => sprintf("%.2f",$installAmount),  //安装费用
             'sku_amount'        => sprintf("%.2f",$skuAmount),      //产品总金额
             'pay_amount'        => sprintf("%.2f",$payAmount),      //需支付金额
-            'sku_ids'           => $skuIds,
-            'store_id'          => $storeId,
         ];
         return $return;
     }

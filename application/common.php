@@ -796,7 +796,7 @@ function timediff($timediff, $return_type = 1)
  * @url :请求的url
  * @post_data : 请求数组
  **/
-function curl_post_https($url, $post_data){
+function curl_post_https($url, $post_data, $header = []){
     if (empty($url)){
         return false;
     }
@@ -809,6 +809,9 @@ function curl_post_https($url, $post_data){
     curl_setopt($curl, CURLOPT_HEADER, 0);
     //设置获取的信息以文件流的形式返回，而不是直接输出。
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    if(!empty($header)){
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+    }
     //设置post方式提交
     curl_setopt($curl, CURLOPT_POST, 1);
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");

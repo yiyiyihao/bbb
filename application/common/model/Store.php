@@ -159,8 +159,7 @@ class Store extends Model
                 }
                 break;
             default:
-                $this->error = lang('param_error');
-                return FALSE;
+                return TRUE;
                 break;
         }
         if ($exist) {
@@ -259,17 +258,20 @@ class Store extends Model
     private static function _getmodel($storeType)
     {
         switch ($storeType) {
-            case STORE_FACTORY:
+            case 1:
                 $model = 'factory';
                 break;
-            case STORE_CHANNEL:
+            case 2:
                 $model = 'channel';
                 break;
-            case STORE_DEALER:
+            case 3:
                 $model = 'dealer';
                 break;
-            case STORE_SERVICE:
+            case 4:
                 $model = 'servicer';
+                break;
+            case 5:
+                $model = 'echodata';
                 break;
             default:
                 return FALSE;

@@ -14,6 +14,7 @@ class Base extends \app\common\controller\Base
     protected $paginate = true;
     protected $factory;
     protected $factoryId = 1;
+    protected $params;
 
     public function initialize()
     {
@@ -21,7 +22,6 @@ class Base extends \app\common\controller\Base
         $this->page = input('page', 1, 'intval');
         $this->factory = db('store')->where(['is_del' => 0, 'status' => 1])->find($this->factoryId);
     }
-
 
     public function dataReturn(...$code)
     {
@@ -35,9 +35,6 @@ class Base extends \app\common\controller\Base
         $msg = array_shift($args);
         $data = array_shift($args);
         $result = dataFormat($code, $msg, $data);
-        if ($result['code'] == '404404') {//适配前端
-            $result['code'] = '0';
-        }
         return json($result);
     }
 
@@ -55,7 +52,7 @@ class Base extends \app\common\controller\Base
         $msg = 'ok';
         $data = [];
         if ($this->paginate && $this->pageSize > 0 && $this->page > 0) {
-            $query = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            $query = $model->where($where)->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
             $data = [
                 'total'      => $query->total(),
                 'page'       => $query->currentPage(),
@@ -66,12 +63,12 @@ class Base extends \app\common\controller\Base
         } else {
             $data = $model->field($field)->select();
         }
+        return $data;
         if (isset($data['list']) && empty($data['list']) || empty($data)) {
             $code = '404404';
             $msg = '暂无数据';
         }
+        pre($data);
         return dataFormat($code, $msg, $data);
     }
-
-
 }

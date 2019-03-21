@@ -46,27 +46,26 @@ class WorkOrder extends Base
         }
         $order = 'WO.worder_id desc,wstatus ASC,WO.work_order_status ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
-        if ($result['code'] !== '0') {
-            return $this->dataReturn($result);
+        if ($result) {
+            $list = $result['list'];
+            foreach ($list as $key => $value) {
+                $list[$key]['add_time'] = time_to_date($value['add_time']);
+                $list[$key]['cancel_time'] = time_to_date($value['cancel_time']);
+                $list[$key]['receive_time'] = time_to_date($value['receive_time']);
+                $list[$key]['sign_time'] = time_to_date($value['sign_time']);
+                $list[$key]['appointment'] = $value['appointment'] ? date('Y-m-d H:i', $value['appointment']) : '';
+                $list[$key]['work_order_type'] = $value['work_order_type'];
+                $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
+                $list[$key]['status_txt'] = get_work_order_installer_status($value['work_order_status']);
+                //判断当前工单是否有首次评价和追加评价
+                $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
+                $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0 ? 1 : 0;
+                $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0 ? 1 : 0;
+                unset($list[$key]['installer_id'], $list[$key]['worder_id']);
+            }
+            $result['list'] = $list;
         }
-        $list = $result['data']['list'];
-        foreach ($list as $key => $value) {
-            $list[$key]['add_time'] = time_to_date($value['add_time']);
-            $list[$key]['cancel_time'] = time_to_date($value['cancel_time']);
-            $list[$key]['receive_time'] = time_to_date($value['receive_time']);
-            $list[$key]['sign_time'] = time_to_date($value['sign_time']);
-            $list[$key]['appointment'] = $value['appointment'] ? date('Y-m-d H:i', $value['appointment']) : '';
-            $list[$key]['work_order_type'] = $value['work_order_type'];
-            $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
-            $list[$key]['status_txt'] = get_work_order_installer_status($value['work_order_status']);
-            //判断当前工单是否有首次评价和追加评价
-            $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
-            $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0 ? 1 : 0;
-            $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0 ? 1 : 0;
-            unset($list[$key]['installer_id'], $list[$key]['worder_id']);
-        }
-        $result['data']['list'] = $list;
-        return $this->dataReturn($result);
+        return $this->dataReturn(0, 'ok', $result);
     }
 
     //工单详情
