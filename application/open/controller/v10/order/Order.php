@@ -228,7 +228,68 @@ class Order extends Base
         
         return $this->dataReturn(0, 'ok', $info);
     }
-    public function create()
+    /**
+     * 创建订单(购物车)
+     */
+    public function cart_create()
+    {
+        $skuIds = isset($this->postParams['sku_ids']) ? $this->postParams['sku_ids'] : [];
+        if (!$skuIds && !is_array($skuIds)) {
+            return $this->dataReturn('003113', 'invalid sku_ids');
+        }
+        $submit = isset($this->postParams['submit']) ? intval($this->postParams['submit']) : 0;
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $address = isset($this->postParams['address']) ? $this->postParams['address'] : [];
+        if ($submit > 0) {
+            if (!isset($this->postParams['address'])) {
+                return $this->dataReturn('003004', 'missing address');
+            }
+            if (!is_array($address)) {
+                return $this->dataReturn('003005', 'invalid address');
+            }
+            $name = isset($address['address_name']) ? trim($address['address_name']) : '';
+            $phone = isset($address['address_phone']) ? trim($address['address_phone']) : '';
+            $regionId = isset($address['region_id']) ? intval($address['region_id']) : '';
+            $regionName = isset($address['region_name']) ? trim($address['region_name']) : '';
+            $detail = isset($address['detail']) ? trim($address['detail']) : '';
+            if (!$name) {
+                return $this->dataReturn('003006', 'missing address_name under the address array');
+            }
+            if (!$phone) {
+                return $this->dataReturn('003007', 'missing address_phone under the address array');
+            }
+            if (!$regionId) {
+                return $this->dataReturn('003008', 'missing region_id under the address array');
+            }
+            if (!$regionName) {
+                return $this->dataReturn('003009', 'missing region_name under the address array');
+            }
+            if (!$detail) {
+                return $this->dataReturn('003010', 'missing detail under the address array');
+            }
+            $address['address'] = $detail;
+        }
+        $result = $this->orderModel->createOrder($this->user, 'cart', $skuIds, 0, $submit, $address, $remark, 2);
+        if ($result === FALSE) {
+            return $this->dataReturn('003011', $this->orderModel->error);
+        }
+        if ($submit) {
+            return $this->dataReturn(0, 'ok', ['order_sn' => $result['order_sn']]);
+        }else{
+            if ($result && $result['skus']) {
+                foreach ($result['skus'] as $key => $value) {
+                    unset($result['skus'][$key]['activity_id'], $result['skus'][$key]['store_id'], $result['skus'][$key]['sample_purchase_limit'], $result['skus'][$key]['stock_reduce_time']);
+                    unset($result['skus'][$key]['udata_id'],$result['skus'][$key]['goods_type'],$result['skus'][$key]['name'],$result['skus'][$key]['sku_stock']);
+                }
+            }
+            return $this->dataReturn(0, 'ok', $result);
+        }
+    }
+    /**
+     * 创建订单(商品直接购买)
+     * @return \think\response\Json
+     */
+    public function goods_create()
     {
         $skuId = isset($this->postParams['sku_id']) ? intval($this->postParams['sku_id']) : 0;
         $num = isset($this->postParams['num']) ? intval($this->postParams['num']) : 0;

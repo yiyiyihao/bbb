@@ -540,26 +540,33 @@ class Order extends Model
             return FALSE;
         }
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
-        if ($from == 'goods') {
-            $goodsModel = new \app\common\model\Goods();
-            $sku = $goodsModel->checkSku($skuId);
-            if ($sku === FALSE) {
-                $this->error = $goodsModel->error;
+        switch ($from) {
+            case 'goods':
+                $goodsModel = new \app\common\model\Goods();
+                $sku = $goodsModel->checkSku($skuId);
+                if ($sku === FALSE) {
+                    $this->error = $goodsModel->error;
+                    return FALSE;
+                }
+                if ($num <= 0) {
+                    $this->error = '产品购买数量必须大于0';
+                    return FALSE;
+                }
+                //判断产品库存
+                if ($sku['sku_stock'] < $num) {
+                    $this->error = '产品库存限制('.$sku['sku_stock'].')';
+                    return FALSE;
+                }
+                $incart = FALSE;
+            break;
+            case 'cart':
+                $incart = TRUE;
+            break;
+            
+            default:
+                $this->error = '订单来源错误';
                 return FALSE;
-            }
-            if ($num <= 0) {
-                $this->error = '产品购买数量必须大于0';
-                return FALSE;
-            }
-            //判断产品库存
-            if ($sku['sku_stock'] < $num) {
-                $this->error = '产品库存限制('.$sku['sku_stock'].')';
-                return FALSE;
-            }
-            $incart = FALSE;
-        }else{
-            $this->error = '订单来源错误';
-            return FALSE;
+            break;
         }
         $list = $this->_getCartDatas($user, $incart, $skuId, $num);
         if ($list === FALSE) {
@@ -670,11 +677,13 @@ class Order extends Model
                             
                             'add_time'      => time(),
                             'update_time'   => time(),
+                            'osku_id'       => 0,
                         ];
                         $oskuId = $orderSkuModel->insertGetId($sku);
                         if (!$oskuId) {
                             break;
                         }
+                        $dataSet = [];
                         for ($i = 0; $i < $value['num']; $i++) {
                             $dataSet[] = [
                                 'good_sku_code' => $this->_getGoodsSkuCode('auto', $value['sku_sn']),
@@ -703,6 +712,7 @@ class Order extends Model
                             ];
                         }
                         $result = $orderSkuSubModel->insertAll($dataSet);
+                        
                         if ($result === FALSE) {
                             break;
                         }
@@ -727,12 +737,14 @@ class Order extends Model
                         $result = $goodsModel->setGoodsStock($value, -$value['num']);
                     }
                 }
-                #TODO 清理购物车产品
-                /* if ($from == 'cart' && $cartIds) {
+                // 清理购物车产品
+                if ($from == 'cart' && $cartIds) {
                     //清理购物车产品
-                    $cartIds = implode(',', $cartIds);
-                    $result = $this->delCartSku($cartIds, true);
-                } */
+                    $where = [
+                        ['cart_id', 'IN', $cartIds]
+                    ];
+                    $result =  model('Cart')->where($where)->delete();
+                }
                 return $orderData;
             }catch(\Exception $e){
                 $error = $e->getMessage();
@@ -1115,22 +1127,35 @@ class Order extends Model
      * @param int $num
      * @return array
      */
-    private function _getCartDatas($user = [], $incart = FALSE, $skuIds = [], $num = 0)
+    public function _getCartDatas($user = [], $incart = FALSE, $skuIds = [], $num = 0)
     {
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         if ($incart) {
+            $where = [
+                ['C.udata_id', '=', $user['udata_id']],
+            ];
+            if ($skuIds) {
+                $where[] = ['C.sku_id', 'IN', $skuIds];
+            }
+            $join = [
+                ['goods_sku S', 'C.sku_id = S.sku_id', 'INNER'],
+                ['goods G', 'C.goods_id = G.goods_id', 'INNER'],
+            ];
+            $field = 'C.cart_id, G.activity_id, G.activity_id, S.store_id, S.udata_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, C.num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
+            $list = model('Cart')->alias('C')->join($join)->field($field)->where($where)->select();
         }else{
             $where = [
                 'sku_id' => intval($skuIds),
             ];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
             $field = 'G.activity_id, G.activity_id, S.store_id, S.udata_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
-            $list = db('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
+            $list = model('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
                 return FALSE;
             }
         }
+        $list = $list ? $list->toArray() : [];
         $carts = $datas = $storeIds = [];
         $skuCount = $skuTotal = $deliveryAmount = $skuAmount = $installAmount = $payAmount = 0;
         if ($list) {
@@ -1167,7 +1192,9 @@ class Order extends Model
                     $unsale = 1; //已下架
                 }else{
                     $installAmount  = $installAmount + ($value['install_price'] * $num);
-                    $skuCount++;
+                    if ($num > 0) {
+                        $skuCount++;
+                    }
                     $skuTotal = $skuTotal + $num;
                     $skuAmount = $skuAmount + ($value['price'] * $num);
                 }
@@ -1197,7 +1224,7 @@ class Order extends Model
         }
         $payAmount = $allAmount = $skuAmount + $installAmount + $deliveryAmount;
         $return = [
-            'skus'      => $skus,                  //产品列表
+            'skus'      => isset($skus) ? $skus : [],                  //产品列表
             'sku_total' => intval($skuTotal),       //产品总数量
             'sku_count' => intval($skuCount),       //产品种类数量(不重复)
             'all_amount'        => sprintf("%.2f",$allAmount),      //订单总金额
@@ -1230,7 +1257,7 @@ class Order extends Model
      */
     private function _getGoodsSkuCode($prex = '', $skuSn = '')
     {
-        $code = $prex.'_'.$skuSn.'_'.get_nonce_str(10, 2);
+        $code = $prex.'_'.$skuSn.'_'.get_nonce_str(4, 2).time();
         $exist = db('order_sku_sub')->where(['good_sku_code' => $code])->find();
         if ($exist) {
             return $this->_getGoodsSkuCode();

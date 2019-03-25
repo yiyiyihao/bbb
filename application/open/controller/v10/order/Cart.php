@@ -1,5 +1,5 @@
 <?php
-namespace app\open\controller\v10\cart;
+namespace app\open\controller\v10\order;
 
 use app\open\controller\Base;
 use think\Request;
@@ -7,6 +7,7 @@ use think\Request;
 class Cart extends Base
 {
     private $cartModel;
+    private $orderModel;
     private $user;
     private $error = FALSE;
     private $postParams;
@@ -15,148 +16,305 @@ class Cart extends Base
     {
         parent::__construct();
         $this->cartModel = model('cart');
+        $this->orderModel = new \app\common\model\Order();
         $this->postParams = $request->param();
         $this->user = $this->postParams['user'];
         /**
-         * Error 开头:003000
+         * Error 开头:003100
          */
     }
     public function list()
     {
-        $field = 'cart_id, cart_type, cart_id, real_amount, address_name, address_phone, address_detail, cart_status, pay_status, delivery_status, finish_status, add_time';
-        $where = [
-            ['udata_id', '=', $this->user['udata_id']],
-            ['cart_type', '=', 2],
-        ];
-        $result = $this->getModelList($this->cartModel, $where, $field, 'add_time ASC');
-        if ($result && isset($result['list'])) {
-            foreach ($result['list'] as $key => $value) {
-                $where = [
-                    ['cart_id', '=', $value['cart_id']],
-                ];
-                $skus = model('cart_sku')->field('sku_id, sku_name, sku_thumb, sku_spec, num, price')->where($where)->select();
-                $result['list'][$key]['skus'] = $skus;
-                $result['list'][$key]['_status'] = get_cart_status($value);
-                unset($result['list'][$key]['cart_id'], $result['list'][$key]['cart_type']);
+        $result = $this->orderModel->_getCartDatas($this->user, TRUE);
+        if ($result === FALSE) {
+            return $this->dataReturn(1, $this->orderModel->error);
+        }
+        if ($result && $result['skus']) {
+            foreach ($result['skus'] as $key => $value) {
+                unset($result['skus'][$key]['activity_id'], $result['skus'][$key]['store_id'], $result['skus'][$key]['sample_purchase_limit'], $result['skus'][$key]['stock_reduce_time']);
+                unset($result['skus'][$key]['udata_id'],$result['skus'][$key]['goods_type'],$result['skus'][$key]['name'],$result['skus'][$key]['sku_stock']);
             }
         }
         return $this->dataReturn(0, 'ok', $result);
     }
-    public function info()
+    public function preview()
     {
-        $field = 'cart_id, cart_type, cart_id, goods_amount, delivery_amount, real_amount, install_amount, paid_amount, pay_code, pay_sn, address_name, address_phone, address_detail';
-        $field .= ', cart_status, pay_status, delivery_status, finish_status, add_time, cancel_time, pay_time, finish_time';
-        $info = $this->_verifycart(FALSE, $field);
-        if ($this->error) {
-            return $info;
+        $skuIds = isset($this->postParams['sku_ids']) ? $this->postParams['sku_ids'] : [];
+        if (!isset($this->postParams['sku_ids'])) {
+            return $this->dataReturn('003112', 'missing sku_ids');
         }
-        $info['_status'] = get_cart_status($info);
-        //获取订单商品列表
-        $where = [
-            ['cart_id', '=', $info['cart_id']],
-        ];
-        $skus = model('cart_sku')->field('sku_id, sku_name, sku_thumb, sku_spec, num, price, delivery_status, delivery_time')->where($where)->select();
-        $info['skus'] = $skus;
-        return $this->dataReturn(0, 'ok', $info);
+        if (!is_array($skuIds)) {
+            return $this->dataReturn('003113', 'invalid sku_ids');
+        }
+        $skuIds = array_unique(array_filter($skuIds));
+        foreach ($skuIds as $key => $value) {
+            $skuId = intval($value);
+            if ($skuId <= 0) {
+                return $this->dataReturn('003113', 'invalid sku_ids');
+            }
+            //判断购物车商品是否存在
+            $where = [
+                ['sku_id', '=', $skuId],
+                ['udata_id', '=', $this->user['udata_id']],
+            ];
+            $info = $this->cartModel->where($where)->find();
+            if (!$info) {
+                return $this->dataReturn('003114', 'sku_id not exist('.$skuId.')');
+            }
+        }
+        $result = $this->orderModel->_getCartDatas($this->user, TRUE, $skuIds);
+        if ($result === FALSE) {
+            return $this->dataReturn(1, $this->orderModel->error);
+        }
+        if ($result && $result['skus']) {
+            foreach ($result['skus'] as $key => $value) {
+                unset($result['skus'][$key]['activity_id'], $result['skus'][$key]['store_id'], $result['skus'][$key]['sample_purchase_limit'], $result['skus'][$key]['stock_reduce_time']);
+                unset($result['skus'][$key]['udata_id'],$result['skus'][$key]['goods_type'],$result['skus'][$key]['name'],$result['skus'][$key]['sku_stock']);
+            }
+        }
+        return $this->dataReturn(0, 'ok', $result);
     }
-    public function create()
+    public function add()
     {
         $skuId = isset($this->postParams['sku_id']) ? intval($this->postParams['sku_id']) : 0;
-        $num = isset($this->postParams['num']) ? intval($this->postParams['num']) : 0;
-        $submit = isset($this->postParams['submit']) ? intval($this->postParams['submit']) : 0;
-        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
-        $address = isset($this->postParams['address']) ? $this->postParams['address'] : [];
+        $num = isset($this->postParams['amount']) ? intval($this->postParams['amount']) : 0;
         if (!isset($this->postParams['sku_id'])) {
-            return $this->dataReturn('003000', 'missing sku_id');
+            return $this->dataReturn('003100', 'missing sku_id');
+        }
+        if (!isset($this->postParams['amount'])) {
+            return $this->dataReturn('003101', 'missing amount');
         }
         if ($skuId <= 0) {
-            return $this->dataReturn('003001', 'invalid sku_id');
-        }
-        if (!isset($this->postParams['num'])) {
-            return $this->dataReturn('003002', 'missing num');
+            return $this->dataReturn('003102', 'invalid sku_id');
         }
         if ($num <= 0) {
-            return $this->dataReturn('003003', 'invalid num');
+            return $this->dataReturn('003103', 'invalid amount');
         }
-        if ($submit > 0) {
-            if (!isset($this->postParams['address'])) {
-                return $this->dataReturn('003004', 'missing address');
-            }
-            if (!is_array($address)) {
-                return $this->dataReturn('003005', 'invalid address');
-            }
-            $name = isset($address['address_name']) ? trim($address['address_name']) : '';
-            $phone = isset($address['address_phone']) ? trim($address['address_phone']) : '';
-            $regionId = isset($address['region_id']) ? intval($address['region_id']) : '';
-            $regionName = isset($address['region_name']) ? trim($address['region_name']) : '';
-            $detail = isset($address['detail']) ? trim($address['detail']) : '';
-            if (!$name) {
-                return $this->dataReturn('003006', 'missing address_name under the address array');
-            }
-            if (!$phone) {
-                return $this->dataReturn('003007', 'missing address_phone under the address array');
-            }
-            if (!$regionId) {
-                return $this->dataReturn('003008', 'missing region_id under the address array');
-            }
-            if (!$regionName) {
-                return $this->dataReturn('003009', 'missing region_name under the address array');
-            }
-            if (!$detail) {
-                return $this->dataReturn('003010', 'missing detail under the address array');
-            }
-            $address['address'] = $detail;
+        //判断sku_id是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['is_del', '=', 0],
+            ['store_id', '=', $this->user['factory_id']],
+        ];
+        $sku = model('goods_sku')->where($where)->find();
+        if (!$sku) {
+            return $this->dataReturn('003104', 'invalid sku_id');
         }
-        $result = $this->cartModel->createcart($this->user, 'goods', $skuId, $num, $submit, $address, $remark, 2);
-        if ($result === FALSE) {
-            return $this->dataReturn('003011', $this->cartModel->error);
+        if (!$sku['status']) {
+            return $this->dataReturn('003105', 'goods has been removed');
         }
-        if ($submit) {
-            return $this->dataReturn(0, 'ok', ['cart_id' => $result['cart_id']]);
+        if ($sku['sku_stock'] < $num) {
+            return $this->dataReturn('003106', 'exceeded stock');
+        }
+        //判断是否是自己的商品
+        if ($sku['udata_id'] == $this->user['udata_id']) {
+            return $this->dataReturn('003111', 'not allowed to buy your own goods');
+        }
+        //判断购物车商品是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['udata_id', '=', $this->user['udata_id']],
+        ];
+        $exist = $this->cartModel->where($where)->find();
+        $where = [];
+        if ($exist) {
+            $num = $exist['num'] + $num;
+            if ($sku['sku_stock'] < $num) {
+                return $this->dataReturn('003106', 'exceeded stock');
+            }
+            $data = [
+                'num' => $num,
+            ];
+            $where['cart_id'] = $exist['cart_id'];
         }else{
-            if ($result && $result['skus']) {
-                foreach ($result['skus'] as $key => $value) {
-                    unset($result['skus'][$key]['activity_id'], $result['skus'][$key]['store_id'], $result['skus'][$key]['sample_purchase_limit'], $result['skus'][$key]['stock_reduce_time']);
-                }
-            }
-            unset($result['sku_ids'], $result['store_id']);
-            return $this->dataReturn(0, 'ok', $result);
+            $data = [
+                'sku_id'    => $skuId,
+                'goods_id'  => $sku['goods_id'],
+                'store_id'  => $sku['store_id'],
+                'seller_udata_id' => $sku['udata_id'],
+                'udata_id'  => $this->user['udata_id'],
+                'num'       => $num,
+            ];
         }
+        $result = $this->cartModel->save($data, $where);
+        if ($result === FALSE) {
+            return $this->dataReturn(-1, 'system_error');
+        }
+        return $this->dataReturn(0, 'ok', ['cate_id' => $this->cartModel->cart_id]);
     }
-    public function cancel()
+    public function edit()
     {
-        $info = $this->_verifycart();
+        $info = $this->_verifyCart();
         if ($this->error) {
             return $info;
         }
-        $result = $this->cartModel->cartCancel($info['cart_id'], $this->user);
+        $num = isset($this->postParams['amount']) ? intval($this->postParams['amount']) : 0;
+        if (!isset($this->postParams['amount'])) {
+            $this->error = true;
+            return $this->dataReturn('003101', 'missing amount');
+        }
+        if ($num <= 0) {
+            $this->error = true;
+            return $this->dataReturn('003103', 'invalid amount');
+        }
+        $cartId = $info['cart_id'];
+        //判断购物车商品是否存在
+        $where = [
+            ['cart_id', '=', $cartId],
+            ['udata_id', '=', $this->user['udata_id']],
+        ];
+        $exist = $this->cartModel->where($where)->find();
+        if (!$exist) {
+            $this->error = true;
+            return $this->dataReturn('003108', 'invalid cart_id');
+        }
+        //判断sku_id是否存在
+        $where = [
+            ['sku_id', '=', $exist['sku_id']],
+            ['is_del', '=', 0],
+            ['store_id', '=', $this->user['factory_id']],
+        ];
+        $sku = model('goods_sku')->where($where)->find();
+        if (!$sku) {
+            $this->error = true;
+            return $this->dataReturn('003104', 'invalid sku_id');
+        }
+        if (!$sku['status']) {
+            $this->error = true;
+            return $this->dataReturn('003105', 'goods has been removed');
+        }
+        if ($sku['sku_stock'] < $num) {
+            $this->error = true;
+            return $this->dataReturn('003106', 'exceeded stock');
+        }
+        $data = ['num' => $num];
+        $result = $this->cartModel->save($data, ['cart_id' => $cartId]);
         if ($result === FALSE) {
-            return $this->dataReturn('003014', $this->cartModel->error);
+            return $this->dataReturn(-1, 'system_error');
+        }
+        return $this->dataReturn(0, 'ok');
+    }
+    public function del()
+    {
+        $info = $this->_verifyCart();
+        if ($this->error) {
+            return $info;
+        }
+        $result = $this->cartModel->where(['cart_id' => $info['cart_id']])->delete();
+        if ($result === FALSE) {
+            return $this->dataReturn(003110, 'system_error');
         }
         return $this->dataReturn(0, 'ok');
     }
     
     /**
      * 验证表单信息
-     * @param string $cartId
+     * @param int $cartId
      * @param string $field
      * @return \think\response\Json|array
      */
-    private function _verifycart($cartId = '', $field = '')
+    private function _verifyCart($cartId = 0)
     {
         if (!$cartId) {
-            $cartId = isset($this->postParams['cart_id']) ? trim($this->postParams['cart_id']) : '';
+            $cartId = isset($this->postParams['cart_id']) ? intval($this->postParams['cart_id']) : 0;
+            if (!isset($this->postParams['cart_id'])) {
+                $this->error = true;
+                return $this->dataReturn('003107', 'missing cart_id');
+            }
         }
-        if (!$cartId) {
+        if ($cartId <= 0) {
             $this->error = true;
-            return $this->dataReturn('003012', 'missing cart_id');
+            return $this->dataReturn('003108', 'invalid cart_id');
         }
-        $field = $field ? $field : '*';
-        $info = $this->cartModel->field($field)->where('cart_id', $cartId)->where('udata_id', $this->user['udata_id'])->find();
+        //判断购物车商品是否存在
+        $where = [
+            ['cart_id', '=', $cartId],
+            ['udata_id', '=', $this->user['udata_id']],
+        ];
+        $info = $this->cartModel->where($where)->find();
         if (!$info) {
             $this->error = true;
-            return $this->dataReturn('003013', 'cart not exist');
+            return $this->dataReturn('003109', 'data not exist');
         }
         return $info->toArray();
     }
+    /**
+     * 检查并处理add/edit对应的请求参数
+     * @param array $info
+     * @return array
+     */
+    private function _checkField($info = [])
+    {
+        $skuId = isset($this->postParams['sku_id']) ? intval($this->postParams['sku_id']) : 0;
+        $num = isset($this->postParams['amount']) ? intval($this->postParams['amount']) : 0;
+        if (!isset($this->postParams['sku_id'])) {
+            $this->error = true;
+            return $this->dataReturn('003100', 'missing sku_id');
+        }
+        if (!isset($this->postParams['amount'])) {
+            $this->error = true;
+            return $this->dataReturn('003101', 'missing amount');
+        }
+        if ($skuId <= 0) {
+            $this->error = true;
+            return $this->dataReturn('003102', 'invalid sku_id');
+        }
+        if ($num <= 0) {
+            $this->error = true;
+            return $this->dataReturn('003103', 'invalid amount');
+        }
+        //判断sku_id是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['is_del', '=', 0],
+            ['store_id', '=', $this->user['factory_id']],
+        ];
+        $sku = model('goods_sku')->where($where)->find();
+        if (!$sku) {
+            $this->error = true;
+            return $this->dataReturn('003104', 'invalid sku_id');
+        }
+        if (!$sku['status']) {
+            $this->error = true;
+            return $this->dataReturn('003105', 'goods has been removed');
+        }
+        if ($sku['sku_stock'] < $num) {
+            $this->error = true;
+            return $this->dataReturn('003106', 'exceeded stock');
+        }
+        //判断购物车商品是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['udata_id', '=', $this->user['udata_id']],
+        ];
+        $exist = $this->cartModel->where($where)->find();
+        $where = [];
+        if ($exist) {
+            $num = $exist['num'] + $num;
+            if ($sku['sku_stock'] < $num) {
+                $this->error = true;
+                return $this->dataReturn('003106', 'exceeded stock');
+            }
+            $data = [
+                'num' => $num,
+            ];
+            $where['cart_id'] = $exist['cart_id'];
+        }else{
+            $data = [
+                'sku_id'    => $skuId,
+                'goods_id'  => $sku['goods_id'],
+                'store_id'  => $sku['store_id'],
+                'seller_udata_id' => $sku['udata_id'],
+                'udata_id'  => $this->user['udata_id'],
+                'num'       => $num,
+            ];
+        }
+        
+        $return =  [
+            'name'      => $name,
+            'parent_id'  => $parentId,
+        ];
+        return $return;
+    }
+   
 }
