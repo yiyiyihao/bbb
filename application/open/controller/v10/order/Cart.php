@@ -198,7 +198,7 @@ class Cart extends Base
         }
         $skuIds=$request->param('sku_ids',[],'intval');
         if (!is_array($skuIds)) {
-            return $this->dataReturn('003111', '参数格式不正确【SKU_IDS_ARRAY】');
+            $skuIds=array($skuIds);
         }
         $skuIds = array_unique(array_filter($skuIds, function ($v,$k) {
             return $v>0;
