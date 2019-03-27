@@ -42,7 +42,7 @@ class CartValidate extends Validate
     //修改购物车商品
     public function sceneEdit()
     {
-        return $this->only(['cart_id'])
+        return $this->only(['cart_id','num'])
             ->append('cart_id', 'require|number')
             ->append('num|购买数量', 'require|number');
     }
