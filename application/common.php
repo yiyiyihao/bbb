@@ -970,6 +970,9 @@ function check_auth($controller='',$action='index'){
         return $flag;
     }
     $domain = $request->panDomain();
+    if (!$domain) {
+        $domain = $request->subDomain();
+    }
     $adminUser = session($domain.'_user');
     //超级管理员
     if ($adminUser['user_id']==1){
