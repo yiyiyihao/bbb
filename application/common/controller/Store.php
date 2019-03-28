@@ -547,7 +547,7 @@ class Store extends FormBase
                 $this->assign('channels', $channels);
                 $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
             }
-            $array2= ['title'=>'已采购样品金额','type'=>'text','name'=>'sample_amount','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写已采购样品金额'];
+            //$array2= ['title'=>'已采购样品金额','type'=>'text','name'=>'sample_amount','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写已采购样品金额'];
             $array4 = ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];

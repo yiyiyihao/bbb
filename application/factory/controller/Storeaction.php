@@ -209,7 +209,7 @@ class Storeaction extends FactoryForm
             'logo'          => ['name' => '商户LOGO', 'type' => 'image'],
             'user_name'     => ['name' => '联系人姓名', 'type' => 'text'],
             'mobile'        => ['name' => '联系人电话', 'type' => 'text'],
-            'sample_amount' => ['name' => '已采购样品金额', 'type' => 'text'],
+            //'sample_amount' => ['name' => '已采购样品金额', 'type' => 'text'],
             'security_money' => ['name' => '保证金金额', 'type' => 'text'],
             
             'idcard_font_img'   => ['name' => '法人身份证正面', 'type' => 'image'],
