@@ -201,8 +201,8 @@
 		function createForm(spec,goodsSn){
 			var price = $("#min_price").val();
 			price = price ? price : '';
-			var html = '<tr class="skubox"><td><input type="hidden" name="spec_json[]" value='+spec._json+' /><input class="input" type="text" name="sku_sn[]" value="'+goodsSn+'-'+spec.index+'" /></td>'+
-					   '<td>'+spec._str+'<input type="hidden" name="spec_name[]" value="'+spec._str+'" /></td><td><input class="input" type="text" name="price[]" size="10" value="'+price+'" /></td><td><input class="input" type="text" name="sku_stock[]" size="10" value="0" /></td><td><span class="delSpec button button-small bg-red icon-delete"></span></td></tr>';
+			var html = '<tr class="skubox"><td><input type="hidden" name="spec_json[]" value='+spec._json+' /><input class="input" type="text" name="sku_sn[]" value="'+goodsSn+'-'+spec.index+'" datatype="*" /></td>'+
+					   '<td>'+spec._str+'<input type="hidden" name="spec_name[]" value="'+spec._str+'" /></td><td><input class="input" type="text" name="price[]" size="10" value="'+price+'" datatype="*" /></td><td><input class="input" type="text" name="install_price[]" size="10" value="" datatype="*" /></td><td><input class="input" type="text" name="sku_stock[]" size="10" value="0" datatype="n" /></td><td><span class="delSpec button button-small bg-red icon-delete"></span></td></tr>';
 			$("#table tbody").append(html);
 		}
 		$("#table").on("click",".delSpec",function(){

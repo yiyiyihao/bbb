@@ -413,6 +413,7 @@ class Goods extends FormBase
         if(!empty($specSns) && is_array($specSns)){
             $specJson   = $data['spec_json'];
             $specPrice  = $data['price'];
+            $installPrice = $data['install_price'];
             $specName   = $data['spec_name'];
             $specSku    = $data['sku_stock'];
             //清空当前商品属性
@@ -423,6 +424,7 @@ class Goods extends FormBase
             db('goods_sku')->where($where)->update(['is_del' => 1, 'update_time' => time()]);
             foreach ($specSns as $k => $v){
                 $price = floatval($specPrice[$k]);
+                $install = floatval($installPrice[$k]);
                 $stock = intval($specSku[$k]);
                 $minPrice = !$minPrice ? $price : min($minPrice, $price);
                 $maxPrice = !$maxPrice ? $price : max($maxPrice, $price);
@@ -444,7 +446,7 @@ class Goods extends FormBase
                     'sku_stock'     => $stock,
                     'spec_value'    => $specValue ? implode(';', $specValue) : '',
                     'price'         => $price,
-                    'install_price' => floatval($data['install_price']),
+                    'install_price' => $install,
                     'stock_reduce_time'     => intval($data['stock_reduce_time']),
                     'sample_purchase_limit' => intval($data['sample_purchase_limit']),
                 ];
@@ -511,7 +513,7 @@ class Goods extends FormBase
                 $update = [
                     'goods_cate'    => intval($data['goods_cate']),
                     'goods_type'    => intval($data['goods_type']),
-                    'install_price' => floatval($data['install_price']),
+                    //'install_price' => floatval($data['install_price']),
                     'stock_reduce_time'     => intval($data['stock_reduce_time']),
                     'sample_purchase_limit' => intval($data['sample_purchase_limit']),
                 ];
