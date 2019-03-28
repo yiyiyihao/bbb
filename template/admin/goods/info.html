@@ -113,6 +113,7 @@
                                     <th width="200">商品编码</th>
                                     <th width="*">商品规格</th>
                                     <th width="100">商品价格</th>
+                                    <th width="100">安装费用</th>
                                     <th width="100">库存</th>
                                     <th width="80">操作</th>
                                   </tr>
@@ -120,10 +121,11 @@
                                   {volist name="skuList" id="vo" empty=""}
                                     <tr class="skubox">
                                         <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value={$vo.spec_json} />
-                                        <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" /></td>
-                                        <td>{$vo.sku_name}<input type="hidden" name="spec_name[]" value="{$vo.sku_name}" /></td>
-                                        <td><input class="input" type="text" name="price[]" size="10" value="{$vo.price}" /></td>
-                                        <td><input class="input" type="text" name="sku_stock[]" size="10" value="{$vo.sku_stock}" /></td>
+                                        <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" datatype="*" /></td>
+                                        <td>{$vo.sku_name}<input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" /></td>
+                                        <td><input class="input" type="text" name="price[]" size="10" value="{$vo.price}" datatype="*" /></td>
+                                        <td><input class="input" type="text" name="install_price[]" size="10" value="{$vo.install_price}" datatype="*" /></td>
+                                        <td><input class="input" type="number" name="sku_stock[]" size="10" value="{$vo.sku_stock}" datatype="n" /></td>
                                         <td><span class="delSpec button button-small bg-red icon-delete"></span></td>
                                     </tr>
                                   {/volist}
@@ -138,19 +140,19 @@
 		                  <label>商品最低售价</label>
 		                </div>
 		                <div class="field">
-		                  <input type="text" class="input" id="min_price" {if ($info && isset($info['specs_json']) && $info['specs_json'])}readonly="readonly"{/if} name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
+		                  <input type="text" class="input" id="min_price" datatype="*" {if ($info && isset($info['specs_json']) && $info['specs_json'])}readonly="readonly"{/if} name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
 		                  <div class="input-note"></div>
 		                </div>
 		            </div>
-                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
-		                <div class="label">
-		                  <label>安装费用</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
+                    <!--<div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">-->
+		                <!--<div class="label">-->
+		                  <!--<label>安装费用</label>-->
+		                <!--</div>-->
+		                <!--<div class="field">-->
+		                  <!--<input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元-->
+		                  <!--<div class="input-note"></div>-->
+		                <!--</div>-->
+		              <!--</div>-->
 		              
 		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
                         <div class="label">
