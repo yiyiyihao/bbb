@@ -3099,7 +3099,7 @@ class Admin extends Index
         //    $this->_returnMsg(['errCode' => 1, 'errMsg' => $name.'联系电话不能为空']);
         //}
         if ($storeType == STORE_DEALER && $sampleAmount < 0){
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
+            //$this->_returnMsg(['errCode' => 1, 'errMsg' => '采购样品金额不能小于0']);
         }
         if ($regionId <= 0 || !$regionName){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择'.$name.'区域']);

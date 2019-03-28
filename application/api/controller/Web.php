@@ -454,7 +454,7 @@ class Web extends BaseApi
             'idcard_back_img' => input('idcard_back_img', '', 'trim'),
             'signing_contract_img' => input('signing_contract_img', '', 'trim'),
             'license_img' => input('license_img', '', 'trim'),
-            'group_photo' => input('group_photo', '', 'trim'),
+            //'group_photo' => input('group_photo', '', 'trim'),
             'address' => input('address', '', 'trim'),
             'region_id' => input('region_id', 0, 'intval'),
             'region_name' => input('region_name', '', 'trim'),

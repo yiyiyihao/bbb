@@ -147,20 +147,20 @@
 			                {/if}
 						</div>
 					</div>
-					<div class="form-group {if ($store_type == 3 || $store['check_status'] == 2)}hidetype3 hide-flag{/if}">
-						<div class="label">
-							<label>签约合影照片</label>
-						</div>
-						<div class="field">
-			                <div class="group_photo_preview" style="margin-bottom:10px;"><img src="{$store['group_photo'] ?? '/static/base/images/default.png'}" id="group_photo_preview" width="120"></div>
-			                {if (!$store || ($store && $store['check_status'] == 2))}
-			                <input type="hidden" class="input" id="group_photo" name="group_photo" size="38" value="{$store['group_photo'] ?? ''}">
-			                <a class="button bg-main button-small js-img-upload" data="group_photo" preview="group_photo_preview" href="javascript:;" >
-			                	<span class="icon-upload"> 上传签约合影</span>
-			                </a>
-			                {/if}
-						</div>
-					</div>
+					<!--<div class="form-group {if ($store_type == 3 || $store['check_status'] == 2)}hidetype3 hide-flag{/if}">-->
+						<!--<div class="label">-->
+							<!--<label>签约合影照片</label>-->
+						<!--</div>-->
+						<!--<div class="field">-->
+			                <!--<div class="group_photo_preview" style="margin-bottom:10px;"><img src="{$store['group_photo'] ?? '/static/base/images/default.png'}" id="group_photo_preview" width="120"></div>-->
+			                <!--{if (!$store || ($store && $store['check_status'] == 2))}-->
+			                <!--<input type="hidden" class="input" id="group_photo" name="group_photo" size="38" value="{$store['group_photo'] ?? ''}">-->
+			                <!--<a class="button bg-main button-small js-img-upload" data="group_photo" preview="group_photo_preview" href="javascript:;" >-->
+			                	<!--<span class="icon-upload"> 上传签约合影</span>-->
+			                <!--</a>-->
+			                <!--{/if}-->
+						<!--</div>-->
+					<!--</div>-->
                     <div class="form-group">
                         <div class="label">
                             <label><span class="title">商户地址</span></label>

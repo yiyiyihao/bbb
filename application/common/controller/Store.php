@@ -561,7 +561,7 @@ class Store extends FormBase
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array6 = ['title'=>'营业执照','type'=>'uploadImg','name'=>'license_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
-            $array8 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
+            //$array8 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
         }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $status = ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[

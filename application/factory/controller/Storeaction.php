@@ -216,7 +216,7 @@ class Storeaction extends FactoryForm
             'idcard_back_img'   => ['name' => '法人身份证背面', 'type' => 'image'],
             'signing_contract_img'  => ['name' => '签约合同图片', 'type' => 'image'],
             'license_img'           => ['name' => '营业执照', 'type' => 'image'],
-            'group_photo'   => ['name' => '签约合影图片', 'type' => 'image'],
+            //'group_photo'   => ['name' => '签约合影图片', 'type' => 'image'],
             
             'region_name'   => ['name' => '商户区域地址', 'type' => 'text'],
             'address'       => ['name' => '商户地址', 'type' => 'text'],
