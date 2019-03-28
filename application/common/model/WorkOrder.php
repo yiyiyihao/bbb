@@ -432,6 +432,9 @@ class WorkOrder extends Model
             //根据评价数据计算得分
             $installAmount = $exist['install_amount'];
             $totalScore = 5;
+            //@update_at 20190328 modified by Jinzhou
+            //消费者的评价打分，不会对服务商的安装费产生影响, 相当于取消服务商考核
+            $score=5;
             //绩效考核百分比
             $baseAmount = $installAmount * (1 - $returnRatio);//基本服务金额
             $otherAmount = $installAmount * $returnRatio;
