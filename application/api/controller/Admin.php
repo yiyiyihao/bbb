@@ -1800,6 +1800,22 @@ class Admin extends Index
         if ($exist) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品已申请安装']);
         }
+
+        //@updated_at 2018/03/29 By Jinzhou
+        //零售商提交工单分配到所属上级，不再按地区分配服务商
+        $store=db('store_dealer')->alias('SD')->field('S.store_id,S.status')
+            ->join('store S','SD.ostore_id=S.store_id')
+            ->where([
+                ['S.is_del','=',0],
+                ['SD.store_id','=',$user['store_id']],
+            ])->find();
+        if (empty($store)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单提交失败，查无所属服务商']);
+        }
+        if ($store['status']==0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单提交失败，所属服务商已被禁用']);
+        }
+
         $storeModel = new \app\common\model\Store();
         //根据安装地址分配服务商
         //原型地址精确到区则根据当前region_id获取父级ID然后获取服务商ID

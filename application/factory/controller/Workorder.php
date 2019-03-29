@@ -404,12 +404,27 @@ class Workorder extends FactoryForm
             $this->error('工单当前状态不允许编辑');
         }
         if (!$info || $info['region_id'] != $regionId) {
-            $storeModel = new \app\common\model\Store();
-            //根据安装地址分配服务商
-            $storeId = $storeModel->getStoreFromRegion($regionId);
-            if(!$storeId){
-                $this->error('该区域暂无服务商');
+            //@updated_at 2018/03/29 By Jinzhou
+            //零售商提交工单分配到所属上级，不再按地区分配服务商
+            $store=db('store_dealer')->alias('SD')->field('S.store_id,S.status')
+                ->join('store S','SD.ostore_id=S.store_id')
+                ->where([
+                    ['S.is_del','=',0],
+                    ['SD.store_id','=',$this->adminUser['store_id']],
+                ])->find();
+            if (empty($store)) {
+                $this->error('工单提交失败，查无所属服务商');
             }
+            if ($store['status']==0) {
+                $this->error('工单提交失败，所属服务商已被禁用');
+            }
+            $storeId=$store['store_id'];
+            //$storeModel = new \app\common\model\Store();
+            ////根据安装地址分配服务商
+            //$storeId = $storeModel->getStoreFromRegion($regionId);
+            //if(!$storeId){
+            //    $this->error('该区域暂无服务商');
+            //}
             $data['store_id'] = $storeId;
         }
         if (!$info && !$type) {
