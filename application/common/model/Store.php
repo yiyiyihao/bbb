@@ -29,7 +29,7 @@ class Store extends Model
             //获取商户编号
             $storeNo = self::_getMchKey($data['store_type']);
             if ($storeNo === FALSE) {
-                $this->error === '商户编号生成数量限制(每日)';
+                $this->error = '商户编号生成数量限制(每日)';
                 return FALSE;
             }
             $data['store_no'] = $storeNo;
@@ -158,6 +158,28 @@ class Store extends Model
                     $msg = '服务商有工单数据,不允许删除';
                 }
                 break;
+            case STORE_SERVICE_NEW:
+                if ($user['admin_type'] != ADMIN_FACTORY) {
+                    $this->error = lang('NO_OPERATE_PERMISSION');
+                    return FALSE;
+                }
+                //判断服务商是否有安装工程师数据
+                $exist = db('user_installer')->where(['store_id' => $info['store_id']])->find();
+                $msg = '服务商下存在安装工程师,不允许删除';
+                if (!$exist) {
+                    //判断服务商是否有工单数据
+                    $exist = db('work_order')->where(['store_id' => $info['store_id']])->find();
+                    $msg = '服务商有工单数据,不允许删除';
+                }
+                //判断渠道商下级是否存在经销商
+                $exist = $this->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SD.ostore_id' => $info['store_id']])->find();
+                $msg = '渠道商下存在零售商，不允许删除';
+                if (!$exist) {
+                    //判断渠道商是否有订单数据
+                    $exist = db('order')->where(['user_store_id' => $info['store_id']])->find();
+                    $msg = '渠道商下有订单数据,不允许删除';
+                }
+                break;
             default:
                 return TRUE;
                 break;
@@ -194,6 +216,10 @@ class Store extends Model
                     $model = 'servicer';
                     $groupId = GROUP_SERVICE;
                     break;
+                case 6:
+                    $model = 'servicer';
+                    $groupId = GROUP_SERVICE_NEW;
+                    break;
                 default:
                     return FALSE;
                     break;
@@ -219,12 +245,12 @@ class Store extends Model
         if(!empty($regionId)){
             $where = [
                 'region_id' =>  $regionId,
-                'store_type'=> STORE_SERVICE,
+                //'store_type'=> STORE_SERVICE,
                 'is_del'    => 0,
                 'status'    => 1,
                 'factory_id'=> $factoryId,
             ];
-            $info = db('store')->where($where)->find();
+            $info = db('store')->where($where)->whereIn('store_type',[STORE_SERVICE,STORE_SERVICE_NEW])->find();
             if($info) return $info['store_id'];
             return false;
         }
@@ -272,6 +298,9 @@ class Store extends Model
                 break;
             case 5:
                 $model = 'echodata';
+                break;
+            case 6:
+                $model = 'servicer';
                 break;
             default:
                 return FALSE;

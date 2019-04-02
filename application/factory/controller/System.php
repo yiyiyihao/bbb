@@ -92,7 +92,7 @@ class System extends adminSystem
     public function servicer()
     {
         $this->error(lang('NO ACCESS'));
-        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_SERVICE) {
+        if (!$this->adminFactory || !in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         return $this->_storeConfig();
@@ -103,7 +103,7 @@ class System extends adminSystem
      */
     public function wxacode()
     {
-        if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         $platType = 1;

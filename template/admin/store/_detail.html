@@ -33,7 +33,7 @@
         	<span class="field-text">{$info['mobile'] ?? ''}</span>
         </div>
     </div>
-    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE]))}
+    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE,$Think.const.STORE_SERVICE_NEW]))}
     <div class="form-group">
         <div class="label">
             <label>已缴纳保证金金额</label>
@@ -85,7 +85,7 @@
         	<img src="{$info['signing_contract_img'] ?: '/static/base/images/default.png'}" width="120">
         </div>
     </div>
-    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE]))}
+    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE,$Think.const.STORE_SERVICE_NEW]))}
     <div class="form-group">
         <div class="label">
             <label>公司营业执照</label>
@@ -120,6 +120,101 @@
             <span class="field-text">{$info['admin_remark'] ?? ''}</span>
         </div>
     </div>
+    {/if}
+
+    {if (in_array($info['store_type'], [$Think.const.STORE_SERVICE_NEW]))}
+    <div class="form-group">
+        <div class="label">
+            <label>服务次数</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$service_count?? 0}</span>
+        </div>
+    </div>
+    {notempty name='finance'}
+    <div class="form-group">
+        <div class="label">
+            <label>累计服务费</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$finance.total_amount?? ''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>待结算</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$finance.pending_amount ?? ''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>已提现</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$finance.withdraw_amount?? ''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>可提现</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$finance.amount??''}</span>
+        </div>
+    </div>
+    {/notempty}
+    {notempty name='bank'}
+    <div class="form-group">
+        <div class="label">
+            <label>银行卡号</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{:str_encode($bank.bank_no,0,4)}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>姓名</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{:str_encode($bank.realname,0,1)??''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>身份证</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{:str_encode($bank.id_card,4,4)}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>交易银行</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$bank.bank_name??''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>所在地</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$bank.region_name??''}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="label">
+            <label>开户支行</label>
+        </div>
+        <div class="field">
+            <span class="field-text">{$bank.bank_branch??''}</span>
+        </div>
+    </div>
+    {/notempty}
     {/if}
 
 </div>                

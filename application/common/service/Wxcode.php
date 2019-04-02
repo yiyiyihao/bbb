@@ -14,7 +14,7 @@ class Wxcode
         $page = 'pages/index/index';//二维码扫码打开页面
         $page = '';
         $scene = 'store_no='.$store['store_no'];//最大32个可见字符，只支持数字，大小写英文以及部分特殊字符：!#$&'()*+,/:;=?@-._~，其它字符请自行编码为合法字符（因不支持%，中文无法使用 urlencode 处理，请使用其他编码方式）
-        $wechatApi = new \app\common\api\WechatApi($this->adminUser['factory_id'], 'wechat_applet');
+        $wechatApi = new \app\common\api\WechatApi($store['store_id'], 'wechat_applet');
         $data = $wechatApi->getWXACodeUnlimit($scene, $page);
         if ($data === FALSE) {
             $this->error = $wechatApi->error;

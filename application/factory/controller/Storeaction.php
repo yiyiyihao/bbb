@@ -8,7 +8,7 @@ class Storeaction extends FactoryForm
         $this->modelName = 'store_action_record';
         $this->model = db('store_action_record');
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->error('NO ACCESS');
         }
         $this->subMenu['showmenu'] = true;
@@ -135,7 +135,7 @@ class Storeaction extends FactoryForm
         if (isset($params['status'])) {
             $where['SAR.check_status'] = $status;
         }
-        if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+        if (in_array($this->adminUser['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $where['SAR.action_store_id'] = $this->adminUser['store_id'];
         }
         if ($params) {

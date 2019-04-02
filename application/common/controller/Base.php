@@ -17,18 +17,37 @@ class Base extends Controller
         defined('ADMIN_CHANNEL')or define('ADMIN_CHANNEL',  3); //渠道商账户
         defined('ADMIN_DEALER') or define('ADMIN_DEALER',   4); //经销商/零售商账户
         defined('ADMIN_SERVICE')or define('ADMIN_SERVICE',  5); //服务商账户
-        
+        defined('ADMIN_SERVICE_NEW')or define('ADMIN_SERVICE_NEW',  6); //新服务商账户=渠道+服务商
+
         defined('STORE_FACTORY')or define('STORE_FACTORY',  1); //厂商商户
         defined('STORE_CHANNEL')or define('STORE_CHANNEL',  2); //渠道商商户
         defined('STORE_DEALER') or define('STORE_DEALER',   3); //经销商/零售商商户
         defined('STORE_SERVICE')or define('STORE_SERVICE',  4); //服务商商户
-        defined('STORE_ECHODATA')or define('STORE_ECHODATA',5); //服务商商户
-        
+        defined('STORE_ECHODATA')or define('STORE_ECHODATA',5); //平台应用商户
+        defined('STORE_SERVICE_NEW')or define('STORE_SERVICE_NEW',6); //新服务商账户=渠道+服务商
+
         defined('GROUP_FACTORY')or define('GROUP_FACTORY',  1); //商户角色
         defined('GROUP_CHANNEL')or define('GROUP_CHANNEL',  2); //渠道商角色
         defined('GROUP_DEALER') or define('GROUP_DEALER',   3); //经销商/零售商角色
         defined('GROUP_SERVICE')or define('GROUP_SERVICE',  4); //服务商角色
-        
+
+
+         //新服务商账户=渠道+服务商
+        if (!defined('GROUP_SERVICE_NEW')) {
+            $where=[
+                'is_del'=>0,
+                'store_type'=>STORE_SERVICE_NEW,
+                'is_system'=>1,
+                'status'=>1,
+            ];
+            $groupId=db('user_group')->where($where)->value('group_id');
+            if (empty($groupId)) {
+                $this->error('请先设置新服务商系统角色的权限');
+            }
+            define('GROUP_SERVICE_NEW', $groupId);
+        }
+
+
         defined('CONFIG_WORKORDER_ASSESS')or define('CONFIG_WORKORDER_ASSESS',  'config_workorder_assess');
         
         defined('NOW_TIME')or define('NOW_TIME', $_SERVER['REQUEST_TIME']);

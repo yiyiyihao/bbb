@@ -16,6 +16,22 @@ Do.add('dialog',
     path : Config.baseDir + 'layer/layer.js',
 	requires : ['dialogcss']
 });
+
+
+Do.add('swipercss',
+    {
+        path : Config.baseDir + '/swiper/css/swiper.min.css',
+        // requires : ['']
+    });
+Do.add('swiper',
+{
+    path : Config.baseDir + 'swiper/js/swiper.min.js',
+    requires : ['swipercss']
+});
+
+
+
+
 //tip
 Do.add('tipsCss', {
     path: Config.baseDir + 'tips/toastr.css',

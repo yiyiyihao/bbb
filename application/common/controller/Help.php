@@ -28,6 +28,7 @@ class Help extends FormBase
             STORE_CHANNEL => '渠道商',
             STORE_DEALER => '零售商',
             STORE_SERVICE => '服务商',
+            STORE_SERVICE_NEW => '新服务商',
         ];
         //$this->subMenu['add'] = [
         //    'name' => '新增问题',

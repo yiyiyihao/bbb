@@ -8,7 +8,7 @@ class Commission extends FactoryForm
         $this->modelName = 'commission';
         parent::__construct();
         //渠道/服务商
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         if ($this->adminUser['admin_type']  == ADMIN_CHANNEL) {

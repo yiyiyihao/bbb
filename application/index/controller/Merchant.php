@@ -63,6 +63,12 @@ class Merchant extends Base
                 'admin_type' => ADMIN_SERVICE,
                 'group_id'   => GROUP_SERVICE,
             ],
+            STORE_SERVICE_NEW => [
+                'name' => '服务商',
+                'desc' => '拥有售后安装，维修能力或资源，能够提供售后服务的商户',
+                'admin_type' => ADMIN_SERVICE_NEW,
+                'group_id'   => GROUP_SERVICE_NEW,
+            ],
         ];
         $loginUrl = url('/login/index', [], TRUE, $factory['domain']);
         if (IS_POST) {

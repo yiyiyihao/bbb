@@ -1,5 +1,6 @@
 <?php
 namespace app\common\controller;
+use app\common\model\GoodsService;
 use think\Request;
 //商品管理
 class Goods extends FormBase
@@ -32,10 +33,22 @@ class Goods extends FormBase
     {
         if ($list) {
             foreach ($list as $key => $value) {
+                if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+                    $min = bcadd($value['min_price_service'],$value['min_price_service'],2);
+                    $max = bcadd($value['max_price_service'],$value['max_price_service'],2);
+                    $list[$key]['price_store'] =$min==$max? $max:  $min.'~'. $max;
+                }
                 $minPrice = bcadd($value['min_price'],$value['install_price'],2);
                 $maxPrice = bcadd($value['max_price'],$value['install_price'],2);
                 $list[$key]['price'] =$minPrice==$maxPrice? $minPrice:  $minPrice.'~'. $maxPrice;
+
             }
+        }
+        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+            $this->subMenu['add'] = [
+                'name' => '导入'.lang($this->modelName),
+                'url' => url("sync_goods"),
+            ];
         }
         return $list;
     }
@@ -225,6 +238,9 @@ class Goods extends FormBase
     }
     function _getField(){
         $field = 'G.*, (CASE WHEN G.goods_stock <= G.stock_warning_num THEN 1 ELSE 0 END) as warning, C.name as cate_name';
+        if ($this->adminUser['store_type']==ADMIN_SERVICE_NEW) {
+            $field.= ',GS.min_price_service,GS.max_price_service,GS.sales_service,GS.stock';
+        }
         return $field;
     }
     function _getAlias(){
@@ -232,6 +248,9 @@ class Goods extends FormBase
     }
     function _getJoin(){
         $join[] = ['goods_cate C', 'C.cate_id = G.cate_id', 'INNER'];
+        if ($this->adminUser['store_type']==ADMIN_SERVICE_NEW) {
+            $join[] = ['goods_service GS', 'GS.goods_id = G.goods_id', 'INNER'];
+        }
         return $join;
     }
     function _getWhere(){
@@ -240,7 +259,10 @@ class Goods extends FormBase
             ['G.is_del','=',0],
             ['G.activity_id','=',0],
         ];
-        if ($this->adminUser['store_id']) {
+
+        if ($this->adminUser['store_type']==ADMIN_SERVICE_NEW) {
+            $where[] = ['GS.store_id','=',$this->adminUser['store_id']];
+        }else{
             $where[] = ['G.store_id','=',$this->adminUser['store_id']];
         }
         if ($params) {
@@ -559,8 +581,24 @@ class Goods extends FormBase
         $btnArray = [];
         $btnArray = ['text'  => '商品规格','action'=> 'spec', 'icon'  => 'setting','bgClass'=> 'bg-yellow'];
         $table['actions']['button'][] = $btnArray;
+        $table['actions']['button'][]=['text'=> '下架','action'=> 'del', 'js-action' => TRUE, 'icon'  => 'bottom','bgClass'=> 'bg-yellow'];
         $table['actions']['width']  = '240';
+
         foreach ($table as $key => $value) {
+            if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+                if (isset($value['value']) && $value['value']=='price' ) {
+                    $table[$key]['title']='建议价格';
+                }
+                if (isset($value['value']) && $value['value']=='goods_stock' ) {
+                    $table[$key]['title']='厂商库存';
+                }
+            }else if (isset($value['value']) && $value['value']=='price_store'){
+                unset($table[$key]);
+            }else if (isset($value['value']) && $value['value']=='sales_service') {
+                unset($table[$key]);
+            }else if (isset($value['value']) && $value['value']=='stock') {
+                unset($table[$key]);
+            }
             if (isset($value['value']) && $value['value'] == 'goods_stock') {
                 $table[$key]['warning'] = TRUE;
                 //break;
@@ -573,7 +611,7 @@ class Goods extends FormBase
         }
         return $table;
     }
-    
+
     private function _getCategorys($sid = 0)
     {
         $treeService = new \app\common\service\Tree();
@@ -586,4 +624,61 @@ class Goods extends FormBase
         $this->assign('cates', $categorys);
         return $categorys;
     }
+
+    public function sync_goods(Request $request)
+    {
+        $where=[
+            'G.is_del'=>0,
+            'G.status'=>1,
+            'G.store_id'=>$this->adminUser['factory_id'],
+        ];
+        if (IS_POST) {
+            $ids=$request->param('id','intval');
+            if (empty($ids)) {
+                $this->error("请选择需要导入的商品！");
+            }
+            $ids=array_unique($ids);
+            foreach ($ids as $k=>$v) {
+                $field='G.goods_id,G.store_id factory_id,G.goods_sn,G.min_price,G.max_price,GS.id,GS.store_id,GS.min_price_service,GS.max_price_service';
+                $on='GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$this->adminStore['store_id'];
+                $goods=$this->model->alias('G')->field($field)->join('goods_service GS',$on,'left')->where($where)->find($v);
+                if (empty($goods)) {
+                    continue;
+                }
+                $data=[
+                    'goods_id'=>$goods['goods_id'],
+                    'store_id'=>$this->adminStore['store_id'],
+                    'min_price_service'=>$goods['min_price'],
+                    'max_price_service'=>$goods['max_price'],
+                ];
+                $where=[];
+                if (!empty($goods['id'])) {
+                    $where=['id'=>$goods['id']];
+                }
+                $goodService=new GoodsService();
+                $result=$goodService->save($data,$where);
+            }
+            $this->success("导入成功！");
+        }else{
+            $field='G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn';
+            $order='G.goods_id DESC';
+            $query=$this->model->alias('G')->field($field)->where($where)->order($order)->paginate($this->perPage,false);
+            $list=$query->items();
+            $list=array_map(function ($item) {
+                $specs=json_decode($item['specs_json'],true);
+                $html='';
+                foreach ($specs as $spec) {
+                    $html.=$spec['specname'].'：'.implode('、',array_values($spec['list'])).'；';
+                }
+                $item['specs']=rtrim($html,'；');
+                return $item;
+            },$list);
+            $page=$query->render();
+            $this->assign('list',$list);
+            $this->assign('page',$page);
+            return $this->fetch();
+        }
+    }
+
+
 }

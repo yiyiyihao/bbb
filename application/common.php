@@ -109,6 +109,7 @@ function get_store_type($type = FALSE){
         STORE_CHANNEL   => '渠道商',
         STORE_DEALER    => '零售商',
         STORE_SERVICE   => '服务商',
+        STORE_SERVICE_NEW=>'新服务商',
     ];
     if ($type === FALSE) {
         return $types;
@@ -642,6 +643,33 @@ function array_to_xml($arr)
     $xml.="</xml>";
     return $xml;
 }
+
+/**
+ *   将数组转换为xml
+ *    @param array $data    要转换的数组
+ *   @param bool $root     是否要根节点
+ *   @return string         xml字符串
+ *    @author Dragondean
+ *    @url    http://www.cnblogs.com/dragondean
+ */
+function arr2xml($data, $root = true){
+    $str='';
+    if($root)$str .= '<xml>';
+    foreach($data as $key => $val){
+        //去掉key中的数字下标
+        is_numeric($key) && $key = "item id=\"$key\"";
+        if(is_array($val)){
+            $child = arr2xml($val, false);
+            $str .= "<$key>$child</$key>";
+        }else{
+            $str.= "<$key><![CDATA[$val]]></$key>";
+        }
+    }
+    if($root)$str .= "</xml>";
+    return $str;
+}
+
+
 /**
  *
  * 产生随机字符串，不长于32位

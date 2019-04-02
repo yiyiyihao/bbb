@@ -18,7 +18,7 @@ class Index extends CommonIndex
         $unReadCount = 0;
         $bulletins = $specialBulletins = [];
         //取得公告消息
-        if (in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        if (in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $bulletinModel = db('bulletin');
             $where = [
                 'B.publish_status' => 1,

@@ -9,7 +9,7 @@ class Purchase extends FactoryForm
         $this->model = model('goods');
         parent::__construct();
         //渠道/零售商有采购功能
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         unset($this->subMenu['add']);

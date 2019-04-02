@@ -296,6 +296,11 @@ class Admin extends Index
                 'admin_type' => ADMIN_SERVICE,
                 'group_id'   => GROUP_SERVICE,
             ],
+            STORE_SERVICE_NEW => [
+                'name' => '服务商',
+                'admin_type' => ADMIN_SERVICE_NEW,
+                'group_id'   => GROUP_SERVICE_NEW,
+            ],
         ];
         $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : '';
         if (!$storeType) {
@@ -310,7 +315,7 @@ class Admin extends Index
             if (!$channelNo) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
             }
-            $channel = Store::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            $channel = Store::where(['factory_id' => $this->factory['store_id'],'store_no' => $channelNo,'is_del' => 0,'status' => 1])->whereIn('store_type',[STORE_CHANNEL,STORE_SERVICE_NEW])->find();
             if (!$channel) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
             }
@@ -801,7 +806,7 @@ class Admin extends Index
             }
             $channelNo = isset($this->postParams['channel_no']) ? trim($this->postParams['channel_no']) : '';
             if ($channelNo){
-                $channel = db('store')->where(['store_type' => STORE_CHANNEL, 'is_del' => 0, 'store_no' => $channelNo, 'factory_id' => $user['factory_id']])->find();
+                $channel = db('store')->whereIn('store_type',[STORE_CHANNEL,STORE_SERVICE_NEW])->where(['is_del' => 0, 'store_no' => $channelNo, 'factory_id' => $user['factory_id']])->find();
                 if (!$channel) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => '渠道商不存在或已删除']);
                 }
@@ -821,6 +826,11 @@ class Admin extends Index
                     }
                     break;
                 case STORE_SERVICE:
+                    $join[] = ['store_servicer OS', 'S.store_id = OS.store_id', 'INNER'];
+                    $join[] = ['store_finance SF', 'S.store_id = SF.store_id', 'INNER'];
+                    $field .= ', total_amount';
+                    break;
+                case STORE_SERVICE_NEW:
                     $join[] = ['store_servicer OS', 'S.store_id = OS.store_id', 'INNER'];
                     $join[] = ['store_finance SF', 'S.store_id = SF.store_id', 'INNER'];
                     $field .= ', total_amount';
@@ -881,6 +891,22 @@ class Admin extends Index
                         //服务次数
                         $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
                         break;
+                    case STORE_SERVICE_NEW:
+                        //服务次数
+                        $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
+                        //所属零售商数量
+                        $where = [
+                            'S.store_type'  => STORE_DEALER,
+                            'S.is_del'      => 0,
+                            'S.check_status'=> 1,
+                            'SD.ostore_id'  => $value['store_id'],
+                        ];
+                        $join = [
+                            ['store_dealer SD', 'S.store_id = SD.store_id', 'INNER'],
+                        ];
+                        $list[$key]['dealer_count'] = db('store')->alias('S')->join($join)->where($where)->count();
+                        break;
+
                     default:
                         ;
                         break;

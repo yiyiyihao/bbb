@@ -10,12 +10,7 @@ class Servicer extends Store
         $this->model = model('store');
         parent::__construct();
     }
-    function _init()
-    {
-        $this->storeType = STORE_SERVICE;//服务商
-        $this->adminType = ADMIN_SERVICE;
-        $this->groupId = GROUP_SERVICE;
-    }
+
     /**
      * 列表项配置
      */

@@ -1,16 +1,18 @@
-
-<div class="line-big col-space15">
-    <div class="xm12">
-        <form method="post" class="form-x admin-form form-auto" id="form1">
-        <div class="line-big">
-            <div class="panel admin-dashboard boxShadow">
-                <div class="panel-head">
-                    <div class="tab-head">
-                        <strong>厂商招商加盟的分享</strong>
-                    </div>
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">厂商招商加盟的分享</a></li>
+                        <li><a href="#tab-2">渠道商邀请零售商的分享</a></li>
+                        <li><a href="#tab-3">服务商邀请工程师的分享</a></li>
+                    </ul>
                 </div>
-                <div class="panel-body" style="padding-top: 10px;">
-                    <div class="form-group">
+            </div>
+            <div class="tab-body">
+               	<div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
                         <div class="label">
                             <label>分享标题</label>
                         </div>
@@ -24,7 +26,7 @@
                             <label>分享描述</label>
                         </div>
                         <div class="field">
-                            <textarea rows="3" cols="40" class="input"  name="invite_share[factory][description]" placeholder="请输入厂商招商加盟分享描述" datatype="*">{$config['invite_share']['factory']['description'] ?? ''}</textarea>
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[factory][description]" placeholder="请输入厂商招商加盟分享描述" datatype="*">{$config['invite_share']['factory']['description'] ?? ''}</textarea>
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -35,38 +37,18 @@
                         <div class="field">
                             <div class="input-note"></div>
                             <div class="form-group">
-                                <input type="hidden" class="input" id="img_url_factory" name="invite_share[factory][img_url]" size="38" value="{$config['invite_share']['factory']['img_url']|default=''}" >
-                                <div class="img_url_factory_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['factory']['img_url']|default='/static/base/images/default.png'}" id="img_url_factory_preview" width="120"></div>
-                                <a class="button bg-main button-small js-img-upload" data="img_url_factory" preview="img_url_factory_preview" href="javascript:;" >
-                                    <span class="icon-upload"> 上传</span>
-                                </a>
-                                <div class="input-note"></div>
-                            </div>
+								<input type="hidden" class="input" id="img_url_factory" name="invite_share[factory][img_url]" size="38" value="{$config['invite_share']['factory']['img_url']|default=''}" >
+				                <div class="img_url_factory_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['factory']['img_url']|default='/static/base/images/default.png'}" id="img_url_factory_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_factory" preview="img_url_factory_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
                         </div>
                     </div>
-                </div>
-                <div class="panel-foot">
-                    <div class="form-button">
-                        <button class="button bg-main" type="submit">保存</button>
-                        <button class="button bg" type="reset">重置</button>
-                        <div class="tips"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </form>
-    </div>
-    <div class="xm12">
-        <form method="post" class="form-x admin-form form-auto" id="form2">
-        <div class="line-big">
-            <div class="panel admin-dashboard boxShadow">
-                <div class="panel-head">
-                    <div class="tab-head">
-                        <strong>渠道商邀请零售商的分享</strong>
-                    </div>
-                </div>
-                <div class="panel-body" style="padding-top: 10px;">
-                    <div class="form-group">
+               	</div>
+               	<div class="tab-panel" id="tab-2">
+                	<div class="form-group">
                         <div class="label">
                             <label>分享标题</label>
                         </div>
@@ -80,7 +62,7 @@
                             <label>分享描述</label>
                         </div>
                         <div class="field">
-                            <textarea rows="3" cols="40" class="input"  name="invite_share[channel][description]" placeholder="请输入渠道商邀请零售商分享描述" datatype="*">{$config['invite_share']['channel']['description'] ?? ''}</textarea>
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[channel][description]" placeholder="请输入渠道商邀请零售商分享描述" datatype="*">{$config['invite_share']['channel']['description'] ?? ''}</textarea>
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -91,38 +73,18 @@
                         <div class="field">
                             <div class="input-note"></div>
                             <div class="form-group">
-                                <input type="hidden" class="input" id="img_url_channel" name="invite_share[channel][img_url]" size="38" value="{$config['invite_share']['channel']['img_url']|default=''}" >
-                                <div class="img_url_channel_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['channel']['img_url']|default='/static/base/images/default.png'}" id="img_url_channel_preview" width="120"></div>
-                                <a class="button bg-main button-small js-img-upload" data="img_url_channel" preview="img_url_channel_preview" href="javascript:;" >
-                                    <span class="icon-upload"> 上传</span>
-                                </a>
-                                <div class="input-note"></div>
-                            </div>
+								<input type="hidden" class="input" id="img_url_channel" name="invite_share[channel][img_url]" size="38" value="{$config['invite_share']['channel']['img_url']|default=''}" >
+				                <div class="img_url_channel_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['channel']['img_url']|default='/static/base/images/default.png'}" id="img_url_channel_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_channel" preview="img_url_channel_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
                         </div>
                     </div>
-                </div>
-                <div class="panel-foot">
-                    <div class="form-button">
-                        <button class="button bg-main" type="submit">保存</button>
-                        <button class="button bg" type="reset">重置</button>
-                        <div class="tips"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </form>
-    </div>
-    <div class="xm12">
-        <form method="post" class="form-x admin-form form-auto" id="form3">
-        <div class="line-big">
-            <div class="panel admin-dashboard boxShadow">
-                <div class="panel-head">
-                    <div class="tab-head">
-                        <strong>服务商邀请工程师的分享</strong>
-                    </div>
-                </div>
-                <div class="panel-body" style="padding-top: 10px;">
-                    <div class="form-group">
+               	</div>
+               	<div class="tab-panel" id="tab-3">
+                	<div class="form-group">
                         <div class="label">
                             <label>分享标题</label>
                         </div>
@@ -136,7 +98,7 @@
                             <label>分享描述</label>
                         </div>
                         <div class="field">
-                            <textarea rows="3" cols="40" class="input"  name="invite_share[service][description]" placeholder="请输入服务商邀请工程师分享描述" datatype="*">{$config['invite_share']['service']['description'] ?? ''}</textarea>
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[service][description]" placeholder="请输入服务商邀请工程师分享描述" datatype="*">{$config['invite_share']['service']['description'] ?? ''}</textarea>
                             <div class="input-note"></div>
                         </div>
                     </div>
@@ -147,48 +109,32 @@
                         <div class="field">
                             <div class="input-note"></div>
                             <div class="form-group">
-                                <input type="hidden" class="input" id="img_url_service" name="invite_share[service][img_url]" size="38" value="{$config['invite_share']['service']['img_url']|default=''}" >
-                                <div class="img_url_service_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['service']['img_url']|default='/static/base/images/default.png'}" id="img_url_service_preview" width="120"></div>
-                                <a class="button bg-main button-small js-img-upload" data="img_url_service" preview="img_url_service_preview" href="javascript:;" >
-                                    <span class="icon-upload"> 上传</span>
-                                </a>
-                                <div class="input-note"></div>
-                            </div>
+								<input type="hidden" class="input" id="img_url_service" name="invite_share[service][img_url]" size="38" value="{$config['invite_share']['service']['img_url']|default=''}" >
+				                <div class="img_url_service_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['service']['img_url']|default='/static/base/images/default.png'}" id="img_url_service_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_service" preview="img_url_service_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
                         </div>
                     </div>
-                </div>
-                <div class="panel-foot">
-                    <div class="form-button">
-                        <button class="button bg-main" type="submit">保存</button>
-                        <button class="button bg" type="reset">重置</button>
-                        <div class="tips"></div>
-                    </div>
+               	</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
                 </div>
             </div>
         </div>
-        </form>
     </div>
-</div>
-
-
+</form>
 <script>
-    Do.ready('base', function () {
-        //表单综合处理
-        var url="{:url('Upload/upload', ['prex' => 'wechat_share_', 'thumb_type' => 'wechat_share_thumb_'])}";
-        $('#form1').FormPage({
-            'uploadUrl' :url,
-            // 'returnFun' :callback($('#form1')),
-        });
-        $('#form2').FormPage({
-            'uploadUrl' : url,
-            // 'returnFun' :callback($('#form2')),
-        });
-        $('#form3').FormPage({
-            'uploadUrl' : url,
-            // 'returnFun' :callback($('#form3')),
-        });
-        // function callback(form) {
-        //     form.find('.tab-head').append('<span class="icon icon-check">保存成功</span>');
-        // }
-    })
+Do.ready('base', function () {
+    //表单综合处理
+    $('#form').FormPage({
+    	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'wechat_share_', 'thumb_type' => 'wechat_share_thumb_'])}",
+    });
+})
 </script>

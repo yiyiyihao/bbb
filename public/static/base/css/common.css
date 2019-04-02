@@ -458,3 +458,4 @@ a:focus,a:hover{color:#009688;} /*链接-悬浮颜色*/
 .pop-box .pop-close{background: url('/static/base/js/layer/skin/default/icon.png') no-repeat -125px -26px;background-size: 700% 203%;height: 25px;width: 25px;display: inline-block;position: relative;right: 21px;top: -10px;cursor: pointer;}
 .pop-box .pop-content{display: inline-block; padding: 8px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
 .pop-box .pop-content:hover{color: #8c8c8c;}
+.no-select{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor: pointer}

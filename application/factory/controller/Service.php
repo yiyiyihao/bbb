@@ -9,7 +9,7 @@ class Service extends FactoryForm
         $this->modelName = 'order_sku_service';
         $this->model = db($this->modelName);
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         $this->serviceModel = new \app\common\model\OrderService();

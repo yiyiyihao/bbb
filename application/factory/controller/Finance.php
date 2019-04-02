@@ -12,7 +12,7 @@ class Finance extends FactoryForm
         $this->model = db('store_withdraw');
         parent::__construct();
         unset($this->subMenu['add']);
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_SERVICE])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error('NO ACCESS');
         }
         if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {

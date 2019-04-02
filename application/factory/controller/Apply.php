@@ -46,6 +46,12 @@ class Apply extends CommonBase
                 'admin_type' => ADMIN_SERVICE,
                 'group_id'   => GROUP_SERVICE,
             ],
+            STORE_SERVICE_NEW => [
+                'name' => '服务商',
+                'desc' => '拥有售后安装，维修能力或资源，能够提供售后服务的商户,拥有一定的市场资源，有能力发展零售商的商户',
+                'admin_type' => ADMIN_SERVICE_NEW,
+                'group_id'   => GROUP_SERVICE_NEW,
+            ],
         ];
         if (IS_POST){
             if ($store && $store['check_status'] == 1) {

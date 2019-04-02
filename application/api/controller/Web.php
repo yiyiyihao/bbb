@@ -334,7 +334,7 @@ class Web extends BaseApi
         }
         $factoryId = $factory['store_id'];
         $type = input('type', 0, 'intval');
-        if (!in_array($type, [2, 3, 4])) {
+        if (!in_array($type, [2, 3, 4,6])) {
             return returnMsg(1, '商户类型不正确，请重新选择');
         }
         $channelNo = input('channel_no', 0, 'trim');
@@ -400,6 +400,12 @@ class Web extends BaseApi
                 'admin_type' => ADMIN_SERVICE,
                 'group_id' => GROUP_SERVICE,
             ],
+            STORE_SERVICE_NEW => [
+                'name' => '服务商',
+                'desc' => '拥有售后安装，维修能力或资源，能够提供售后服务的商户，而且拥有一定的市场资源，有能力发展零售商的商户',
+                'admin_type' => ADMIN_SERVICE_NEW,
+                'group_id' => GROUP_SERVICE_NEW,
+            ],
         ];
         //if ($exist > 0) {
         //    return returnMsg(1, $types[$type]['name'] . '名称已存在');
@@ -410,7 +416,7 @@ class Web extends BaseApi
             if (!$channelNo) {
                 return returnMsg(1, '请填写渠道商编号');
             }
-            $channel = $storeModel->where(['store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            $channel = $storeModel->where(['store_no' => $channelNo,'is_del' => 0,'status' => 1])->whereIn('store_type',[STORE_CHANNEL,STORE_SERVICE_NEW])->find();
             if (!$channel) {
                 return returnMsg(1, '渠道商不存在或已删除');
             }

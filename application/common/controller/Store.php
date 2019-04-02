@@ -13,18 +13,40 @@ class Store extends FormBase
         $this->model = new \app\common\model\Store();
         parent::__construct();
         $this->_init();
-        if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
-            if ($this->storeType == STORE_FACTORY) {
-                $this->error(lang('NO ACCESS'));
-            }else{
-                if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
-                    if (!($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_CHANNEL) || $this->storeType != STORE_DEALER) {
-                        $this->error(lang('NO ACCESS'));
-                    }
-                }
-            }
-        }
         $this->uploadUrl = url('Upload/upload', ['prex' => 'store_profile_', 'thumb_type' => 'profile_thumb']);
+        //系统管理员、厂商 直接通过
+        if (in_array($this->adminUser['admin_type'],[ADMIN_SYSTEM,ADMIN_FACTORY])){
+            return true;
+        }
+        //厂商列表
+        if ($this->storeType == STORE_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        //零售商列表
+        if ($this->storeType == STORE_DEALER && !in_array($this->adminUser['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
+            $this->error(lang('NO ACCESS'));
+        }
+        //渠道商列表
+        if ($this->storeType == STORE_CHANNEL && !in_array($this->adminUser['admin_type'],[ADMIN_FACTORY])) {
+            $this->error(lang('NO ACCESS'));
+        }
+
+        //新服务商列表
+        if ($this->storeType == STORE_SERVICE_NEW && !in_array($this->adminUser['admin_type'],[ADMIN_FACTORY])) {
+            $this->error(lang('NO ACCESS'));
+        }
+
+        //if ($this->adminUser['admin_type'] != ADMIN_SYSTEM) {
+        //    if ($this->storeType == STORE_FACTORY) {
+        //        $this->error(lang('NO ACCESS'));
+        //    }else{
+        //        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+        //            if (!($this->storeType == STORE_DEALER && $this->adminUser['admin_type'] == ADMIN_CHANNEL) || $this->storeType != STORE_DEALER) {
+        //                $this->error(lang('NO ACCESS'));
+        //            }
+        //        }
+        //    }
+        //}
     }
     public function manager()
     {
@@ -268,6 +290,16 @@ class Store extends FormBase
                 case 4:
                     $model = 'servicer';
                     break;
+                case 6:
+                    $model = 'servicer';
+                    $bank=db('store_bank')->where(['bank_type'=>1,'store_id'=>$info['store_id'],'status'=>1,'is_del'=>0])->find();
+                    $this->assign('bank', $bank);
+                    $financeModel = new \app\common\model\StoreFinance();
+                    $finance = $financeModel->financeDetail($info['store_id']);
+                    $serviceCount = db('work_order')->where(['store_id' => $info['store_id'], 'sign_time' => ['>', 0]])->count();
+                    $this->assign('finance', $finance);
+                    $this->assign('service_count', $serviceCount);
+                    break;
                 default:
                     return FALSE;
                     break;
@@ -327,6 +359,21 @@ class Store extends FormBase
                         //服务次数
                         $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
                         break;
+                    case STORE_SERVICE_NEW:
+                        //服务次数
+                        $list[$key]['service_count'] = db('work_order')->where(['store_id' => $value['store_id'], 'sign_time' => ['>', 0]])->count();
+                        //所属零售商数量
+                        $where = [
+                            'S.store_type'  => STORE_DEALER,
+                            'S.is_del'      => 0,
+                            'S.check_status'=> 1,
+                            'SD.ostore_id'  => $value['store_id'],
+                        ];
+                        $join = [
+                            ['store_dealer SD', 'S.store_id = SD.store_id', 'INNER'],
+                        ];
+                        $list[$key]['dealer_count'] = db('store')->alias('S')->join($join)->where($where)->count();
+                        break;
                     default:
                         ;
                         break;
@@ -348,7 +395,7 @@ class Store extends FormBase
             if ($this->adminUser['store_id']) {
                 $data['factory_id'] = $factoryId = $this->adminFactory['store_id'];
             }
-            if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
+            if (in_array($this->adminUser['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
                 $data['ostore_id'] = $this->adminStore['store_id'];
             }
             if (!$factoryId) {
@@ -403,7 +450,7 @@ class Store extends FormBase
         return 'S';
     }
     function _getField(){
-        $field = 'S.name, U.*, AS.*, S.*';
+        $field = 'S.name, U.*, SS.*, S.*';
         if ($this->storeType != STORE_FACTORY) {
             $field .= ', S1.name as sname';
             if ($this->storeType == STORE_DEALER){
@@ -414,7 +461,8 @@ class Store extends FormBase
                     break;
                 case STORE_CHANNEL:
                 case STORE_SERVICE:
-                    $field .= ', SF.*';
+                case STORE_SERVICE_NEW:
+                    $field .= ', SS.*';
                     break;
                 default:
                     ;
@@ -429,26 +477,29 @@ class Store extends FormBase
         $join[] = ['user U', 'U.store_id = S.store_id AND is_admin = 1 AND U.admin_type = '.$this->adminType, 'LEFT'];
         switch ($this->storeType) {
             case 1://厂商
-                $tabel = 'store_factory AS';
+                $tabel = 'store_factory SS';
                 break;
             case 2://渠道商
-                $tabel = 'store_channel AS';
+                $tabel = 'store_channel SS';
                 break;
             case 3://经销商
-                $tabel = 'store_dealer AS';
+                $tabel = 'store_dealer SS';
                 break;
             case 4://服务商
-                $tabel = 'store_servicer AS';
+                $tabel = 'store_servicer SS';
+                break;
+            case 6://新服务商
+                $tabel = 'store_servicer SS';
                 break;
             default:
                 $this->error(lang('PARAM_ERROR'));
                 return FALSE;
                 break;
         }
-        $join[] = [$tabel, 'S.store_id = AS.store_id', 'INNER'];
+        $join[] = [$tabel, 'S.store_id = SS.store_id', 'INNER'];
         switch ($this->storeType) {
             case STORE_DEALER:
-                $join[] = ['store S2', 'S2.store_id = AS.ostore_id', 'LEFT'];
+                $join[] = ['store S2', 'S2.store_id = SS.ostore_id', 'LEFT'];
             break;
             case STORE_SERVICE:
             case STORE_CHANNEL:
@@ -480,10 +531,9 @@ class Store extends FormBase
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_CHANNEL && $this->storeType == STORE_DEALER){
-            $where['AS.ostore_id'] = $this->adminUser['store_id'];
+        }elseif ($this->storeType == STORE_DEALER && in_array($this->adminUser['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])){
+            $where['SS.ostore_id'] = $this->adminUser['store_id'];
         }
-        
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
@@ -563,6 +613,15 @@ class Store extends FormBase
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             //$array8 = ['title'=>'签约合影照片','type'=>'uploadImg','name'=>'group_photo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
         }
+        if (in_array($this->storeType, [STORE_SERVICE_NEW])) {
+            $array2 = ['title'=>'缴纳保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
+            $array3 = ['title'=>'公司法人身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'公司法人身份证正面'];
+            $array4 = ['title'=>'公司法人身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'公司法人身份证正面'];
+            $array5 = ['title'=>'营业执照','type'=>'uploadImg','name'=>'license_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'公司营业执照'];
+            $array6 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'签约合同 (带有双方公司名称)'];
+            $array7 = ['title'=>'负责区域','type'=>'region','length'=>2,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择负责区域'];
+        }
+
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $status = ['title'=>'显示状态','type'=>'radio','name'=>'status','size'=>'20','datatype'=>'','default'=>'1','notetext'=>'','radioList'=>[
                 ['text'=>'可用','value'=>'1'],

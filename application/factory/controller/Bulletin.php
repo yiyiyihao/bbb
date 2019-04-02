@@ -8,7 +8,7 @@ class Bulletin extends FactoryForm
         $this->modelName = 'bulletin';
         $this->model = db($this->modelName);
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])){
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE,ADMIN_SERVICE_NEW])){
             $this->error(lang('NO ACCESS'));
         }
         $this->perPage=15;

@@ -33,33 +33,54 @@
                             <div class="input-note">商品名称请不要填写特殊字符</div>
                         </div>
                     </div>
+
                     <div class="form-group">
-		                <div class="label">
-		                  <label>上传图片</label>
-		                </div>
-		                <div class="field"> 
-		                	<a class="button bg-main button-small js-multi-upload" num="1" data="imgs" id="image_upload" href="javascript:;" ><span class="icon-upload"> 批量上传</span></a>
-		                  <div class="input-note note">请上传不大于2M的图片,支持多图上传(建议尺寸:500px*500px)</div>
-		                </div>
-		              </div>
-		              <div class="imagesBox form-group clearfix" id="imgs">
-		              	{if condition="$info && isset($info['imgs'])"}
-		                  {volist name="info.imgs" id="vo" mod="10"}
-		                	<div class="media radius clearfix">
-		                      <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
-		                      {eq name="mod" value="0"}
-		                      <span>我是封面</span>
-		                      {else /}
-		                      <span class="uptofirst">设为封面</span>
-		                      {/eq}
-		                      <img src="{$vo ?? ''}" >
-		                      <div class="media-body">
-		                      <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
-		                      </div>
-		                  </div>
-		                  {/volist}
-		                  {/if}
-		              </div>
+                        <div class="label">
+                            <label>上传图片</label>
+                        </div>
+                        <div class="field">
+                            <a class="button bg-main button-small js-multi-upload" num="1" data="imgs" id="image_upload" href="javascript:;" ><span class="icon-upload"> 批量上传</span></a>
+                            <div class="input-note note">请上传不大于2M的图片,支持多图上传(建议尺寸:500px*500px)</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>图片预览</label>
+                        </div>
+                        <div class="field">
+                            <div class="imagesBox form-group clearfix" id="imgs">
+                                {if condition="$info && isset($info['imgs'])"}
+                                <div class="swiper-container">
+                                    <div class="swiper-wrapper">
+                                        {volist name="info.imgs" id="vo" mod="10"}
+                                        <div class="swiper-slide">
+                                            <div class="media radius clearfix">
+                                                <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
+                                                {eq name="mod" value="0"}
+                                                <span>我是封面</span>
+                                                {else /}
+                                                <span class="uptofirst">设为封面</span>
+                                                {/eq}
+                                                <img src="{$vo ?? ''}" >
+                                                <div class="media-body">
+                                                    <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/volist}
+                                    </div>
+                                    <!-- Add Pagination -->
+<!--                                    <div class="swiper-pagination"></div>-->
+                                    <!-- Add Arrows -->
+                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-button-prev"></div>
+                                </div>
+                                {/if}
+                            </div>
+
+                        </div>
+                    </div>
 		              <div class="form-group">
 		                  <div class="label">
 		                    <label>封面图片</label>
@@ -245,4 +266,53 @@
         </div>
     </div>
 </form>
+
+
+
+
+<style>
+.swiper-container {
+    width: 100%;
+    height: 100%;
+}
+.swiper-slide {
+    text-align: left;
+    font-size: 18px;
+    background: #fff;
+
+    /* Center slide text vertically */
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+}
+</style>
+<script>
+Do.ready('swiper',function () {
+    var swiper = new Swiper('.swiper-container', {
+        slidesPerView: 5,
+        spaceBetween: 60,
+        slidesPerGroup: 5,
+        loop: true,
+        loopFillGroupWithBlank: true,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+    });
+});
+</script>
+
 {include file="goods/infoscript" /}

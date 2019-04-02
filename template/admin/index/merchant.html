@@ -45,7 +45,7 @@
                         	<span class="field-text">{$info['mobile'] ?? ''}</span>
                         </div>
                     </div>
-                    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE]))}
+                    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE,$Think.const.STORE_SERVICE_NEW]))}
                     <div class="form-group">
                         <div class="label">
                             <label>已缴纳保证金金额</label>
@@ -97,7 +97,7 @@
                         	<img src="{$info['signing_contract_img'] ?: '/static/base/images/default.png'}" width="120">
                         </div>
                     </div>
-                    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE]))}
+                    {if (in_array($info['store_type'], [$Think.const.STORE_CHANNEL,$Think.const.STORE_SERVICE,$Think.const.STORE_SERVICE_NEW]))}
                     <div class="form-group">
                         <div class="label">
                             <label>公司营业执照</label>

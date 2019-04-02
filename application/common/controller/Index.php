@@ -490,10 +490,56 @@ class Index extends CommonBase
                 $total['workorder_count_1'] = $workOrderData ? intval($workOrderData['workorder_count_1']) : 0;
                 //累计上门维修工单数量
                 $total['workorder_count_2'] = $workOrderData ? intval($workOrderData['workorder_count_2']) : 0;
-                
-                
+                break;
+            case ADMIN_SERVICE_NEW:
+                $tpl = 'servicer2';
+                //今日佣金收益
+                $join=[
+                    ['store S','C.store_id = S.store_id','INNER'],
+                ];
+                $where=[
+                    ['C.is_del','=',0],
+                    ['S.store_id','=',$storeId],
+                    ['C.income_status','IN',[0,1]],
+                    ['C.add_time','>=',$beginToday],
+                ];
+                $today['commission_amount']=db('store_service_income')->alias('C')->join($join)->where($where)->sum('C.install_amount');
+                //累计佣金收益
+                $total['commission_amount']=db('store_finance')->where(['store_id' => $storeId])->value('total_amount');
+
+                $where = [
+                    ['store_id','=',$storeId],
+                    ['is_del','=',0],
+                    ['add_time','>=',$beginToday],
+                ];
+                $field = 'count(if(work_order_type = 1 && add_time >= '.$beginToday.', true, NULL)) as post_count_1';
+                $field .= ', count(if(work_order_type = 1 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_1';
+                $field .= ', count(if(work_order_type = 2 && add_time >= '.$beginToday.', true, NULL)) as post_count_2';
+                $field .= ', count(if(work_order_type = 2 && sign_time >= '.$beginToday.', true, NULL)) as sign_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+
+                $today['post_count_1'] = $workOrderData ? intval($workOrderData['post_count_1']) : 0;
+                $today['sign_count_1'] = $workOrderData ? intval($workOrderData['sign_count_1']) : 0;
+                $today['post_count_2'] = $workOrderData ? intval($workOrderData['post_count_2']) : 0;
+                $today['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
+
+                $where = [
+                    ['store_id','=',$storeId],
+                    ['is_del','=',0],
+                    ['sign_time','>',0],
+                ];
+                $field = 'count(if(work_order_type = 1, true, NULL)) as workorder_count_1';
+                $field .= ', count(if(work_order_type = 2, true, NULL)) as workorder_count_2';
+                $workOrderData = $workOrderModel->field($field)->where($where)->find();
+
+                //累计上门安装工单数量
+                $total['workorder_count_1'] = $workOrderData ? intval($workOrderData['workorder_count_1']) : 0;
+                //累计上门维修工单数量
+                $total['workorder_count_2'] = $workOrderData ? intval($workOrderData['workorder_count_2']) : 0;
                 break;
             default:
+
+
                 break;
         }
         if ($chart) {
