@@ -289,6 +289,7 @@ class Goods extends FormBase
     function _assignInfo($id = 0){
         $info = parent::_assignInfo($id);
         $sid = $info && $info['store_id'] ? $info['store_id'] : 0;
+        $this->assign('store_type',$this->adminStore['store_type']);
         $this->_getCategorys($sid);
         $skuinfo = db('goods_sku')->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
         $info['skuinfo'] = $skuinfo;

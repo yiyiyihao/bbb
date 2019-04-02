@@ -16,7 +16,7 @@
 							<label>商品分类</label>
 						</div>
 						<div class="field">
-							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择商品分类！">
+							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择商品分类！"  {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if}>
 								{foreach name="cates" item="cate" key="key"}
 									<option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option> 
 								{/foreach}
@@ -29,11 +29,11 @@
                             <label>商品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}" {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if} >
                             <div class="input-note">商品名称请不要填写特殊字符</div>
                         </div>
                     </div>
-
+                    {if $store_type ==$Think.const.STORE_FACTORY}
                     <div class="form-group">
                         <div class="label">
                             <label>上传图片</label>
@@ -43,6 +43,7 @@
                             <div class="input-note note">请上传不大于2M的图片,支持多图上传(建议尺寸:500px*500px)</div>
                         </div>
                     </div>
+                    {/if}
 
                     <div class="form-group">
                         <div class="label">
@@ -56,12 +57,14 @@
                                         {volist name="info.imgs" id="vo" mod="10"}
                                         <div class="swiper-slide">
                                             <div class="media radius clearfix">
+                                                {if $store_type ==$Think.const.STORE_FACTORY}
                                                 <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
                                                 {eq name="mod" value="0"}
                                                 <span>我是封面</span>
                                                 {else /}
                                                 <span class="uptofirst">设为封面</span>
                                                 {/eq}
+                                                {/if}
                                                 <img src="{$vo ?? ''}" >
                                                 <div class="media-body">
                                                     <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
@@ -96,13 +99,13 @@
                             <label>商品编码</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}">
+                            <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}" {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if}>
                             <div class="input-note">商品编码请不要填写特殊字符</div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="label">
-                          <label>规格明细</label>
+                          <label>规格</label>
                         </div>
                         <div class="field">
                           <div class="field-text">
@@ -124,7 +127,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label">
-                          <label></label>
+                          <label>规格明细</label>
                         </div>
                         <div class="field">                
                           <div class="table-responsive" style="padding:10px 0;">
@@ -156,6 +159,7 @@
                           </div>    
                         </div>
                     </div>
+                    {if $store_type ==$Think.const.STORE_FACTORY}
                     <div class="form-group">
 		                <div class="label">
 		                  <label>商品最低售价</label>
@@ -217,6 +221,7 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
+                    {/if}
                     <div id="expand"></div>
                     <div class="form-group">
                         <div class="label">
