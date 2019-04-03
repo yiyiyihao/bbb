@@ -106,8 +106,8 @@ body{ background:#f5f5f5;}
 .pageDescription{ background:#f5f5f5; padding:15px 20px; border-radius:5px; font-size:13px; color:#888;}
 .pageDetail{ padding-top:30px; line-height:30px;}
 .pageTitle{font-size: 18px; text-align: center;}
-.imagesBox{ background:#f5f5f5; margin-bottom:10px;}
-.imagesBox .media{ float:left; margin:10px 0 10px 10px; position:relative;}
+.imagesBox{ background:#f5f5f5; margin-bottom:10px; border:10px solid #fff; border-top:none; border-bottom:none; border-radius:5px;}
+.imagesBox .media{ float:left; margin:10px 0 10px 0px; position:relative;}
 .imagesBox .media:hover{box-shadow:2px 2px 5px rgba(0,0,0,.3);}
 .imagesBox .media img{ width:183px;}
 .imagesBox .media .media-del{ position:absolute; color:#fff; right:10px; top:10px; width:20px; height:20px; line-height:20px; text-align:center; background:rgba(1,150,136,.8)}

@@ -293,7 +293,7 @@ class Goods extends FormBase
         $this->_getCategorys($sid);
         $skuinfo = db('goods_sku')->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
         $info['skuinfo'] = $skuinfo;
-        $info['imgnum'] = isset($info['imgs']) && $info['imgs'] ? count($info['imgs']) : 0;
+        $info['imgnum'] = isset($info['imgs']) && $info['imgs'] ? count(json_decode($info['imgs'])) : 0;
         $info['imgs'] = isset($info['imgs']) && $info['imgs'] ? json_decode($info['imgs'], TRUE) : [];
         $this->assign('info', $info);
         $store = new \app\common\controller\Store();

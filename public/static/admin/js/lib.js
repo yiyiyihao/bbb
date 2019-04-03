@@ -46,14 +46,14 @@ $.fn.MultiUpload = function (options) {
     this.each(function () {
         var upButton = $(this);
         var dataName = upButton.attr('data');
-        var div = $('#' + dataName);
+        var div = $('#' + dataName).find(".swiper-wrapper");
 		var preview = $('#preview_' + dataName);
         var data = div.attr('data');
 		var index = options.num;
 		var cookieName = options.cookie;
         /*创建上传*/
         Do.ready('webuploader', function () {
-        	getHistory();
+			getHistory();
             var uploader = WebUploader.create({
                 swf: Config.baseDir + 'webuploader/Uploader.swf',
                 server: options.uploadUrl,
@@ -93,7 +93,9 @@ $.fn.MultiUpload = function (options) {
             });
             //处理上传列表
             function htmlList(file) {
+				//console.log(file);
 				index++;
+				//console.log(index);
 				var plus = "";
 				if(index == 1){
 					preview.attr("src",file.thumb);
@@ -102,18 +104,21 @@ $.fn.MultiUpload = function (options) {
 				}else{
 					plus = '<span class="uptofirst">设为封面</span>';
 				}
-                var html = '<div class="media radius clearfix">\
+                var html = '<div class="swiper-slide"><div class="media radius clearfix">\
                     <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>'+plus+'<img src="' + file.thumb + '" >\
                     <div class="media-body">\
                     <input name="' + dataName + '[]" type="hidden" class="input" value="' + file.thumbMid + '" />\
                     </div>\
                     </div>\
+					</div>\
                     ';
-                div.append(html);
+                //div.append(html);
+				swiper.appendSlide(html);
 				HistoryUp();
             }
 			function HistoryUp(){
 				var re = arguments[0] ? arguments[0] : 0;
+				//console.log("re:"+re);
 				//读取生成的图片列表并记录
 				var myHis = new Array()
 				$('.imagesBox .media').each(function(index){
@@ -122,18 +127,23 @@ $.fn.MultiUpload = function (options) {
 					myHis[index][1] = $(this).find('input').val();
 				});
 				var urlCookie = JSON.stringify(myHis);
-				$.setCookie(cookieName, urlCookie);
+				localStorage.setItem(cookieName, urlCookie)
+				//$.setCookie(cookieName, urlCookie);
 				if(re){
 					index = 0;
 					getHistory();
 				}
 			}			
-			function getHistory(){			
-				var h = $.getCookie(cookieName);
-				if(h != '' && h != 'undefined'){					
-					div.html("");
+			function getHistory(){
+				//var h = $.getCookie(cookieName);
+				var h = localStorage.getItem(cookieName);
+				if(h != '' && h != null && h != 'undefined'){					
+					//div.html("");
+					index = 0;
+					swiper.removeAllSlides();
 					//var arr = h.split(',');
 					var arr=eval(''+h+'');
+					//console.log(arr);
 					$.each(arr, function(index,data){
 						var files=new Object();
 						files.thumb    = data[0];
@@ -145,7 +155,12 @@ $.fn.MultiUpload = function (options) {
 			}
 			//处理设为封面
             div.on('click', '.uptofirst', function () {
-				$(this).parent().prependTo(div);
+				var index = $(this).parent().parent().index();
+				//取得当前对象
+				var item = $(this).parent().parent();
+				swiper.removeSlide(index);
+				swiper.prependSlide(item);
+				//$(this).parent().parent().prependTo(wrapper);
 				HistoryUp(1);
             });
             //处理删除
