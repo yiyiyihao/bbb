@@ -254,27 +254,29 @@ class WorkOrder extends Base
         $data['address'] = $request->param('address');
         $data['appointment'] = $request->param('appointment', '', 'trim,strtotime');
         $data['fault_desc'] = $request->param('fault_desc');
-        $data['goods_id'] = $request->param('goods_id');
+        $data['goods_id'] = $request->param('goods_id','0','intval');
+        $data['device_sn'] = $request->param('device_sn');
         if ($data['appointment'] < time()) {
             return $this->dataReturn(100100, '预约时间不能早于当前时间');
         }
-
-        $images = $request->param('images');
-
         //报修上传故障图片(英文分号分隔)
         $images = $request->param('images', '','trim');
         $images = array_unique(array_filter(explode(',', $images)));
         if (count($images) > 3) {
             return $this->dataReturn(100106, '抱歉，图片最多只能保存3张');
         }
-        $where = [
-            'goods_id' => $data['goods_id'],
-            'is_del'   => 0,
-        ];
-        $goods = db('goods')->where($where)->find();
-        if (empty($goods)) {
-            return $this->dataReturn(100105, '查无该商品信息');
+        if ($data['goods_id']) {
+            $where = [
+                'goods_id' => $data['goods_id'],
+                'is_del'   => 0,
+            ];
+            $goods = db('goods')->where($where)->find();
+            if (empty($goods)) {
+                return $this->dataReturn(100105, '查无该商品信息');
+            }
         }
+        //@todo 设备串码码证
+
         $storeModel = new \app\common\model\Store();
         //根据安装地址分配服务商
         $storeId = $storeModel->getStoreFromRegion($data['region_id']);
@@ -290,7 +292,7 @@ class WorkOrder extends Base
         }
         $data['post_udata_id'] = $user['udata_id'];
         $data['images'] = implode(',', $images);
-        $data['install_price'] = $goods['install_price'];
+        $data['install_price'] = $goods['install_price']??'';
         $data['work_order_type'] = 2;
         $data['post_user_id'] = $user['user_id'];
         $data['user_id'] = $user['user_id'];

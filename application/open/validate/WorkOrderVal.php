@@ -117,9 +117,10 @@ class WorkOrderVal extends Validate
     //提交维修工单
     public function sceneAdd()
     {
-        return $this->only(['openid', 'goods_id', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment', 'fault_desc'])
+        return $this->only(['openid', 'goods_id','device_sn', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment', 'fault_desc'])
             ->append('openid', 'require|alphaNum')
-            ->append('goods_id|商品ID', 'require|integer')
+            ->append('device_sn|设备串码', 'require')
+            ->append('goods_id|商品ID', 'integer')
             ->append('user_name|客户姓名', 'require|chsAlpha|min:2|max:20')
             ->append('user_mobile|客户手机号', 'require|mobile')
             ->append('region_id|服务区域编号', 'require|integer')
