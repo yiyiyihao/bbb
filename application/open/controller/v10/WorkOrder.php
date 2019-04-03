@@ -235,7 +235,7 @@ class WorkOrder extends Base
         return $this->dataReturn($config);
     }
 
-    //提交维修工单
+    //提交工单
     public function add(Request $request)
     {
         $check = new WorkOrderVal();
@@ -256,6 +256,14 @@ class WorkOrder extends Base
         $data['fault_desc'] = $request->param('fault_desc');
         $data['goods_id'] = $request->param('goods_id', '0', 'intval');
         $data['device_sn'] = $request->param('device_sn');
+        $data['device_type'] = $request->param('device_type','');
+        $data['work_order_type'] = $request->param('work_type',2,'intval');
+        if ($data['work_order_type']==2 && empty($data['device_sn'])){
+            return $this->dataReturn(100100, '提交维修工单时设备串码不能为空');
+        }
+        if ($data['work_order_type']==1 && empty($data['device_type'])  && empty($data['device_sn']) ) {
+            return $this->dataReturn(100100, '提交安装工单时，设备串码和设备类型不能同时为空');
+        }
         if ($data['appointment'] < time()) {
             return $this->dataReturn(100100, '预约时间不能早于当前时间');
         }
@@ -302,7 +310,7 @@ class WorkOrder extends Base
         $workOrderModel = model('work_order');
         $sn = $workOrderModel->save($data);
         if ($sn) {
-            return $this->dataReturn(0, '维修工单提交成功', ['worder_sn' => $sn]);
+            return $this->dataReturn(0, '工单提交成功', ['worder_sn' => $sn]);
         } else {
             return $this->dataReturn(100107, '系统错误');
         }
