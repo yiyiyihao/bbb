@@ -34,7 +34,7 @@ class WorkOrder extends Base
             ['user_installer UG', 'UG.installer_id = WO.installer_id', 'LEFT'],
         ];
         $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name';
-        $field .= ',WO.address,WO.appointment,WO.work_order_status,WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time';
+        $field .= ',WO.address,WO.appointment,WO.appointment_end,WO.work_order_status,WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time';
         $field .= ',WO.finish_time,G.name as sku_name,if(WO.work_order_status > 0, 0, 1) as wstatus,WO.device_sn';
         $where['WO.post_udata_id'] = $user['udata_id'];
         $field .= ',UG.realname installer_name,UG.phone installer_phone';
@@ -82,7 +82,7 @@ class WorkOrder extends Base
         $user = $userCheck['data'];
         $worderSn = $request->param('worder_sn', '', 'trim');
         $field = 'WO.worder_id,WO.worder_sn,WO.installer_id,WO.goods_id,WO.work_order_type,WO.order_sn,WO.user_name';
-        $field .= ',WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc,WO.work_order_status';
+        $field .= ',WO.phone,WO.region_name,WO.address,WO.appointment,WO.appointment_end,WO.images,WO.fault_desc,WO.work_order_status';
         $field .= ',WO.device_sn,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $where = [
             'WO.is_del'        => 0,
@@ -252,18 +252,48 @@ class WorkOrder extends Base
         $data['region_id'] = $request->param('region_id');
         $data['region_name'] = $request->param('region_name');
         $data['address'] = $request->param('address');
-        $data['appointment'] = $request->param('appointment', '', 'trim,strtotime');
+        $data['appointment'] = $request->param('appointment_start', '', 'trim,strtotime');
+        $data['appointment_end'] = $request->param('appointment_end', '', 'trim,strtotime');
         $data['fault_desc'] = $request->param('fault_desc');
         $data['goods_id'] = $request->param('goods_id', '0', 'intval');
         $data['device_sn'] = $request->param('device_sn');
         $data['device_type'] = $request->param('device_type','');
         $data['work_order_type'] = $request->param('work_type',2,'intval');
+        if ($data['appointment'] > $data['appointment_end']) {
+            return $this->dataReturn(100100, '预约开始时必须小于结束时间');
+        }
+        if ($data['appointment_end']-$data['appointment']>21600) {
+            return $this->dataReturn(100100, '预约开始时与结束时间跨度不能超过6小时');
+        }
         if ($data['work_order_type']==2 && empty($data['device_sn'])){
             return $this->dataReturn(100100, '提交维修工单时设备串码不能为空');
         }
         if ($data['work_order_type']==1 && empty($data['device_type'])  && empty($data['device_sn']) ) {
             return $this->dataReturn(100100, '提交安装工单时，设备串码和设备类型不能同时为空');
         }
+        if ($data['work_order_type']==1) {
+            $where=[
+                ['work_order_type','=',1],
+                ['post_udata_id','=',$user['udata_id']],
+                ['is_del','=',0],
+            ];
+            if (!empty($data['device_sn'])) {
+                $where[]=['device_sn','=',$data['device_sn']];
+                $where[]=['work_order_status','>',-1];
+                $order=model('work_order')->where($where)->find();
+                if (!empty($order)) {
+                    return $this->dataReturn(100100, '提交安装工单已提交，请耐心等候');
+                }
+            } else {
+                $where[]=['device_type','=',$data['device_type']];
+                $where[]=['work_order_status','>',-1];
+                $order=model('work_order')->where($where)->order('worder_id DESC')->find();
+                if (!empty($order) && (time()- strtotime($order['add_time'])<60) ) {
+                    return $this->dataReturn(100100, '操作频繁！');
+                }
+            }
+        }
+
         if ($data['appointment'] < time()) {
             return $this->dataReturn(100100, '预约时间不能早于当前时间');
         }
@@ -301,7 +331,6 @@ class WorkOrder extends Base
         $data['post_udata_id'] = $user['udata_id'];
         $data['images'] = implode(',', $images);
         $data['install_price'] = $goods['install_price'] ?? '';
-        $data['work_order_type'] = 2;
         $data['post_user_id'] = $user['user_id'];
         $data['user_id'] = $user['user_id'];
         $data['factory_id'] = $this->factoryId;

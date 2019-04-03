@@ -117,7 +117,7 @@ class WorkOrderVal extends Validate
     //提交维修工单
     public function sceneAdd()
     {
-        return $this->only(['openid', 'goods_id','device_sn','work_type', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment', 'fault_desc'])
+        return $this->only(['openid', 'goods_id','device_sn','work_type', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment_start','appointment_end', 'fault_desc'])
             ->append('openid', 'require|alphaNum')
             //->append('device_sn|设备串码', 'require')
             ->append('goods_id|商品ID', 'integer')
@@ -127,7 +127,8 @@ class WorkOrderVal extends Validate
             ->append('region_id|服务区域编号', 'require|integer')
             ->append('region_name|服务区域名', 'require|chs_space')
             ->append('address|安装地址', 'require|chsDash')
-            ->append('appointment|预约时间', 'require|date|after:' . date('Y-m-d'))
+            ->append('appointment_start|预约开始时间', 'require|date|after:' . date('Y-m-d'))
+            ->append('appointment_end|预约结束时间', 'require|date|after:' . date('Y-m-d'))
             ->append('fault_desc|故障描述信息', 'require|max:120');
     }
 
