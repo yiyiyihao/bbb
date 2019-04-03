@@ -35,7 +35,7 @@ class WorkOrder extends Base
         ];
         $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name';
         $field .= ',WO.address,WO.appointment,WO.work_order_status,WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time';
-        $field .= ',WO.finish_time,G.name as sku_name,if(WO.work_order_status > 0, 0, 1) as wstatus';
+        $field .= ',WO.finish_time,G.name as sku_name,if(WO.work_order_status > 0, 0, 1) as wstatus,WO.device_sn';
         $where['WO.post_udata_id'] = $user['udata_id'];
         $field .= ',UG.realname installer_name,UG.phone installer_phone';
         if ($workOrderType) {
@@ -83,7 +83,7 @@ class WorkOrder extends Base
         $worderSn = $request->param('worder_sn', '', 'trim');
         $field = 'WO.worder_id,WO.worder_sn,WO.installer_id,WO.goods_id,WO.work_order_type,WO.order_sn,WO.user_name';
         $field .= ',WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc,WO.work_order_status';
-        $field .= ',WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
+        $field .= ',WO.device_sn,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $where = [
             'WO.is_del'        => 0,
             'WO.post_udata_id' => $user['udata_id'],
@@ -112,7 +112,7 @@ class WorkOrder extends Base
         //工单完成后获取首次评价
         $workOrderModel = new \app\common\model\WorkOrder();
         $assess = $workOrderModel->getWorderAssess($detail, 'assess_id, type, msg, add_time');
-        unset($detail['installer_id'],$detail['worder_id']);
+        unset($detail['installer_id'], $detail['worder_id']);
         $result = ['detail' => $detail, 'sku' => $sku, 'assess_list' => $assess];
         return $this->dataReturn(0, 'ok', $result);
     }
@@ -132,9 +132,9 @@ class WorkOrder extends Base
         $worderSn = $request->param('worder_sn', '', 'trim');
         $remark = $request->param('remark');
         $where = [
-            'is_del'       => 0,
+            'is_del'        => 0,
             'post_udata_id' => $user['udata_id'],
-            'worder_sn'    => $worderSn,
+            'worder_sn'     => $worderSn,
         ];
         $workOrder = db('work_order')->where($where)->find();
         if (empty($workOrder)) {
@@ -254,13 +254,13 @@ class WorkOrder extends Base
         $data['address'] = $request->param('address');
         $data['appointment'] = $request->param('appointment', '', 'trim,strtotime');
         $data['fault_desc'] = $request->param('fault_desc');
-        $data['goods_id'] = $request->param('goods_id','0','intval');
+        $data['goods_id'] = $request->param('goods_id', '0', 'intval');
         $data['device_sn'] = $request->param('device_sn');
         if ($data['appointment'] < time()) {
             return $this->dataReturn(100100, '预约时间不能早于当前时间');
         }
         //报修上传故障图片(英文分号分隔)
-        $images = $request->param('images', '','trim');
+        $images = $request->param('images', '', 'trim');
         $images = array_unique(array_filter(explode(',', $images)));
         if (count($images) > 3) {
             return $this->dataReturn(100106, '抱歉，图片最多只能保存3张');
@@ -292,7 +292,7 @@ class WorkOrder extends Base
         }
         $data['post_udata_id'] = $user['udata_id'];
         $data['images'] = implode(',', $images);
-        $data['install_price'] = $goods['install_price']??'';
+        $data['install_price'] = $goods['install_price'] ?? '';
         $data['work_order_type'] = 2;
         $data['post_user_id'] = $user['user_id'];
         $data['user_id'] = $user['user_id'];
@@ -358,23 +358,23 @@ class WorkOrder extends Base
     private function getUser(Request $request)
     {
         $openid = $request->param('openid');
-        $user = model('user_data')->where(['openid' => $openid, 'is_del' => 0])->find();
+        $where = [
+            'third_openid' => $openid,
+            'third_type'   => 'echodata',
+            'user_type'    => 'open',
+            'is_del'       => 0,
+        ];
+        $user = model('user_data')->where($where)->find();
         if (empty($user)) {
             $user = model('user_data');
             $user->save([
                 'openid'      => $openid,
                 'add_time'    => time(),
                 'update_time' => time(),
+                'third_type'  => 'echodata',
                 'user_type'   => 'open',
             ]);
         }
-        //$user = db('user')->where(['is_del' => 0])->find($user_id);
-        //if (empty($user)) {
-        //    return dataFormat(100101, '手机号未绑定');
-        //}
-        //if (!$user['status']) {
-        //    return dataFormat(100102, '用户已被禁用');
-        //}
         return dataFormat(0, 'ok', $user);
     }
 
