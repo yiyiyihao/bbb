@@ -54,6 +54,7 @@ class WorkOrder extends Base
                 $list[$key]['receive_time'] = time_to_date($value['receive_time']);
                 $list[$key]['sign_time'] = time_to_date($value['sign_time']);
                 $list[$key]['appointment'] = $value['appointment'] ? date('Y-m-d H:i', $value['appointment']) : '';
+                $list[$key]['appointment_end'] = $value['appointment_end'] ? date('Y-m-d H:i', $value['appointment_end']) : '';
                 $list[$key]['work_order_type'] = $value['work_order_type'];
                 $list[$key]['work_order_type_txt'] = get_work_order_type($value['work_order_type']);
                 $list[$key]['status_txt'] = get_work_order_installer_status($value['work_order_status']);
@@ -103,6 +104,7 @@ class WorkOrder extends Base
 
         $detail['images'] = $detail['images'] ? explode(',', $detail['images']) : [];
         $detail['appointment'] = $detail['appointment'] ? date('Y-m-d H:i', $detail['appointment']) : '';
+        $detail['appointment_end'] = $detail['appointment_end'] ? date('Y-m-d H:i', $detail['appointment_end']) : '';
         $detail['work_order_type_txt'] = get_work_order_type($detail['work_order_type']);
         $detail['status_txt'] = get_work_order_installer_status($detail['work_order_status']);
         $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $detail['worder_id']])->find();
