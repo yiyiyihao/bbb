@@ -84,7 +84,7 @@ class WorkOrder extends Base
         $worderSn = $request->param('worder_sn', '', 'trim');
         $field = 'WO.worder_id,WO.worder_sn,WO.installer_id,WO.goods_id,WO.work_order_type,WO.order_sn,WO.user_name';
         $field .= ',WO.phone,WO.region_name,WO.address,WO.appointment,WO.appointment_end,WO.images,WO.fault_desc,WO.work_order_status';
-        $field .= ',WO.device_sn,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
+        $field .= ',WO.device_sn,WO.device_type,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $where = [
             'WO.is_del'        => 0,
             'WO.post_udata_id' => $user['udata_id'],
