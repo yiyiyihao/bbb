@@ -7,7 +7,7 @@ class Order extends FormBase
     public function __construct()
     {
         $this->modelName = $this->modelName ? $this->modelName : 'order';
-//         $this->model = db($this->modelName);
+        //$this->model = db($this->modelName);
         $this->model = new \app\common\model\Order();
         parent::__construct();
         $this->subMenu['showmenu'] = true;
@@ -196,7 +196,7 @@ class Order extends FormBase
     function _afterList($list)
     {
         if ($list) {
-            $flag = in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER]) ? TRUE : FALSE;
+            $flag = in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
             $list = $this->model->getOrderList($list, $flag);
         }
         return $list;
@@ -209,13 +209,17 @@ class Order extends FormBase
         return 'O';
     }
     function _getJoin(){
-        return [
-//             ['user U', 'O.user_id = U.user_id', 'LEFT'],
-            ['store S', 'S.store_id = O.user_store_id', 'LEFT'],
-        ];
+        $join[] = ['store S', 'S.store_id = O.user_store_id', 'LEFT'];
+        if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
+            $join = [
+                ['store_dealer SD', 'SD.store_id = O.user_store_id', 'LEFT'],
+                ['store S', 'S.store_id = SD.ostore_id', 'LEFT'],
+            ];
+        }
+        return $join;
     }
     function _getOrder(){
-//         return 'O.update_time DESC';
+        //return 'O.update_time DESC';
         return 'O.add_time DESC';
     }
     function _getWhere(){
@@ -253,7 +257,11 @@ class Order extends FormBase
         $map = [
             'order_type' => 1,
         ];
-        $map['O.store_id'] = $this->adminUser['store_id'];
+        if ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
+            $map['SD.ostore_id']=$this->adminUser['store_id'];
+        }else{
+            $map['O.store_id'] = $this->adminUser['store_id'];
+        }
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;
             $map['O.pay_status'] = $param['pay_status'];

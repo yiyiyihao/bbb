@@ -95,9 +95,10 @@
                             <div class="input-note">商品编码请不要填写特殊字符</div>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <div class="label">
-                          <label>规格</label>
+                          <label>商品规格</label>
                         </div>
                         <div class="field">
                           <div class="field-text">
@@ -113,16 +114,21 @@
                                 </li> 
                                 {/volist}
                             </ul>
+                            {if $store_type ==$Think.const.STORE_FACTORY}
                             <span class="button bg-main" id="create">生成</span>
+                            {/if}
                           </div>
                         </div>
                     </div>
+
+
                     <div class="form-group">
                         <div class="label">
                           <label>规格明细</label>
                         </div>
                         <div class="field">                
                           <div class="table-responsive" style="padding:10px 0;">
+                              {if $store_type ==$Think.const.STORE_FACTORY}
                               <table id="table" class="table table-hover ">
                                 <tbody>
                                   <tr>
@@ -133,7 +139,7 @@
                                     <th width="100">库存</th>
                                     <th width="80">操作</th>
                                   </tr>
-                                  {if isset($skuList)}
+                                  {if isset($skuList) && !empty($skuList)}
                                   {volist name="skuList" id="vo" empty=""}
                                     <tr class="skubox">
                                         <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value={$vo.spec_json} />
@@ -145,9 +151,49 @@
                                         <td><span class="delSpec button button-small bg-red icon-delete"></span></td>
                                     </tr>
                                   {/volist}
+                                  {else /}
+                                  <tr>
+                                      <td colspan="6" align="center" class="empty">暂无数据</td>
+                                  </tr>
                                   {/if}
                                 </tbody>
                               </table>
+                              {else if $store_type ==$Think.const.STORE_SERVICE_NEW /}
+                              <table id="table" class="table table-hover ">
+                                  <thead>
+                                      <tr>
+                                          <th width="60">序号</th>
+                                          <th width="*">商品规格</th>
+                                          <th width="100">建议价格</th>
+                                          <th width="100">实际费用</th>
+                                          <th width="200">商品编码</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                  {if isset($skuList) && !empty($skuList)}
+                                  {volist name="skuList" id="vo" empty="" key="k"}
+                                  <tr>
+                                      <td>{$k}</td>
+                                      <td>
+                                          <input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" />
+                                          {$vo.sku_name}
+                                      </td>
+                                      <td>{$vo.price}</td>
+                                      <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
+                                      <td>
+                                          <input type="hidden" name="skuid[]" value={$vo.sku_id} />
+                                          {$vo.sku_sn}
+                                      </td>
+                                  </tr>
+                                  {/volist}
+                                  {else /}
+                                  <tr>
+                                      <td colspan="6" align="center" class="empty">暂无数据</td>
+                                  </tr>
+                                  {/if}
+                                  </tbody>
+                              </table>
+                              {/if}
                           </div>    
                         </div>
                     </div>
@@ -243,7 +289,7 @@
                             <label>排序</label>
                         </div>
                         <div class="field">
-                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$skuList[0]['sort_order_service'] ?? $info.sort_order|default=1}">
                             <div class="input-note">数字小的显示在前面</div>
                         </div>
                     </div>                    
@@ -251,11 +297,18 @@
             </div>
             <div class="panel-foot">
                 <div class="form-button">
-                	<input type="hidden" name="specs_json" id="specs_json" value='{$info.specs_json|default=''}' />
-                    {if isset($info['goods_id'])}
-                    <button class="button bg-dot" id="dosubmit" type="submit">直接保存</button>
+                    {if $store_type ==$Think.const.STORE_FACTORY}
+                        <input type="hidden" name="specs_json" id="specs_json" value='{$info.specs_json|default=''}' />
+                        {if isset($info['goods_id'])}
+                        <button class="button bg-dot" id="dosubmit" type="submit">直接保存</button>
+                        {/if}
+                        <button id="next" class="button bg-main" >下一步</button>
+                    {else if $store_type ==$Think.const.STORE_SERVICE_NEW }
+                        <input type="hidden" name="specs_json" id="specs_json" value='{$info.specs_json|default=''}' />
+                        {if isset($info['goods_id'])}
+                            <button class="button bg-dot" id="dosubmit" type="submit">保存</button>
+                        {/if}
                     {/if}
-                    <button id="next" class="button bg-main" >下一步</button>
                     <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
                 </div>
@@ -264,31 +317,6 @@
     </div>
 </form>
 
-
-
-
-<style>
-.swiper-container {
-	 padding:0 50px;
-}
-.swiper-slide {
-    text-align: left;
-    font-size: 18px;
-    /* Center slide text vertically */
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-box-pack: center;
-    -ms-flex-pack: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-}
-</style>
 <script>
 var swiper;
 Do.ready('swiper',function () {

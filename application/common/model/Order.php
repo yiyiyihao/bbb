@@ -529,7 +529,7 @@ class Order extends Model
         $this->orderLog($order, $user, '取消订单', $remark);
         return TRUE;
     }
-    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $addr = [], $remark = '', $orderType = 1)
+    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1)
     {
         if (!$user) {
             $this->error = lang('param_error');
@@ -583,12 +583,12 @@ class Order extends Model
                 return FALSE;
             }
             //收货地址
-            $addrName = isset($addr['address_name']) && $addr['address_name'] ? trim($addr['address_name']) : '';
-            $addrPhone = isset($addr['address_phone']) && $addr['address_phone'] ? trim($addr['address_phone']) : '';
-            $regionId = isset($addr['region_id']) && $addr['region_id'] ? trim($addr['region_id']) : '';
-            $addrRegion = isset($addr['region_name']) && $addr['region_name'] ? trim($addr['region_name']) : '';
-            $addrDetail = isset($addr['address']) && $addr['address'] ? trim($addr['address']) : '';
-            if ($orderType != 1 && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
+            $addrName = isset($param['address_name']) && $param['address_name'] ? trim($param['address_name']) : '';
+            $addrPhone = isset($param['address_phone']) && $param['address_phone'] ? trim($param['address_phone']) : '';
+            $regionId = isset($param['region_id']) && $param['region_id'] ? trim($param['region_id']) : '';
+            $addrRegion = isset($param['region_name']) && $param['region_name'] ? trim($param['region_name']) : '';
+            $addrDetail = isset($param['address']) && $param['address'] ? trim($param['address']) : '';
+            if (!in_array($orderType,[1,3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
             }
@@ -606,29 +606,31 @@ class Order extends Model
             //创建订单
             $orderSn = $this->_getOrderSn();
             $orderData = [
-                'order_type'    => $orderType,   //1商户订单:支付成功后自动完成
-                'order_sn'      => $orderSn,
-                'store_id'      => $storeId,
-                
-                'user_id'       => $userId,
-                'user_store_id' => isset($user['store_id']) ? intval($user['store_id']) : 0,
+                'order_type' => $orderType,   //1商户订单:支付成功后自动完成
+                'order_sn'   => $orderSn,
+                'store_id'   => $storeId,
+
+                'user_id'         => $userId,
+                'user_store_id'   => isset($user['store_id']) ? intval($user['store_id']) : 0,
                 'user_store_type' => isset($user['store_type']) ? intval($user['store_type']) : 0,
-                
+
                 'seller_udata_id' => $sellerUdataId,
-                'udata_id'      => isset($user['udata_id'])? intval($user['udata_id']) : 0,
-                
-                'goods_amount'  => $list['sku_amount'],
-                'install_amount'=> $list['install_amount'],
-                'delivery_amount'=> $list['delivery_amount'],
-                'real_amount'   => $list['pay_amount'],
-                'address_name'  => $addrName,
-                'address_phone' => $addrPhone,
-                'region_id'     => $regionId,
-                'address_detail'=> $regionId ? ($addrRegion.' '.$addrDetail) : '',
-                'remark'        => trim($remark),
-                'add_time'      => time(),
-                'update_time'   => time(),
-                'extra'         => '',
+                'udata_id'        => isset($user['udata_id']) ? intval($user['udata_id']) : 0,
+
+                'pay_code'        => isset($param['pay_code']) ? $param['pay_code'] : '',
+                'pay_type'        => isset($param['pay_type']) ? $param['pay_type'] : '',
+                'goods_amount'    => $list['sku_amount'],
+                'install_amount'  => $list['install_amount'],
+                'delivery_amount' => $list['delivery_amount'],
+                'real_amount'     => $list['pay_amount'],
+                'address_name'    => $addrName,
+                'address_phone'   => $addrPhone,
+                'region_id'       => $regionId,
+                'address_detail'  => $regionId ? ($addrRegion . ' ' . $addrDetail) : '',
+                'remark'          => trim($remark),
+                'add_time'        => time(),
+                'update_time'     => time(),
+                'extra'           => '',
             ];
             $orderModel = db('order');
             $orderSkuModel = db('order_sku');

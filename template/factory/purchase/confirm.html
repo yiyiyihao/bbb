@@ -46,10 +46,10 @@
                             {if condition="$payments"}
                                 <div class="button-group radio">
                             	{volist name="payments" id="vo"}
-                                    <label class="button{if $i==1} active icon-wechat{else/} icon-alipay{/if}">
+                                    <label class="button {if $vo.pay_code=='alipay_page'} icon-alipay {elseif $vo.pay_code=='offline_pay' /} icon-pay-back {else /} active icon-wechat {/if}">
                                     <input name="pay_code" value="{$vo['pay_code']}"{if $i==1} checked="checked"{/if} type="radio"> {$vo['name']}
                                     </label>
-                            	{/volist}                                
+                            	{/volist}
                                 </div>
                             {/if}
                         </div>

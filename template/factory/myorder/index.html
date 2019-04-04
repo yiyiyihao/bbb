@@ -46,7 +46,7 @@
           <th width="*">收货人电话</th>
           <th width="160">收货地址</th> -->
           <th width="100">下单时间</th>
-          <th width="80">订单状态</th>
+          <th width="100">订单状态</th>
           <th width="80">安装状态</th>
           <th width="*">操作</th>
         </tr>
@@ -74,7 +74,7 @@
               <td>
               	<span class="button-group">
 	              	<a href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-eye">订单查看</a>
-	              	{if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1"}
+	              	{if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1 && $vo['pay_type'] !=2 "}
 	              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-red icon-edit js-open" title="立即付款">立即付款</a>
 	              	{/if}
 	              	{if condition="$vo['pay_status'] == 0 AND $vo['order_status'] == 1"}

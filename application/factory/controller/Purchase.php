@@ -62,6 +62,10 @@ class Purchase extends FactoryForm
             if (!$payCode) {
                 $this->error('请选择支付方式');
             }
+            $params['pay_type']=1;
+            if ($payCode == 'offline_pay') {
+                $params['pay_type']=2;//线下支付
+            }
             $order = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, IS_POST, $params, $remark);
             if ($order === FALSE) {
                 $this->error($orderModel->error);

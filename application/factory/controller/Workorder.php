@@ -97,7 +97,7 @@ class Workorder extends FactoryForm
     public function dispatch()
     {
         $this->subMenu['showmenu'] = false;
-        if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         $info = $this->_assignInfo();
@@ -210,8 +210,13 @@ class Workorder extends FactoryForm
     }
     public function getAjaxList($where = [], $field = '')
     {
-        $this->model = db('user_installer');
-        parent::getAjaxList([], ['installer_id'=>'id','concat(realname," 【", phone,"】")'=>'name']);
+        $this->model=db('user_installer');
+        $keyword = $this->request->param('word','','trim');
+        if ($keyword) {
+            $where['realname'] = ['like', '%'.$keyword.'%'];
+        }
+        $this->request->word=null;
+        parent::getAjaxList($where, ['installer_id'=>'id','concat(realname," 【", phone,"】")'=>'name']);
     }
     public function del()
     {
@@ -242,7 +247,7 @@ class Workorder extends FactoryForm
     }
     function  _getOrder()
     {
-//         return 'order_status ASC, WO.add_time DESC';
+        //return 'order_status ASC, WO.add_time DESC';
         return 'WO.add_time DESC';
     }
     function _getWhere(){
@@ -261,7 +266,7 @@ class Workorder extends FactoryForm
         }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['WO.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_SERVICE){
+        }elseif(in_array($this->adminUser['admin_type'],[ADMIN_SERVICE_NEW,ADMIN_SERVICE]) ){
             $where['WO.store_id'] = $this->adminUser['store_id'];
         }else {
             $where['WO.post_store_id'] = $this->adminUser['store_id'];

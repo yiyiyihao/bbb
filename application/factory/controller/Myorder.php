@@ -12,7 +12,7 @@ class Myorder extends commonOrder
         $this->modelName = 'myorder';
         $this->model = new \app\common\model\Order();
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW])) {
             $this->error('NO ACCESS');
         }
         $this->subMenu['menu']['0']['name'] = '全部';
@@ -127,7 +127,7 @@ class Myorder extends commonOrder
             }
             $payment = new \app\common\api\PaymentApi($detail['store_id'], $payCode);
             $detail['subject'] = $sku['sku_name'].' '.$sku['sku_spec'];
-//             $detail['product_id'] = $sku['sku_id'];
+            //$detail['product_id'] = $sku['sku_id'];
             $detail['product_id'] = $order['order_sn'];
             $result = $payment->init($detail);
             if ($result === FALSE) {

@@ -100,7 +100,7 @@ class FormBase extends CommonBase
         
         if ($params) {
             $params = array_filter($params);
-            $where = array_merge($where, $params);
+            $where = array_merge($params,$where);
         }
         $count =  $this->model->where($where)->count();
         if (!$field) {

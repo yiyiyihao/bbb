@@ -116,12 +116,12 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
-        if ($user['admin_type'] != ADMIN_SERVICE) {
-            $this->error = '当前账户无操作权限';
-            return FALSE;
-        }
+        //if ($user['admin_type'] != ADMIN_SERVICE) {
+        //    $this->error = '当前账户无操作权限';
+        //    return FALSE;
+        //}
         //判断用户是否有分派工程师权限(仅服务商有分派工程师权限)
-        if ($user['admin_type'] == ADMIN_SERVICE && $user['store_id'] != $worder['store_id']) {
+        if (!in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $user['store_id'] != $worder['store_id']) {
             $this->error = '当前账户无操作权限';
             return FALSE;
         }

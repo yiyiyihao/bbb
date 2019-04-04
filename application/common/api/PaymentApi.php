@@ -142,6 +142,8 @@ class PaymentApi
                     return FALSE;
                 }
                 break;
+            case 'offline_pay':
+                return true;
             default:
                 $this->error = '支付方式错误';
                 return FALSE;

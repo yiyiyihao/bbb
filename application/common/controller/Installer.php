@@ -11,12 +11,11 @@ class Installer extends FormBase
         $this->modelName = 'user_installer';
         $this->model = new \app\common\model\UserInstaller();
         parent::__construct();
-        
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_SYSTEM, ADMIN_FACTORY])) {
-            if ($this->adminUser['admin_type'] != ADMIN_SERVICE) {
-                $this->error('NO ACCESS');
-            }
+
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_SYSTEM,ADMIN_FACTORY,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $this->error('NO ACCESS');
         }
+
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY){
             $this->_getFactorys();
         }
@@ -153,14 +152,14 @@ class Installer extends FormBase
     function _assignInfo($pkId = 0)
     {
         $info = parent::_assignInfo();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         if ($info) {
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
                 $this->error(lang('NO_OPERATE_PERMISSION'));
             }
-            if ($this->adminUser['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $this->adminUser['store_id']) {
+            if (!in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $info['store_id'] != $this->adminUser['store_id']) {
                 $this->error(lang('NO_OPERATE_PERMISSION'));
             }
         }
@@ -232,7 +231,7 @@ class Installer extends FormBase
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['UI.factory_id'] = $this->adminUser['store_id'];
-        }elseif ($this->adminUser['admin_type'] == ADMIN_SERVICE){
+        }elseif (in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])){
             $where['UI.store_id'] = $this->adminUser['store_id'];
         }
         $params = $this->request->param();
@@ -290,7 +289,7 @@ class Installer extends FormBase
      */
     function _fieldData(){
         $array = [];
-        if ($this->adminUser['admin_type'] == ADMIN_SERVICE){
+        if (in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])){
             $array = ['title'=>'服务商名称','type'=>'text','name'=>' ','size'=>'40','default'=> $this->adminStore['name'], 'disabled' => 'disabled'];
         }else{
             $servicers = db('store')->field('store_id as id, name as cname')->where(['is_del' => 0, 'status' => 1, 'store_type' => STORE_SERVICE, 'factory_id' => $this->adminUser['store_id']])->select();

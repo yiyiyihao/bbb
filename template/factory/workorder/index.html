@@ -94,11 +94,11 @@
               <td><span class="tag bg-green">{:get_work_order_status($vo['work_order_status'])}</span></td>
               <td>
                 <span class="button-group">
-                    {if condition="($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && ($adminUser.admin_type == $Think.const.ADMIN_SERVICE)"}
+                    {if condition="($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && (in_array($adminUser.admin_type,[$Think.const.ADMIN_SERVICE,$Think.const.ADMIN_SERVICE_NEW]))"}
                     <a href="{:url('dispatch', ['id' => $vo['worder_id']])}" class="button button-small bg-yellow icon-bell" title="派单给售后工程师">{$vo.installer_id ? '重新': ''}派单</a>
                     {/if}
                     {if condition="$vo['work_order_status'] == 0"}
-                        {if condition="(($vo.work_order_type==1 && in_array($adminUser.admin_type, [$Think.const.ADMIN_CHANNEL, $Think.const.ADMIN_DEALER]) || ($vo.work_order_type==2 && in_array($adminUser.admin_type, [$Think.const.ADMIN_FACTORY, $Think.const.ADMIN_SERVICE]))))""}
+                        {if condition="(($vo.work_order_type==1 && in_array($adminUser.admin_type, [$Think.const.ADMIN_CHANNEL,$Think.const.ADMIN_SERVICE_NEW, $Think.const.ADMIN_DEALER]) || ($vo.work_order_type==2 && in_array($adminUser.admin_type, [$Think.const.ADMIN_FACTORY, $Think.const.ADMIN_SERVICE,$Think.const.ADMIN_SERVICE_NEW]))))""}
                         <a href="{:url('edit', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-edit">编辑</a>
                         {/if}
                     {/if}
