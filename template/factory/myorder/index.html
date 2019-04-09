@@ -83,7 +83,7 @@
 	              	{if condition="$vo['pay_status'] == 1 AND $vo['order_status'] == 1 AND $vo['delivery_status'] == 2 AND $vo['finish_status'] != 2"}
 	              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-yellow js-action" refresh="true" title="确定收货">确定收货</a>
 	              	{/if}
-              		{if condition="$vo['_apply_status']['ossub_id'] > 0"}
+              		{if condition="$vo['user_store_type']!=$Think.const.STORE_SERVICE_NEW &&  $vo['_apply_status']['ossub_id'] > 0"}
 	              		<a href="{:url('workorder/add', ['ossub_id' => $vo['_apply_status']['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
 	              	{/if}
 	              	{if condition="isset($vo['_service']) && $vo['_service'] && $vo['_service']['ossub_id'] > 0"}

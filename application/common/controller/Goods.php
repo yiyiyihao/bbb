@@ -1,6 +1,7 @@
 <?php
 namespace app\common\controller;
 use app\common\model\GoodsService;
+use app\common\model\GoodsSkuService;
 use think\Request;
 //商品管理
 class Goods extends FormBase

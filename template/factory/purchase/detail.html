@@ -22,7 +22,7 @@
                             <h3 class="goodsTitle">{$info.name}</h3>
                             <p class="subTitle">{$info.description}</p>
                             <div class="priceBox">
-                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$info.min_price+$info.install_price}</i></span></p>
+                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
                             </div>
                             <div class="specBox">
                                 <p><b>库存</b><span id="saleSku">{$info.goods_stock}</span><span id="skuText"></span></p>
@@ -44,7 +44,7 @@
             <div class="panel-foot">
                 <div class="form-button" style="margin-left:385px;">
                 	<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}">                    
-                    <div class="button bg-main buy_btn icon-plus">进货下单</div> <a class="button bg-dot icon-back" href="{:url('index')}"> 返回</a>
+                    <div class="button bg-main buy_btn icon-plus" style="cursor: pointer">进货下单</div> <a class="button bg-dot icon-back" href="{:url('index')}"> 返回</a>
                 </div>
             </div>
         </div>

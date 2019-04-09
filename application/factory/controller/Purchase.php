@@ -17,7 +17,15 @@ class Purchase extends FactoryForm
     public function detail()
     {
         $info = $this->_assignInfo();
-        $skus = $this->model->getGoodsSkus($info['goods_id']);
+        $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
+        $price=array_column($skus,'price_total');
+        $min=min($price);
+        $max=max($price);
+        $priceTotal=$min;
+        if ($max > $min) {
+            $priceTotal.='~'.$max;
+        }
+        $this->assign('price_total',$priceTotal);
         $this->assign('skus', is_array($skus) ? $skus : []);
         $info['sku_id'] = is_int($skus) ? $skus : 0;
         $info['thumb_big'] = $this->_thumbToBig($info['thumb']);
@@ -71,7 +79,7 @@ class Purchase extends FactoryForm
                 $this->error($orderModel->error);
             }
             $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);
-//             $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
+            //$this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
         }else{
             $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, FALSE, $params, $remark);
             if ($result === FALSE) {
@@ -94,7 +102,28 @@ class Purchase extends FactoryForm
                 $post = $this->request->post();
                 $specs = isset($post['specs']) ? trim($post['specs']) : '';
                 if(!empty($specs)){
-                    $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+                    if ($this->adminStore['store_type']==ADMIN_DEALER) {
+                        $where=[
+                            ['SD.store_id','=',$this->adminStore['store_id']],
+                            ['S.status', '=', 1],
+                            ['S.is_del', '=', 0],
+                        ];
+                        $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
+                        if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+                            $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
+                            $where = [
+                                'GS.goods_id'  => $id,
+                                'GS.is_del'    => 0,
+                                'GS.status'    => 1,
+                                'GS.store_id'  => $this->adminStore['factory_id'],
+                                'GS.spec_json' => $specs,
+                            ];
+                            $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
+                            $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->find();
+                        }
+                    }else{
+                        $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+                    }
                     if($skuInfo){
                         $return = array(
                             'status'    => 1,
@@ -116,26 +145,64 @@ class Purchase extends FactoryForm
         }
         $this->ajaxJsonReturn($return);
     }
+
+    public function _getAlias()
+    {
+        return 'G';
+    }
     
     function  _getOrder()
     {
-        return 'add_time DESC';
+        $order='G.add_time DESC';
+        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+            $order='GS.sort_order ASC';
+        }
+        return $order;
     }
     function _getWhere(){
         $params = $this->request->param();
         $where = [
-            'is_del' => 0,
-            'status' => 1,
-            'store_id' => $this->adminFactory['store_id'],
+            'G.is_del' => 0,
+            'G.status' => 1,
+            'G.store_id' => $this->adminFactory['store_id'],
         ];
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['name'] = ['like','%'.$name.'%'];
+                $where['G.name'] = ['like','%'.$name.'%'];
             }
         }
         return $where;
     }
+
+    public function _getJoin()
+    {
+        $join=[];
+        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+            $where=[
+                ['SD.store_id','=',$this->adminStore['store_id']],
+                ['S.status', '=', 1],
+                ['S.is_del', '=', 0],
+            ];
+            $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
+            if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+                $join[]=['goods_service GS','G.goods_id = GS.goods_id AND GS.is_del=0 and GS.status=1 and GS.store_id='.$channel['store_id']];
+            }
+        }
+        return $join;
+    }
+
+    public function _afterList($list)
+    {
+        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+            foreach ($list as $k=>$v) {
+                $list[$k]['min_price']=$list[$k]['min_price_service'];
+                $list[$k]['max_price']=$list[$k]['max_price_service'];
+            }
+        }
+        return $list;
+    }
+
     
     private function _thumbToBig($src){
         return str_replace("500x500","1000x1000",$src);

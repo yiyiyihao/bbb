@@ -588,6 +588,7 @@ class Order extends Model
             $regionId = isset($param['region_id']) && $param['region_id'] ? trim($param['region_id']) : '';
             $addrRegion = isset($param['region_name']) && $param['region_name'] ? trim($param['region_name']) : '';
             $addrDetail = isset($param['address']) && $param['address'] ? trim($param['address']) : '';
+            $payCertificate = isset($param['pay_certificate']) && $param['pay_certificate'] ? trim($param['pay_certificate']) : '';
             if (!in_array($orderType,[1,3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
@@ -627,6 +628,7 @@ class Order extends Model
                 'address_phone'   => $addrPhone,
                 'region_id'       => $regionId,
                 'address_detail'  => $regionId ? ($addrRegion . ' ' . $addrDetail) : '',
+                'pay_certificate' => $payCertificate,
                 'remark'          => trim($remark),
                 'add_time'        => time(),
                 'update_time'     => time(),
@@ -635,7 +637,7 @@ class Order extends Model
             $orderModel = db('order');
             $orderSkuModel = db('order_sku');
             $orderSkuSubModel = db('order_sku_sub');
-            try{
+            //try{
                 $goodsModel = new \app\common\model\Goods();
                 $skus = $cartIds = [];
                 $orderId = $orderModel->insertGetId($orderData);
@@ -748,11 +750,11 @@ class Order extends Model
                     $result =  model('Cart')->where($where)->delete();
                 }
                 return $orderData;
-            }catch(\Exception $e){
-                $error = $e->getMessage();
-                $this->error = $error;
-                return FALSE;
-            }
+            //}catch(\Exception $e){
+            //    $error = $e->getMessage();
+            //    $this->error = $error;
+            //    return FALSE;
+            //}
         }
     }
     
@@ -1150,7 +1152,7 @@ class Order extends Model
                 'sku_id' => intval($skuIds),
             ];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
-            $field = 'G.activity_id, G.activity_id, S.store_id, S.udata_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, '.$num.' as num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
+            $field = 'G.activity_id,G.activity_id,S.store_id,S.udata_id,S.sku_id,S.sku_sn,S.goods_type,G.goods_id,G.name,S.sku_name,S.price,S.install_price,'.$num.' as num,S.sample_purchase_limit,S.sku_thumb,G.thumb,S.sku_stock,S.stock_reduce_time,S.spec_value,G.is_del as gdel,G.status as gstatus,S.status as sstatus,S.is_del as sdel';
             $list = model('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
@@ -1163,11 +1165,50 @@ class Order extends Model
         if ($list) {
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
+
+            $flag=FALSE;
+            $store=db('store')->where([
+                'is_del'=>0,
+                'status'=>1,
+            ])->find($user['store_id']);
+            if (empty($store)) {
+                $this->error = '商户不存或已被删除';
+                return FALSE;
+            }
+            if ($store['store_type'] == ADMIN_DEALER) {
+                $where=[
+                    ['SD.store_id','=',$store['store_id']],
+                    ['S.status', '=', 1],
+                    ['S.is_del', '=', 0],
+                ];
+                $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
+                if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+                    $flag=TRUE;
+                }
+            }
             foreach ($list as $key => $value) {
                 if (isset($user['udata_id']) && $value['udata_id'] == $user['udata_id']) {
                     $this->error = '不允许购买自己的商品';
                     return FALSE;
                 }
+                if ($flag) {
+                    $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
+                    $where = [
+                        'GS.sku_id'   => intval($skuIds),
+                        'GS.is_del'   => 0,
+                        'GS.status'   => 1,
+                        'GS.store_id' => $store['factory_id'],
+                    ];
+                    $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
+                    $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'inner')->find();
+                    if (empty($skuInfo)) {
+                        $this->error = '商品不存或已被删除';
+                        return FALSE;
+                    }
+                    $value['price']=$skuInfo['price'];
+                    $value['install_price']=$skuInfo['install_price'];
+                }
+
                 if ($value['activity_id']) {
                     $value['price'] = db('activity')->where(['id' => $value['activity_id']])->value('activity_price');
                 }

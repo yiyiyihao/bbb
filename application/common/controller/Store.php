@@ -489,7 +489,7 @@ class Store extends FormBase
                 $tabel = 'store_servicer SS';
                 break;
             case 6://新服务商
-                $tabel = 'store_servicer SS';
+                $tabel = 'store_dealer SS';
                 break;
             default:
                 $this->error(lang('PARAM_ERROR'));

@@ -9,7 +9,7 @@ class Store extends FactoryForm
         $this->modelName = 'store';
         $this->model = new \app\common\model\Store();
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->error('NO ACCESS');
         }
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
@@ -36,8 +36,8 @@ class Store extends FactoryForm
     public function check()
     {
         $info = $this->_assignInfo();
-        //只有厂商才有权限
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+        //只有厂商,新服务商才有权限
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $checkStatus = $info['check_status'];
@@ -132,6 +132,11 @@ class Store extends FactoryForm
 
     }
 
+    function _getAlias()
+    {
+        return 'S';
+    }
+
 //     function _getAlias()
 //     {
 //         return 'SAR';
@@ -149,27 +154,41 @@ class Store extends FactoryForm
 //     {
 //         return 'sort_order ASC, add_time DESC';
 //     }
+
+    public function _getJoin()
+    {
+        $join=[];
+        if ($this->adminUser['admin_type'] == ADMIN_SERVICE_NEW) {
+            $join[]=['store_dealer SD','SD.store_id = S.store_id'];
+        }
+        return $join;
+    }
+    
     function _getWhere(){
         $params = $this->request->param();
         $status = isset($params['status']) ? intval($params['status']) : 1;
         $where = [
-            'is_del'        => 0,
-            'enter_type'    => 1,
+            'S.is_del'        => 0,
+            'S.enter_type'    => 1,
         ];
         if (isset($params['status'])) {
-            $where['check_status'] = $status;
+            $where['S.check_status'] = $status;
         }
         if ($this->adminUser['admin_type'] == ADMIN_CHANNEL) {
             $where['action_store_id'] = $this->adminUser['store_id'];
         }
+
+        if ($this->adminUser['admin_type'] == ADMIN_SERVICE_NEW) {
+            $where['SD.ostore_id'] = $this->adminUser['store_id'];
+        }
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){
-                $where['name'] = ['like','%'.$name.'%'];
+                $where['S.name'] = ['like','%'.$name.'%'];
             }
             $uname = isset($params['uname']) ? trim($params['uname']) : '';
             if($uname){
-                $where['user_name|mobile'] = ['like','%'.$uname.'%'];
+                $where['S.user_name|S.mobile'] = ['like','%'.$uname.'%'];
             }
         }
         return $where;
