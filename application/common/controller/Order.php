@@ -212,8 +212,8 @@ class Order extends FormBase
         $join[] = ['store S', 'S.store_id = O.user_store_id', 'LEFT'];
         if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
             $join = [
-                ['store_dealer SD', 'SD.store_id = O.user_store_id', 'LEFT'],
-                ['store S', 'S.store_id = SD.ostore_id', 'LEFT'],
+                ['store_dealer SD', 'SD.store_id = O.user_store_id', 'INNER'],
+                ['store S', 'S.store_id = SD.store_id', 'INNER'],
             ];
         }
         return $join;
