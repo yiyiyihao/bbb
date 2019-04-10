@@ -489,7 +489,7 @@ class Store extends FormBase
                 $tabel = 'store_servicer SS';
                 break;
             case 6://新服务商
-                $tabel = 'store_dealer SS';
+                $tabel = 'store_servicer SS';
                 break;
             default:
                 $this->error(lang('PARAM_ERROR'));
@@ -502,6 +502,7 @@ class Store extends FormBase
                 $join[] = ['store S2', 'S2.store_id = SS.ostore_id', 'LEFT'];
             break;
             case STORE_SERVICE:
+            case STORE_SERVICE_NEW:
             case STORE_CHANNEL:
                 $join[] = ['store_finance SF', 'SF.store_id = S.store_id', 'LEFT'];
             break;

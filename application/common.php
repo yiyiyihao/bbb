@@ -106,10 +106,10 @@ function get_status($status = FALSE){
 function get_store_type($type = FALSE){
     $types = [
         STORE_FACTORY   => '厂商',
-        STORE_CHANNEL   => '渠道商',
+//         STORE_CHANNEL   => '渠道商',
         STORE_DEALER    => '零售商',
-        STORE_SERVICE   => '服务商',
-        STORE_SERVICE_NEW=>'新服务商',
+//         STORE_SERVICE   => '服务商',
+        STORE_SERVICE_NEW=>'服务商',
     ];
     if ($type === FALSE) {
         return $types;

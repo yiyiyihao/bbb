@@ -11,6 +11,5 @@ class Servicer2 extends adminServicer
         $this->storeType = STORE_SERVICE_NEW;
         $this->adminType = ADMIN_SERVICE_NEW;
         $this->groupId = GROUP_SERVICE_NEW;
-    }
-    
+    }    
 }

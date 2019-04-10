@@ -33,6 +33,7 @@ class Finance extends FactoryForm
         }
         $this->assign('wstatusList', get_withdraw_status());
     }
+    
     public function detail()
     {
         $info = $this->_assignInfo();
@@ -275,7 +276,8 @@ class Finance extends FactoryForm
     {
         $join[] = ['user U', 'U.user_id = SW.user_id', 'LEFT'];;
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-            $join[] = ['store S', 'S.store_id = SW.store_id', 'LEFT'];
+//             $join[] = ['store S', 'S.store_id = SW.store_id', 'LEFT'];
+            $join[] = ['store S', 'S.store_id = SW.from_store_id', 'LEFT'];
         }
         return $join;
     }

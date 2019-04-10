@@ -62,7 +62,8 @@ class Security extends Store
      */
     function _searchData(){
         $types = [
-            STORE_CHANNEL =>'渠道商',
+//             STORE_CHANNEL =>'渠道商',
+            STORE_SERVICE_NEW => '服务商',
             STORE_DEALER =>'零售商',
         ];
         $this->assign('types', $types);

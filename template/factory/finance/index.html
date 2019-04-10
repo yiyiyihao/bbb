@@ -3,7 +3,7 @@
         <div class="float-left">
             <form method="get" action="">
                 <div class="form-inline">
-                	<div class="form-group">
+                	<div class="form-group hide">
                         <div class="field">
                             <select class="input" name="stype" id="stype">
                             	<option value="">==商户类型==</option>
@@ -39,7 +39,6 @@
     <table id="table" class="table table-hover ">
       <tbody>
         <tr>
-          <th width="120">商户类型</th>
           <th width="*">商户名称</th>
           <th width="*">提现金额</th>
           <th width="*">提现账户</th>
@@ -53,7 +52,6 @@
         {notempty name="list"}
           {volist name="list" id="vo" key="key"}
             <tr>
-              <td>{:get_store_type($vo.from_store_type)}</td>
               <td>{$vo.sname}</td>
               <td>{$vo['amount']}元</td>
               <td>
@@ -76,10 +74,12 @@
               <td>{$vo['apply_msg']}</td>
               <td>{$vo['remark']}</td>
               <td>
+              	<span class="button-group">
               	{if condition="$vo['withdraw_status'] == 0"}
               	<a href="{:url('check', ['id' => $vo['log_id']])}" class="button button-small icon-check bg-yellow">审核</a>
               	{/if}
               	<a href="{:url('detail', ['id' => $vo['log_id']])}"  class="button button-small icon-detail bg-main"> 查看详情</a>
+                </span>
               </td>
             </tr>
           {/volist}

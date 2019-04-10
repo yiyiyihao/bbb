@@ -1,7 +1,4 @@
 <div class="admin-detail panel">
-    <div class="panel-head">
-        <a href="{:url('goods/index')}"><span class="bg-main icon button icon-left">返回</span></a>
-    </div>
     <form method="post" class="form-x admin-form form-auto" id="form">
         <div class="tab admin-tab">
             <div class="panel admin-box active">
@@ -14,30 +11,30 @@
                 </div>
                 <div class="tab-body">
                     <div class="tab-panel active" id="tab-1">
-                        <table id="table" class="table table-hover ">
-                            <tbody>
-                            <tr>
-                                <th width="100" id="selectAll" class="no-select">全选/反选</th>
-                                <th width="*">商品</th>
-                                <th width="*">建议价格</th>
-                                <th width="*">可选规格</th>
-                                <th width="">商品编码</th>
-                            </tr>
-                            {notempty name="list"}
-                            {volist name="list" id="vo"}
-                            <tr>
-                                <td><input type="checkbox" name='id[]' value="{$vo.goods_id}"></td>
-                                <td>{$vo.name}</td>
-                                <td>{if $vo.min_price==$vo.max_price}{$vo.min_price}{else /}{$vo.min_price}~{$vo.max_price}{/if}</td>
-                                <td>{$vo.specs??''}</td>
-                                <td>{$vo.goods_sn}</td>
-                            </tr>
-                            {/volist}
-                            {/notempty}
-                            </tbody>
-                        </table>
-
-
+                    	<div class="admin-main">
+                            <table id="table" class="table table-hover ">
+                                <tbody>
+                                <tr>
+                                    <th width="100" id="selectAll" class="no-select">全选/反选</th>
+                                    <th width="*">商品</th>
+                                    <th width="*">建议价格</th>
+                                    <th width="*">可选规格</th>
+                                    <th width="">商品编码</th>
+                                </tr>
+                                {notempty name="list"}
+                                {volist name="list" id="vo"}
+                                <tr>
+                                    <td><input type="checkbox" name='id[]' value="{$vo.goods_id}"></td>
+                                    <td>{$vo.name}</td>
+                                    <td>{if $vo.min_price==$vo.max_price}{$vo.min_price}{else /}{$vo.min_price}~{$vo.max_price}{/if}</td>
+                                    <td>{$vo.specs??''}</td>
+                                    <td>{$vo.goods_sn}</td>
+                                </tr>
+                                {/volist}
+                                {/notempty}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {notempty name="page"}
@@ -45,7 +42,7 @@
                 {/notempty}
                 <div class="panel-foot">
                     <div class="form-button">
-                        <button class="button bg" type="reset">取消</button>
+                    	<a href="{:url('goods/index')}"><span class="button bg-dot icon-back"> 返回</span></a>
                         <button class="button bg-main" type="submit" id="selectSubmit">导入</button>
                         <div id="tips"></div>
                     </div>

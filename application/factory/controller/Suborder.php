@@ -9,7 +9,7 @@ class Suborder extends commonOrder
         $this->modelName = 'suborder';
         $this->model = model('order');
         parent::__construct();
-        if ($this->adminUser['admin_type'] != ADMIN_CHANNEL) {
+        if ($this->adminUser['admin_type'] != ADMIN_SERVICE_NEW) {
             $this->error('NO ACCESS');
         }
         $this->subMenu['menu']['0']['name'] = '全部';
