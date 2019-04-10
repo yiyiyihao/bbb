@@ -321,8 +321,8 @@ class Store extends FormBase
             $user = db('user')->where(['store_id' => $info['store_id'], 'is_del' => 0, 'group_id' => $this->groupId])->find();
             $this->assign('user', $user);
             if ($info['store_type'] == STORE_DEALER) {
-                //获取渠道商名称
-                $info['channel_name'] = $this->model->where(['store_id' => $info['ostore_id']])->value('name');
+                //获取上级商户名称
+                $info['parent_name'] = $this->model->where(['store_id' => $info['ostore_id']])->value('name');
             }
         }
         $this->assign('info', $info);

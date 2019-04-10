@@ -10,10 +10,10 @@
     {if ($info['store_type'] == $Think.const.STORE_DEALER)}
     <div class="form-group">
         <div class="label">
-            <label>所属渠道商</label>
+            <label>所属服务商</label>
         </div>
         <div class="field">
-        	<span class="field-text">{$info['channel_name'] ?? ''}</span>
+        	<span class="field-text">{$info['parent_name'] ?? ''}</span>
         </div>
     </div>
     {/if}
