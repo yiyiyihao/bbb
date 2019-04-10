@@ -128,6 +128,12 @@ class Index extends ApiBase
         if (!$code) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
         }
+        //////////////////////////////测试//////////////////////////////////////////////////////////////////////////////
+        //$userService = new \app\common\model\User();
+        //$openid = $userService->getUserOpenid();
+        //$this->_returnMsg(['openid' =>$openid , 'appid' => 'wxf0b833c0aa297da9']);
+        //return true;
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.trim($wxproAppId).'&secret='.trim($wxproAppSecret).'&js_code='.$code.'&grant_type=authorization_code';
         $result = curl_post_https($url, []);
         if (isset($result['errcode']) && $result['errcode']) {
@@ -570,7 +576,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '不能重复申请']);
         }
         $store = $this->_checkStore();
-        if ($store['store_type'] != STORE_SERVICE){
+        if (!in_array($store['store_type'],[STORE_SERVICE,STORE_SERVICE_NEW])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '您选择的商户不是服务商']);
         }
         $realname = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
