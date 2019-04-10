@@ -1,4 +1,6 @@
 <?php
+use think\Facade;
+
 // 应用公共文件
 
 function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
@@ -23,6 +25,21 @@ function get_check_status($status = FALSE){
     }
     if (isset($statusList[$status])) {
         return $statusList[$status];
+    }else{
+        return '';
+    }
+}
+
+function get_order_type($type = FALSE){
+    $typeList = [
+        1   =>  '系统订单',
+        2   =>  '电商订单',
+    ];
+    if ($type === FALSE) {
+        return $typeList;
+    }
+    if (isset($typeList[$type])) {
+        return $typeList[$type];
     }else{
         return '';
     }
