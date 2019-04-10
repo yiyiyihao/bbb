@@ -64,11 +64,11 @@ class Security extends Store
         $types = [
 //             STORE_CHANNEL =>'渠道商',
             STORE_SERVICE_NEW => '服务商',
-            STORE_DEALER =>'零售商',
+//             STORE_DEALER =>'零售商',
         ];
         $this->assign('types', $types);
         $search = [
-            ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==商户类型=='],
+//             ['type' => 'select', 'name' => 'type', 'options'=>'types', 'default_option' => '==商户类型=='],
             ['type' => 'input', 'name' =>  'name', 'value' => '商户名称', 'width' => '30'],
             ['type' => 'input', 'name' =>  'uname', 'value' => '联系人姓名/电话', 'width' => '30'],
         ];
@@ -80,7 +80,7 @@ class Security extends Store
     function _tableData(){
         $table = [
             ['title'     => '编号','width'    => '60','value'      => 'factory_id','type'      => 'index'],
-            ['title'     => '商户类型', 'width'   => '*','value'     => 'store_type', 'type'      => 'function', 'function' => 'get_store_type'],
+//             ['title'     => '商户类型', 'width'   => '*','value'     => 'store_type', 'type'      => 'function', 'function' => 'get_store_type'],
             ['title'     => '商户名称', 'width'   => '*','value'     => 'name', 'type'      => 'text'],
             ['title'     => '联系人', 'width'   => '*','value'     => 'user_name', 'type'      => 'text'],
             ['title'     => '联系电话', 'width'   => '*','value'     => 'mobile', 'type'      => 'text'],
