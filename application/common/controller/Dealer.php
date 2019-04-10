@@ -1,4 +1,5 @@
 <?php
+
 namespace app\common\controller;
 
 //经销商管理
@@ -10,10 +11,14 @@ class Dealer extends Store
         $this->model = model('store');
         parent::__construct();
     }
+
     function _init()
     {
         $this->storeType = STORE_DEALER;//经销商
         $this->adminType = ADMIN_DEALER;
         $this->groupId = GROUP_DEALER;
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            unset($this->subMenu['add']);
+        }
     }
 }

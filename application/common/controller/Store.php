@@ -572,11 +572,11 @@ class Store extends FormBase
         if ($table['actions']['button']) {
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
-                ['text'  => '编辑','action'=> 'condition', 'icon'  => 'pencil','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$vo["check_status"] == 1']],
-                ['text'  => '删除','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["check_status"] == 1 && (!isset($vo["unset_del"]) || $vo["unset_del"] != 1)']],
-                ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$vo["check_status"] == 1']],
-                ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$vo["username"] != "" && $vo["check_status"] == 1']],
-                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["username"] != "" && $vo["check_status"] == 0']],
+                ['text'  => '编辑','action'=> 'condition', 'icon'  => 'pencil','bgClass'=> 'bg-main','condition'=>['action'=>'edit','rule'=>'$adminUser["admin_type"] != ADMIN_FACTORY && $vo["check_status"] == 1']],
+                ['text'  => '删除','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$adminUser["admin_type"] != ADMIN_FACTORY &&  $vo["check_status"] == 1 && (!isset($vo["unset_del"]) || $vo["unset_del"] != 1)']],
+                ['text'  => '管理员','action'=> 'condition', 'icon'  => 'user','bgClass'=> 'bg-green','condition'=>['action'=>'manager','rule'=>'$adminUser["admin_type"] != ADMIN_FACTORY && $vo["check_status"] == 1']],
+                ['text'  => '重置密码','action'=> 'condition', 'js-action' => TRUE, 'icon'  => 'user-setting','bgClass'=> 'bg-yellow','condition'=>['action'=>'resetpwd','rule'=>'$adminUser["admin_type"] != ADMIN_FACTORY &&  $vo["username"] != "" && $vo["check_status"] == 1']],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$adminUser["admin_type"] != ADMIN_FACTORY && $vo["username"] != "" && $vo["check_status"] == 0']],
             ];
             $table['actions']['width']  = '*';
         }

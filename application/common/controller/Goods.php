@@ -33,7 +33,7 @@ class Goods extends FormBase
 
     public function edit()
     {
-        if ($this->request->isPost() && $this->adminStore['store_type'] == ADMIN_SERVICE_NEW) {//新服务商
+        if ($this->request->isPost() && $this->adminStore['store_type'] == STORE_SERVICE_NEW) {//新服务商
             $skuIds = $this->request->param('skuid', 0, 'intval');
             $priceService = $this->request->param('price_service');
             $status = $this->request->param('status');
@@ -71,7 +71,7 @@ class Goods extends FormBase
     {
         if ($list) {
             foreach ($list as $key => $value) {
-                if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+                if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
                     $min = bcadd($value['min_price_service'], $value['install_price'], 2);
                     $max = bcadd($value['max_price_service'], $value['install_price'], 2);
                     $list[$key]['price_store'] = $min == $max ? $max : $min . '~' . $max;
@@ -83,7 +83,7 @@ class Goods extends FormBase
 
             }
         }
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $this->subMenu['add'] = [
                 'name' => '导入' . lang($this->modelName),
                 'url'  => url("sync_goods"),
@@ -280,7 +280,7 @@ class Goods extends FormBase
     function _getOrder()
     {
         $order = 'G.sort_order ASC,G.add_time desc';
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $order = 'GS.sort_order ASC,GS.add_time desc,G.sort_order ASC,G.add_time desc';
         }
         return $order;
@@ -289,7 +289,7 @@ class Goods extends FormBase
     function _getField()
     {
         $field = 'G.*, (CASE WHEN G.goods_stock <= G.stock_warning_num THEN 1 ELSE 0 END) as warning, C.name as cate_name';
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $field .= ',GS.min_price_service,GS.max_price_service,GS.status status_service,GS.sales_service,GS.stock';
         }
         return $field;
@@ -303,7 +303,7 @@ class Goods extends FormBase
     function _getJoin()
     {
         $join[] = ['goods_cate C', 'C.cate_id = G.cate_id', 'INNER'];
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $join[] = ['goods_service GS', 'GS.goods_id = G.goods_id', 'INNER'];
         }
         return $join;
@@ -317,7 +317,7 @@ class Goods extends FormBase
             ['G.activity_id', '=', 0],
         ];
 
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $where[] = ['GS.store_id', '=', $this->adminUser['store_id']];
         } else {
             $where[] = ['G.store_id', '=', $this->adminUser['store_id']];
@@ -359,7 +359,7 @@ class Goods extends FormBase
         $store = new \app\common\controller\Store();
         $store->_getFactorys();
         $this->_assignSpec($id);
-        if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+        if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
             $info['status'] = GoodsService::where(['is_del'=>0,'goods_id'=>$id])->value('status');
         }
         return $info;
@@ -681,7 +681,7 @@ class Goods extends FormBase
         $table['actions']['width'] = '240';
 
         foreach ($table as $key => $value) {
-            if ($this->adminUser['store_type'] == ADMIN_SERVICE_NEW) {
+            if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
                 if (isset($value['value']) && $value['value'] == 'price') {
                     $table[$key]['title'] = '建议价格';
                 }

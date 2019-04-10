@@ -1175,14 +1175,14 @@ class Order extends Model
                 $this->error = '商户不存或已被删除';
                 return FALSE;
             }
-            if ($store['store_type'] == ADMIN_DEALER) {
+            if ($store['store_type'] == STORE_DEALER) {
                 $where=[
                     ['SD.store_id','=',$store['store_id']],
                     ['S.status', '=', 1],
                     ['S.is_del', '=', 0],
                 ];
                 $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
-                if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+                if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
                     $flag=TRUE;
                 }
             }

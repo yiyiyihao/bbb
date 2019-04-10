@@ -77,14 +77,14 @@ class Goods extends Model
             $this->error = '参数错误';
             return FALSE;
         }
-        if (isset($store['store_type']) && $store['store_type']==ADMIN_DEALER) {//新服务商旗下的零售商按其所属服务商指定的价格进行采购
+        if (isset($store['store_type']) && $store['store_type']==STORE_DEALER) {//新服务商旗下的零售商按其所属服务商指定的价格进行采购
             $where=[
                 ['SD.store_id','=',$store['store_id']],
                 ['S.status', '=', 1],
                 ['S.is_del', '=', 0],
             ];
             $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
-            if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+            if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
                 $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,(GSS.install_price_service+GSS.price_service) as price_total,GS.spec_value,GS.sales';
                 $where = [
                     'GS.goods_id'  => $goodsId,

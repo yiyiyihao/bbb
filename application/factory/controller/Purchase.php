@@ -102,14 +102,14 @@ class Purchase extends FactoryForm
                 $post = $this->request->post();
                 $specs = isset($post['specs']) ? trim($post['specs']) : '';
                 if(!empty($specs)){
-                    if ($this->adminStore['store_type']==ADMIN_DEALER) {
+                    if ($this->adminStore['store_type']==STORE_DEALER) {
                         $where=[
                             ['SD.store_id','=',$this->adminStore['store_id']],
                             ['S.status', '=', 1],
                             ['S.is_del', '=', 0],
                         ];
                         $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
-                        if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+                        if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
                             $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
                             $where = [
                                 'GS.goods_id'  => $id,
@@ -154,7 +154,7 @@ class Purchase extends FactoryForm
     function  _getOrder()
     {
         $order='G.add_time DESC';
-        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
             $order='GS.sort_order ASC';
         }
         return $order;
@@ -178,7 +178,7 @@ class Purchase extends FactoryForm
     public function _getJoin()
     {
         $join=[];
-        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
             $where=[
                 ['SD.store_id','=',$this->adminStore['store_id']],
                 ['S.status', '=', 1],
@@ -194,7 +194,7 @@ class Purchase extends FactoryForm
 
     public function _afterList($list)
     {
-        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
             foreach ($list as $k=>$v) {
                 $list[$k]['min_price']=$list[$k]['min_price_service'];
                 $list[$k]['max_price']=$list[$k]['max_price_service'];
@@ -202,7 +202,6 @@ class Purchase extends FactoryForm
         }
         return $list;
     }
-
     
     private function _thumbToBig($src){
         return str_replace("500x500","1000x1000",$src);
