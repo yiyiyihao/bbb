@@ -55,6 +55,7 @@ class Order extends commonOrder
             'pay_sn'      => $paySn,
             'remark'      => $remark,
             'pay_status'  => 1,
+            'pay_time'    => time(),
             'update_time' => time(),
         ];
         $result=db('order')->where(['order_id'=>$orderId])->update($data);

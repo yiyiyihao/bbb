@@ -945,7 +945,7 @@ class Order extends Model
         if ($user && isset($user['store_id']) && $user['store_id'] > 0) {
             if ($user['admin_type'] == ADMIN_FACTORY) {
                 $where['store_id'] = $user['store_id'];
-            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
+            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])){
                 $storeIds = [$user['store_id']];
                 if ($user['admin_type'] == ADMIN_CHANNEL) {
                     //获取零售商的下级经销商

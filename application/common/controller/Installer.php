@@ -277,7 +277,7 @@ class Installer extends FormBase
         $btnArray = [
             ['text'  => '删除', 'action'=> 'condition', 'icon'  => 'delete','bgClass'=> 'bg-red','condition'=>['action'=>'del','rule'=>'$vo["is_working"]==0']],
 //             ['text'  => '审核', 'action'=> 'check','icon'  => 'pay-setting','bgClass'=> 'bg-yellow'],
-            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || ($adminUser["admin_type"] == ADMIN_SERVICE && $vo["check_status"] == -3)))']],
+            ['text'  => '审核', 'action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-yellow','condition'=>['action'=>'check','rule'=>'(in_array($vo["check_status"], [-1, -3]) && (($adminUser["admin_type"] == ADMIN_FACTORY && $vo["check_status"] == -1) || (in_array($adminUser["admin_type"],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $vo["check_status"] == -3)))']],
             ['text'  => '详情', 'action'=> 'detail','icon'  => 'detail','bgClass'=> 'bg-green'],
         ];
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);

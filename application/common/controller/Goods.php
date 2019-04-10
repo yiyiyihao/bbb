@@ -723,6 +723,10 @@ class Goods extends FormBase
 
     public function sync_goods(Request $request)
     {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_SERVICE_NEW])) {
+            $this->error = lang('NO_OPERATE_PERMISSION');
+            return FALSE;
+        }
         $where = [
             'G.is_del'   => 0,
             'G.status'   => 1,
@@ -759,7 +763,8 @@ class Goods extends FormBase
         } else {
             $field = 'G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn';
             $order = 'G.goods_id DESC';
-            $query = $this->model->alias('G')->field($field)->where($where)->order($order)->paginate($this->perPage, false);
+            $joinOn='G.goods_id = GS.goods_id AND GS.is_del = 0 AND GS.store_id ='.$this->adminStore['store_id'];
+            $query = $this->model->alias('G')->field($field)->join('goods_service GS',$joinOn,'LEFT')->where($where)->whereNull('GS.goods_id')->order($order)->paginate($this->perPage, false);
             $list = $query->items();
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);

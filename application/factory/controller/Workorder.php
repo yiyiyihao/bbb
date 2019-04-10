@@ -83,8 +83,8 @@ class Workorder extends FactoryForm
         $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $type = isset($params['type']) ? intval($params['type']) : 0;
-        //只有渠道和零售商可以新增安装工单
-        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        //只有渠道、零售商、服务商可以新增安装工单
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER])) {
             $this->error(lang('NO ACCESS'));
         }
         //只有厂商可以新增维修工单
@@ -184,8 +184,8 @@ class Workorder extends FactoryForm
         $this->subMenu['showmenu'] = false;
         $info = $this->_assignInfo();
         $type = $info['work_order_type'];
-        //只有厂商和服务商有维修工单的查看权限
-        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+        //只有厂商、服务商、零售商有维修工单的查看权限
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_DEALER, ADMIN_SERVICE])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
@@ -409,27 +409,32 @@ class Workorder extends FactoryForm
             $this->error('工单当前状态不允许编辑');
         }
         if (!$info || $info['region_id'] != $regionId) {
+            $storeId=0;
             //@updated_at 2018/03/29 By Jinzhou
-            //零售商提交工单分配到所属上级，不再按地区分配服务商
-            $store=db('store_dealer')->alias('SD')->field('S.store_id,S.status')
-                ->join('store S','SD.ostore_id=S.store_id')
-                ->where([
-                    ['S.is_del','=',0],
-                    ['SD.store_id','=',$this->adminUser['store_id']],
-                ])->find();
-            if (empty($store)) {
-                $this->error('工单提交失败，查无所属服务商');
+            //零售商提交安装工单分配到所属上级，不再按地区分配服务商
+            if ($type==1 && $this->adminStore['store_type']==STORE_DEALER) {
+                $where=[
+                    'S.is_del'=>0,
+                    'SD.store_id'=>$this->adminStore['store_id'],
+                ];
+                $store=db('store_dealer')->alias('SD')->field('S.store_id,S.status')
+                    ->join('store S','SD.ostore_id=S.store_id')
+                    ->where($where)->find();
+                if (empty($store)) {
+                    $this->error('工单提交失败，查无所属服务商');
+                }
+                if ($store['status']==0) {
+                    $this->error('工单提交失败，所属服务商已被禁用');
+                }
+                $storeId=$store['store_id'];
+            }else{
+                $storeModel = new \app\common\model\Store();
+                //根据安装地址分配服务商
+                $storeId = $storeModel->getStoreFromRegion($regionId);
+                if(!$storeId){
+                    $this->error('该区域暂无服务商');
+                }
             }
-            if ($store['status']==0) {
-                $this->error('工单提交失败，所属服务商已被禁用');
-            }
-            $storeId=$store['store_id'];
-            //$storeModel = new \app\common\model\Store();
-            ////根据安装地址分配服务商
-            //$storeId = $storeModel->getStoreFromRegion($regionId);
-            //if(!$storeId){
-            //    $this->error('该区域暂无服务商');
-            //}
             $data['store_id'] = $storeId;
         }
         if (!$info && !$type) {
