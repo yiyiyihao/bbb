@@ -101,7 +101,7 @@
                           <label>商品规格</label>
                         </div>
                         <div class="field">
-                          <div class="field-text">
+                          <div class="field-text">                          	
                             <ul class="fieldlist">
                                 {volist name="specList" id="vo"}
                                 <li>
@@ -116,6 +116,8 @@
                             </ul>
                             {if $store_type ==$Think.const.STORE_FACTORY}
                             <span class="button bg-main" id="create">生成</span>
+                            {else/}
+                            <span class="field-mask"></span>
                             {/if}
                           </div>
                         </div>

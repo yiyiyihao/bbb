@@ -106,7 +106,7 @@ body{ background:#f5f5f5;}
 .pageDescription{ background:#f5f5f5; padding:15px 20px; border-radius:5px; font-size:13px; color:#888;}
 .pageDetail{ padding-top:30px; line-height:30px;}
 .pageTitle{font-size: 18px; text-align: center;}
-.imagesBox{ background:#f5f5f5; margin-bottom:10px; border:10px solid #fff; border-top:none; border-bottom:none; border-radius:5px;}
+.imagesBox{ background:#f5f5f5; margin-bottom:10px; border:10px solid #fff; border-top:none; border-bottom:none; padding-top:10px; border-radius:5px;}
 .imagesBox .media{ float:left; margin:10px 0 10px 0px; position:relative;}
 .imagesBox .media:hover{box-shadow:2px 2px 5px rgba(0,0,0,.3);}
 .imagesBox .media img{ width:183px;}
@@ -118,7 +118,8 @@ body{ background:#f5f5f5;}
 
 .form-group .label{float:left;width:15%;text-align:right;padding:7px 30px 7px 0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
 .form-group .field{float:left;width:85%;}
-.form-group .field-text{ line-height:36px;}
+.form-group .field-text{ line-height:36px; position:relative;}
+.form-group .field-text .field-mask{ position:absolute; width:100%; height:100%; top:0; left:0;}
 .form-group .field-text p{ line-height:inherit; margin:0;}
 .form-group ul.fieldlist{ padding:0; list-style:none; margin-bottom:10px;}
 .form-group ul .specList{ display:inline-block;}
@@ -417,8 +418,7 @@ body .admin-logo img{ display:none;}
 }
 
 .swiper-container {
-	width: 100%;
-	height: 100%;
+	padding:0 50px !important;
 }
 .swiper-slide {
 	text-align: left;

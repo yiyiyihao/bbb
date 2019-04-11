@@ -40,9 +40,11 @@
             cookie: 'goodsUpload',
             {/present}
         });
+		
 		$(".specList span").click(function(){
 			$(this).toggleClass("active");
 		})
+		
 		//当属性库存变化时执行
 		$("#table").on("change","input[name='sku_stock[]']",function(){
 			changeStock();
