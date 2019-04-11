@@ -54,7 +54,7 @@
                             {/if}
                         </div>
                     </div>
-                    <div class="form-group pay-order-group hide">
+                    <div class="form-group pay-order-group hidden">
                         <div class="label">
                             <label>交易截图</label>
                         </div>
@@ -132,11 +132,11 @@
         $('input[name=pay_code]').click(function () {
             let v=$(this).val();
             if (v=='offline_pay'){
-                $('.pay-order-group').removeClass('hide');
+                $('.pay-order-group').removeClass('hidden');
                 $('.remark-group').removeClass('hide');
-                $('#form').FormPage();
+                //$('#form').FormPage();
             }else {
-                $('.pay-order-group').addClass('hide');
+                $('.pay-order-group').addClass('hidden');
                 $('.remark-group').addClass('hide');
             }
         });
