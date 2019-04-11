@@ -76,6 +76,14 @@ class PaymentApi
                     ],
                 ],
             ],
+            'offline_pay' => [
+                'code' => 'offline_pay',
+                'name' => '线下支付',
+                'desc' => '用户通过线下现金支付',
+                'display_type' => 1,//支付显示客户端1:PC端 2微信小程序端 3APP客户端 4微信H5
+                'api_type'     => '',
+                'config' => [],
+            ],
         ];
         if ($option) {
             $this->config = $option;

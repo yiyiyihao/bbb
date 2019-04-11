@@ -83,8 +83,8 @@ class Workorder extends FactoryForm
         $this->subMenu['showmenu'] = false;
         $params = $this->request->param();
         $type = isset($params['type']) ? intval($params['type']) : 0;
-        //只有渠道、零售商、服务商可以新增安装工单
-        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER])) {
+        //只有渠道、零售商、服务商,厂商客服，电商客服可以新增安装工单
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER])) {
             $this->error(lang('NO ACCESS'));
         }
         //只有厂商可以新增维修工单
@@ -328,8 +328,8 @@ class Workorder extends FactoryForm
         }else{
             $type = $info['type'];
         }
-        //零售商和渠道商只允许添加安装工单 厂商仅允许添加维修工单
-        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        //零售商和渠道商只允许添加安装工单 厂商客服仅允许添加维修工单
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_CHANNEL, ADMIN_DEALER])) {
             $this->error(lang('NO ACCESS'));
         }elseif ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])){
             $this->error(lang('NO ACCESS'));
@@ -412,10 +412,10 @@ class Workorder extends FactoryForm
             $storeId=0;
             //@updated_at 2018/03/29 By Jinzhou
             //零售商提交安装工单分配到所属上级，不再按地区分配服务商
-            if ($type==1 && $this->adminStore['store_type']==STORE_DEALER) {
+            if ($type==1 && ($this->adminStore['store_type']==STORE_DEALER || (isset($ossub['user_store_type']) && $ossub['user_store_type']==STORE_DEALER))) {
                 $where=[
                     'S.is_del'=>0,
-                    'SD.store_id'=>$this->adminStore['store_id'],
+                    'SD.store_id'=>$ossub['user_store_id'] ?? $this->adminStore['store_id'],
                 ];
                 $store=db('store_dealer')->alias('SD')->field('S.store_id,S.status')
                     ->join('store S','SD.ostore_id=S.store_id')

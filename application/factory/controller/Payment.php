@@ -11,7 +11,7 @@ class Payment extends FactoryForm
         $this->modelName = 'payment';
         $this->model = db($this->modelName);
         parent::__construct();
-        if ($this->adminUser['admin_type'] != ADMIN_FACTORY) {
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         $paymentService = new \app\common\api\PaymentApi();

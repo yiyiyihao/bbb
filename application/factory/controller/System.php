@@ -108,7 +108,8 @@ class System extends adminSystem
         }
         $platType = 1;
         $storeModel = new \app\common\model\Store();
-        $info = $storeModel->where(['store_id' => $this->adminUser['store_id'], 'is_del' => 0])->find();
+        //商户的小程序基于厂商APPID
+        $info = $storeModel->where(['store_id' => $this->adminUser['factory_id'], 'is_del' => 0])->find();
         if (!$info) {
             $this->error('商户不存在或已删除');
         }
