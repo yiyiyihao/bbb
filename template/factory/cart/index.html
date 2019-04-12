@@ -1,5 +1,7 @@
 <div class="admin-detail panel">
-    <form method="post" class="form-x admin-form form-auto" id="form" action="{:url('purchase/createOrder')}">
+    <!-- <form method="post" class="form-x admin-form form-auto" id="form" action="{:url('purchase/createOrder')}"> -->
+    <form method="get" class="form-x admin-form form-auto" id="form" action="{:url('purchase/confirm')}">
+    	<input type="hidden" name='create_type' value="cart">
         <div class="tab admin-tab">
             <div class="panel admin-box active">
                 <div class="tab-body">
@@ -20,7 +22,7 @@
                                 {notempty name="list"}
                                 {volist name="list" id="vo"}
                                 <tr>
-                                    <td><input type="checkbox" name='id[]' value="{$vo.goods_id}"></td>
+                                    <td><input type="checkbox" name='id[]' value="{$vo.sku_id}"></td>
                                     <td>{$vo.name ??''}</td>
                                     <td>{$vo.sku_name ??''}</td>
                                     <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="100"></td>
@@ -44,13 +46,14 @@
                 {notempty name="page"}
                 <div class="panel-foot table-foot clearfix">{$page|raw}</div>
                 {/notempty}
-<!--                <div class="table-foot" style="padding: 10px;">合计：￥<span id="total" style="color: red; font-weight: bold;">0</span>元</div>-->
+                {notempty name="list"}
                 <div class="panel-foot">
                     <div class="form-button clearfix">
                         <button class="button bg-main" type="submit" id="selectSubmit" style="float: left;">买单</button>
                         <div id="tips"></div>
                     </div>
                 </div>
+                {/notempty}
             </div>
         </div>
     </form>
@@ -93,7 +96,7 @@
     });
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        /* $('#form').FormPage(); */
         $('#table').Table({});
     });
 </script>
