@@ -84,6 +84,22 @@ $.ajaxSetup({
                 });
                 return false;
             });*/
+			//添加到进货单
+			$(table).find('.js-addcart').click(function(){
+				Do.ready('flyer','dialog', function () {
+				   //弹出属性选择窗
+				   layer.open({
+					   type:2,
+					   shade: [0.3, '#000000'],
+					   title: false, //不显示标题
+					   area: ['600px','500px'],
+					   btn: ['去结算','继续添加'],
+					   maxHeight: '500px',
+					   scrollbar: true,
+					   content:'/goods/choosespec?id=18'
+				   });
+				});
+			});
 			//处理排序
 			$(table).find('.js-sort').click(function(){
 				//获取当前页面URL

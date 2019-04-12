@@ -266,6 +266,33 @@ class Goods extends FormBase
             $this->error("参数错误");
         }
     }
+    
+    /**
+     * 属性选择弹窗页面
+     */
+    public function choosespec(){
+        $info = $this->_assignInfo();
+        $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
+        $price=array_column($skus,'price_total');
+        $min=min($price);
+        $max=max($price);
+        $priceTotal=$min;
+        if ($max > $min) {
+            $priceTotal.='~'.$max;
+        }
+        $this->assign('price_total',$priceTotal);
+        $this->assign('skus', is_array($skus) ? $skus : []);
+        $info['sku_id'] = is_int($skus) ? $skus : 0;
+        $info['specs'] = json_decode($info['specs_json'],true);
+        //pre($info);
+        $this->assign('info', $info);
+        $this->import_resource(array(
+//             'script'=> 'jquery.jqzoom-core.js',
+            'style' => 'goods.css,jquery.jqzoom.css',
+        ));
+        $this->view->engine->layout(false);
+        return $this->fetch();
+    }
 
     public function getSkuList()
     {

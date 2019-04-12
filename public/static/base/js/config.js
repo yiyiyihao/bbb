@@ -70,6 +70,9 @@ Do.add('region', {
 Do.add('qrcode', {
     path: Config.baseDir + 'jquery.qrcode.min.js',
 });
+Do.add('flyer', {
+    path: Config.baseDir + 'jquery.fly.min.js',
+});
 
 //调试函数
 function debug(obj) {
