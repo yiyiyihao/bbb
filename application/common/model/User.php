@@ -57,6 +57,7 @@ class User extends Model
             'third_openid'  => $thirdOpenid,
             'third_type'    => $thirdType,
             'is_del'        => 0,
+            'user_type'     => $userType,
         ];
         $userDataModel = new \app\common\model\UserData();
         $exist = $userDataModel->where($where)->find();
