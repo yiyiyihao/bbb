@@ -700,6 +700,9 @@ class Order extends Model
                     $this->error = '订单创建失败';
                     return FALSE;
                 }
+                $orderData['order_id'] = $orderId;
+                $logId = $this->orderLog($orderData, $user, '创建订单', '提交购买商品并生成订单');
+                $trackId = $this->orderTrack($orderData, 0, '订单已提交, 系统正在等待付款');
                 foreach ($list['skus'] as $key => $value) {
                     $skuId = $key;
                     if ($value) {
@@ -786,8 +789,6 @@ class Order extends Model
                             $cartIds[] = $value['cart_id'];
                         }
                         $orderData['order_id'] = $orderId;
-                        $logId = $this->orderLog($orderData, $user, '创建订单', '提交购买商品并生成订单');
-                        $trackId = $this->orderTrack($orderData, 0, '订单已提交, 系统正在等待付款');
                     }
                 }
                 if ($skus) {
