@@ -1,0 +1,99 @@
+<div class="admin-detail panel">
+    <form method="post" class="form-x admin-form form-auto" id="form" action="{:url('purchase/createOrder')}">
+        <div class="tab admin-tab">
+            <div class="panel admin-box active">
+                <div class="tab-body">
+                    <div class="tab-panel active" id="tab-1">
+                        <div class="admin-main">
+                            <table id="table" class="table table-hover ">
+                                <tbody>
+                                <tr>
+                                    <th width="100" id="selectAll" class="no-select" style="cursor: pointer;">全选/反选</th>
+                                    <th width="*">商品</th>
+                                    <th width="*">规格</th>
+                                    <th>图片</th>
+                                    <th width="*">单价</th>
+                                    <th width="*">数量</th>
+                                    <th width="">金额</th>
+                                    <th width="">操作</th>
+                                </tr>
+                                {notempty name="list"}
+                                {volist name="list" id="vo"}
+                                <tr>
+                                    <td><input type="checkbox" name='id[]' value="{$vo.goods_id}"></td>
+                                    <td>{$vo.name ??''}</td>
+                                    <td>{$vo.sku_name ??''}</td>
+                                    <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="100"></td>
+                                    <td id="price_{$vo.cart_id}">{:bcadd($vo.price_service,$vo.install_price_service,2)}</td>
+                                    <input type="hidden" name="num[]" id="num_{$vo.cart_id}" value="{$vo.num}">
+                                    <td><span class="button-group">
+                                        <a href="javascript:;" class="button button-small  icon-minus"></a>
+                                        <a href="javascript:;" class="button button-small " data-id="{$vo.cart_id}">{$vo.num}</a>
+                                        <a href="javascript:;" class="button button-small  icon-plus"></a>
+                                    </span></td>
+                                    <td id="amount_{$vo.cart_id}">{$vo.num*($vo.price_service+$vo.install_price_service)}</td>
+                                    <td><a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.cart_id}">删除</a></td>
+                                </tr>
+                                {/volist}
+                                {/notempty}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {notempty name="page"}
+                <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+                {/notempty}
+<!--                <div class="table-foot" style="padding: 10px;">合计：￥<span id="total" style="color: red; font-weight: bold;">0</span>元</div>-->
+                <div class="panel-foot">
+                    <div class="form-button clearfix">
+                        <button class="button bg-main" type="submit" id="selectSubmit" style="float: left;">买单</button>
+                        <div id="tips"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+<script>
+    
+    $('.icon-plus').click(function () {
+        obj =$(this).prev('a');
+        num =parseInt(obj.text());
+        qty=num+1;
+        obj.html(qty);
+        id=obj.attr('data-id');
+        param={'id':id,'num':qty};
+        price=$('#price_'+id).text();
+        $('#amount_'+id).text(qty*parseFloat(price));
+        $('#num_'+id).val(qty);
+        $.post("{:url('num')}",param,function (data) {
+            console.log(data);
+        });
+
+    });
+    $('.icon-minus').click(function () {
+        obj =$(this).next('a');
+        num =parseInt(obj.text());
+        if (num<2){
+            return false;
+        }
+        qty=num-1;
+        id=obj.attr('data-id');
+        obj.html(qty);
+        param={'id':id,'num':qty};
+        price=$('#price_'+id).text();
+        $('#amount_'+id).text(qty*parseFloat(price));
+        $('#num_'+id).val(qty);
+        param={'id':id,'num':qty};
+        $.post("{:url('num')}",param,function (data) {
+            console.log(data);
+        });
+    });
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        $('#table').Table({});
+    });
+</script>
