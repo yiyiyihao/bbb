@@ -44,7 +44,10 @@ class Cart extends FactoryForm
 
     function _getField()
     {
-        $field = 'C.cart_id,C.store_id,C.sku_id,C.goods_id,C.num,G.`name`,GS.sku_name,GS.spec_value,GS.sku_sn,GS.sku_thumb,GSS.price_service,GSS.install_price_service,GSS.`status`,C.add_time,G.thumb,GS.spec_json';
+        $field = 'C.cart_id,C.store_id,C.sku_id,C.goods_id,C.num,G.`name`,GS.price as price_service,  GS.install_price as install_price_service,GS.sku_name,GS.spec_value,GS.sku_sn,GS.sku_thumb,C.add_time,G.thumb,GS.spec_json';
+        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+            $field .= ',GSS.price_service, GSS.install_price_service, GSS.`status`';
+        }
         return $field;
     }
 
@@ -52,9 +55,11 @@ class Cart extends FactoryForm
     {
         $join = [
             ['goods_sku GS', 'GS.sku_id= C.sku_id', 'INNER'],
-            ['goods_sku_service GSS', 'GSS.sku_id=GS.sku_id AND GSS.is_del= 0 AND GSS.store_id=' . $this->adminStore['store_id'], 'INNER'],
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],
         ];
+        if ($this->adminStore['store_type'] == ADMIN_DEALER) {
+            $join[] = ['goods_sku_service GSS', 'GSS.sku_id=GS.sku_id AND GSS.is_del= 0 AND GSS.store_id=' . $this->adminStore['store_id'], 'INNER'];
+        }
         return $join;
     }
 

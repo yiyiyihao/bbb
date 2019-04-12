@@ -53,7 +53,7 @@ class Purchase extends FactoryForm
     {
         $skuId = $this->request->param('sku_id', '0', 'intval');
         $factoryId = $this->adminStore['factory_id'];
-        $num = $this->request->param('num', 0, 'intval');
+        $num = $this->request->param('num', 1, 'intval');
 
         //判断sku_id是否存在
         $where = [
@@ -112,32 +112,41 @@ class Purchase extends FactoryForm
     public function createOrder()
     {
         $skuIds=$this->request->param('id','0','intval');
-        $nums=$this->request->param('num','0','intval');
         $orderModel = new \app\common\model\Order();
-        $order = $orderModel->createOrder($this->adminUser, 'cart', $skuIds, $nums, IS_POST, [], '');
+        if (!$skuIds) {
+            $this->error('请选择买单商品');
+        }
+        $order = $orderModel->createOrder($this->adminUser, 'cart', $skuIds, 0, 1, [], '', 1);
         if ($order === FALSE) {
             $this->error($orderModel->error);
         }
-        $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => '', 'step' => 2]), ['order_sn'=>$order['order_sn']]);
-        
+        $this->success('下单成功,前往支付', url('confirm', ['order_sn' => $order['order_sn'], 'pay_code' => '', 'step' => 2]), ['order_sn'=>$order['order_sn']]);
     }
-
-    
-
-
 
     public function confirm()
     {
         $params = $this->request->param();
-        $skuId = isset($params['sku_id']) ? intval($params['sku_id']) : 0;
-        $num = isset($params['num']) ? intval($params['num']) : 0;
-        $remark = isset($params['remark']) ? trim($params['remark']) : '';
-        if ($skuId <= 0 || $num <= 0) {
-            $this->error('参数错误');
+        $type = $this->request->param('create_type');
+        if ($type && $type == 'cart') {
+            $skuId = $this->request->param('id','0','intval');
+            $orderModel = new \app\common\model\Order();
+            if (!$skuId) {
+                $this->error('请选择买单商品');
+            }
+            $num = 0;
+            $sku['store_id'] = 1;
+            $remark = '';
+        }else{
+            $type = 'goods';
+            $skuId = isset($params['sku_id']) ? intval($params['sku_id']) : 0;
+            $num = isset($params['num']) ? intval($params['num']) : 0;
+            $remark = isset($params['remark']) ? trim($params['remark']) : '';
+            if ($skuId <= 0 || $num <= 0) {
+                $this->error('参数错误');
+            }
+            $this->model = db('goods_sku');
+            $sku = $this->_assignInfo($skuId);
         }
-        $this->model = db('goods_sku');
-        $sku = $this->_assignInfo($skuId);
-
         $orderModel = new \app\common\model\Order();
         $post = $this->request->post();
         if (IS_POST) {
@@ -153,14 +162,14 @@ class Purchase extends FactoryForm
             if ($payCode == 'offline_pay') {
                 $params['pay_type']=2;//线下支付
             }
-            $order = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, IS_POST, $params, $remark);
+            $order = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, IS_POST, $params, $remark);
             if ($order === FALSE) {
                 $this->error($orderModel->error);
             }
             $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);
             //$this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
         }else{
-            $result = $orderModel->createOrder($this->adminUser, 'goods', $skuId, $num, FALSE, $params, $remark);
+            $result = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, FALSE, $params, $remark);
             if ($result === FALSE) {
                 $this->error($orderModel->error);
             }

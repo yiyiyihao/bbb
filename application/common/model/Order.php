@@ -1190,9 +1190,16 @@ class Order extends Model
     {
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         if ($incart) {
-            $where = [
-                ['C.udata_id', '=', $user['udata_id']],
-            ];
+            if (!isset($user['user_id'])) {
+                $where = [
+                    ['C.udata_id', '=', $user['udata_id']],
+                ];
+            }else{
+                $where = [
+                    ['C.store_id', '=', $user['store_id']],
+                ];
+            }
+            
             if ($skuIds) {
                 $where[] = ['C.sku_id', 'IN', $skuIds];
             }
