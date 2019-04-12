@@ -4,12 +4,6 @@
             <div class="panel-body clearfix">
                 <div class="xm3">
                     <div class="num-item-box col-box">
-                        <h4>今日服务佣金收益</h4>
-                        <div class="item-num">￥{$today.commission_amount}</div>
-                    </div>
-                </div>
-                <div class="xm3">
-                    <div class="num-item-box col-box">
                         <h4>今日新增安装工单数</h4>
                         <div class="item-num">{$today.post_count_1}</div>
                     </div>
@@ -34,12 +28,6 @@
                 </div>
                 <div class="xm3">
                     <div class="num-item-box col-box">
-                        <h4>累计服务佣金收益</h4>
-                        <div class="item-num">￥{$total.commission_amount}</div>
-                    </div>
-                </div>
-                <div class="xm3">
-                    <div class="num-item-box col-box">
                         <h4>累计上门安装工单数</h4>
                         <div class="item-num">{$total.workorder_count_1}</div>
                     </div>
@@ -50,11 +38,33 @@
                         <div class="item-num">{$total.workorder_count_2}</div>
                     </div>
                 </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>今日新增零售商数</h4>
+                        <div class="item-num">{$today.dealer_count}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>累计零售商支付订单数</h4>
+                        <div class="item-num">{$total.order_count}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>累计零售商支付订单金额</h4>
+                        <div class="item-num">￥{$total.order_amount}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>累计零售商数</h4>
+                        <div class="item-num">{$total.dealer_count}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-
     <div class="xm12">
         <div class="panel admin-dashboard boxShadow">
             <div class="panel-head"><span>工单概况</span><div class="float-right button-group" data-type="1"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
@@ -63,14 +73,14 @@
             </div>
         </div>
     </div>
-    <div class="xm12">
+   <!--  <div class="xm12">
         <div class="panel admin-dashboard boxShadow">
             <div class="panel-head"><span>工单佣金统计</span><div class="float-right button-group" data-type="0"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
             <div class="panel-body">
                 <div class="js-chart" id="chart_amount" style="height:400px;" data-chart='{$chart_amount|default=""}'></div>
             </div>
         </div>
-    </div>
+    </div> -->
 
 </div>
 
