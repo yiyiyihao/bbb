@@ -13,9 +13,17 @@ class Order extends commonOrder
                 'url' => url("import"),
             ];
         }
-        pre($this->subMenu, 1);
-        $this->assign('subMenu', $this->subMenu);
     }
+    public function import()
+    {
+        if (IS_POST) {
+            
+        }else{
+            $purchase = new \app\factory\controller\Purchase();
+            return $purchase->index();
+        }
+    }
+    
     public function finance()
     {
         $this->subMenu['menu'] = [
@@ -39,6 +47,7 @@ class Order extends commonOrder
         ];
         return $this->index();
     }
+
     function _afterList($list)
     {
         if ($list) {
@@ -46,6 +55,7 @@ class Order extends commonOrder
             $orderModel = new \app\common\model\Order();
             $list = $orderModel->getOrderList($list,true);
         }
+        //p($list);
         return $list;
     }
 }
