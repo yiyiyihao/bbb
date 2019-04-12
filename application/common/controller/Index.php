@@ -493,20 +493,6 @@ class Index extends CommonBase
                 break;
             case ADMIN_SERVICE_NEW:
                 $tpl = 'servicer2';
-                //今日佣金收益
-                $join=[
-                    ['store S','C.store_id = S.store_id','INNER'],
-                ];
-                $where=[
-                    ['C.is_del','=',0],
-                    ['S.store_id','=',$storeId],
-                    ['C.income_status','IN',[0,1]],
-                    ['C.add_time','>=',$beginToday],
-                ];
-                $today['commission_amount']=db('store_service_income')->alias('C')->join($join)->where($where)->sum('C.install_amount');
-                //累计佣金收益
-                $total['commission_amount']=db('store_finance')->where(['store_id' => $storeId])->value('total_amount');
-
                 $where = [
                     ['store_id','=',$storeId],
                     ['is_del','=',0],
@@ -536,10 +522,61 @@ class Index extends CommonBase
                 $total['workorder_count_1'] = $workOrderData ? intval($workOrderData['workorder_count_1']) : 0;
                 //累计上门维修工单数量
                 $total['workorder_count_2'] = $workOrderData ? intval($workOrderData['workorder_count_2']) : 0;
+                
+                
+                //今日订单数(渠道下的零售商订单数量)
+                //累计订单数(渠道下的零售商订单数量)
+                $where = [
+                    ['S.is_del','=',0],
+                    ['S.store_type','=', STORE_SERVICE_NEW],
+                    ['S.store_id','=',$storeId],
+                    ['O.add_time','>=',$beginToday],
+                    ['O.order_status','<>',2],
+                    ['O.pay_status','=',1],
+                ];
+                $join=[
+                    ['store_dealer SD','O.user_store_id=SD.store_id'],
+                    ['store S','SD.ostore_id=S.store_id'],
+                ];
+                $field='count(*) as order_count, sum(real_amount) as order_amount';
+                $todayOrder = $orderModel->alias('O')->field($field)->join($join)->where($where)->find();
+                //今日订单数
+                $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
+                //今日订单金额
+                $today['order_amount'] = $todayOrder && isset($todayOrder['order_amount']) ? sprintf("%.2f",($todayOrder['order_amount'])) : 0;
+                
+                //累计订单数据统计
+                $where = [
+                    ['S.is_del','=',0],
+                    ['S.store_type','=', STORE_SERVICE_NEW],
+                    ['S.store_id','=',$storeId],
+                    ['O.order_status','<>',2],
+                    ['O.pay_status','=',1],
+                ];
+                $totalOrder = $orderModel->alias('O')->field($field)->join($join)->where($where)->find();
+                //累计订单数
+                $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
+                //累计订单金额
+                $total['order_amount'] = $totalOrder && isset($totalOrder['order_amount']) ? sprintf("%.2f",($totalOrder['order_amount'])) : 0;
+                
+                //今日新增零售商数量
+                $where = [
+                    ['add_time','>=',$beginToday],
+                    ['store_type','=',STORE_DEALER],
+                    ['S.is_del','=',0],
+                    ['SD.ostore_id','=',$storeId],
+                ];
+                $today['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
+                
+                //累计零售商数量统计
+                $where = [
+                    ['S.is_del','=',0],
+                    ['SD.ostore_id','=',$storeId],
+                    ['store_type','=',STORE_DEALER]
+                ];
+                $total['dealer_count'] = $storeModel->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where($where)->count();
                 break;
             default:
-
-
                 break;
         }
         if ($chart) {
