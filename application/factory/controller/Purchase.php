@@ -242,9 +242,9 @@ class Purchase extends FactoryForm
     function  _getOrder()
     {
         $order='G.add_time DESC';
-        if ($this->adminStore['store_type'] == STORE_DEALER) {
-            $order='GS.sort_order ASC';
-        }
+//         if ($this->adminStore['store_type'] == STORE_DEALER) {
+//             $order='GS.sort_order ASC';
+//         }
         return $order;
     }
     function _getWhere(){
@@ -284,8 +284,12 @@ class Purchase extends FactoryForm
     {
         if ($this->adminStore['store_type'] == STORE_DEALER) {
             foreach ($list as $k=>$v) {
-                $list[$k]['min_price']=$list[$k]['min_price_service'];
-                $list[$k]['max_price']=$list[$k]['max_price_service'];
+                if (isset($list[$k]['min_price_service'])) {
+                    $list[$k]['min_price']=$list[$k]['min_price_service'];
+                    $list[$k]['max_price']=$list[$k]['max_price_service'];
+                }else{
+                    break;
+                }
             }
         }
         return $list;
