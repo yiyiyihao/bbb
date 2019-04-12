@@ -7,7 +7,7 @@ class Order extends commonOrder
     public function __construct()
     {
         parent::__construct();
-        if ($this->adminUser['group_id'] == 9) {
+        if ($this->adminUser['group_id'] == 16) {
             $this->subMenu['add'] = [
                 'name' => '添加订单',
                 'url' => url("import"),

@@ -105,6 +105,7 @@ class Suborder extends commonOrder
         }elseif(isset($param['finish_status'])){
             $map['O.finish_status'] = 2;
             $map['O.order_status'] = 1;
+            $map['O.pay_status'] = 1;
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }
