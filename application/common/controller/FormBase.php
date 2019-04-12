@@ -60,10 +60,10 @@ class FormBase extends CommonBase
             if($join) $this->model->join($join);
             if($field) $this->model->field($field);
             //取得内容列表
-            $count  = $this->model->where($where)->count();
+            //$count  = $this->model->where($where)->count();
             
             if($field) $this->model->field($field);
-            $list   = $this->model->where($where)->order($order)->paginate($this->perPage,$count, ['query' => input('param.')]);
+            $list   = $this->model->where($where)->order($order)->paginate($this->perPage,false, ['query' => input('param.')]);
         }
         // 获取分页显示
         $page   = $list->render();

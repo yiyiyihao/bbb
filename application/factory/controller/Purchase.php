@@ -48,6 +48,71 @@ class Purchase extends FactoryForm
         ));
         return $this->fetch();
     }
+
+    public function addCart()
+    {
+        $skuId = $this->request->param('sku_id', '0', 'intval');
+        $factoryId = $this->adminStore['factory_id'];
+        $num = $this->request->param('num', 0, 'intval');
+
+        //判断sku_id是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+        ];
+        $sku = model('goods_sku')->where($where)->find();
+        if (!$sku) {
+            $this->error('该商品不存在或已经删除');
+        }
+        if (!$sku['status']) {
+            $this->error('该商品已经删除');
+        }
+        if ($sku['sku_stock'] < $num) {
+            $this->error('该商品库存不足');
+        }
+
+        //判断是否是自己的商品
+        if ($sku['store_id'] == $this->adminStore['store_id']) {
+            $this->error('厂商不能自产自销');
+        }
+        //判断购物车商品是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['store_id', '=', $this->adminStore['store_id']],
+        ];
+        $storeId = $this->adminStore['store_id'];
+        $exist = \app\common\model\Cart::where(['is_del' => 0, 'store_id' => $storeId, 'sku_id' => $skuId])->find();
+        $where = [];
+        if ($exist) {
+            $num = $exist['num'] + $num;
+            if ($sku['sku_stock'] < $num) {
+                $this->error('该商品库存不足');
+            }
+            $data = [
+                'num' => $num,
+            ];
+            $where['cart_id'] = $exist['cart_id'];
+        } else {
+            $data = [
+                'sku_id'   => $skuId,
+                'goods_id' => $sku['goods_id'],
+                'store_id' => $this->adminStore['store_id'],
+                'num'      => $num,
+            ];
+        }
+        $cartModel = new \app\common\model\Cart();
+        $result = $cartModel->save($data, $where);
+        if ($result === FALSE) {
+            $this->error('系统故障，请稍后重试~');
+        }
+        $this->success('加入购物车成功');
+    }
+
+    
+
+
+
     public function confirm()
     {
         $params = $this->request->param();
@@ -59,6 +124,7 @@ class Purchase extends FactoryForm
         }
         $this->model = db('goods_sku');
         $sku = $this->_assignInfo($skuId);
+
         $orderModel = new \app\common\model\Order();
         $post = $this->request->post();
         if (IS_POST) {

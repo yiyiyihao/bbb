@@ -571,6 +571,7 @@ function get_admin_type($type = FALSE){
         3 => '渠道商',
         4 => '零售商',
         5 => '服务商',
+        6 => '服务商',
     ];
     if ($type === FALSE) {
         return $storeTypes;

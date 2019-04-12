@@ -68,10 +68,11 @@ class Order extends commonOrder
     function _afterList($list)
     {
         if ($list) {
-            //$flag = in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
+            $flag = in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
             $orderModel = new \app\common\model\Order();
             $list = $orderModel->getOrderList($list,true);
         }
+        //p($list);
         return $list;
     }
 }

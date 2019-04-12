@@ -6,11 +6,8 @@ class Cart extends Model
 {
 	public $error;
 	protected $pk = 'cart_id';
-	
 	protected $field = true;
-	//自定义初始化
-	protected function initialize()
-	{
-	    parent::initialize();
-	}
+    protected $createTime = 'add_time';
+    protected $updateTime = 'update_time';
+    protected $autoWriteTimestamp = 'int';
 }

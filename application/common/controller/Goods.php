@@ -39,7 +39,13 @@ class Goods extends FormBase
             $status = $this->request->param('status');
             $sortOrder = $this->request->param('sort_order');
             $id = $this->request->param('id', 0, 'intval');
+            if (!is_array($skuIds) && empty($skuIds)) {
+                $this->error('未设置商品规格');
+            }
             $skuIds = array_unique(array_filter($skuIds));
+            if (empty($skuIds)) {
+                $this->error('参数不正确');
+            }
             $storeId = $this->adminStore['store_id'];
 
             foreach ($skuIds as $k => $skuId) {
@@ -401,6 +407,7 @@ class Goods extends FormBase
                 $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->adminStore['store_id'], 'spec_json' => ['neq', ""]];
                 $skuList = db('goods_sku')->where($where)->order("sku_id")->select();
             }
+            //p($skuList);
             $this->assign("skuList", $skuList);
         }
     }
@@ -677,7 +684,8 @@ class Goods extends FormBase
         $btnArray = [];
         $btnArray = ['text' => '商品规格', 'action' => 'spec', 'icon' => 'setting', 'bgClass' => 'bg-yellow'];
         $table['actions']['button'][] = $btnArray;
-        $table['actions']['button'][] = ['text' => '下架','action'=> 'condition','condition'=>['action'=>'offline','rule'=>'$vo["status"] == 1'], 'js-action' => TRUE, 'icon' => 'bottom', 'bgClass' => 'bg-yellow'];
+        $table['actions']['button'][] = ['text' => '下架','action'=> 'condition','condition'=>['action'=>'offline','rule'=>'$vo["status"] == 1'], 'js-action' => TRUE, 'icon' => 'bottom', 'bgClass' => 'bg-red'];
+        $table['actions']['button'][] = ['text' => '上架','action'=> 'condition','condition'=>['action'=>'offline','rule'=>'$vo["status"] == 0'], 'js-action' => TRUE, 'icon' => 'top', 'bgClass' => 'bg-green'];
         $table['actions']['width'] = '240';
 
         foreach ($table as $key => $value) {
@@ -764,7 +772,11 @@ class Goods extends FormBase
             $field = 'G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn';
             $order = 'G.goods_id DESC';
             $joinOn='G.goods_id = GS.goods_id AND GS.is_del = 0 AND GS.store_id ='.$this->adminStore['store_id'];
-            $query = $this->model->alias('G')->field($field)->join('goods_service GS',$joinOn,'LEFT')->where($where)->whereNull('GS.goods_id')->order($order)->paginate($this->perPage, false);
+            $join=[
+                //['goods_sku GDS','GDS.goods_id=G.goods_id','INNER'],
+                ['goods_service GS',$joinOn,'LEFT'],
+            ];
+            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.goods_id')->order($order)->paginate($this->perPage, false);
             $list = $query->items();
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);
@@ -793,7 +805,10 @@ class Goods extends FormBase
         if (empty($goods)) {
             $this->error('商品不存在或已删除');
         }
-        $goods->status = 0;
+
+        $status = $goods->status == 0 ? 1 : 0;
+        $goods->status = $status;
+        //$statusTxt=$status==1?'上架':'下架';
         $result = $goods->save();
         if ($result === false) {
             $this->error('系统故障');

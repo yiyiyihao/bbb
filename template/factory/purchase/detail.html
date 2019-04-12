@@ -43,8 +43,9 @@
             </div>
             <div class="panel-foot">
                 <div class="form-button" style="margin-left:385px;">
-                	<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}">                    
-                    <div class="button bg-main buy_btn icon-plus" style="cursor: pointer">进货下单</div> <a class="button bg-dot icon-back" href="{:url('index')}"> 返回</a>
+                    <a class="button bg-dot icon-back" href="{:url('index')}"> 返回</a>
+                	<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}">
+                    <div class="button bg-green buy_btn icon-plus" style="cursor: pointer; margin-right: 10px;" data-order="cart">加入进货单</div><div class="button bg-main buy_btn icon-plus" style="cursor: pointer" data-order="buy">直接下单</div>
                 </div>
             </div>
         </div>
@@ -123,7 +124,8 @@ $(function(){
 	}
 	//立即购买
 	$(".buy_btn").on("click",function(){
-		addCart("buy");
+	    act=$(this).attr('data-order');
+		addCart(act);
 	});
 	
 	function addCart(action){
@@ -150,10 +152,32 @@ $(function(){
 			return;
 		}
 		if(action == 'buy'){
-			layer.msg("正在下单处理,请稍等……",{icon:16,time:4000});
-			var url = "{:url('confirm')}" + '/sku_id/'+skuid+'/num/'+nums;
-			window.location.href = url;
-		}
+            layer.msg("正在下单处理,请稍等……",{icon:16,time:4000});
+            var url = "{:url('confirm')}" + '/sku_id/'+skuid+'/num/'+nums+'/action/'+action;
+            window.location.href = url;
+		}else {
+		    $.post('{:url("addCart")}',{sku_id:skuid,nums:nums},function (data) {
+                console.log(data);
+                if (data.code == 0) {
+                    layer.open({
+                        title: '出错了~'
+                        , icon: 2
+                        , content: data.msg
+                        , end: function () {}
+                    });
+                }else {
+                    layer.open({
+                        title: '成功'
+                        , icon: 1
+                        , content: data.msg
+                        , end: function () {
+                            window.location.href = '{:url("index")}';
+                        }
+                    });
+                }
+            });
+        }
+
 	}
 	
 	//修改数量
