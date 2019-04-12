@@ -1,6 +1,8 @@
 <?php
 namespace app\factory\controller;
 //售后工单管理
+use think\Request;
+
 class Workorder extends FactoryForm
 {
     var $types;
@@ -57,6 +59,106 @@ class Workorder extends FactoryForm
         }
         return $list;
     }
+
+    //客服工单
+    public function kefu_order(Request $request)
+    {
+        $data['sku_id'] = $request->param('sku_id', '0', 'intval');
+        if (empty($data['sku_id'])) {
+            $this->error('请选择需要提交工单的商品！');
+        }
+        $where = [
+            'sku_id' => $data['sku_id'],
+            'is_del'   => 0,
+        ];
+        $sku = db('goods_sku')->where($where)->find();
+        if (empty($sku)) {
+            $this->error('查无该商品信息');
+        }
+        $data['goods_id']=$sku['goods_id'];
+
+        if (IS_POST) {
+            $data['user_name'] = $request->param('user_name');
+            $data['phone'] = $request->param('phone');
+            $data['region_id'] = $request->param('region_id');
+            $data['region_name'] = $request->param('region_name');
+            $data['address'] = $request->param('address');
+            $data['appointment'] = $request->param('appointment', '', 'trim,strtotime');
+
+            $data['fault_desc'] = $request->param('fault_desc');
+            //$data['goods_id'] = $request->param('goods_id', '0', 'intval');
+
+            $data['work_order_type'] = $request->param('work_type',0,'intval');
+            $data['images'] = $request->param('images','');
+
+            if (empty($data['user_name'])) {
+                $this->error('客户姓名不能为空！');
+            }
+            if (empty($data['phone'])) {
+                $this->error('客户联系方式不能为空！');
+            }
+            if (empty($data['appointment'])) {
+                $this->error('请选择预约的时间！');
+            }
+            if (empty($data['address'])) {
+                $this->error('客户地址不能为空！');
+            }
+            if ($data['appointment']<time()) {
+                $this->error('预约时间不能小于当前时间！');
+            }
+            $storeModel = new \app\common\model\Store();
+            //根据安装地址分配服务商
+            $storeId = $storeModel->getStoreFromRegion($data['region_id']);
+            if (!$storeId) {
+                //获取当前地址的parent_id
+                $parentId = db('region')->where(['region_id' => $data['region_id']])->value('parent_id');
+                if ($parentId) {
+                    $storeId = $storeModel->getStoreFromRegion($parentId);
+                }
+                if (!$storeId) {
+                    $this->error('抱歉，您选择的区域暂无服务商');
+                }
+            }
+            $where[]=['sku_id','=',$data['sku_id']];
+            $where[]=['user_name','=',$data['user_name']];
+            $where[]=['phone','=',$data['phone']];
+            $where[]=['work_order_type','=',$data['work_order_type']];
+            $where[]=['work_order_status','>',-1];
+            $where[]=['post_user_id','=',$this->adminUser['user_id']];
+            $order=model('work_order')->where($where)->order('worder_id DESC')->find();
+            if (!empty($order) && (time()- strtotime($order['add_time'])<60) ) {
+                $this->error('操作频繁！');
+            }
+            //if ($data['goods_id']) {
+            //    $where = [
+            //        'goods_id' => $data['goods_id'],
+            //        'is_del'   => 0,
+            //    ];
+            //    $goods = db('goods')->where($where)->find();
+            //    if (empty($goods)) {
+            //        $this->error('查无该商品信息');
+            //    }
+            //}
+
+            $data['post_user_id'] = $this->adminUser['user_id'];
+            $data['user_id'] = $this->adminUser['user_id'];
+            $data['factory_id'] = $this->adminUser['factory_id'];
+            $data['store_id'] = $this->adminUser['store_id'];
+            $workOrderModel = model('work_order');
+            $sn = $workOrderModel->save($data);
+            if ($sn) {
+                 $this->success('工单提交成功','index');
+            } else {
+                 $this->error('系统错误,请稍后重试！');
+            }
+        }else{
+            $this->subMenu['menu']=[];
+            $sku_id=$request->param('sku_id');
+            $this->assign('sku_id', $sku_id);
+            return $this->fetch('kefu_order');
+        }
+    }
+    
     public function edit()
     {
         $this->subMenu['showmenu'] = false;
