@@ -529,6 +529,61 @@ class Order extends Model
         $this->orderLog($order, $user, '取消订单', $remark);
         return TRUE;
     }
+
+    /**
+     * 批量生成订单
+     */
+    public function createOrders($user,$param,$orderType = 1)
+    {
+        if (!$user) {
+            $this->error = lang('param_error');
+            return FALSE;
+        }
+        if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
+            $this->error = lang('param_error');
+            return FALSE;
+        }
+        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
+        $orderSn = $this->_getOrderSn();
+        $storeId=isset($user['store_id']) ? intval($user['store_id']) : 0;
+        $factoryId=isset($user['factory_id']) ? intval($user['factory_id']) : 0;
+        $storeType=isset($user['store_type']) ? intval($user['store_type']) : 0;
+        //收货地址
+        $addrName = isset($param['address_name']) && $param['address_name'] ? trim($param['address_name']) : '';
+        $addrPhone = isset($param['address_phone']) && $param['address_phone'] ? trim($param['address_phone']) : '';
+        $regionId = isset($param['region_id']) && $param['region_id'] ? trim($param['region_id']) : '';
+        $addrRegion = isset($param['region_name']) && $param['region_name'] ? trim($param['region_name']) : '';
+        $remark = isset($param['remark']) && $param['remark'] ? trim($param['remark']) : '';
+        $addrDetail = isset($param['address']) && $param['address'] ? trim($param['address']) : '';
+        $payCertificate = isset($param['pay_certificate']) && $param['pay_certificate'] ? trim($param['pay_certificate']) : '';
+        $orderData = [
+            'order_type' => $orderType,   //1商户订单:支付成功后自动完成
+            'order_sn'   => $orderSn,
+            'store_id'   => $factoryId,//厂商ID
+            'user_id'         => $userId,
+            'user_store_id'   => $storeId,
+            'user_store_type' => $storeType,
+            'udata_id'        => isset($user['udata_id']) ? intval($user['udata_id']) : 0,
+
+            'pay_code'        => isset($param['pay_code']) ? $param['pay_code'] : '',
+            'pay_type'        => isset($param['pay_type']) ? $param['pay_type'] : '',
+            'goods_amount'    => $list['sku_amount'],
+            'install_amount'  => $list['install_amount'],
+            'delivery_amount' => $list['delivery_amount'],
+            'real_amount'     => $list['pay_amount'],
+            'address_name'    => $addrName,
+            'address_phone'   => $addrPhone,
+            'region_id'       => $regionId,
+            'address_detail'  => $regionId ? ($addrRegion . ' ' . $addrDetail) : '',
+            'pay_certificate' => $payCertificate,
+            'remark'          => trim($remark),
+            'add_time'        => time(),
+            'update_time'     => time(),
+            'extra'           => '',
+        ];
+
+    }
+
     public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1)
     {
         if (!$user) {

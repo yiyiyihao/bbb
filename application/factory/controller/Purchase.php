@@ -109,6 +109,19 @@ class Purchase extends FactoryForm
         $this->success('加入购物车成功');
     }
 
+    public function createOrder()
+    {
+        $skuIds=$this->request->param('id','0','intval');
+        $nums=$this->request->param('num','0','intval');
+        $orderModel = new \app\common\model\Order();
+        $order = $orderModel->createOrder($this->adminUser, 'cart', $skuIds, $nums, IS_POST, [], '');
+        if ($order === FALSE) {
+            $this->error($orderModel->error);
+        }
+        $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => '', 'step' => 2]), ['order_sn'=>$order['order_sn']]);
+        
+    }
+
     
 
 
