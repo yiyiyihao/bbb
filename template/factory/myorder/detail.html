@@ -67,7 +67,7 @@
 						              		样品不安装
 						              	{/if}
 						              </td>
-						              <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td>
+						              <!-- <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td> -->
 						              <!-- <td>{$v.delivery_name}<br>{$v.delivery_sn}</td> -->
 						              <td>
 						              	{if ($info['order']['user_store_type']!=$Think.const.STORE_SERVICE_NEW && $info['order']['order_status'] == 1)}
@@ -79,7 +79,8 @@
 								              	{/if}
 							              	{/if}
 							            {/if}
-							            <!-- {if ($info['order']['order_status'] != 2)}
+							            <!-- 
+							            {if ($info['order']['order_status'] != 2)}
 							              	{if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
 							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
 							              	{elseif ($v.service)/}
@@ -91,7 +92,8 @@
 							              		<a href="{:url('service/detail', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="查看退货退款">查看退货退款</a>
 							              		{/if}
 							              	{/if}
-						              	{/if} -->
+						              	{/if}
+						              	-->
 						              </td>
 						            </tr>
 						          {/volist}
