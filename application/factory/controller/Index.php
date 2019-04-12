@@ -427,6 +427,7 @@ class Index extends CommonIndex
                 }
                 break;
             case ADMIN_SERVICE://服务商
+            case ADMIN_SERVICE_NEW://服务商
                 if($chart_type){
                     //工单概况
                     $data=$this->workOrderOverView($from,$to,$storeId);

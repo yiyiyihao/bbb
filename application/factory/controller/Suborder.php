@@ -21,7 +21,10 @@ class Suborder extends commonOrder
     }
     public function pay()
     {
-        $this->error('NO ACCESS');
+        if ($this->adminUser['admin_type'] != ADMIN_SERVICE_NEW) {
+            $this->error('NO ACCESS');
+        }
+        return parent::pay();
     }
     public function updatePrice()
     {
