@@ -51,9 +51,9 @@
   <div class="panel-foot table-foot clearfix">{$page|raw}</div>
 </div>
 <div class="footP">
-    <span class="iblock icon-cutlery"> 清单<i id="num">0</i></span>
-    <span id="total" t="0"></span>
-    <a class="button bg-white icon-check float-right" href=""> 确认</a>
+    <span class="iblock icon-top"> 清单<i id="num">{$cart.count}</i></span>
+    <span>￥</span><span id="total" t="0">{$cart.amount}</span>
+    <a class="button bg-white icon-check float-right" href="/cart/index"> 确认</a>
 </div>
 <script>
     Do.ready('base', function () {

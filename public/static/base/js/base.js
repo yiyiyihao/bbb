@@ -134,7 +134,10 @@ $.ajaxSetup({
 													height: 0
 												},
 												onEnd: function(){
-													$("#msg").show().animate({width: '200px'}, 200).fadeOut(1000);
+													//获取进货清单信息
+													$.get('/cart/getAjaxList',function(data){
+														console.log(data);
+													})
 													this.destory();
 												}
 											});
@@ -146,6 +149,7 @@ $.ajaxSetup({
 								}
 						   },btn2: function(index, layero){
 							  layero.close;
+							  window.location.href = '/cart/index';
 						   }
 					   });
 					});

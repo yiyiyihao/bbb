@@ -12,7 +12,7 @@ class Cart extends FactoryForm
         $this->modelName = 'cart';
         $this->model = db($this->modelName);
         parent::__construct();
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_SERVICE_NEW, ADMIN_DEALER])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_SERVICE_NEW, ADMIN_DEALER,ADMIN_FACTORY])) {
             $this->error(lang('NO ACCESS'));
         }
 
