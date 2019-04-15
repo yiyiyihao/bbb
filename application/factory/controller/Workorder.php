@@ -70,16 +70,63 @@ class Workorder extends FactoryForm
     //客服工单
     public function kefu_order(Request $request)
     {
-        $step = $this->request->param('step');
-        if ($step == 1) {
-            $purchase = new \app\factory\controller\Purchase();
-            //             $purchase->indextempfile = 'purchase/index';
-            //             $cart = new \app\factory\controller\Cart();
-            //             $cartList = $cart->getAjaxList(null,'*');
-            $cart = $this->getcart(false);
-            $this->assign("cart",$cart);
-            return $purchase->index();
+        $this->subMenu['showmenu'] = false;
+        $step = $this->request->param('step',1,'intval');
+        if ($step == 1) {//显示商品列表
+            $where = [
+                'is_del'   => 0,
+                'status'   => 1,
+                'store_id' => $this->adminUser['factory_id'],
+            ];
+            $order = 'G.add_time DESC';
+            $list = db('goods')
+                ->alias('G')
+                ->where($where)
+                ->order($order)
+                ->paginate($this->perPage, false, ['query' => input('param.')]);
+            $page = $list->render();
+            $list = $list->toArray()['data'];
+            $this->assign('page', $page);
+            $this->assign('list', $list);
+            return $this->fetch('goods');
         }
+        if ($step == 2) {//选择商品规格
+            $goodsId=$this->request->param('id',0,'intval');
+            if (empty($goodsId)) {
+                $this->error('请选选择商品');
+            }
+            $info = db('goods')->where([
+                'is_del'=>0,
+                'status'=>1,
+                'store_id'=>$this->adminUser['factory_id'],
+            ])->find($goodsId);
+            $skuinfo = db('goods_sku')->where(['goods_id' => $goodsId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
+            $info['skuinfo'] = $skuinfo;
+            $info['imgnum'] = isset($info['imgs']) && $info['imgs'] ? count(json_decode($info['imgs'])) : 0;
+            $info['imgs'] = isset($info['imgs']) && $info['imgs'] ? json_decode($info['imgs'], TRUE) : [];
+            $skus =model('goods')->getGoodsSkus($info['goods_id'],$this->adminStore);
+            $price=array_column($skus,'price_total');
+            $min=min($price);
+            $max=max($price);
+            $priceTotal=$min;
+            if ($max > $min) {
+                $priceTotal.='~'.$max;
+            }
+            $this->assign('price_total',$priceTotal);
+            $this->assign('skus', is_array($skus) ? $skus : []);
+            $info['sku_id'] = is_int($skus) ? $skus : 0;
+            $info['specs'] = json_decode($info['specs_json'],true);
+
+            $this->assign('info', $info);
+            $this->import_resource(array(
+                //'script'=> 'jquery.jqzoom-core.js',
+                'style' => 'goods.css,jquery.jqzoom.css',
+            ));
+            $this->view->engine->layout(false);
+            return $this->fetch('goods_spec');
+        }
+
+
         $data['sku_id'] = $request->param('sku_id', '0', 'intval');
         if (empty($data['sku_id'])) {
             $this->error('请选择需要提交工单的商品！');

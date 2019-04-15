@@ -84,6 +84,43 @@ $.ajaxSetup({
                 });
                 return false;
             });*/
+
+            //选择商品并添加到工单
+            $(table).find('.js-addWorkOrder').click(function (event) {
+                var goodsId = $(this).data('id');
+                var goodsImg = $(this).data('img');
+                var offset = $("#num").offset();
+                if (goodsId) {
+                    Do.ready('dialog',function () {
+                        layer.open({
+                            type:2,
+                            shade: [0.3, '#000000'],
+                            title: false, //不显示标题
+                            area: ['600px','500px'],
+                            btn: ['加入清单','清单列表'],
+                            maxHeight: '500px',
+                            scrollbar: true,
+                            content:'/workorder/kefu_order?step=2&id='+goodsId,
+                            yes:function (index,layero) {
+                                var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                                //检查属性有没有选择
+                                var check = iframeWin.checkSpec();
+                                if (!check) {
+                                    layer.msg("请选择规格");
+                                    return false;
+                                }
+                                //获取添加到进货单的规格和数量
+                                var choose = iframeWin.getSpec();
+                                console.log(choose);
+                            }
+                        });
+                    });
+                }
+            });
+
+
+
+
 			//添加到进货单
 			$(table).find('.js-addcart').click(function(event){
 				var goodsId = $(this).data('id');

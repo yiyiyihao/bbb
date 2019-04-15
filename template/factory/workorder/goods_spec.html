@@ -1,0 +1,76 @@
+{include file="common/header" /}
+<div class="tab admin-tab">
+    <div class="panel admin-box fixed-pannel active">
+        <div class="tab-body">
+            <div class="tab-panel active" id="tab-1">
+                <div class="goodsInfo clearfix">
+                    <div class="goodsText" style="margin-left:0;">
+                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}"></h3>
+                        <div class="priceBox">
+                            <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
+                        </div>
+                        <div class="specBox">
+                            {volist name="info.specs" id="vo"} <p class="spec"><b>{$vo.specname}</b> {volist name="vo.list" id="val"}<span>{$val}</span>{/volist} </p> {/volist}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var action = "buy";
+    var goods_id = "<?php echo $info['goods_id'] ?>";
+    var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
+    //选择属性
+    $(".spec span").click(function(){
+        $(this).parent().find(".active").removeClass("active");
+        $(this).addClass("active");
+        //检查属性是否选择完整
+        if(checkSpec()){
+            updatePrice();
+        };
+    })
+    function checkSpec(){
+        if($(".spec").length == $(".spec .active").length){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    function updatePrice(){
+        //取得选择属性
+        var specs = {};
+        $(".spec").each(function(i, e) {
+            var specName = $(e).find("b").text();
+            var val = $(e).find(".active").text();
+            specs[specName] = val;
+        });
+        specs = JSON.stringify(specs);
+        //更新价格和库存
+        var url = "/purchase/getspec/id/"+goods_id;
+        $.post(url,{specs:specs},function(data){
+            if(data.status){
+                $("#salePrice").text(data.data.price);
+                $("#skuid").val(data.data.skuid);
+                $("#saleSku").text(data.data.sku);
+            }else{
+                $("#saleSku").text('--');
+                $("#skuText").text("无此规格");
+                $(".form-button .buy_btn").attr('disabled',"true");
+            }
+        })
+    }
+
+    function getSpec(action){
+        if(!checkSpec()){
+            layer.msg("请选择商品规格");
+            return;
+        }
+        var skuid = $("#skuid").val();
+        return {sku_id:skuid};
+    }
+
+
+</script>
+{include file="common/footer_iframe" /}
