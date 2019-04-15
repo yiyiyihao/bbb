@@ -44,7 +44,7 @@ class Cart extends FactoryForm
 
     function _getField()
     {
-        $field = 'C.cart_id,C.store_id,C.sku_id,C.goods_id,C.num,G.`name`, GS.price as price_service,  GS.install_price as install_price_service,GS.sku_name,GS.spec_value,GS.sku_sn,GS.sku_thumb,C.add_time,G.thumb,GS.spec_json';
+        $field = 'C.cart_id,C.store_id,C.sku_id,C.goods_id,C.num,G.`name`,GS.price, GS.install_price, GS.price as price_service,  GS.install_price as install_price_service,GS.sku_name,GS.spec_value,GS.sku_sn,GS.sku_thumb,C.add_time,G.thumb,GS.spec_json';
         if ($this->adminStore['store_type'] == STORE_DEALER) {
             $field .= ',GSS.price_service, GSS.install_price_service, GSS.`status`';
         }
@@ -81,9 +81,12 @@ class Cart extends FactoryForm
 
     public function _afterList($list = [])
     {
-        //p($list);
+        if ($list && $this->adminStore['store_type'] == STORE_DEALER) {
+            foreach ($list as $key => $value) {
+                $list[$key]['install_price_service'] = $value['install_price_service'] ? $value['install_price_service'] : $value['install_price'];
+                $list[$key]['price_service'] = $value['price_service'] ? $value['price_service'] : $value['price'];
+            }
+        }
         return $list;
     }
-
-
 }
