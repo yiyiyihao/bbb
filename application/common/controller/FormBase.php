@@ -173,11 +173,13 @@ class FormBase extends CommonBase
                 $this->error(lang('ERROR'));
             }
             if(IS_POST){
+                $error = '';
                 $data = $this->_getData();
                 $pk   =   $this->model->getPk();
                 $where[$pk] = $pkId;
                 if (method_exists($this->model, 'save')) {
                     $result = $this->model->save($data, $where);
+                    $error = $this->model->getError();
                 }else{
                     $result = db($this->modelName)->where($where)->update($data);
                 }
@@ -188,7 +190,7 @@ class FormBase extends CommonBase
                     $this->success($msg, url("index", $routes), $pkId);
                 }else{
                     $msg .= lang('FAIL');
-                    $this->error($msg);
+                    $this->error(($error ? $error : $msg));
                 }
             }else{
                 return $this->fetch($this->infotempfile);

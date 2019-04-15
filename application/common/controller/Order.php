@@ -255,7 +255,7 @@ class Order extends FormBase
     protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
-            'order_type' => 1,
+            'order_type' => ['IN', '1,3'],
         ];
         if ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
             $map['SD.ostore_id']=$this->adminUser['store_id'];

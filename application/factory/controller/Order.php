@@ -81,11 +81,21 @@ class Order extends commonOrder
     function _afterList($list)
     {
         if ($list) {
-            $flag = in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
+            $flag = in_array($this->adminUser['group_id'], [GROUP_E_COMMERCE_KEFU]) ? TRUE : FALSE;
             $orderModel = new \app\common\model\Order();
             $list = $orderModel->getOrderList($list,true);
         }
-        //p($list);
         return $list;
+    }
+    
+    function _getWhere()
+    {
+        $where = parent::_getWhere();
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            $where['order_type'] = 3;
+        }else{
+            $where['order_type'] = ['IN', '1,3'];
+        }
+        return $where;
     }
 }

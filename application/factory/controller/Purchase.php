@@ -108,21 +108,6 @@ class Purchase extends FactoryForm
         }
         $this->success('加入购物车成功');
     }
-
-    public function createOrder()
-    {
-        $skuIds=$this->request->param('id','0','intval');
-        $orderModel = new \app\common\model\Order();
-        if (!$skuIds) {
-            $this->error('请选择买单商品');
-        }
-        $order = $orderModel->createOrder($this->adminUser, 'cart', $skuIds, 0, 1, [], '', 1);
-        if ($order === FALSE) {
-            $this->error($orderModel->error);
-        }
-        $this->success('下单成功,前往支付', url('confirm', ['order_sn' => $order['order_sn'], 'pay_code' => '', 'step' => 2]), ['order_sn'=>$order['order_sn']]);
-    }
-
     public function confirm()
     {
         $params = $this->request->param();
@@ -153,6 +138,14 @@ class Purchase extends FactoryForm
             $num = isset($post['num']) ? intval($post['num']) : 0;
         }
         $payments = $orderModel->getOrderPayments($sku['store_id'], 1);
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            $orderType = 3;
+        }else{
+            $orderType = 1;
+        }
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            $params['pay_code'] = 'offline_pay';
+        }
         if (IS_POST) {
             $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
             if (!$payCode) {
@@ -162,14 +155,22 @@ class Purchase extends FactoryForm
             if ($payCode == 'offline_pay') {
                 $params['pay_type']=2;//线下支付
             }
-            $order = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, IS_POST, $params, $remark);
+            $order = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, IS_POST, $params, $remark, $orderType);
             if ($order === FALSE) {
                 $this->error($orderModel->error);
             }
-            $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);
-            //$this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $result['order_sn']]));
+            if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                $order = $orderModel->orderPay($order['order_sn'], $this->adminUser, []);
+                $this->success('订单提交成功', url('order/index'));
+            }else{
+                if ($params['pay_type']==2) {
+                    $this->success('订单提交成功', url('myorder/index'));
+                }else{
+                    $this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);
+                }
+            }
         }else{
-            $result = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, FALSE, $params, $remark);
+            $result = $orderModel->createOrder($this->adminUser, $type, $skuId, $num, FALSE, $params, $remark, $orderType);
             if ($result === FALSE) {
                 $this->error($orderModel->error);
             }

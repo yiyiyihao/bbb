@@ -418,6 +418,21 @@ class Workorder extends FactoryForm
                 }
             }
         }
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            //获取当前厂商对应的电商客服
+            $map = [
+                ['is_del', '=', 0],
+                ['factory_id', '=', $this->adminStore['store_id']],
+                ['group_id', '=', GROUP_E_COMMERCE_KEFU],
+                ['is_admin', '<>', 0],
+            ];
+            $users = model('User')->where($map)->column('user_id');
+            if ($users) {
+                $where['WO.post_user_id'] = ['IN', $users];
+            }else{
+                $where['WO.post_user_id'] = '-1';
+            }
+        }
         return $where;
     }
     

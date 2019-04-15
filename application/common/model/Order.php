@@ -128,7 +128,7 @@ class Order extends Model
             $this->error = '订单未支付, 不能执行当前操作';
             return FALSE;
         }
-        if ($order['order_type'] != 1 && !$order['delivery_status']) {
+        if (!in_array($order['order_type'], [1, 3]) && !$order['delivery_status']) {
             $this->error = '订单未发货, 不能执行当前操作';
             return FALSE;
         }
@@ -146,7 +146,7 @@ class Order extends Model
             $this->error = $this->getError();
             return FALSE;
         }
-        if ($order['order_type'] != 1) {
+        if (!in_array($order['order_type'], [1, 3])) {
             //修改订单产品表 已发货状态改为已收货
             $result = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => 1])->update(['delivery_status' => 2]);
             //修改订单产品物流表 收货状态改为1
@@ -154,7 +154,7 @@ class Order extends Model
         }
         
         $remark = isset($extra['remark']) && trim($extra['remark']) ? trim($extra['remark']) : '';
-        if ($order['order_type'] == 1) {
+        if (in_array($order['order_type'], [1, 3])) {
             $action = '确认完成';
         }else{
             $action = isset($user['admin_type']) && $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
@@ -425,7 +425,7 @@ class Order extends Model
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
         
-        if ($order['order_type'] == 1) {
+        if (in_array($order['order_type'], [1,3])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
         return true;
