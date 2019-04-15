@@ -509,28 +509,41 @@ class Workorder extends FactoryForm
             $this->error(lang('NO ACCESS'));
         }
         $ossubId = isset($params['ossub_id']) ? intval($params['ossub_id']) : 0;
+        $wid = isset($params['wid']) ? intval($params['wid']) : 0;
         $name = $this->modelName = $this->orderTypes[$type];
-        if (!$ossubId) {
-            $this->error(lang('param_error'));
-        }
-        $orderSkuSubModel = db('order_sku_sub');
-        $join = [];
-        $skuModel = new \app\common\model\OrderSku();
-        $ossub = $skuModel->getSubDetail($ossubId, FALSE, TRUE);
-        if (!$ossub) {
-            $this->error('参数错误');
-        }
-        if ($ossub['goods_type'] == 2) {
-            $this->error('样品不允许安装/维修');
-        }
-        if ($ossub['order_status'] != 1) {
-            $this->error('订单已取消或关闭，不允许添加工单');
-        }
-        if (!$ossub['pay_status']) {
-            $this->error('订单未支付，不允许添加工单');
-        }
-        if($ossub['service'] && ($ossub['service']['service_status'] != -1 && $ossub['service']['service_status'] != -2)){
-            $this->error('产品存在退款申请，不允许提交工单');
+        $ossub = [];
+        if ($wid) {
+            $exist = $this->model->find($wid);//安装工单
+            if ($exist) {
+                $exist['appointment'] = date('Y-m-d H:i', time());
+                $exist['work_order_type'] = 2;
+                $this->assign('info', $exist);
+            }
+            $ossub = $exist;
+        }else{
+            if (!$ossubId) {
+                $this->error(lang('param_error'));
+            }
+            $orderSkuSubModel = db('order_sku_sub');
+            $join = [];
+            $skuModel = new \app\common\model\OrderSku();
+            $ossub = $skuModel->getSubDetail($ossubId, FALSE, TRUE);
+            if (!$ossub) {
+                $this->error('参数错误');
+            }
+            if ($ossub['goods_type'] == 2) {
+                $this->error('样品不允许安装/维修');
+            }
+            if ($ossub['order_status'] != 1) {
+                $this->error('订单已取消或关闭，不允许添加工单');
+            }
+            if (!$ossub['pay_status']) {
+                $this->error('订单未支付，不允许添加工单');
+            }
+            if($ossub['service'] && ($ossub['service']['service_status'] != -1 && $ossub['service']['service_status'] != -2)){
+                $this->error('产品存在退款申请，不允许提交工单');
+            }
+            $this->assign('ossub', $ossub);
         }
         if ($type == 1) {
             //判断当前产品对应工单数量
@@ -551,16 +564,6 @@ class Workorder extends FactoryForm
                 $this->error('当前工单存在维修中的工单，不允许添加');
             }
         }
-        $wid = isset($params['wid']) ? intval($params['wid']) : 0;
-        if ($wid) {
-            $exist = $this->model->find($wid);//安装工单
-            if ($exist) {
-                $exist['appointment'] = date('Y-m-d H:i', time());
-                $exist['work_order_type'] = 2;
-                $this->assign('info', $exist);
-            }
-        }
-        $this->assign('ossub', $ossub);
         return $ossub;
     }
     function _getData($ossub = [])
@@ -621,8 +624,8 @@ class Workorder extends FactoryForm
             $data['factory_id']     = $this->adminFactory['store_id'];
             $data['post_user_id']   = ADMIN_ID;
             $data['work_order_type']= $type;
-            $data['osku_id']        = $ossub['osku_id'];
-            $data['ossub_id']       = $ossub['ossub_id'];
+            $data['osku_id']        = $ossub && isset($ossub['osku_id']) ? $ossub['osku_id'] : 0;
+            $data['ossub_id']       = $ossub && isset($ossub['ossub_id']) ? $ossub['ossub_id'] : 0;
             $data['order_sn']       = $ossub['order_sn'];
             $data['goods_id']       = $ossub['goods_id'];
             $data['sku_id']         = $ossub['sku_id'];
