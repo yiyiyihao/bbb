@@ -1,0 +1,159 @@
+{include file="common/header" /}
+    <div class="tab admin-tab">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="goodsInfo clearfix">
+                        <div class="goodsText" style="margin-left:0;">
+                            <h3 class="goodsTitle">{$info.name}</h3>
+                            <div class="priceBox">
+                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
+                            </div>
+                            <div class="specBox">
+                                <p><b>库存</b><span id="saleSku">{$info.goods_stock}</span><span id="skuText"></span></p>
+                                {volist name="info.specs" id="vo"} <p class="spec"><b>{$vo.specname}</b> {volist name="vo.list" id="val"}<span>{$val}</span>{/volist} </p> {/volist}
+                                <p class="clearfix"><b>数量</b>
+                                    <span class="nums_item">
+                                        <span class="nums_btn float-left icon-minus bg-main" type="del"></span><input  class="nums float-left border-main" type="number" value="1" /><span class="nums_btn float-left icon-plus bg-main" type="add"></span>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();  
+    }); 
+</script>
+<script type="text/javascript">
+var action = "buy";
+var goods_id = "<?php echo $info['goods_id'] ?>";
+var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
+$(function(){
+	//选择属性
+	$(".spec span").click(function(){
+		$(this).parent().find(".active").removeClass("active");
+		$(this).addClass("active");
+		//检查属性是否选择完整
+		if(checkSpec()){
+			updatePrice();
+		};
+	})
+	function checkSpec(){
+		var len = $(".spec").length;
+		if($(".spec").length == $(".spec .active").length){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	function updatePrice(){
+		//取得选择属性
+		var specs = {};
+		$(".spec").each(function(i, e) {
+			var specName = $(e).find("b").text();
+			var val = $(e).find(".active").text();
+			specs[specName] = val;
+		});
+		specs = JSON.stringify(specs);
+		//更新价格和库存
+		var url = "/purchase/getspec/id/"+goods_id;
+		$.post(url,{specs:specs},function(data){
+			if(data.status){
+				$("#salePrice").text(data.data.price);
+				$("#skuid").val(data.data.skuid);
+				$("#saleSku").text(data.data.sku);
+				goods_total = data.data.sku;
+				if(data.data.sku <= 0){
+					$("#skuText").text("库存不足");
+					$(".form-button .buy_btn").attr('disabled',"true");
+				}else{
+					$(".form-button .buy_btn").removeAttr("disabled");
+					if(data.data.sku <= 10){
+						$("#skuText").text("库存紧张");
+					}else{
+						$("#skuText").text("");
+					}
+				}
+			}else{
+				$("#saleSku").text('--');
+				$("#skuText").text("无此规格");
+				$(".form-button .buy_btn").attr('disabled',"true");
+			}
+		})
+	}
+	
+	function getSpec(action){
+		
+	}
+	
+	function addCart(action){
+		if(!checkSpec()){
+			layer.msg("请选择商品规格");
+			return;
+		}
+		var skuid = $("#skuid").val();
+		var str = goods_id;
+		if(skuid){
+			str += "/skuid/"+skuid;
+		}
+		var nums = parseInt($(".nums").val().trim());
+		if($.trim(goods_id)==0){
+	     	layer.alert("购买商品不存在");
+			return;
+		}
+		if(nums <= 0){
+	     	layer.alert("购买商品数量不能小于1");
+			return;
+		}
+		if(nums > goods_total){
+	     	layer.alert("剩余库存不足");
+			return;
+		}
+		if(action == 'buy'){
+            layer.msg("正在下单处理,请稍等……",{icon:16,time:4000});
+            var url = "{:url('confirm')}" + '/sku_id/'+skuid+'/num/'+nums+'/action/'+action;
+            window.location.href = url;
+		}else {
+		    $.post('{:url("addCart")}',{sku_id:skuid,nums:nums},function (data) {
+                console.log(data);
+                if (data.code == 0) {
+                    layer.open({
+                        title: '出错了~'
+                        , icon: 2
+                        , content: data.msg
+                        , end: function () {}
+                    });
+                }else {
+                    layer.open({
+                        title: '成功'
+                        , icon: 1
+                        , content: data.msg
+                        , end: function () {
+                            window.location.href = '{:url("index")}';
+                        }
+                    });
+                }
+            });
+        }
+
+	}
+	
+	//修改数量
+	$(".nums_btn").on("click",function(){
+		var nums = $(".nums").val();
+		var type = $(this).attr("type"); //add:增加，del:减少
+		if(type=="add") nums++;
+		else nums--;
+		if(nums <= 0) nums = 1;
+		else if(nums > goods_total) nums = goods_total;
+		$(".nums").val(nums);
+	});
+});
+</script>
+{include file="common/footer_iframe" /}

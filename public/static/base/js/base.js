@@ -96,7 +96,23 @@ $.ajaxSetup({
 					   btn: ['去结算','继续添加'],
 					   maxHeight: '500px',
 					   scrollbar: true,
-					   content:'/goods/choosespec?id=18'
+					   content:'/goods/choosespec?id=18',
+					   yes: function(index, layero){
+						    var body = layer.getChildFrame('body', layero);
+							var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+							//console.log(body.html()) //得到iframe页的body内容
+							//body.find("#chose").text('Hi，我是从父页来的');
+							body.find("#submit").click(function(){
+								var specInfo = iframeWin.getSpec();
+								//console.log(specInfo);
+								if(specInfo){
+									console.log(specInfo);
+									layero.close;
+								}
+							})
+					   },btn2: function(index, layero){
+						  layero.close;
+					   }
 				   });
 				});
 			});
