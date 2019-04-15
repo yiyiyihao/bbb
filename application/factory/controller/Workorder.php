@@ -436,19 +436,7 @@ class Workorder extends FactoryForm
             }
         }
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            //获取当前厂商对应的电商客服
-            $map = [
-                ['is_del', '=', 0],
-                ['factory_id', '=', $this->adminStore['store_id']],
-                ['group_id', '=', GROUP_E_COMMERCE_KEFU],
-                ['is_admin', '<>', 0],
-            ];
-            $users = model('User')->where($map)->column('user_id');
-            if ($users) {
-                $where['WO.post_user_id'] = ['IN', $users];
-            }else{
-                $where['WO.post_user_id'] = '-1';
-            }
+            $where['worder_from'] = 3;
         }
         return $where;
     }
@@ -628,6 +616,11 @@ class Workorder extends FactoryForm
         $data['appointment'] = $appointment ? strtotime($appointment) : 0;
         if ($data['appointment'] <= time()) {
             $this->error('预约服务时间必须大于当前时间');
+        }
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            $data['worder_from'] = 3;
+        }else{
+            $data['worder_from'] = 1;
         }
         return $data;
     }

@@ -40,7 +40,22 @@ function get_promotion_status($info = [])
         }
     }
 }
-
+function get_wroder_from($from = FALSE)
+{
+    $fromTxts = [
+        1  => '渠道工单', //对应order_type=1
+        2  => '电商工单', //对应order_type=2
+        3  => '电商工单', //对应order_type=3
+    ];
+    if ($from === FALSE) {
+        return $fromTxts;
+    }
+    if (isset($fromTxts[$from])) {
+        return $fromTxts[$from];
+    }else{
+        return '';
+    }
+}
 function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
 {
     if (!$time) {
@@ -70,7 +85,7 @@ function get_check_status($status = FALSE){
 
 function get_order_type($type = FALSE){
     $typeList = [
-        1   =>  '平台订单',
+        1   =>  '渠道订单',
         2   =>  '电商订单',
         3   =>  '电商订单',
     ];
