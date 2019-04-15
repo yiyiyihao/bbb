@@ -97,7 +97,7 @@ $.ajaxSetup({
 						   shade: [0.3, '#000000'],
 						   title: false, //不显示标题
 						   area: ['600px','500px'],
-						   btn: ['加到进货单','立即结算'],
+						   btn: ['加入清单','清单列表'],
 						   maxHeight: '500px',
 						   scrollbar: true,
 						   content:'/goods/choosespec?id='+goodsId,
