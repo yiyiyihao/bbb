@@ -209,7 +209,7 @@ class Workorder extends FactoryForm
             $data['install_price'] = 0;
             $data['user_id'] = $this->adminUser['user_id'];
             $data['factory_id'] = $this->adminUser['factory_id'];
-            $data['store_id'] = $this->adminUser['store_id'];
+            $data['store_id'] = $storeId;
             if ($data['work_order_type']==1 && $this->adminUser['group_id']==GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
                 $data['install_price']=$sku['install_price'];
             }
