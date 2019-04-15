@@ -168,6 +168,7 @@
                                           <th width="*">商品规格</th>
                                           <th width="100">建议价格</th>
                                           <th width="100">实际价格</th>
+                                          <th width="100">安装费用</th>
                                           <th width="200">商品编码</th>
                                       </tr>
                                   </thead>
@@ -181,6 +182,7 @@
                                           {$vo.sku_name}
                                       </td>
                                       <td>{$vo.price}</td>
+                                      <td><input class="input" type="text" name="install_price[]" size="10" value="{$vo.install_price}" datatype="*" /></td>
                                       <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
                                       <td>
                                           <input type="hidden" name="skuid[]" value={$vo.sku_id} />
