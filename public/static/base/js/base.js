@@ -97,7 +97,7 @@ $.ajaxSetup({
                             shade: [0.3, '#000000'],
                             title: false, //不显示标题
                             area: ['600px','500px'],
-                            btn: ['加入清单','清单列表'],
+                            btn: ['确定'],
                             maxHeight: '500px',
                             scrollbar: true,
                             content:'/workorder/kefu_order?step=2&id='+goodsId,
@@ -111,7 +111,11 @@ $.ajaxSetup({
                                 }
                                 //获取添加到进货单的规格和数量
                                 var choose = iframeWin.getSpec();
-                                console.log(choose);
+                                if (!choose.sku_id) {
+                                    layer.msg("无此规格");
+                                    return false;
+                                }
+                                window.location.href='/workorder/kefu_order?step=3&sku_id='+choose.sku_id;
                             }
                         });
                     });

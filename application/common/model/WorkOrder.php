@@ -662,17 +662,25 @@ class WorkOrder extends Model
      */
     public function worderLog($worder, $user, $installerId = 0, $action = '', $msg = '')
     {
-        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        //$nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $username = '';
+        if (isset($user['realname']) && $user['realname']) {
+            $username = $user['realname'];
+        } elseif (isset($user['nickname']) && $user['nickname']) {
+            $username = $user['nickname'];
+        } elseif (isset($user['username']) && $user['username']) {
+            $username = $user['username'];
+        }
         $data = [
-            'worder_id' => $worder['worder_id'],
-            'worder_sn' => $worder['worder_sn'],
+            'worder_id'    => $worder['worder_id'],
+            'worder_sn'    => $worder['worder_sn'],
             'installer_id' => $installerId,
-            'user_id'   => isset($user['user_id'])? $user['user_id']:0,
-            'udata_id'   => isset($user['udata_id'])? $user['udata_id']:0,
-            'nickname'  => $user ? $nickname : '系统',
-            'action'    => $action,
-            'msg'       => $msg,
-            'add_time'  => time(),
+            'user_id'      => isset($user['user_id']) ? $user['user_id'] : 0,
+            'udata_id'     => isset($user['udata_id']) ? $user['udata_id'] : 0,
+            'nickname'     => $user ? $username : '系统',
+            'action'       => $action,
+            'msg'          => $msg,
+            'add_time'     => time(),
         ];
         return $result = db('work_order_log')->insertGetId($data);
     }
