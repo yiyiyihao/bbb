@@ -34,6 +34,13 @@ class Workorder extends FactoryForm
         unset($this->subMenu['add']);
         $this->assign('orderTypes', $this->orderTypes);
         $this->assign('type', $this->type);
+        
+        if ($this->adminUser['group_id'] == GROUP_E_CHANGSHANG_KEFU) {
+            $this->subMenu['add'] = [
+                'name' => '新增工单',
+                'url' => url("kefu_order"),
+            ];
+        }
     }
     //维修工单
     public function lists()
@@ -63,6 +70,16 @@ class Workorder extends FactoryForm
     //客服工单
     public function kefu_order(Request $request)
     {
+        $step = $this->request->param('step');
+        if ($step == 1) {
+            $purchase = new \app\factory\controller\Purchase();
+            //             $purchase->indextempfile = 'purchase/index';
+            //             $cart = new \app\factory\controller\Cart();
+            //             $cartList = $cart->getAjaxList(null,'*');
+            $cart = $this->getcart(false);
+            $this->assign("cart",$cart);
+            return $purchase->index();
+        }
         $data['sku_id'] = $request->param('sku_id', '0', 'intval');
         if (empty($data['sku_id'])) {
             $this->error('请选择需要提交工单的商品！');

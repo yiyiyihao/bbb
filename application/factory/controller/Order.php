@@ -7,7 +7,7 @@ class Order extends commonOrder
     public function __construct()
     {
         parent::__construct();
-        if ($this->adminUser['group_id'] == 16) {
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $this->subMenu['add'] = [
                 'name' => '添加订单',
                 'url' => url("import"),
@@ -16,9 +16,6 @@ class Order extends commonOrder
     }
     public function import()
     {
-        if (IS_POST) {
-            
-        }else{
             $purchase = new \app\factory\controller\Purchase();
 //             $purchase->indextempfile = 'purchase/index';
 //             $cart = new \app\factory\controller\Cart();
@@ -26,7 +23,6 @@ class Order extends commonOrder
             $cart = $this->getcart(false);
             $this->assign("cart",$cart);
             return $purchase->index();
-        }
     }
     
     public function getcart($ajax = true){
