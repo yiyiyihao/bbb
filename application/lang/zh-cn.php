@@ -87,6 +87,8 @@ RETURN [
     'CLEARCACHE'            =>  '清理缓存',
     'GETAJAXLIST'           =>  ' 异步获取数据',
     'APPLY'                 =>  '申请提现',
+    'USER_DISTRIBUTOR'      =>  '分销员',
+    'PROMOTION'             =>  '分销活动',
     
     'SUCCESS'               =>  '成功',
     'FAIL'                  =>  '失败',
