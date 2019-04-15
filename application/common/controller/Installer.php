@@ -158,8 +158,7 @@ class Installer extends FormBase
         if ($info) {
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY && $info['factory_id'] != $this->adminUser['store_id']) {
                 $this->error(lang('NO_OPERATE_PERMISSION'));
-            }
-            if (!in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $info['store_id'] != $this->adminUser['store_id']) {
+            }elseif (in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $info['store_id'] != $this->adminUser['store_id']) {
                 $this->error(lang('NO_OPERATE_PERMISSION'));
             }
         }
