@@ -1260,7 +1260,7 @@ class Order extends Model
                     return FALSE;
                 }
                 if ($flag) {
-                    $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
+                    $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service, GS.install_price,GSS.price_service , GS.price,GS.spec_value,GS.sales';
                     $where=[
                         ['GS.sku_id','=',$value['sku_id']],
                         ['GS.is_del','=',0],
@@ -1275,13 +1275,13 @@ class Order extends Model
                     //    'GS.store_id' => $store['factory_id'],
                     //];
                     $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
-                    $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'inner')->find();
+                    $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
                     if (empty($skuInfo)) {
                         $this->error = '商品不存或已被删除';
                         return FALSE;
                     }
-                    $value['price']=$skuInfo['price'];
-                    $value['install_price']=$skuInfo['install_price'];
+                    $value['price']=$skuInfo['price_service'] ? $skuInfo['price_service'] : $skuInfo['price'];
+                    $value['install_price']=$skuInfo['install_price_service'] ? $skuInfo['install_price_service'] : $skuInfo['price'];
                 }
 
                 if ($value['activity_id']) {
