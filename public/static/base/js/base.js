@@ -177,6 +177,7 @@ $.ajaxSetup({
 												onEnd: function(){
 													//获取进货清单信息
 													$.get('/order/getcart',function(data){
+														$(".footP").removeClass('hidden').slideDown();
 														$("#num").text(data.sum);
 														$("#total").text(data.amount);
 													})
