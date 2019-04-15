@@ -89,6 +89,9 @@ class Workorder extends FactoryForm
             //$data['goods_id'] = $request->param('goods_id', '0', 'intval');
 
             $data['work_order_type'] = $request->param('work_type',0,'intval');
+            if (!in_array($data['work_order_type'],[1,2])) {
+                $this->error('请选择工单的类型！');
+            }
             $data['images'] = $request->param('images','');
 
             if (empty($data['user_name'])) {
@@ -141,9 +144,13 @@ class Workorder extends FactoryForm
             //}
 
             $data['post_user_id'] = $this->adminUser['user_id'];
+            $data['install_price'] = 0;
             $data['user_id'] = $this->adminUser['user_id'];
             $data['factory_id'] = $this->adminUser['factory_id'];
             $data['store_id'] = $this->adminUser['store_id'];
+            if ($data['work_order_type']==1 && $this->adminUser['group_id']==GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
+                $data['install_price']=$sku['install_price'];
+            }
             $workOrderModel = model('work_order');
             $sn = $workOrderModel->save($data);
             if ($sn) {
