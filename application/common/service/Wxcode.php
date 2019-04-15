@@ -22,7 +22,8 @@ class Wxcode
         }else{
             $result = $qiniuApi->uploadFileData($data, $filename);
             if (isset($result['error']) && $result['error'] > 0) {
-                $this->error($result['msg']);
+                $this->error = $result['msg'];
+                return FALSE;
             }
             $codeUrl = $wxacode[$type] = $domain.$filename;
             $data = [
