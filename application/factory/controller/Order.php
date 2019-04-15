@@ -28,6 +28,7 @@ class Order extends commonOrder
     public function getcart($ajax = true){
         $join = [
             ['goods_sku GS', 'GS.sku_id= C.sku_id', 'INNER'],
+            ['goods_sku_service GSS', 'GSS.sku_id = C.sku_id AND GSS.is_del=0 AND GSS.store_id='.$this->adminStore['store_id'], 'LEFT'],
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],
         ];
         $where = [
@@ -35,17 +36,26 @@ class Order extends commonOrder
             'C.status'   => 1,
             'C.store_id' => $this->adminStore['store_id'],
         ];
-        $cartList = db("cart")->alias("C")->join($join)->where($where)->select();
+        $field = 'GS.price,C.num,GSS.price_service';
+        $cartList = db("cart")->alias("C")->field($field)->join($join)->where($where)->select();
         //计算清单商品数量
         $count = count($cartList);
         $totalAmount = 0;
-        foreach ($cartList as $k=>$v){
-            $totalAmount += $v['price']*$v['num'];
+        $sum=0;
+        $flag=FALSE;
+        if ($this->adminUser['admin_type']==ADMIN_DEALER) {
+            $flag=TRUE;
+        }
+        foreach ($cartList as $k => $v) {
+            $price = $flag ? $v['price_service'] : $v['price'];
+            $totalAmount += $price * $v['num'];
+            $sum+=$v['num'];
         }
         $cart = [
-            'count' =>  $count,
-            'amount'=>  round($totalAmount,2),
-            'list'  =>  $cartList,
+            'count'  => $count,
+            'sum'    => $sum,
+            'amount' => round($totalAmount, 2),
+            'list'   => $cartList,
         ];
         return $ajax ? $this->ajaxJsonReturn($cart) : $cart;
     }
