@@ -13,7 +13,7 @@
                         </ul>
                     </div>
                 </div>
-                <input type="hidden" name="sku_id" value="{$info.sku_id ?? 0}">
+                <input type="hidden" name="sku_id" value="{$sku_id ?? 0}">
                 <div class="tab-body">
                     <div class="tab-panel active" id="tab-1">
                         <div class="form-group">
@@ -40,8 +40,8 @@
                             </div>
                             <div class="field">
                                 <div class="button-group radio">
-                                    <label class="button"><input name="work_type" value="0" type="radio" datatype="*">安装工单</label>
-                                    <label class="button"><input name="work_type" value="1" type="radio" datatype="*">维修工单</label>
+                                    <label class="button"><input name="work_type" value="1" type="radio" datatype="*">安装工单</label>
+                                    <label class="button"><input name="work_type" value="2" type="radio" datatype="*">维修工单</label>
                                 </div>
                                 <div class="input-note">请选择工单类型</div>
                             </div>

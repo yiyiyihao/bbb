@@ -125,8 +125,6 @@ class Workorder extends FactoryForm
             $this->view->engine->layout(false);
             return $this->fetch('goods_spec');
         }
-
-
         $data['sku_id'] = $request->param('sku_id', '0', 'intval');
         if (empty($data['sku_id'])) {
             $this->error('请选择需要提交工单的商品！');
