@@ -177,6 +177,7 @@ class System extends adminSystem
             $this->success('配置成功');
         }else{
             $config = get_store_config($this->adminStore['store_id'], TRUE);
+            $config['wechat_applet'] = get_store_config($this->adminStore['store_id'], FALSE, 'wechat_applet');
             $this->assign('config', $config);
             return $this->fetch();
         }
