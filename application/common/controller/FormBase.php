@@ -80,6 +80,7 @@ class FormBase extends CommonBase
     public function getAjaxList($where = [], $field = '')
     {
         $params = $this->request->param();
+        unset($params['_']);
         $keyword = isset($params['word']) ? trim($params['word']) : '';
         $isPage = isset($params['isPage']) ? intval($params['isPage']) : 0;
         $currectPage   = isset($params['page']) ? intval($params['page']) : 0;

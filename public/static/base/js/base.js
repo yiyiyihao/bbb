@@ -100,7 +100,7 @@ $.ajaxSetup({
 						   btn: ['加到进货单','立即结算'],
 						   maxHeight: '500px',
 						   scrollbar: true,
-						   content:'/goods/choosespec?id=17',
+						   content:'/goods/choosespec?id='+goodsId,
 						   yes: function(index, layero){
 								var body = layer.getChildFrame('body', index);
 								var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
@@ -135,8 +135,9 @@ $.ajaxSetup({
 												},
 												onEnd: function(){
 													//获取进货清单信息
-													$.get('/cart/getAjaxList',function(data){
-														console.log(data);
+													$.get('/order/getcart',function(data){
+														$("#num").text(data.count);
+														$("#total").text(data.amount);
 													})
 													this.destory();
 												}
