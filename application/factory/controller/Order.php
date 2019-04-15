@@ -20,7 +20,7 @@ class Order extends commonOrder
             
         }else{
             $purchase = new \app\factory\controller\Purchase();
-            $purchase->indextempfile = 'purchase/index';
+//             $purchase->indextempfile = 'purchase/index';
             return $purchase->index();
         }
     }
