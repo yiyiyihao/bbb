@@ -199,7 +199,7 @@ class Purchase extends FactoryForm
                         ];
                         $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
                         if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
-                            $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
+                            $field = 'GS.price, GS.install_price, GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service,GSS.price_service,GS.spec_value,GS.sales';
                             $where = [
                                 'GS.goods_id'  => $id,
                                 'GS.is_del'    => 0,
@@ -208,7 +208,13 @@ class Purchase extends FactoryForm
                                 'GS.spec_json' => $specs,
                             ];
                             $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
-                            $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->find();
+                            $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
+                            if ($skuInfo) {
+                                if ($skuInfo['install_price_service']) {
+                                    $skuInfo['install_price'] = $skuInfo['install_price_service'];
+                                    $skuInfo['price'] = $skuInfo['price_service'];
+                                }
+                            }
                         }
                     }else{
                         $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
