@@ -52,7 +52,7 @@ class Purchase extends FactoryForm
     public function addCart()
     {
         $skuId = $this->request->param('sku_id', '0', 'intval');
-        $factoryId = $this->adminStore['factory_id'];
+        $factoryId = $this->adminUser['factory_id'];
         $num = $this->request->param('num', 1, 'intval');
 
         //判断sku_id是否存在
@@ -73,9 +73,9 @@ class Purchase extends FactoryForm
         }
 
         //判断是否是自己的商品
-        if ($sku['store_id'] == $this->adminStore['store_id']) {
+        /* if ($sku['store_id'] == $this->adminStore['store_id']) {
             $this->error('厂商不能自产自销');
-        }
+        } */
         //判断购物车商品是否存在
         $where = [
             ['sku_id', '=', $skuId],

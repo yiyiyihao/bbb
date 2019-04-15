@@ -85,36 +85,75 @@ $.ajaxSetup({
                 return false;
             });*/
 			//添加到进货单
-			$(table).find('.js-addcart').click(function(){
-				Do.ready('flyer','dialog', function () {
-				   //弹出属性选择窗
-				   layer.open({
-					   type:2,
-					   shade: [0.3, '#000000'],
-					   title: false, //不显示标题
-					   area: ['600px','500px'],
-					   btn: ['去结算','继续添加'],
-					   maxHeight: '500px',
-					   scrollbar: true,
-					   content:'/goods/choosespec?id=17',
-					   yes: function(index, layero){
-						    var body = layer.getChildFrame('body', layero);
-							var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
-							//console.log(body.html()) //得到iframe页的body内容
-							//body.find("#chose").text('Hi，我是从父页来的');
-							body.find("#submit").click(function(){
-								var specInfo = iframeWin.getSpec();
-								//console.log(specInfo);
-								if(specInfo){
-									console.log(specInfo);
-									layero.close;
+			$(table).find('.js-addcart').click(function(event){
+				var goodsId = $(this).data('id');
+				var goodsImg = $(this).data('img');
+				var offset = $("#num").offset();
+				if(goodsId){
+					Do.ready('flyer','dialog', function () {
+					   //弹出属性选择窗
+					   layer.open({
+						   type:2,
+						   shade: [0.3, '#000000'],
+						   title: false, //不显示标题
+						   area: ['600px','500px'],
+						   btn: ['加到进货单','立即结算'],
+						   maxHeight: '500px',
+						   scrollbar: true,
+						   content:'/goods/choosespec?id=17',
+						   yes: function(index, layero){
+								var body = layer.getChildFrame('body', index);
+								var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+								//检查属性有没有选择
+								var check = iframeWin.checkSpec();
+								if(check){
+									//获取添加到进货单的规格和数量
+									var choose = iframeWin.getSpec();
+									//TODO添加到进货清单
+									$.post('/purchase/addCart',choose,function (data) {
+										if(data.code == 0){
+											layer.open({
+												title: '出错了~'
+												, icon: 2
+												, content: data.msg
+												, end: function () {}
+											});
+										}else{
+											//添加成功	
+											var flyer = $('<img class="u-flyer" src="'+goodsImg+'">');
+											var scrollH = $(window).scrollTop();										
+											flyer.fly({
+												start: {
+													left: event.pageX-40,
+													top: event.pageY-40-scrollH
+												},
+												end: {
+													left: offset.left+10,
+													top: offset.top+10,
+													width: 0,
+													height: 0
+												},
+												onEnd: function(){
+													$("#msg").show().animate({width: '200px'}, 200).fadeOut(1000);
+													this.destory();
+												}
+											});
+											layer.close(index);
+										}
+									})
+								}else{
+									layer.msg("请选择规格");
 								}
-							})
-					   },btn2: function(index, layero){
-						  layero.close;
-					   }
-				   });
-				});
+						   },btn2: function(index, layero){
+							  layero.close;
+						   }
+					   });
+					});
+				}else{
+					Do.ready('dialog', function () {
+						layer.msg("参数错误,未设置商品id");
+					})
+				}
 			});
 			//处理排序
 			$(table).find('.js-sort').click(function(){

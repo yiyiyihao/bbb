@@ -1,40 +1,33 @@
 {include file="common/header" /}
-    <div class="tab admin-tab">
-        <div class="panel admin-box fixed-pannel active">
-            <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
-                	<div class="goodsInfo clearfix">
-                        <div class="goodsText" style="margin-left:0;">
-                            <h3 class="goodsTitle">{$info.name}</h3>
-                            <div class="priceBox">
-                                <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
-                            </div>
-                            <div class="specBox">
-                                <p><b>库存</b><span id="saleSku">{$info.goods_stock}</span><span id="skuText"></span></p>
-                                {volist name="info.specs" id="vo"} <p class="spec"><b>{$vo.specname}</b> {volist name="vo.list" id="val"}<span>{$val}</span>{/volist} </p> {/volist}
-                                <p class="clearfix"><b>数量</b>
-                                    <span class="nums_item">
-                                        <span class="nums_btn float-left icon-minus bg-main" type="del"></span><input  class="nums float-left border-main" type="number" value="1" /><span class="nums_btn float-left icon-plus bg-main" type="add"></span>
-                                    </span>
-                                </p>
-                            </div>
+<div class="tab admin-tab">
+    <div class="panel admin-box fixed-pannel active">
+        <div class="tab-body">
+            <div class="tab-panel active" id="tab-1">
+                <div class="goodsInfo clearfix">
+                    <div class="goodsText" style="margin-left:0;">
+                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}"></h3>
+                        <div class="priceBox">
+                            <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
+                        </div>
+                        <div class="specBox">
+                            <p><b>库存</b><span id="saleSku">{$info.goods_stock}</span><span id="skuText"></span></p>
+                            {volist name="info.specs" id="vo"} <p class="spec"><b>{$vo.specname}</b> {volist name="vo.list" id="val"}<span>{$val}</span>{/volist} </p> {/volist}
+                            <p class="clearfix"><b>数量</b>
+                                <span class="nums_item">
+                                    <span class="nums_btn float-left icon-minus bg-main" type="del"></span><input  class="nums float-left border-main" type="number" value="1" /><span class="nums_btn float-left icon-plus bg-main" type="add"></span>
+                                </span>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-<script>
-    Do.ready('base', function () {
-        //表单综合处理
-        $('#form').FormPage();  
-    }); 
-</script>
+</div>
 <script type="text/javascript">
 var action = "buy";
 var goods_id = "<?php echo $info['goods_id'] ?>";
 var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
-$(function(){
 	//选择属性
 	$(".spec span").click(function(){
 		$(this).parent().find(".active").removeClass("active");
@@ -89,7 +82,29 @@ $(function(){
 	}
 	
 	function getSpec(action){
-		
+		if(!checkSpec()){
+			layer.msg("请选择商品规格");
+			return;
+		}
+		var skuid = $("#skuid").val();
+		var str = goods_id;
+		if(skuid){
+			str += "/skuid/"+skuid;
+		}
+		var nums = parseInt($(".nums").val().trim());
+		if($.trim(goods_id)==0){
+	     	layer.alert("购买商品不存在");
+			return;
+		}
+		if(nums <= 0){
+	     	layer.alert("购买商品数量不能小于1");
+			return;
+		}
+		if(nums > goods_total){
+	     	layer.alert("剩余库存不足");
+			return;
+		}
+		return {sku_id:skuid,nums:nums};
 	}
 	
 	function addCart(action){
@@ -154,6 +169,5 @@ $(function(){
 		else if(nums > goods_total) nums = goods_total;
 		$(".nums").val(nums);
 	});
-});
 </script>
 {include file="common/footer_iframe" /}

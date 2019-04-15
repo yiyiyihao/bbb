@@ -439,3 +439,9 @@ body .admin-logo img{ display:none;}
 	-webkit-align-items: center;
 	align-items: center;
 }
+.u-flyer{display: block;width: 50px;height: 50px;border-radius: 5px;position: fixed;z-index: 9999;}
+.footP{padding:10px 0; background:#009688; position:fixed; width:100%; left:0; bottom:0; color:#fff;}
+.footP .iblock{ display:inline-block; height:40px; line-height:40px; padding:0 20px; font-size:18px; position:relative;}
+.footP .iblock i{ font-style:normal; font-size:10px; width:16px; height:16px; text-align:center; line-height:16px; background:#F90; position:absolute; right:8px; top:0px; border-radius:50%;}
+.footP #total{ font-size:15px;}
+.footP .bg-white{ color:#009688; margin:3px 13px 0;}

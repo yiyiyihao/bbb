@@ -40,7 +40,7 @@
               </td>
               <td>
               	<!-- <a href="{:url('detail', ['id' => $vo['goods_id']])}" class="button button-small bg-yellow icon-plus" style="display:none">进货采购</a> -->
-                <a href="javascript:0" class="button button-small bg-yellow icon-plus js-addcart"> 补货</a>
+                <a href="javascript:0" class="button button-small bg-yellow icon-plus js-addcart" data-id="{$vo['goods_id']}" data-img="{$vo.thumb|default='/static/base/images/default.png'}"> 补货</a>
               </td>
             </tr>
           {/volist}
@@ -49,6 +49,11 @@
     </table>
   </div>
   <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+</div>
+<div class="footP">
+    <span class="iblock icon-cutlery"> 清单<i id="num">0</i></span>
+    <span id="total" t="0"></span>
+    <a class="button bg-white icon-check float-right" href=""> 确认</a>
 </div>
 <script>
     Do.ready('base', function () {
