@@ -18,6 +18,8 @@ class Index extends ApiBase
     public $signData = [];
     public function __construct(){
         parent::__construct();
+        if ($this->request->param('test')) {
+        }
         $this->_checkPostParams();
         $this->method = trim($this->postParams['method']);
         $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 0;
