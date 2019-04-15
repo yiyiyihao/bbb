@@ -211,7 +211,9 @@ class Purchase extends FactoryForm
                             $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
                             if ($skuInfo) {
                                 if ($skuInfo['install_price_service']) {
-                                    $skuInfo['install_price'] = $skuInfo['install_price_service'];
+                                    $skuInfo['price'] = $skuInfo['price_service'];
+                                }
+                                if ($skuInfo['price_service']) {
                                     $skuInfo['price'] = $skuInfo['price_service'];
                                 }
                             }
