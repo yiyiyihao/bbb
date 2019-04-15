@@ -347,7 +347,7 @@ class Goods extends FormBase
         $params = $this->request->param();
         $where = [
             ['G.is_del', '=', 0],
-            ['G.activity_id', '=', 0],
+//             ['G.activity_id', '=', 0],
         ];
 
         if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
@@ -766,7 +766,7 @@ class Goods extends FormBase
             'G.is_del'   => 0,
             'G.status'   => 1,
             'G.store_id' => $this->adminUser['factory_id'],
-            'G.activity_id'   => 0,
+//             'G.activity_id'   => 0,
         ];
         if (IS_POST) {
             $ids = $request->param('id', 'intval');
