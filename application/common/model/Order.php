@@ -1211,9 +1211,13 @@ class Order extends Model
             $field = 'C.cart_id, G.activity_id, G.activity_id, S.store_id, S.udata_id, S.sku_id, S.sku_sn, S.goods_type, G.goods_id, G.name, S.sku_name, S.price, S.install_price, C.num, S.sample_purchase_limit,  S.sku_thumb, G.thumb, S.sku_stock, S.stock_reduce_time, S.spec_value, G.is_del as gdel, G.status as gstatus, S.status as sstatus, S.is_del as sdel';
             $list = model('Cart')->alias('C')->join($join)->field($field)->where($where)->select();
         }else{
-            $where = [
-                'sku_id' => intval($skuIds),
+            $skuIds=is_array($skuIds)?$skuIds:[intval($skuIds)];
+            $where=[
+                ['sku_id','IN',$skuIds],
             ];
+            //$where = [
+            //    'sku_id' => intval($skuIds),
+            //];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
             $field = 'G.activity_id,G.activity_id,S.store_id,S.udata_id,S.sku_id,S.sku_sn,S.goods_type,G.goods_id,G.name,S.sku_name,S.price,S.install_price,'.$num.' as num,S.sample_purchase_limit,S.sku_thumb,G.thumb,S.sku_stock,S.stock_reduce_time,S.spec_value,G.is_del as gdel,G.status as gstatus,S.status as sstatus,S.is_del as sdel';
             $list = model('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
@@ -1249,6 +1253,7 @@ class Order extends Model
                     $flag=TRUE;
                 }
             }
+
             foreach ($list as $key => $value) {
                 if (isset($user['udata_id']) && $value['udata_id'] == $user['udata_id']) {
                     $this->error = '不允许购买自己的商品';
@@ -1256,12 +1261,19 @@ class Order extends Model
                 }
                 if ($flag) {
                     $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service install_price,GSS.price_service price,GS.spec_value,GS.sales';
-                    $where = [
-                        'GS.sku_id'   => intval($skuIds),
-                        'GS.is_del'   => 0,
-                        'GS.status'   => 1,
-                        'GS.store_id' => $store['factory_id'],
+                    $where=[
+                        ['GS.sku_id','=',$value['sku_id']],
+                        ['GS.is_del','=',0],
+                        ['GS.status','=',1],
+                        ['GS.store_id','=',$store['factory_id']],
+
                     ];
+                    //$where = [
+                    //    'GS.sku_id'   => intval($skuIds),
+                    //    'GS.is_del'   => 0,
+                    //    'GS.status'   => 1,
+                    //    'GS.store_id' => $store['factory_id'],
+                    //];
                     $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
                     $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'inner')->find();
                     if (empty($skuInfo)) {
