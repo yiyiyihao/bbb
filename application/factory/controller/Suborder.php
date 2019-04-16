@@ -38,6 +38,13 @@ class Suborder extends commonOrder
     {
         $this->error('NO ACCESS');
     }
+
+    public function _getField()
+    {
+        $field= 'S.name as sname, O.*';
+        return $field;
+    }
+    
     function _getJoin(){
         return [
             ['user U', 'O.user_id = U.user_id', 'LEFT'],

@@ -56,7 +56,7 @@
                         </div>
                         <div class="field">
                             <input type="hidden" class="input" id="pay_certificate" name="pay_certificate" size="38" value="{$info['pay_certificate']|default=''}">
-                            <div  style="margin-bottom:10px;"><img src="{$info['pay_certificate']|default='/static/base/images/default.png'}" id="login_bg_thumb_preview" width="200" height="100"></div>
+                            <div  style="margin-bottom:10px;"><a href="{$info['pay_certificate']|default='/static/base/images/default.png'}" target="_blank" title="查看大图"><img src="{$info['pay_certificate']|default='/static/base/images/default.png'}" id="login_bg_thumb_preview" width="200" height="100"></a></div>
                             <a class="button bg-main button-small js-img-upload" data="login_bg" preview="login_bg_thumb_preview" href="javascript:;" >
                                 <span class="icon-upload">上传</span>
                             </a>
