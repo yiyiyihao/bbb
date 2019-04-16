@@ -323,7 +323,7 @@ class Purchase extends FactoryForm
             ['goods_sku GS', 'GS.sku_id= C.sku_id', 'INNER'],
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],
         ];
-        $field = 'GS.price,GS.install_price,C.num';
+        $field = 'GS.price,GS.install_price,C.num,G.name,G.thumb,GS.sku_name';
         if ($this->adminStore['store_type'] == STORE_DEALER) {
             $where=[
                 ['SD.store_id','=',$this->adminStore['store_id']],
