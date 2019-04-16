@@ -274,8 +274,8 @@ class Goods extends FormBase
         $info = $this->_assignInfo();
         $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
         $price=array_column($skus,'price_total');
-        $min=min($price);
-        $max=max($price);
+        $min=min($price) + $info['install_price'];
+        $max=max($price) + $info['install_price'];
         $priceTotal=$min;
         if ($max > $min) {
             $priceTotal.='~'.$max;

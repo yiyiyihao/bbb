@@ -21,7 +21,9 @@
 					          <th width="80">单价</th>
 					          <th width="80">购买数量</th>
 					          <th width="80">支付金额</th>
+					          {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
 					          <th width="120">安装状态</th>
+					          {/if}
 					          <!-- <th width="120">退货退款状态</th> -->
 					          <!-- <th width="*">物流信息</th> -->
 					          <th width="*">操作</th>
@@ -36,7 +38,9 @@
 					              <td>{$vo.price}元</td>
 					              <td>{$vo['num']}</td>
 					              <td>{$vo.real_price}元</td>
+					              {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
 					              <td>-</td>
+					              {/if}
 					              <!-- <td>-</td> -->
 					              <!-- <td>-</td> -->
 					              <td>
@@ -57,6 +61,7 @@
 						              <td>{$v.price}元</td>
 						              <td>1</td>
 						              <td>{$v.real_price}元</td>
+						              {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
 						              <td>
 						              	{if condition="$vo.goods_type != 2"}
 						              	{if ($info['order']['pay_status'] == 1 && $v.work_order)}
@@ -67,6 +72,7 @@
 						              		样品不安装
 						              	{/if}
 						              </td>
+						              {/if}
 						              <!-- <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td> -->
 						              <!-- <td>{$v.delivery_name}<br>{$v.delivery_sn}</td> -->
 						              <td>

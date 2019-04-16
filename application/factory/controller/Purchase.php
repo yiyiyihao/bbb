@@ -303,25 +303,35 @@ class Purchase extends FactoryForm
             }
             $flag=true;
         }
-
+        $flag=false;
         $join = [
             ['goods_sku GS', 'GS.sku_id= C.sku_id', 'INNER'],
-            ['goods_sku_service GSS', 'GSS.sku_id = C.sku_id AND GSS.is_del=0 AND GSS.store_id='.$this->adminStore['store_id'], 'LEFT'],
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],
         ];
+        $field = 'GS.price,GS.install_price,C.num';
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $where=[
+                ['SD.store_id','=',$this->adminStore['store_id']],
+                ['S.status', '=', 1],
+                ['S.is_del', '=', 0],
+            ];
+            $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
+            $join[] = ['goods_sku_service GSS', 'GSS.sku_id = C.sku_id AND GSS.is_del=0 AND GSS.store_id='.$channel['store_id'], 'LEFT'];
+            $field .= ', GSS.price_service,GSS.install_price_service, GSS.id as gid';
+        }
         $where = [
             'C.is_del'   => 0,
             'C.status'   => 1,
             'C.store_id' => $this->adminStore['store_id'],
         ];
-        $field = 'GS.price,C.num,GSS.price_service';
         $cartList = db("cart")->alias("C")->field($field)->join($join)->where($where)->select();
         //计算清单商品数量
         $count = count($cartList);
         $totalAmount = 0;
         $sum=0;
         foreach ($cartList as $k => $v) {
-            $price = $flag ? $v['price_service'] : $v['price'];
+//             $price = $flag ? $v['price_service'] : $v['price'];
+            $price = isset($v['gid'])? $v['price_service'] : $v['price'];
             $totalAmount += $price * $v['num'];
             $sum+=$v['num'];
         }

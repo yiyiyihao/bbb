@@ -1,6 +1,9 @@
 <div class="admin-detail panel">
-    <!-- <form method="post" class="form-x admin-form form-auto" id="form" action="{:url('purchase/createOrder')}"> -->
+    {if ($adminUser['group_id'] == $Think.const.GROUP_E_COMMERCE_KEFU)}
+    <form method="post" class="form-x admin-form form-auto" id="form" action="{:url('purchase/confirm')}">
+    {else/}
     <form method="get" class="form-x admin-form form-auto" id="form" action="{:url('purchase/confirm')}">
+    {/if}
     	<input type="hidden" name='create_type' value="cart">
         <div class="tab admin-tab">
             <div class="panel admin-box active">
@@ -96,7 +99,9 @@
     });
     Do.ready('base', function () {
         //表单综合处理
-        /* $('#form').FormPage(); */
+        {if ($adminUser['group_id'] == $Think.const.GROUP_E_COMMERCE_KEFU)}
+        $('#form').FormPage();
+        {/if}
         $('#table').Table({});
     });
 </script>
