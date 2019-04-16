@@ -109,7 +109,7 @@ class Admin extends Index
         if (!$appid || !$appsecret) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'Appid/AppSecret配置不能为空']);
         }
-        $url = 'http://h5.smarlife.cn';
+        $url = 'http://m.smarlife.cn';
         $url = 'http://h5.imliuchang.cn';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
@@ -349,7 +349,7 @@ class Admin extends Index
         }else{
             $flag=$storeModel->save($params,['store_id'=>$storeId]);
         }
-        if ($storeId===false || $flag === false) {
+        if ($storeId===false || (isset($flag) && $flag === false)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
         $data = [
