@@ -1,6 +1,8 @@
 <?php
 namespace app\common\controller;
 //厂商订单管理
+use think\Db;
+
 class Order extends FormBase
 {
     public $config;
@@ -203,7 +205,11 @@ class Order extends FormBase
     }
     
     function _getField(){
-        return 'S.name as sname, O.*';
+        $field= 'S.name as sname, O.*';
+        if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
+            $field.=',SS.name ssname';
+        }
+        return $field;
     }
     function _getAlias(){
         return 'O';
@@ -214,6 +220,7 @@ class Order extends FormBase
             $join = [
                 ['store_dealer SD', 'SD.store_id = O.user_store_id', 'LEFT'],
                 ['store S', 'S.store_id = SD.store_id', 'LEFT'],
+                ['store SS', 'SS.store_id = O.user_store_id', 'LEFT'],
             ];
         }
         return $join;
@@ -227,6 +234,14 @@ class Order extends FormBase
         $where = $this->_buildmap($params);
         if ($params && !isset($where['O.order_status'])) {
             $where['O.order_status'] = ['neq','4'];
+        }
+        if ($this->adminStore['store_type']==STORE_DEALER) {
+            $where['O.user_store_id']=$this->adminStore['store_id'];
+        } elseif ($this->adminStore['store_type']==STORE_FACTORY) {
+            $where['O.store_id']=$this->adminStore['store_id'];
+        } elseif ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
+            $storeId=$this->adminStore['store_id'];
+            $where[]=Db::raw('O.user_store_id = '.$storeId.' OR SD.ostore_id='.$storeId);
         }
         if ($params) {
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
@@ -257,11 +272,6 @@ class Order extends FormBase
         $map = [
             'order_type' => ['IN', '1,3'],
         ];
-        if ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
-            $map['SD.ostore_id']=$this->adminUser['store_id'];
-        }else{
-            $map['O.store_id'] = $this->adminUser['store_id'];
-        }
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;
             $map['O.pay_status'] = $param['pay_status'];
