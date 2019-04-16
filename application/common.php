@@ -429,7 +429,7 @@ function get_order_status($order = array()) {
             if (in_array($order['order_type'], [1, 3])) {
                 if (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 0) {
                    $arr['now'] = 'create'; // 创建订单
-                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay';
+                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay_confirm';
                    $arr['status'] = 1;
                 }elseif (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 1) {
                    $arr['now'] = 'pay';    // 已支付
@@ -481,7 +481,7 @@ function ch_order_status($ident) {
         'delete'        => '已删除',
         'create'        => '创建订单',
         'load_pay'      => '待付款',
-        'load_pay_confirm'=>'付款待确认',
+        'load_pay_confirm'=>'待确认收款',
         'load_delivery' => '待发货',
         'pay'           => '已付款',
         'part_delivery' => '部分发货',
