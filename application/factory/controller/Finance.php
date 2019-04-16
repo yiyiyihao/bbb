@@ -112,7 +112,7 @@ class Finance extends FactoryForm
      */
     public function apply()
     {
-        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE])) {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error('NO ACCESS');
         }
         if (!$this->apply) {
