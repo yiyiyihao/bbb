@@ -50,11 +50,7 @@
   </div>
   <div class="panel-foot table-foot clearfix">{$page|raw}</div>
 </div>
-<div class="footP{notpresent name='cart'} hidden{else/}{eq name='cart.sum' value='0'} hidden{/eq}{/notpresent}">
-    <span class="iblock icon-top"> 清单<i id="num">{present name="cart.count"}{$cart.count}{else/}0{/present}</i></span>
-    <span>￥</span><span id="total" t="0">{present name="cart.count"}{$cart.amount}{else/}0.00{/present}</span>
-    <a class="button bg-white icon-check float-right" href="/cart/index"> 确认</a>
-</div>
+{include file="common/goods_cart" /}
 <script>
     Do.ready('base', function () {
        $('#table').Table({});

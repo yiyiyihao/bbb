@@ -1,0 +1,30 @@
+<div class="footP{notpresent name='cart'} hidden{else/}{eq name='cart.sum' value='0'} hidden{/eq}{/notpresent}">
+	<div class="footCart">
+        <span class="iblock icon-top"> 清单<i id="num">{present name="cart.sum"}{$cart.sum}{else/}0{/present}</i></span>
+        <span>￥</span><span id="total" t="0">{present name="cart.sum"}{$cart.amount}{else/}0.00{/present}</span>
+        <a class="button bg-white icon-right float-right" href="/cart/index"> 确认</a>
+    </div>
+    <ul class="footList hidden">
+    	{present name="cart.list"}
+        	{volist name="cart.list" id="vo"}
+            <li>
+            	<div class="cartImg"><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="50"></div>
+                <div class="cartInfo">
+                	<div class="goodsName float-left">
+                        <p>{$vo.name}</p> 
+                        <p class="skuname">{$vo.sku_name}</p>
+                    </div>
+                    <p class="cartCtrl float-left"><span>￥{$vo.price_service} </span><span> * {$vo.num}</span></p>
+                </div>
+            </li>
+            {/volist}
+        {/present}
+    </ul>
+</div>
+<script>
+$(function(){
+	$(".footCart").click(function(){		
+		$(".footList").toggleClass("hidden");
+	})
+})
+</script>

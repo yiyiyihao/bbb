@@ -445,3 +445,11 @@ body .admin-logo img{ display:none;}
 .footP .iblock i{ font-style:normal; font-size:10px; width:16px; height:16px; text-align:center; line-height:16px; background:#F90; position:absolute; right:8px; top:0px; border-radius:50%;}
 .footP #total{ font-size:15px;}
 .footP .bg-white{ color:#009688; margin:3px 13px 0;}
+.footP .footList{}
+.footP .footList li{ width:100%; padding:10px 10px 10px 20px; overflow:hidden; position:relative;}
+.footP .footList li .cartImg{ float:left; width:50px; border-radius:5px; overflow:hidden;}
+.footP .footList li .cartInfo{ margin-left:80px; overflow:hidden;}
+.footP .footList li .cartInfo .goodsName { width:40%;}
+.footP .footList li .cartInfo .goodsName .skuname{ font-size:13px; margin-top:5px;}
+.footP .footList li .cartInfo .cartCtrl{}
+.footP .footList li .cartInfo .cartCtrl span{ display:inline-block; margin:0 3px;}

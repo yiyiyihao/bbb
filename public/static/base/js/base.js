@@ -180,6 +180,22 @@ $.ajaxSetup({
 														$(".footP").removeClass('hidden').slideDown();
 														$("#num").text(data.sum);
 														$("#total").text(data.amount);
+														var listhtml = "";
+														if(data.list.length > 0){
+															$.each(data.list,function(i,item){
+																listhtml += "<li>";
+																listhtml += '<div class="cartImg"><img src="'+item.thumb+'" width="50"></div>';
+																listhtml += '<div class="cartInfo">';
+																listhtml += '<div class="goodsName float-left">';
+																listhtml += '<p>'+item.name+'</p>';
+																listhtml += '<p class="skuname">'+item.sku_name+'</p>';
+																listhtml += '</div>';
+																listhtml += '<p class="cartCtrl float-left"><span>￥'+item.price_service+' </span><span> * '+item.num+'</span></p>';
+																listhtml += '</div>';
+																listhtml += "</li>";
+															})
+														}
+														$(".footList").html(listhtml);
 													})
 													this.destory();
 												}
