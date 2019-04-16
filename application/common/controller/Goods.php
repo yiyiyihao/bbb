@@ -36,6 +36,8 @@ class Goods extends FormBase
         if ($this->request->isPost() && $this->adminStore['store_type'] == STORE_SERVICE_NEW) {//新服务商
             $skuIds = $this->request->param('skuid', 0, 'intval');
             $priceService = $this->request->param('price_service');
+            $installService = $this->request->param('install_price_service');
+            //p($installService);
             $status = $this->request->param('status');
             $sortOrder = $this->request->param('sort_order');
             $id = $this->request->param('id', 0, 'intval');
@@ -55,17 +57,21 @@ class Goods extends FormBase
                     $where = ['id' => $goodSku['id']];
                 }
                 $data = [
-                    'store_id'      => $storeId,
-                    'sku_id'        => $skuId,
-                    'goods_id'      => $id,
-                    'price_service' => $priceService[$k],
-                    'status'        => $status,
-                    'sort_order'    => $sortOrder,
+                    'store_id'              => $storeId,
+                    'sku_id'                => $skuId,
+                    'goods_id'              => $id,
+                    'price_service'         => $priceService[$k],
+                    'install_price_service' => $installService[$k],
+                    'status'                => $status,
+                    'sort_order'            => $sortOrder,
                 ];
                 $result = (new GoodsSkuService)->save($data, $where);
             }
-            $max = max($priceService);
-            $min = min($priceService);
+            $maxMin=array_map(function ($price,$fee) {
+                return $price+$fee;
+            },$priceService,$installService);
+            $max = max($maxMin);
+            $min = min($maxMin);
             $ret = (new GoodsService)->save(['min_price_service' => $min, 'max_price_service' => $max,'status'=>$status], ['store_id' => $storeId, 'is_del' => 0, 'goods_id' => $id]);
             $this->success("操作成功！",url('index'));
         } else {
@@ -78,15 +84,20 @@ class Goods extends FormBase
         if ($list) {
             foreach ($list as $key => $value) {
                 if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
-                    $min = bcadd($value['min_price_service'], $value['install_price'], 2);
-                    $max = bcadd($value['max_price_service'], $value['install_price'], 2);
-                    $list[$key]['price_store'] = $min == $max ? $max : $min . '~' . $max;
+                    //$minMaxService = db('goods_sku_service')->fieldRaw("max(price_service+install_price_service) as max,min(price_service+install_price_service) as min")->where([
+                    //    'store_id'=>$this->adminStore['store_id'],
+                    //    'goods_id'=>$value['goods_id'],
+                    //    'is_del'=>0,
+                    //])->cache('goood_service_price_max_min_'.$value['goods_id'],60)->find();
+                    $list[$key]['price_store'] = $value['min_price_service'] == $value['max_price_service'] ? $value['min_price_service'] : $value['min_price_service'] . '~' . $value['max_price_service'];
                     $list[$key]['status'] =$value['status_service'];
                 }
-                $minPrice = bcadd($value['min_price'], $value['install_price'], 2);
-                $maxPrice = bcadd($value['max_price'], $value['install_price'], 2);
-                $list[$key]['price'] = $minPrice == $maxPrice ? $minPrice : $minPrice . '~' . $maxPrice;
-
+                $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
+                    'store_id'=>$this->adminStore['factory_id'],
+                    'goods_id'=>$value['goods_id'],
+                    'is_del'=>0,
+                ])->cache('goood_price_max_min_'.$value['goods_id'],60)->find();
+                $list[$key]['price'] = $minMax['max'] == $minMax['min'] ? $minMax['min'] : $minMax['min'] . '~' . $minMax['max'];
             }
         }
         if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
@@ -273,18 +284,28 @@ class Goods extends FormBase
     public function choosespec(){
         $info = $this->_assignInfo();
         $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
-        $price=array_column($skus,'price_total');
-        $min=min($price) + $info['install_price'];
-        $max=max($price) + $info['install_price'];
-        $priceTotal=$min;
-        if ($max > $min) {
-            $priceTotal.='~'.$max;
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $minMax = db('goods_sku_service')->fieldRaw("max(price_service+install_price_service) as max,min(price_service+install_price_service) as min")->where([
+                'store_id'=>$this->adminStore['store_id'],
+                'goods_id'=>$info['goods_id'],
+                'is_del'=>0,
+            ])->cache('goood_service_price_max_min_'.$info['goods_id'],0)->find();
+        }else{
+            $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
+                'store_id'=>$this->adminStore['factory_id'],
+                'goods_id'=>$info['goods_id'],
+                'is_del'=>0,
+            ])->cache('goood_price_max_min_'.$info['goods_id'],0)->find();
+        }
+        $priceTotal=$minMax['min'];
+        if ($minMax['max'] > $minMax['min']) {
+            $priceTotal.='~'.$minMax['max'];
         }
         $this->assign('price_total',$priceTotal);
         $this->assign('skus', is_array($skus) ? $skus : []);
         $info['sku_id'] = is_int($skus) ? $skus : 0;
         $info['specs'] = json_decode($info['specs_json'],true);
-        //pre($info);
+
         $this->assign('info', $info);
         $this->import_resource(array(
 //             'script'=> 'jquery.jqzoom-core.js',
@@ -420,7 +441,7 @@ class Goods extends FormBase
         //取得属性详情
         if ($id) {
             if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {//服务商
-                $field = 'GS.sku_id,GS.sku_sn,GS.sku_name,GS.price,GSS.price_service,GSS.sort_order sort_order_service,GS.install_price,GS.sku_stock';
+                $field = 'GS.sku_id,GS.sku_sn,GS.sku_name,GS.price,GSS.price_service,GSS.install_price_service,GSS.sort_order sort_order_service,GS.install_price,GS.sku_stock';
                 $where = [
                     'GS.goods_id'  => $id,
                     'GS.is_del'    => 0,

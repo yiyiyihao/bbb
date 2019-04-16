@@ -4,22 +4,7 @@
         <span>￥</span><span id="total" t="0">{present name="cart.sum"}{$cart.amount}{else/}0.00{/present}</span>
         <a class="button bg-white icon-right float-right" href="/cart/index"> 确认</a>
     </div>
-    <ul class="footList hidden">
-    	{present name="cart.list"}
-        	{volist name="cart.list" id="vo"}
-            <li>
-            	<div class="cartImg"><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="50"></div>
-                <div class="cartInfo">
-                	<div class="goodsName float-left">
-                        <p>{$vo.name}</p> 
-                        <p class="skuname">{$vo.sku_name}</p>
-                    </div>
-                    <p class="cartCtrl float-left"><span>￥{$vo.price_service} </span><span> * {$vo.num}</span></p>
-                </div>
-            </li>
-            {/volist}
-        {/present}
-    </ul>
+
 </div>
 <script>
 $(function(){

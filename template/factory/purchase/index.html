@@ -32,9 +32,9 @@
               <td>{$vo['name']}</td>
               <!-- <td>{$vo.goods_type == 1 ? '普通商品' : '样品'}</td> -->
               <td>
-              	{$vo.min_price + $vo.install_price}
+              	{$vo.min_price}
               	{if condition="$vo.min_price != $vo.max_price"}
-              	  ~ {$vo.max_price + $vo.install_price}
+              	  ~ {$vo.max_price}
               	{/if}
               	元
               </td>

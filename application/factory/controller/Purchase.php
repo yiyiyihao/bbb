@@ -214,7 +214,7 @@ class Purchase extends FactoryForm
                         ];
                         $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
                         if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
-                            $field = 'GS.price, GS.install_price, GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service,GSS.price_service,GS.spec_value,GS.sales';
+                            $field = 'GS.sku_id,GS.sku_stock,(GSS.price_service+GSS.install_price_service) AS price';
                             $where = [
                                 'GS.goods_id'  => $id,
                                 'GS.is_del'    => 0,
@@ -224,24 +224,16 @@ class Purchase extends FactoryForm
                             ];
                             $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
                             $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
-                            if ($skuInfo) {
-                                if ($skuInfo['install_price_service']) {
-                                    $skuInfo['price'] = $skuInfo['price_service'];
-                                }
-                                if ($skuInfo['price_service']) {
-                                    $skuInfo['price'] = $skuInfo['price_service'];
-                                }
-                            }
                         }
                     }else{
-                        $skuInfo = db('goods_sku')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+                        $skuInfo = db('goods_sku')->fieldRaw('sku_id,sku_stock,(price+install_price) as price')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
                     }
                     if($skuInfo){
                         $return = array(
                             'status'    => 1,
                             'data'      => array(
                                 'skuid' => $skuInfo['sku_id'],
-                                'price' => ($skuInfo['price'] + $skuInfo['install_price']),
+                                'price' => $skuInfo['price'],
                                 'sku'   => $skuInfo['sku_stock'],
                             )
                         );
@@ -262,6 +254,13 @@ class Purchase extends FactoryForm
     {
         return 'G';
     }
+
+    public function _getField()
+    {
+        $field='G.goods_id,G.name,G.goods_type,G.min_price,G.install_price,G.max_price,G.install_price,G.thumb';
+        return $field;
+    }
+
     
     function  _getOrder()
     {
@@ -297,7 +296,7 @@ class Purchase extends FactoryForm
                 ['S.is_del', '=', 0],
             ];
             $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
-            if (isset($channel['store_type']) && $channel['store_type'] == ADMIN_SERVICE_NEW) {
+            if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
                 $join[]=['goods_service GS','G.goods_id = GS.goods_id AND GS.is_del=0 and GS.status=1 and GS.store_id='.$channel['store_id']];
             }
         }
@@ -306,19 +305,41 @@ class Purchase extends FactoryForm
 
     public function _afterList($list)
     {
-        $flag=false;
+        $channelId = 0;
         if ($this->adminStore['store_type'] == STORE_DEALER) {
-            foreach ($list as $k=>$v) {
-                if (isset($list[$k]['min_price_service'])) {
-                    $list[$k]['min_price']=$list[$k]['min_price_service'];
-                    $list[$k]['max_price']=$list[$k]['max_price_service'];
-                }else{
-                    break;
-                }
+            $channelId = db('store_dealer')->alias('SD')
+                ->join('store S', 'SD.ostore_id=S.store_id')
+                ->where([
+                    'SD.store_id' =>$this->adminStore['store_id'],
+                    'status' => 1,
+                    'is_del' => 0,
+                ])
+                ->value('ostore_id');
+            if (empty($channelId)) {
+                $this->error('服务商不存在或已被禁用');
             }
-            $flag=true;
         }
-        $flag=false;
+        foreach ($list as $k => $v) {
+            if ($this->adminStore['store_type'] == STORE_DEALER) {
+                $minMax = db('goods_sku_service')->fieldRaw("max(price_service+install_price_service) as max,min(price_service+install_price_service) as min")->where([
+                    'store_id' => $channelId,
+                    'goods_id' => $v['goods_id'],
+                    'is_del'   => 0,
+                ])->cache('goood_service_price_max_min_' . $v['goods_id'], 0)->find();
+                $list[$k]['min_price'] = $minMax['min'];
+                $list[$k]['max_price'] = $minMax['max'];
+            } else {
+                $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
+                    'store_id' => $this->adminStore['factory_id'],
+                    'goods_id' => $v['goods_id'],
+                    'is_del'   => 0,
+                ])->cache('goood_price_max_min_' . $v['goods_id'], 0)->find();
+                $list[$k]['min_price'] = $minMax['min'];
+                $list[$k]['max_price'] = $minMax['max'];
+            }
+        }
+
+
         $join = [
             ['goods_sku GS', 'GS.sku_id= C.sku_id', 'INNER'],
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],

@@ -181,9 +181,9 @@
                                           <input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" />
                                           {$vo.sku_name}
                                       </td>
-                                      <td>{$vo.price}</td>
-                                      <td><input class="input" type="text" name="install_price[]" size="10" value="{$vo.install_price}" datatype="*" /></td>
+                                      <td>{:bcadd($vo.price,$vo.install_price,2)}</td>
                                       <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
+                                      <td><input class="input" type="text" name="install_price_service[]" size="10" value="{$vo.install_price_service}" datatype="*" /></td>
                                       <td>
                                           <input type="hidden" name="skuid[]" value={$vo.sku_id} />
                                           {$vo.sku_sn}
