@@ -137,7 +137,22 @@ class Purchase extends FactoryForm
         if (IS_POST) {
             $num = isset($post['num']) ? intval($post['num']) : 0;
         }
-        $payments = $orderModel->getOrderPayments($sku['store_id'], 1);
+        $storeId = $sku['store_id'];
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $storeId = db('store_dealer')->alias('SD')->join('store S', 'S.store_id=SD.ostore_id', 'INNER')->where([
+                'SD.store_id' => $this->adminStore['store_id'],
+                'S.is_del'    => 0,
+                'S.status'    => 1,
+            ])->value('ostore_id');
+            if (empty($storeId)) {
+                $this->error('服务商不存在或被禁用');
+            }
+        }
+        $payments = $orderModel->getOrderPayments($storeId, 1);
+        if (empty($payments)) {
+            $strorName = $this->adminStore['store_type'] == STORE_DEALER ? '服务商' : '厂商';
+            $this->error($strorName . '未配置支付信息');
+        }
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $orderType = 3;
         }else{

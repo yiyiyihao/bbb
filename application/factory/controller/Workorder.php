@@ -35,7 +35,7 @@ class Workorder extends FactoryForm
         $this->assign('orderTypes', $this->orderTypes);
         $this->assign('type', $this->type);
         
-        if ($this->adminUser['group_id'] == GROUP_E_CHANGSHANG_KEFU) {
+        if (in_array($this->adminUser['group_id'],[GROUP_E_CHANGSHANG_KEFU,GROUP_E_COMMERCE_KEFU])) {
             $this->subMenu['add'] = [
                 'name' => '新增工单',
                 'url' => url("kefu_order"),
@@ -210,6 +210,7 @@ class Workorder extends FactoryForm
             $data['user_id'] = $this->adminUser['user_id'];
             $data['factory_id'] = $this->adminUser['factory_id'];
             $data['store_id'] = $storeId;
+            $data['worder_from'] = 3;//客服工单
             if ($data['work_order_type']==1 && $this->adminUser['group_id']==GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
                 $data['install_price']=$sku['install_price'];
             }

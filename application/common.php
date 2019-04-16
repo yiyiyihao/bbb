@@ -172,7 +172,7 @@ function get_status($status = FALSE){
     }
 }
 /**
- * 提现状态
+ * 商户类型
  */
 function get_store_type($type = FALSE){
     $types = [
@@ -180,6 +180,7 @@ function get_store_type($type = FALSE){
 //         STORE_CHANNEL   => '渠道商',
         STORE_DEALER    => '零售商',
 //         STORE_SERVICE   => '服务商',
+        STORE_ECHODATA=>'电商',
         STORE_SERVICE_NEW=>'服务商',
     ];
     if ($type === FALSE) {
