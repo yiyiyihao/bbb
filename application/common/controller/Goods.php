@@ -809,7 +809,7 @@ class Goods extends FormBase
             'G.is_del'   => 0,
             'G.status'   => 1,
             'G.store_id' => $this->adminUser['factory_id'],
-//             'G.activity_id'   => 0,
+            //'G.activity_id'   => 0,
         ];
         if (IS_POST) {
             $ids = $request->param('id', 'intval');
@@ -826,7 +826,7 @@ class Goods extends FormBase
                 }
                 $data = [
                     'goods_id'           => $goods['goods_id'],
-                    'store_id'           => $this->adminFactory['store_id'],
+                    'store_id'           => $this->adminStore['store_id'],
                     'min_price_service'  => $goods['min_price'],
                     'max_price_service'  => $goods['max_price'],
                     'specs_json_service' => $goods['specs_json'],
@@ -840,14 +840,14 @@ class Goods extends FormBase
             }
             $this->success("导入成功！");
         } else {
-            $field = 'G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn, GS.goods_id';
+            $field = 'G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn';
             $order = 'G.goods_id DESC';
             $joinOn='G.goods_id = GS.goods_id AND GS.is_del = 0 AND GS.store_id ='.$this->adminUser['store_id'];
             $join=[
                 //['goods_sku GDS','GDS.goods_id=G.goods_id','INNER'],
                 ['goods_service GS',$joinOn,'LEFT'],
             ];
-            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.goods_id')->order($order)->paginate($this->perPage, false);
+            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.id')->order($order)->paginate($this->perPage, false);
             $list = $query->items();
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);
