@@ -68,6 +68,9 @@
           <th width="*">预约时间</th>
           <th width="*">工程师信息</th>
           <th width="100">申请时间</th>
+          {if condition="$type != 2"}
+          <th width="*">是否需要携带商品</th>
+          {/if}
           <th width="70">状态</th>
           <th width="*">操作</th>
         </tr>
@@ -91,6 +94,9 @@
               <td>{notempty name='$vo.appointment'}{$vo.appointment|date="Y-m-d H:i"}{/notempty}</td>
               <td>{$vo.realname ?? '-'}<br>{$vo.installer_phone ?? ''}</td>
               <td>{$vo.add_time|date="Y-m-d H:i:s"}</td>
+              {if condition="$type != 2"}
+              <td><span class="tag bg-green">{:get_status($vo['carry_goods'])}</span></td>
+              {/if}
               <td><span class="tag bg-green">{:get_work_order_status($vo['work_order_status'])}</span></td>
               <td>
                 <span class="button-group">
