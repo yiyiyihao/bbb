@@ -21,9 +21,9 @@
 					          {volist name="list.skus" id="vo"}
 					            <tr>
 					              <td>{$vo.name}<br>{$vo.sku_name}</td>
-					              <td>{$vo['install_price']+$vo['price']}元</td>
+					              <td>{$vo['pay_price']}元</td>
 					              <td>{$vo.num}<input type="hidden" name="num" value="{$vo.num}"></td>
-					              <td>{$vo.num * ($vo['install_price']+$vo['price'])}元</td>
+					              <td>{$vo.num * ($vo['pay_price'])}元</td>
 					            </tr>
 					          {/volist}
 					      </tbody>

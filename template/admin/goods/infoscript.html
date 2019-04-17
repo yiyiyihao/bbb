@@ -68,6 +68,7 @@
 				flag = true;
 			}
 			$("#min_price").val(minPrice).attr("readonly",flag);
+			$("#install_price").attr("readonly",flag);
 		}
 		function changeStock(){
 			//计算所有属性库存总和
@@ -138,6 +139,7 @@
 				var specsJson = JSON.stringify(sepcArr);
 				$("#specs_json").val(specsJson);
 				$("#min_price").attr('readonly', true);
+				$("#install_price").attr("readonly",true);
 				//debug(JSON.stringify(sepcArr));
 				combine(0,{},goodsSn);
 			}else{

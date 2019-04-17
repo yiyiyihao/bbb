@@ -95,7 +95,7 @@
                             <div class="input-note">商品编码请不要填写特殊字符</div>
                         </div>
                     </div>
-
+					{if ($store_type != $Think.const.STORE_SERVICE_NEW)/}
                     <div class="form-group">
                         <div class="label">
                           <label>商品规格</label>
@@ -122,8 +122,9 @@
                           </div>
                         </div>
                     </div>
+                    {/if}
 
-
+					{if (($store_type == $Think.const.STORE_SERVICE_NEW && $skuList) || $store_type != $Think.const.STORE_SERVICE_NEW)/}
                     <div class="form-group">
                         <div class="label">
                           <label>规格明细</label>
@@ -160,7 +161,7 @@
                                   {/if}
                                 </tbody>
                               </table>
-                              {else if $store_type ==$Think.const.STORE_SERVICE_NEW /}
+                              {elseif ($store_type ==$Think.const.STORE_SERVICE_NEW)/}
                               <table id="table" class="table table-hover ">
                                   <thead>
                                       <tr>
@@ -201,6 +202,18 @@
                           </div>    
                         </div>
                     </div>
+                    {/if}
+                    {if $store_type !=$Think.const.STORE_FACTORY && $info && empty($skuList)}
+                    <div class="form-group">
+		                <div class="label">
+		                  <label>商品售价</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="min_price" datatype="*" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		            </div>
+                    {/if}
                     {if $store_type ==$Think.const.STORE_FACTORY}
                     <div class="form-group">
 		                <div class="label">
@@ -211,15 +224,15 @@
 		                  <div class="input-note"></div>
 		                </div>
 		            </div>
-                    <!--<div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">-->
-		                <!--<div class="label">-->
-		                  <!--<label>安装费用</label>-->
-		                <!--</div>-->
-		                <!--<div class="field">-->
-		                  <!--<input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元-->
-		                  <!--<div class="input-note"></div>-->
-		                <!--</div>-->
-		              <!--</div>-->
+                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
+		                <div class="label">
+		                  <label>安装费用</label>
+		                </div>
+		                <div class="field">
+		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
+		                  <div class="input-note"></div>
+		                </div>
+		              </div>
 		              
 		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
                         <div class="label">
@@ -286,6 +299,29 @@
                                 {/if}否</label>
                             </div>
                             <div class="input-note">下架后不在前台显示</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>电商专用</label>
+                        </div>
+                        <div class="field">
+                           {notpresent name="info.e_commerce"}
+                                {assign name="info.e_commerce" value="0" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.e_commerce eq 1"}
+                                <label class="button active"><input name="e_commerce" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="e_commerce" value="1" type="radio">
+                                {/if}是</label>
+                                {if condition="$info.e_commerce eq 0"}
+                                <label class="button active"><input name="e_commerce" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="e_commerce" value="0" type="radio">
+                                {/if}否</label>
+                            </div>
+                            <div class="input-note">电商专用商品,服务商不允许下单/进货</div>
                         </div>
                     </div>
                     <div class="form-group">

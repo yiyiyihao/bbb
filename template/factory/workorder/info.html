@@ -45,6 +45,24 @@
                                 <div class="input-note">请完善客户地址</div>
                             </div>
                         </div>
+                        {if (isset($services))}
+                        {notempty name="services"}
+                        <div class="form-group">
+                            <div class="label">
+                                <label>选择服务商</label>
+                            </div>
+                            <div class="field">
+                            	<select name="service_id" class="input" datatype="n">
+                            		<option >--请选择服务商--</option>
+                            		{volist name="services" id="vo"}
+                            		<option value="{$key}" {if ($info && $info['store_id'] == $key)}selected="selected"{/if}>{$vo}</option>
+                            		{/volist}
+                            	</select>
+                                <div class="input-note">请选择服务商</div>
+                            </div>
+                        </div>
+          				{/notempty}
+                        {/if}
                         <div class="form-group">
                             <div class="label">
                                 <label>预约服务时间</label>
