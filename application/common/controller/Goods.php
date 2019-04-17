@@ -826,6 +826,7 @@ class Goods extends FormBase
                 }
                 $data = [
                     'goods_id'           => $goods['goods_id'],
+                    'factory_id'         => $this->adminFactory['store_id'],
                     'store_id'           => $this->adminStore['store_id'],
                     'min_price_service'  => $goods['min_price'],
                     'max_price_service'  => $goods['max_price'],
@@ -859,6 +860,7 @@ class Goods extends FormBase
                             $whereSku=[];
                         }
                         $skuModel->save([
+                            'factory_id'            => $this->adminFactory['store_id'],
                             'store_id'              => $this->adminStore['store_id'],
                             'goods_id'              => $goods['goods_id'],
                             'sku_id'                => $sku['sku_id'],

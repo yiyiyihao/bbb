@@ -95,7 +95,6 @@ class Purchase extends FactoryForm
         if ($sku['sku_stock'] < $num) {
             $this->error('该商品库存不足');
         }
-
         //判断是否是自己的商品
         /* if ($sku['store_id'] == $this->adminStore['store_id']) {
             $this->error('厂商不能自产自销');

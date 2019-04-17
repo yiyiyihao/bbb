@@ -578,6 +578,7 @@ class Order extends Model
             $orderFrom = get_user_orderfrom($user, $orderType);
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
+            $factoryId = $first ? $first['factory_id'] : 0;
             $sellerUdataId = $first ? $first['udata_id'] : 0;
             if (isset($user['udata_id']) && $sellerUdataId && $sellerUdataId == $user['udata_id']) {
                 $this->error = '不允许购买自己的商品';
@@ -610,6 +611,7 @@ class Order extends Model
             $orderData = [
                 'order_type' => $orderType,   //1商户订单:支付成功后自动完成
                 'order_sn'   => $orderSn,
+                'factory_id' => $factoryId,
                 'store_id'   => $storeId,
 
                 'user_id'         => $userId,
@@ -1179,25 +1181,25 @@ class Order extends Model
         if ($list) {
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
-
             $flag=FALSE;
-            $store=db('store')->where([
-                'is_del'=>0,
-                'status'=>1,
-            ])->find($user['store_id']);
-            if (empty($store)) {
-                $this->error = '商户不存或已被删除';
-                return FALSE;
-            }
-            if ($store['store_type'] == STORE_DEALER) {
+//             $store=db('store')->where([
+//                 'is_del'=>0,
+//                 'status'=>1,
+//             ])->find($user['store_id']);
+//             if (empty($store)) {
+//                 $this->error = '商户不存或已被删除';
+//                 return FALSE;
+//             }
+            if ($user && isset($user['store_type']) && $user['store_type'] == STORE_DEALER) {
                 $where=[
-                    ['SD.store_id','=',$store['store_id']],
+                    ['SD.store_id','=',$user['store_id']],
                     ['S.status', '=', 1],
                     ['S.is_del', '=', 0],
+                    ['S.store_type', '=', STORE_SERVICE_NEW],
                 ];
                 $channel=db('store_dealer')->alias('SD')->field('S.store_id,S.store_type')->join('store S','S.store_id=SD.ostore_id')->where($where)->find();
-                if (isset($channel['store_type']) && $channel['store_type'] == STORE_SERVICE_NEW) {
-                    $flag=TRUE;
+                if ($channel) {
+                    $flag = TRUE;
                 }
             }
 
@@ -1207,13 +1209,12 @@ class Order extends Model
                     return FALSE;
                 }
                 if ($flag) {
-                    $field = 'GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service, GS.install_price,GSS.price_service , GS.price,GS.spec_value,GS.sales';
+                    $field = 'GSS.factory_id, GSS.store_id, GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GSS.install_price_service, GS.install_price,GSS.price_service , GS.price,GS.spec_value,GS.sales';
                     $where=[
                         ['GS.sku_id','=',$value['sku_id']],
                         ['GS.is_del','=',0],
                         ['GS.status','=',1],
-                        ['GS.store_id','=',$store['factory_id']],
-
+                        ['GS.store_id','=',$user['factory_id']],
                     ];
                     $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
                     $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
@@ -1221,8 +1222,12 @@ class Order extends Model
                         $this->error = '商品不存或已被删除';
                         return FALSE;
                     }
-                    $value['price']=$skuInfo['price_service'] ? $skuInfo['price_service'] : $skuInfo['price'];
+                    $value['price'] = $skuInfo['price_service'];
                     $value['install_price']= 0;
+                    $value['factory_id'] = $skuInfo['factory_id'];
+                    $value['store_id'] = $skuInfo['store_id'];
+                }else{
+                    $value['factory_id'] = $value['store_id'];
                 }
 
                 if ($value['activity_id']) {

@@ -235,13 +235,11 @@ class Order extends FormBase
         if ($params && !isset($where['O.order_status'])) {
             $where['O.order_status'] = ['neq','4'];
         }
+        $where['O.factory_id']=$this->adminFactory['store_id'];
         if ($this->adminStore['store_type']==STORE_DEALER) {
             $where['O.user_store_id']=$this->adminStore['store_id'];
-        } elseif ($this->adminStore['store_type']==STORE_FACTORY) {
-            $where['O.store_id']=$this->adminStore['store_id'];
-        } elseif ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
-            $storeId=$this->adminStore['store_id'];
-            $where[]=Db::raw('O.user_store_id = '.$storeId.' OR SD.ostore_id='.$storeId);
+        }elseif ($this->adminStore['store_type']==STORE_SERVICE_NEW) {
+            $where['O.store_id']=$this->adminUser['store_id'];
         }
         if ($params) {
             $sn = isset($params['sn']) ? trim($params['sn']) : '';
