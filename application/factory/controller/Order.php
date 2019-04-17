@@ -62,6 +62,9 @@ class Order extends commonOrder
             $price = isset($v['gid']) ? $v['price_service'] : $v['price'];
             $totalAmount += $price * $v['num'];
             $sum+=$v['num'];
+            if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                $cartList[$k]['price_service'] = $v['price'] + $v['install_price'];
+            }
         }
         $cart = [
             'count'  => $count,

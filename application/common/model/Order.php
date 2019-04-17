@@ -575,6 +575,10 @@ class Order extends Model
         if (!$submit) {
             return $list;
         }else{
+            if (!$list['skus']) {
+                $this->error = '请选择下单商品';
+                return FALSE;
+            }
             $orderFrom = get_user_orderfrom($user, $orderType);
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
@@ -949,7 +953,7 @@ class Order extends Model
         $where = ['order_sn' => $orderSn];
         if ($user && isset($user['store_id']) && $user['store_id'] > 0) {
             if ($user['admin_type'] == ADMIN_FACTORY) {
-                $where['store_id'] = $user['store_id'];
+                $where['factory_id'] = $user['store_id'];
             }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])){
                 $storeIds = [$user['store_id']];
                 if (in_array($user['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {

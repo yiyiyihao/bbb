@@ -704,6 +704,7 @@ class Workorder extends FactoryForm
             $where = [
                 ['is_del', '=', 0],
                 ['status', '=', 1],
+                ['check_status', '=', 1],
                 ['store_type', '=', STORE_SERVICE_NEW],
                 ['factory_id', '=', $this->adminFactory['store_id']],
             ];

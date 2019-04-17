@@ -195,12 +195,20 @@ class Purchase extends FactoryForm
             }
             if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
                 $order = $orderModel->orderPay($order['order_sn'], $this->adminUser, []);
-                return $this->redirect(url('order/index'));
-                //$this->success('订单提交成功', url('order/index'));
+                if (IS_AJAX) {
+                    $this->success('订单提交成功', url('order/index'), '', 0);
+                }else{
+                    return $this->redirect(url('order/index'));
+                }
             }else{
                 if ($params['pay_type']==2) {
+                    if (IS_AJAX) {
+                        $this->success('订单提交成功', url('myorder/index'), '', 0);
+                    }else{
+                        return $this->redirect(url('order/index'));
+                    }
                     //$this->success('订单提交成功', url('myorder/index'));
-                    return $this->redirect(url('myorder/index'));
+//                     return $this->redirect(url('myorder/index'));
                 }else{
                     return $this->redirect(url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2,'order_sn'=>$order['order_sn']]));
                     //$this->success('下单成功,前往支付', url('myorder/pay', ['order_sn' => $order['order_sn'], 'pay_code' => $payCode, 'step' => 2]), ['order_sn'=>$order['order_sn']]);

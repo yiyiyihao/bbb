@@ -118,7 +118,6 @@ class Myorder extends commonOrder
         $this->assign('order', $detail);
         if ($step == 1) {
             $payments = $this->model->getOrderPayments($detail['store_id'], 1);
-            pre($detail);
             $this->assign('payments', $payments);
             $this->assign('skus', $oSkus);
         }elseif($step == 2){
