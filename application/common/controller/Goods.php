@@ -9,6 +9,7 @@ class Goods extends FormBase
     public $goodsTypes;
     public $goodsCates;
     public $stockReduces;
+    private $channelId=0;
     public function __construct()
     {
         $this->modelName = 'goods';
@@ -29,6 +30,25 @@ class Goods extends FormBase
         $this->assign('goodsCates', get_goods_cate());
         $this->assign('goodsTypes', goodstype());
         $this->assign('stockReduces', $this->stockReduces);
+    }
+
+    public function init()
+    {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $channelId = db('store_dealer')->alias('SD')
+                ->join('store S', 'SD.ostore_id=S.store_id')
+                ->where([
+                    'SD.store_id'  => $this->adminStore['store_id'],
+                    'S.status'     => 1,
+                    'S.is_del'     => 0,
+                    'S.store_type' => STORE_SERVICE_NEW,
+                ])
+                ->value('ostore_id');
+            if (empty($channelId)) {
+                $this->error('服务商不存在或已被禁用');
+            }
+            $this->channelId = $channelId;
+        }
     }
 
     public function edit()
@@ -281,16 +301,23 @@ class Goods extends FormBase
         $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
         if ($this->adminStore['store_type'] == STORE_DEALER) {
             $minMax = db('goods_sku_service')->fieldRaw("max(price_service+install_price_service) as max,min(price_service+install_price_service) as min")->where([
-                'store_id'=>$this->adminStore['store_id'],
+                'store_id'=>$this->channelId,
                 'goods_id'=>$info['goods_id'],
                 'is_del'=>0,
-            ])->cache('goood_service_price_max_min_'.$info['goods_id'],0)->find();
-        }else{
+            ])->cache('goood_service_price_max_min_'.$info['goods_id'],10)->find();
+        } elseif ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
+            $minMax = db('goods_sku')->fieldRaw("max(price) as max,min(price) as min")->where([
+                'store_id'=>$this->adminUser['factory_id'],
+                'goods_id'=>$info['goods_id'],
+                'is_del'=>0,
+            ])->cache('goods_price_service_max_min_'.$info['goods_id'],10)->find();
+
+        }elseif(in_array($this->adminUser['group_id'],[GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])){
             $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
-                'store_id'=>$this->adminStore['factory_id'],
+                'store_id'=>$this->adminUser['factory_id'],
                 'goods_id'=>$info['goods_id'],
                 'is_del'=>0,
-            ])->cache('goood_price_max_min_'.$info['goods_id'],0)->find();
+            ])->cache('goods_price_kefu_max_min_'.$info['goods_id'],10)->find();
         }
         $priceTotal=$minMax['min'];
         if ($minMax['max'] > $minMax['min']) {

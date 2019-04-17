@@ -29,14 +29,14 @@
                                     <td>{$vo.name ??''}</td>
                                     <td>{$vo.sku_name ??''}</td>
                                     <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="100"></td>
-                                    <td id="price_{$vo.cart_id}">{:bcadd($vo.price_service,$vo.install_price_service,2)}</td>
+                                    <td id="price_{$vo.cart_id}">{$vo.price??0}</td>
                                     <input type="hidden" name="num[]" id="num_{$vo.cart_id}" value="{$vo.num}">
                                     <td><span class="button-group">
                                         <a href="javascript:;" class="button button-small  icon-minus"></a>
                                         <a href="javascript:;" class="button button-small " data-id="{$vo.cart_id}">{$vo.num}</a>
                                         <a href="javascript:;" class="button button-small  icon-plus"></a>
                                     </span></td>
-                                    <td id="amount_{$vo.cart_id}">{$vo.num*($vo.price_service+$vo.install_price_service)}</td>
+                                    <td id="amount_{$vo.cart_id}">{$vo.num*($vo.price)}</td>
                                     <td><a href="javascript:;" url="{:url('del')}" class="button button-small bg-red icon-delete js-del" title="删除" data-id="{$vo.cart_id}">删除</a></td>
                                 </tr>
                                 {/volist}
