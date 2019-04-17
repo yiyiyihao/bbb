@@ -57,11 +57,11 @@ var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
 		//更新价格和库存
 		var url = "/purchase/getspec/id/"+goods_id;
 		$.post(url,{specs:specs},function(data){
-			if(data.status){
+			if(data.code==1){
 				$("#salePrice").text(data.data.price);
-				$("#skuid").val(data.data.skuid);
-				$("#saleSku").text(data.data.sku);
-				goods_total = data.data.sku;
+				$("#skuid").val(data.data.sku_id);
+				$("#saleSku").text(data.data.sku_stock);
+				goods_total = data.data.sku_stock;
 				if(data.data.sku <= 0){
 					$("#skuText").text("库存不足");
 					$(".form-button .buy_btn").attr('disabled',"true");
@@ -75,7 +75,7 @@ var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
 				}
 			}else{
 				$("#saleSku").text('--');
-				$("#skuText").text("无此规格");
+				$("#skuText").text(data.msg);
 				$(".form-button .buy_btn").attr('disabled',"true");
 			}
 		})

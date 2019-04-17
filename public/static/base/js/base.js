@@ -150,6 +150,7 @@ $.ajaxSetup({
 								if(check){
 									//获取添加到进货单的规格和数量
 									var choose = iframeWin.getSpec();
+									console.log(choose);
 									//TODO添加到进货清单
 									$.post('/purchase/addCart',choose,function (data) {
 										if(data.code == 0){

@@ -199,8 +199,66 @@ class Purchase extends FactoryForm
      * ajax获取产品属性值
      */
     public function getspec(){
+        $id=$this->request->param('id',0,'intval');
+        $specs=$this->request->param('specs','','trim');
+        if (empty($id)||empty($specs)) {
+            return json(dataFormat(0,'参数错误'));
+        }
+        //零售商
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $where=[
+                ['SD.store_id','=',$this->adminStore['store_id']],
+                ['S.status', '=', 1],
+                ['S.is_del', '=', 0],
+                ['S.store_type', '=', STORE_SERVICE_NEW],
+            ];
+            $channel=db('store_dealer')
+                ->alias('SD')
+                ->field('S.store_id,S.store_type')
+                ->join('store S','S.store_id=SD.ostore_id')
+                ->where($where)
+                ->find();
+            if (empty($channel)) {
+                return json(dataFormat(0,'服务商不存或已被禁用'));
+            }
+            $field = 'GS.sku_id,GS.sku_stock,(GSS.price_service+GSS.install_price_service) AS price';
+            $where = [
+                'GS.goods_id'  => $id,
+                'GS.is_del'    => 0,
+                'GS.status'    => 1,
+                'GS.store_id'  => $this->adminStore['factory_id'],
+                'GS.spec_json' => $specs,
+            ];
+            $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
+            $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
+            if (empty($skuInfo)) {
+                return json(dataFormat(0,'查无该规格商品'));
+            }
+            return json(dataFormat(1,'成功',$skuInfo));
+        }
+        //服务商
+        if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
+            $skuInfo = db('goods_sku')->fieldRaw('sku_id,sku_stock,price')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+            if (empty($skuInfo)) {
+                return json(dataFormat(0,'查无该规格商品'));
+            }
+            return json(dataFormat(1,'成功',$skuInfo));
+        }
+        return json(dataFormat(0,'非法访问'));
+
+
+
+
+
+
+
+
+
         $params = $this->request->param();
         $id = isset($params['id']) ? intval($params['id']) : 0;
+
+
+
         if($id){
             if(IS_POST){
                 $post = $this->request->post();
@@ -329,7 +387,7 @@ class Purchase extends FactoryForm
                 $list[$k]['min_price'] = $minMax['min'];
                 $list[$k]['max_price'] = $minMax['max'];
             } else {
-                $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
+                $minMax = db('goods_sku')->fieldRaw("max(price) as max,min(price) as min")->where([
                     'store_id' => $this->adminStore['factory_id'],
                     'goods_id' => $v['goods_id'],
                     'is_del'   => 0,
