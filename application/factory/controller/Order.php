@@ -64,6 +64,8 @@ class Order extends commonOrder
             $sum+=$v['num'];
             if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
                 $cartList[$k]['price_service'] = $v['price'] + $v['install_price'];
+            }elseif($this->adminStore['store_type'] != STORE_DEALER) {
+                $cartList[$k]['price_service'] = $v['price'];
             }
         }
         $cart = [

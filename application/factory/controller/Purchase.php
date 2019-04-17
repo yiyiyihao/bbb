@@ -205,7 +205,7 @@ class Purchase extends FactoryForm
                     if (IS_AJAX) {
                         $this->success('订单提交成功', url('myorder/index'), '', 0);
                     }else{
-                        return $this->redirect(url('order/index'));
+                        return $this->redirect(url('myorder/index'));
                     }
                     //$this->success('订单提交成功', url('myorder/index'));
 //                     return $this->redirect(url('myorder/index'));

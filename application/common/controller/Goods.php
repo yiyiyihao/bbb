@@ -722,7 +722,7 @@ class Goods extends FormBase
                     'sku_stock' => intval($data['goods_stock']),
                     'price'     => $data['min_price'],
                 ];
-                db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 1, 'spec_json' => ['eq', ""]])->update($update);
+                db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'spec_json' => ['eq', ""]])->update($update);
             }
             setcookie("editgoods" . $pkId, NULL);
         }
