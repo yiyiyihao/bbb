@@ -304,20 +304,19 @@ class Goods extends FormBase
                 'store_id'=>$this->channelId,
                 'goods_id'=>$info['goods_id'],
                 'is_del'=>0,
-            ])->cache('goood_service_price_max_min_'.$info['goods_id'],10)->find();
+            ])->find();
         } elseif ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
             $minMax = db('goods_sku')->fieldRaw("max(price) as max,min(price) as min")->where([
                 'store_id'=>$this->adminUser['factory_id'],
                 'goods_id'=>$info['goods_id'],
                 'is_del'=>0,
-            ])->cache('goods_price_service_max_min_'.$info['goods_id'],10)->find();
-
+            ])->find();
         }elseif(in_array($this->adminUser['group_id'],[GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])){
             $minMax = db('goods_sku')->fieldRaw("max(price+install_price) as max,min(price+install_price) as min")->where([
                 'store_id'=>$this->adminUser['factory_id'],
                 'goods_id'=>$info['goods_id'],
                 'is_del'=>0,
-            ])->cache('goods_price_kefu_max_min_'.$info['goods_id'],10)->find();
+            ])->find();
         }
         $priceTotal=$minMax['min'];
         if ($minMax['max'] > $minMax['min']) {

@@ -394,7 +394,7 @@ class Purchase extends FactoryForm
                     'store_id' => $this->channelId,
                     'goods_id' => $v['goods_id'],
                     'is_del'   => 0,
-                ])->cache('goood_service_price_max_min_' . $v['goods_id'], 10)->find();
+                ])->find();
                 $list[$k]['min_price'] = $minMax['min'];
                 $list[$k]['max_price'] = $minMax['max'];
             } else if ($this->adminStore['store_type'] == STORE_SERVICE_NEW){//服务商
@@ -402,8 +402,7 @@ class Purchase extends FactoryForm
                     'store_id' => $this->adminUser['factory_id'],
                     'goods_id' => $v['goods_id'],
                     'is_del'   => 0,
-                ])->cache('goood_price_max_min_' . $v['goods_id'], 10)->find();
-
+                ])->find();
                 $list[$k]['min_price'] = $minMax['min'];
                 $list[$k]['max_price'] = $minMax['max'];
             }else if (in_array($this->adminUser['group_id'],[GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {//客服
