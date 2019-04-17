@@ -862,7 +862,7 @@ class Goods extends FormBase
                             'store_id'              => $this->adminStore['store_id'],
                             'goods_id'              => $goods['goods_id'],
                             'sku_id'                => $sku['sku_id'],
-                            'price_service'         => $sku['price'] + $sku['install_price'],
+                            'price_service'         => $sku['price'],
                             'install_price_service' => 0
                         ],$whereSku);
                     }
