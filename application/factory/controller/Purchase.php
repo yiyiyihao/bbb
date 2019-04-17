@@ -237,8 +237,17 @@ class Purchase extends FactoryForm
             return json(dataFormat(1,'成功',$skuInfo));
         }
         //服务商
-        if ($this->adminStore['store_type'] == STORE_SERVICE_NEW) {
+        if (in_array($this->adminStore['store_type'],[STORE_FACTORY])) {
             $skuInfo = db('goods_sku')->fieldRaw('sku_id,sku_stock,price')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
+            if (empty($skuInfo)) {
+                return json(dataFormat(0,'查无该规格商品'));
+            }
+            return json(dataFormat(1,'成功',$skuInfo));
+        }
+
+        //电商客服,厂商客服
+        if (in_array($this->adminUser['group_id'],[GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
+            $skuInfo = db('goods_sku')->fieldRaw('sku_id,sku_stock,(price+install_price) as price')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
             if (empty($skuInfo)) {
                 return json(dataFormat(0,'查无该规格商品'));
             }
