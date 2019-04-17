@@ -1,4 +1,4 @@
-<form method="post" class="form-x admin-form form-auto" id="form">
+<form method="post" class="form-x admin-form form-auto" id="form" action="">
     <div class="tab admin-tab">
         <div class="panel fixed-pannel admin-box active">
             <div class="panel-head">
@@ -33,18 +33,55 @@
                         </div>
                     </div>
                     {if $step == 1 && $order['pay_status'] ==0}
+                    <input type="hidden" name="order_sn" value="{$order['order_sn']}">
+                    <input type="hidden" name="step" value="2">
                     <div class="form-group">
                         <div class="label">
                             <label>选择支付方式</label>
                         </div>
                         <div class="field">
                             {if condition="$payments"}
-                            	{volist name="payments" id="vo"}
-                            	<a {if ($vo['pay_code'] == "alipay_page")}target="_blank"{/if} href="{:url('pay', ['order_sn' => $order['order_sn'], 'step' => 2, 'pay_code' => $vo['pay_code']])}"  class="button button-small bg-main" title="立即付款">{$vo['name']}</a>
-                            	{/volist}
+                            <div class="button-group radio">
+                                {volist name="payments" id="vo"}
+                                <label class="button {if $vo.pay_code=='alipay_page'} icon-alipay {elseif $vo.pay_code=='offline_pay' /} icon-pay-back {else /} active icon-wechat {/if}">
+                                    <input name="pay_code" value="{$vo['pay_code']}"{if $i==1} checked="checked"{/if} type="radio"> {$vo['name']}
+                                </label>
+                                {/volist}
+                            </div>
                             {/if}
                         </div>
                     </div>
+                    <div class="form-group pay-order-group hidden">
+                        <div class="label">
+                            <label>交易截图</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="cate_thumb" name="pay_certificate" size="38" value="">
+                            <div class="cate_thumb_preview" style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="cate_thumb_preview" width="120"></div>
+                            <a class="button bg-main button-small js-img-upload" data="cate_thumb" preview="cate_thumb_preview" href="javascript:;" >
+                                <span class="icon-upload">上传</span>
+                            </a>
+                            <div class="input-note">建议尺寸小于2MB</div>
+                        </div>
+                    </div>
+                    <div class="form-group remark-group hide">
+                        <div class="label">
+                            <label>备注</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="remark" name="remark" size="40" datatype="" value="">
+                        </div>
+                    </div>
+                    <div class="form-group submit-group" style="margin-top: 50px;">
+                        <div class="form-button">
+                            <button class="button bg-main" type="submit">确定</button>
+                            <button class="button bg" type="reset">重置</button>
+                            <div id="tips"></div>
+                        </div>
+
+                    </div>
+
+
                     {elseif isset($code_url)/}
                     <div class="form-group waitpay">
                         <div class="label">
@@ -75,16 +112,30 @@
                     </div>
                 </div>
             </div>
-            <div class="panel-foot">
-                <div class="form-button">
-                    <a href="{:url('/myorder/index')}" class="button bg-main icon-back"> 回到列表</a>
-                </div>
-            </div>
+
         </div>
     </div>
 </form>
 <script>
     Do.ready('base','dialog', 'qrcode', function () {
+        $('input[name=pay_code]').click(function () {
+            let v=$(this).val();
+            if (v=='alipay_page') {
+                $('#form').attr('target','_blank');
+            }else{
+                $('#form').attr('target','');
+            }
+            if (v=='offline_pay'){
+                $('.pay-order-group').removeClass('hidden');
+                $('.remark-group').removeClass('hide');
+            }else {
+                $('.pay-order-group').addClass('hidden');
+                $('.remark-group').addClass('hide');
+            }
+        });
+
+
+
         //表单综合处理
         $('#form').FormPage();
 		{if $order['pay_status'] !=1}

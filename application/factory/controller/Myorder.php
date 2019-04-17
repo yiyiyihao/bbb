@@ -125,6 +125,33 @@ class Myorder extends commonOrder
             if (!$payCode) {
                 $this->error('请选择支付方式');
             }
+            $params['pay_type']=1;
+            if ($payCode == 'offline_pay') {
+                $params['pay_type']=2;//线下支付
+                $orderFrom=0;
+                if ($this->adminUser['admin_type']==ADMIN_SERVICE_NEW) {
+                    $orderFrom=1;
+                } elseif ($this->adminUser['admin_type']==ADMIN_DEALER) {
+                    $orderFrom=2;
+                } elseif (in_array($this->adminUser['group_id'],[GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
+                    $orderFrom=3;
+                }else{
+                    $orderFrom=4;
+                }
+                $result=db('order')->where(['order_sn'=>$orderSn])->update([
+                    'pay_certificate' => $this->request->param('pay_certificate', ''),
+                    'remark'          => $this->request->param('remark', ''),
+                    'order_from'      => $orderFrom,
+                    'update_time'     => time(),
+                    'pay_time'        => time(),
+                    'pay_code'        => $payCode,
+                    'pay_type'        => 2,
+                ]);
+                if ($result !== false) {
+                    $this->success('提交成功',url('/myorder/index'));
+                }
+                $this->error('提交失败，请稍后重试！',url('/myorder/index'));
+            }
             $payment = new \app\common\api\PaymentApi($detail['store_id'], $payCode);
             $detail['subject'] = $sku['sku_name'].' '.$sku['sku_spec'];
             //$detail['product_id'] = $sku['sku_id'];
