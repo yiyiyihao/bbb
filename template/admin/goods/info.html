@@ -167,8 +167,8 @@
                                       <tr>
                                           <th width="60">序号</th>
                                           <th width="*">商品规格</th>
-                                          <th width="100">建议价格</th>
-                                          <th width="100">实际价格</th>
+                                          <th width="100">进货价格</th>
+                                          <th width="100">零售价格</th>
 <!--                                          <th width="100">安装费用</th>-->
                                           <th width="200">商品编码</th>
                                       </tr>
@@ -182,7 +182,7 @@
                                           <input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" />
                                           {$vo.sku_name}
                                       </td>
-                                      <td>{:bcadd($vo.price,$vo.install_price,2)}</td>
+                                      <td>{:bcadd($vo.price,0,2)}</td>
                                       <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
 <!--                                      <td><input class="input" type="text" name="install_price_service[]" size="10" value="{$vo.install_price_service}" datatype="*" /></td>-->
                                       <td>
