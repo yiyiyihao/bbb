@@ -837,6 +837,36 @@ class Goods extends FormBase
                 }
                 $goodService = new GoodsService();
                 $result = $goodService->save($data, $where);
+                if ($result!==FALSE) {//导入商品规格
+                    $skus = db('goods_sku')->where([
+                        'store_id' => $this->adminUser['factory_id'],
+                        'goods_id' => $goods['goods_id'],
+                        'is_del'   => 0,
+                        'status'   => 1,
+                    ])->select();
+                    if (empty($skus)) {
+                        continue;
+                    }
+                    foreach ($skus as $sku) {
+                        $skuModel = new GoodsSkuService();
+                        $whereSku=[
+                            'store_id' => $this->adminStore['store_id'],
+                            'goods_id' => $goods['goods_id'],
+                            'sku_id'   => $sku['sku_id']
+                        ];
+                        $skuService=GoodsSkuService::where($whereSku)->find();
+                        if (empty($skuService)) {
+                            $whereSku=[];
+                        }
+                        $skuModel->save([
+                            'store_id'              => $this->adminStore['store_id'],
+                            'goods_id'              => $goods['goods_id'],
+                            'sku_id'                => $sku['sku_id'],
+                            'price_service'         => $sku['price'] + $sku['install_price'],
+                            'install_price_service' => 0
+                        ],$whereSku);
+                    }
+                }
             }
             $this->success("导入成功！");
         } else {
@@ -847,7 +877,7 @@ class Goods extends FormBase
                 //['goods_sku GDS','GDS.goods_id=G.goods_id','INNER'],
                 ['goods_service GS',$joinOn,'LEFT'],
             ];
-            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.id')->order($order)->paginate($this->perPage, false);
+            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.id')->order($order)->paginate($this->perPage, false,['query' => input('param.')]);
             $list = $query->items();
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);
