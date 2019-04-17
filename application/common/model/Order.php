@@ -128,7 +128,7 @@ class Order extends Model
             $this->error = '订单未支付, 不能执行当前操作';
             return FALSE;
         }
-        if (!in_array($order['order_type'], [1, 3]) && !$order['delivery_status']) {
+        if (!in_array($order['order_type'], [1]) && !$order['delivery_status']) {
             $this->error = '订单未发货, 不能执行当前操作';
             return FALSE;
         }
@@ -146,7 +146,7 @@ class Order extends Model
             $this->error = $this->getError();
             return FALSE;
         }
-        if (!in_array($order['order_type'], [1, 3])) {
+        if (!in_array($order['order_type'], [1])) {
             //修改订单产品表 已发货状态改为已收货
             $result = $this->orderSkuModel->where(['order_id' => $order['order_id'], 'delivery_status' => 1])->update(['delivery_status' => 2]);
             //修改订单产品物流表 收货状态改为1
@@ -154,7 +154,7 @@ class Order extends Model
         }
         
         $remark = isset($extra['remark']) && trim($extra['remark']) ? trim($extra['remark']) : '';
-        if (in_array($order['order_type'], [1, 3])) {
+        if (in_array($order['order_type'], [1])) {
             $action = '确认完成';
         }else{
             $action = isset($user['admin_type']) && $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
@@ -425,7 +425,7 @@ class Order extends Model
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
         
-        if (in_array($order['order_type'], [1,3])) {
+        if (in_array($order['order_type'], [1])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
         return true;
@@ -529,62 +529,7 @@ class Order extends Model
         $this->orderLog($order, $user, '取消订单', $remark);
         return TRUE;
     }
-
-    /**
-     * 批量生成订单
-     */
-    public function createOrders($user,$param,$orderType = 1)
-    {
-        if (!$user) {
-            $this->error = lang('param_error');
-            return FALSE;
-        }
-        if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
-            $this->error = lang('param_error');
-            return FALSE;
-        }
-        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
-        $orderSn = $this->_getOrderSn();
-        $storeId=isset($user['store_id']) ? intval($user['store_id']) : 0;
-        $factoryId=isset($user['factory_id']) ? intval($user['factory_id']) : 0;
-        $storeType=isset($user['store_type']) ? intval($user['store_type']) : 0;
-        //收货地址
-        $addrName = isset($param['address_name']) && $param['address_name'] ? trim($param['address_name']) : '';
-        $addrPhone = isset($param['address_phone']) && $param['address_phone'] ? trim($param['address_phone']) : '';
-        $regionId = isset($param['region_id']) && $param['region_id'] ? trim($param['region_id']) : '';
-        $addrRegion = isset($param['region_name']) && $param['region_name'] ? trim($param['region_name']) : '';
-        $remark = isset($param['remark']) && $param['remark'] ? trim($param['remark']) : '';
-        $addrDetail = isset($param['address']) && $param['address'] ? trim($param['address']) : '';
-        $payCertificate = isset($param['pay_certificate']) && $param['pay_certificate'] ? trim($param['pay_certificate']) : '';
-        $orderData = [
-            'order_type' => $orderType,   //1商户订单:支付成功后自动完成
-            'order_sn'   => $orderSn,
-            'store_id'   => $factoryId,//厂商ID
-            'user_id'         => $userId,
-            'user_store_id'   => $storeId,
-            'user_store_type' => $storeType,
-            'udata_id'        => isset($user['udata_id']) ? intval($user['udata_id']) : 0,
-
-            'pay_code'        => isset($param['pay_code']) ? $param['pay_code'] : '',
-            'pay_type'        => isset($param['pay_type']) ? $param['pay_type'] : '',
-            'goods_amount'    => $list['sku_amount'],
-            'install_amount'  => $list['install_amount'],
-            'delivery_amount' => $list['delivery_amount'],
-            'real_amount'     => $list['pay_amount'],
-            'address_name'    => $addrName,
-            'address_phone'   => $addrPhone,
-            'region_id'       => $regionId,
-            'address_detail'  => $regionId ? ($addrRegion . ' ' . $addrDetail) : '',
-            'pay_certificate' => $payCertificate,
-            'remark'          => trim($remark),
-            'add_time'        => time(),
-            'update_time'     => time(),
-            'extra'           => '',
-        ];
-
-    }
-
-    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1)
+    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1, $orderFrom = 1)
     {
         if (!$user) {
             $this->error = lang('param_error');
@@ -630,6 +575,7 @@ class Order extends Model
         if (!$submit) {
             return $list;
         }else{
+            $orderFrom = get_user_orderfrom($user, $orderType);
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
             $sellerUdataId = $first ? $first['udata_id'] : 0;
@@ -688,6 +634,7 @@ class Order extends Model
                 'add_time'        => time(),
                 'update_time'     => time(),
                 'extra'           => '',
+                'order_from'      => $orderFrom,
             ];
             $orderModel = db('order');
             $orderSkuModel = db('order_sku');
@@ -1268,12 +1215,6 @@ class Order extends Model
                         ['GS.store_id','=',$store['factory_id']],
 
                     ];
-                    //$where = [
-                    //    'GS.sku_id'   => intval($skuIds),
-                    //    'GS.is_del'   => 0,
-                    //    'GS.status'   => 1,
-                    //    'GS.store_id' => $store['factory_id'],
-                    //];
                     $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
                     $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
                     if (empty($skuInfo)) {
@@ -1281,7 +1222,7 @@ class Order extends Model
                         return FALSE;
                     }
                     $value['price']=$skuInfo['price_service'] ? $skuInfo['price_service'] : $skuInfo['price'];
-                    $value['install_price']=$skuInfo['install_price_service'] ? $skuInfo['install_price_service'] : $skuInfo['price'];
+                    $value['install_price']= 0;
                 }
 
                 if ($value['activity_id']) {
@@ -1309,14 +1250,21 @@ class Order extends Model
                 }elseif($value['sdel'] || $value['gdel']|| !$value['gstatus']|| !$value['sstatus']){
                     $unsale = 1; //已下架
                 }else{
-                    $installAmount  = $installAmount + ($value['install_price'] * $num);
+                    if (isset($user['group_id']) && $user['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                        $installAmount  = $installAmount + ($value['install_price'] * $num);
+                    }
                     if ($num > 0) {
                         $skuCount++;
                     }
                     $skuTotal = $skuTotal + $num;
                     $skuAmount = $skuAmount + ($value['price'] * $num);
                 }
-                $value['pay_price'] = $value['price'] + $value['install_price'];
+                if (isset($user['group_id']) && $user['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                    $value['pay_price'] = $value['price'] + $value['install_price'];
+                }else{
+                    $value['pay_price'] = $value['price'];
+                    $value['install_price'] = 0;
+                }
                 if (isset($value['sku_thumb']) && $value['sku_thumb']) {
                     $value['sku_thumb'] = trim($value['sku_thumb']);
                 }elseif (isset($value['thumb']) && $value['thumb']){

@@ -210,7 +210,6 @@ class Workorder extends FactoryForm
             $data['user_id'] = $this->adminUser['user_id'];
             $data['factory_id'] = $this->adminUser['factory_id'];
             $data['store_id'] = $storeId;
-            $data['worder_from'] = 3;//客服工单
             if ($data['work_order_type']==1 && $this->adminUser['group_id']==GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
                 $data['install_price']=$sku['install_price'];
             }
@@ -481,9 +480,6 @@ class Workorder extends FactoryForm
                 }
             }
         }
-        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $where['worder_from'] = 3;
-        }
         return $where;
     }
     
@@ -606,11 +602,32 @@ class Workorder extends FactoryForm
                 }
                 $storeId=$store['store_id'];
             }else{
-                $storeModel = new \app\common\model\Store();
-                //根据安装地址分配服务商
-                $storeId = $storeModel->getStoreFromRegion($regionId);
-                if(!$storeId){
-                    $this->error('该区域暂无服务商');
+                if (in_array($this->adminUser['group_id'], [GROUP_E_COMMERCE_KEFU])) {
+                    $serviceId = isset($data['service_id']) ? intval($data['service_id']) : 0;
+                    if (!$serviceId) {
+                        $this->error('请选择工单服务商');
+                    }
+                    $where = [
+                        ['is_del', '=', 0],
+                        ['store_type', '=', STORE_SERVICE_NEW],
+                        ['factory_id', '=', $this->adminFactory['store_id']],
+                        ['store_id', '=', $serviceId],
+                    ];
+                    $service = model('store')->where($where)->find();
+                    if (!$service) {
+                        $this->error('选择的服务商不存在或已删除');
+                    }
+                    if (!$service['status']) {
+                        $this->error('选择的服务商已禁用');
+                    }
+                    $storeId = $serviceId;
+                }else{
+                    $storeModel = new \app\common\model\Store();
+                    //根据安装地址分配服务商
+                    $storeId = $storeModel->getStoreFromRegion($regionId);
+                    if(!$storeId){
+                        $this->error('该区域暂无服务商');
+                    }
                 }
             }
             $data['store_id'] = $storeId;
@@ -667,9 +684,9 @@ class Workorder extends FactoryForm
             $this->error('预约服务时间必须大于当前时间');
         }
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $data['worder_from'] = 3;
+            $data['carry_goods'] = 0;
         }else{
-            $data['worder_from'] = 1;
+            $data['carry_goods'] = $type == 1 ? 1 : 0;
         }
         return $data;
     }
@@ -682,6 +699,18 @@ class Workorder extends FactoryForm
         $info = parent::_assignInfo();
         if ($info) {
             $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        }
+        if (in_array($this->adminUser['group_id'], [GROUP_E_COMMERCE_KEFU])) {
+            $where = [
+                ['is_del', '=', 0],
+                ['status', '=', 1],
+                ['store_type', '=', STORE_SERVICE_NEW],
+                ['factory_id', '=', $this->adminFactory['store_id']],
+            ];
+            $services = model('store')->where($where)->column('store_id,  name');
+            if ($services) {
+                $this->assign('services',$services);
+            }
         }
         return $info;
     }

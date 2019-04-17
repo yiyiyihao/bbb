@@ -364,7 +364,8 @@ class WorkOrder extends Model
         }
         $result = $this->save(['work_order_status' => 4, 'finish_time' => time()], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
-            if ($worder['work_order_type'] == 1) {
+            //2019-04-17 只有电商客服下的安装工单有服务费
+            if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
                 //确认完成，服务商服务费入账(只有安装工单)
                 $where = [
                     'is_del'    => 0,
@@ -376,7 +377,8 @@ class WorkOrder extends Model
                 $exist = $incomeModel->where($where)->find();
                 if (!$exist) {
                     $config = get_store_config($worder['factory_id'], TRUE, 'default');
-                    $returnRatio = isset($config['servicer_return_ratio']) ? floatval($config['servicer_return_ratio']) : 0;
+//                     $returnRatio = isset($config['servicer_return_ratio']) ? floatval($config['servicer_return_ratio']) : 0;
+                    $returnRatio = 100;
                     $amount = $worder['install_price'];
                     $data = [
                         'store_id'      => $worder['store_id'],
@@ -405,8 +407,12 @@ class WorkOrder extends Model
                     }
                 }
             }
+            $field = $worder['work_order_type'] == 1 ? 'install_count' : 'repair_count';
             //增加工程师服务次数
-            model('user_installer')->where(['installer_id'=>$worder['installer_id']])->setInc('service_count');
+            model('user_installer')->save([
+                'service_count' =>	\Think\Db::raw('service_count+1'),
+                $field		    =>	\Think\Db::raw($field.'+1'),
+            ],['installer_id'=>$worder['installer_id']]);
             //操作日志记录
             $this->worderLog($worder, $user, $worder['installer_id'], '确认完成');
             return TRUE;
@@ -547,6 +553,7 @@ class WorkOrder extends Model
             $this->error = '参数错误';
             return FALSE;
         }
+        
         $status = $worder['work_order_status'];
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
         switch ($status) {
@@ -632,7 +639,7 @@ class WorkOrder extends Model
                         //更新工程师综合得分
                         model('user_installer')->scoreUpdate($worder['installer_id'],$score);
                         //安装工单
-                        if ($worder['work_order_type'] == 1) {
+                        if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
                             //首次评价,处理安装服务费发放结算
                             $this->serviceSettlement($worder, $assessId, $user, $score);
                         }

@@ -177,11 +177,7 @@ class Purchase extends FactoryForm
             $strorName = $this->adminStore['store_type'] == STORE_DEALER ? '服务商' : '厂商';
             $this->error($strorName . '未配置支付信息');
         }
-        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $orderType = 3;
-        }else{
-            $orderType = 1;
-        }
+        $orderType = 1;
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $params['pay_code'] = 'offline_pay';
         }
@@ -360,6 +356,9 @@ class Purchase extends FactoryForm
             'G.status' => 1,
             'G.store_id' => $this->adminFactory['store_id'],
         ];
+        if ($this->adminUser['group_id'] !== GROUP_E_COMMERCE_KEFU) {
+            $where['G.e_commerce'] = 0;
+        }
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){

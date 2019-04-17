@@ -270,7 +270,7 @@ class Order extends FormBase
     protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
-            'order_type' => ['IN', '1,3'],
+            'order_type' => 1,
         ];
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;

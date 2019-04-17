@@ -110,9 +110,8 @@ class Order extends commonOrder
     {
         $where = parent::_getWhere();
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $where['order_type'] = 3;
-        }else{
-            $where['order_type'] = ['IN', '1,3'];
+            $where['order_from'] = 3;
+            $where['user_store_id'] = $this->adminStore['store_id'];
         }
         return $where;
     }

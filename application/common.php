@@ -2,6 +2,55 @@
 use think\Facade;
 
 // 应用公共文件
+function get_user_orderfrom($user = [], $orderType = 1)
+{
+    if ($orderType == 2) {
+        $orderFrom = 4;
+    }else{
+        if ($user) {
+            if (isset($user['store_type'])) {
+                switch ($user['store_type']) {
+                    case STORE_SERVICE_NEW:
+                        $orderFrom = 1;//服务商订单
+                        break;
+                    case STORE_DEALER:
+                        $orderFrom = 2;//零售商订单
+                        break;
+                    case STORE_FACTORY:
+                        $orderFrom = 3;//电商客服
+                        break;
+                    default:
+                        $orderFrom = 1;
+                        break;
+                }
+            }else{
+                $orderFrom = 4;//自有电商
+            }
+        }else{
+            $orderFrom = 0;
+        }
+    }
+    return $orderFrom;
+}
+
+function get_order_from($from = FALSE)
+{
+    $fromTxts = [
+        1  => '服务商订单',
+        2  => '零售商订单',
+        3  => '电商客服订单',
+        4  => '自有电商订单',
+    ];
+    if ($from === FALSE) {
+        return $fromTxts;
+    }
+    if (isset($fromTxts[$from])) {
+        return $fromTxts[$from];
+    }else{
+        return '';
+    }
+}
+
 /**
  * 获取活动状态信息
  * @param array $info
@@ -43,9 +92,9 @@ function get_promotion_status($info = [])
 function get_wroder_from($from = FALSE)
 {
     $fromTxts = [
-        1  => '渠道工单', //对应order_type=1
-        2  => '电商工单', //对应order_type=2
-        3  => '电商工单', //对应order_type=3
+        1  => '渠道工单',
+        2  => '电商工单',
+        3  => '电商工单',
     ];
     if ($from === FALSE) {
         return $fromTxts;
@@ -87,7 +136,6 @@ function get_order_type($type = FALSE){
     $typeList = [
         1   =>  '渠道订单',
         2   =>  '电商订单',
-        3   =>  '电商订单',
     ];
     if ($type === FALSE) {
         return $typeList;
@@ -426,7 +474,7 @@ function get_order_status($order = array()) {
             if (!isset($order['pay_type'])) {
                 $order['pay_type'] = 1;
             }
-            if (in_array($order['order_type'], [1, 3])) {
+            if (in_array($order['order_type'], [1])) {
                 if (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 0) {
                    $arr['now'] = 'create'; // 创建订单
                    $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay_confirm';

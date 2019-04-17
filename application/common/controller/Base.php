@@ -30,6 +30,7 @@ class Base extends Controller
         defined('GROUP_CHANNEL')or define('GROUP_CHANNEL',  2); //渠道商角色
         defined('GROUP_DEALER') or define('GROUP_DEALER',   3); //经销商/零售商角色
         defined('GROUP_SERVICE')or define('GROUP_SERVICE',  4); //服务商角色
+        defined('GROUP_SERVICE_NEW')or define('GROUP_SERVICE_NEW',  15); //新服务商角色(服务商+渠道商)
         //@TODO 临时写死角色ID，如线上ID不一致则需手动修改
         defined('GROUP_E_COMMERCE_KEFU') or define('GROUP_E_COMMERCE_KEFU', 16); //电商客服角色
         defined('GROUP_E_CHANGSHANG_KEFU') or define('GROUP_E_CHANGSHANG_KEFU', 9); //厂商客服角色

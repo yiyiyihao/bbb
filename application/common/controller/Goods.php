@@ -808,6 +808,7 @@ class Goods extends FormBase
             'G.is_del'   => 0,
             'G.status'   => 1,
             'G.store_id' => $this->adminUser['factory_id'],
+            'G.e_commerce'   => 0,
             //'G.activity_id'   => 0,
         ];
         if (IS_POST) {
@@ -851,10 +852,12 @@ class Goods extends FormBase
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);
                 $html = '';
-                foreach ($specs as $spec) {
-                    $html .= $spec['specname'] . '：' . implode('、', array_values($spec['list'])) . '；';
+                if ($specs) {
+                    foreach ($specs as $spec) {
+                        $html .= $spec['specname'] . '：' . implode('、', array_values($spec['list'])) . '；';
+                    }
+                    $item['specs'] = rtrim($html, '；');
                 }
-                $item['specs'] = rtrim($html, '；');
                 return $item;
             }, $list);
             $page = $query->render();

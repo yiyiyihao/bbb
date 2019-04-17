@@ -278,20 +278,28 @@ class Admin extends Index
                 'admin_type' => ADMIN_DEALER,
                 'group_id'   => GROUP_DEALER,
             ],
-            STORE_CHANNEL => [
-                'name' => '渠道商',
-                'admin_type' => ADMIN_CHANNEL,
-                'group_id'   => GROUP_CHANNEL,
-            ],
-            STORE_SERVICE => [
+//             STORE_CHANNEL => [
+//                 'name' => '渠道商',
+//                 'admin_type' => ADMIN_CHANNEL,
+//                 'group_id'   => GROUP_CHANNEL,
+//             ],
+//             STORE_SERVICE => [
+//                 'name' => '服务商',
+//                 'admin_type' => ADMIN_SERVICE,
+//                 'group_id'   => GROUP_SERVICE,
+//             ],
+            ADMIN_SERVICE_NEW => [
                 'name' => '服务商',
-                'admin_type' => ADMIN_SERVICE,
-                'group_id'   => GROUP_SERVICE,
+                'admin_type' => ADMIN_SERVICE_NEW,
+                'group_id'   => GROUP_SERVICE_NEW,
             ],
         ];
         $storeType = isset($this->postParams['store_type']) ? intval($this->postParams['store_type']) : '';
         if (!$storeType) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请选择商户类型')]);
+        }
+        if ($storeType == STORE_SERVICE) {
+            $storeType = STORE_SERVICE_NEW;
         }
         if (!isset($types[$storeType])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('商户类型错误')]);
@@ -300,11 +308,13 @@ class Admin extends Index
 
         if ($storeType == STORE_DEALER) {
             if (!$channelNo) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写服务商编号')]);
+//                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('请填写渠道商编号')]);
             }
-            $channel = Store::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->find();
+            $channel = Store::where(['factory_id' => $this->factory['store_id'], 'store_no' => $channelNo, 'store_type' => STORE_SERVICE_NEW, 'is_del' => 0, 'status' => 1])->find();
             if (!$channel) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('服务商不存在或已删除')]);
+//                 $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('渠道商不存在或已删除')]);
             }
         }
         $params = $this->_verifyStoreForm($storeType);
