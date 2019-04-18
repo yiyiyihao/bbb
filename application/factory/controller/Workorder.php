@@ -96,15 +96,15 @@ class Workorder extends FactoryForm
                 $this->error('请选选择商品');
             }
             $info = db('goods')->where([
-                'is_del'=>0,
-                'status'=>1,
-                'store_id'=>$this->adminUser['factory_id'],
+                'is_del'   => 0,
+                'status'   => 1,
+                'store_id' => $this->adminUser['factory_id'],
             ])->find($goodsId);
             $skuinfo = db('goods_sku')->where(['goods_id' => $goodsId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
             $info['skuinfo'] = $skuinfo;
             $info['imgnum'] = isset($info['imgs']) && $info['imgs'] ? count(json_decode($info['imgs'])) : 0;
             $info['imgs'] = isset($info['imgs']) && $info['imgs'] ? json_decode($info['imgs'], TRUE) : [];
-            $skus =model('goods')->getGoodsSkus($info['goods_id'],$this->adminStore);
+            $skus =model('goods')->getGoodsSkus($goodsId,$this->adminStore,false);
             $price=array_column($skus,'price_total');
             $min=min($price);
             $max=max($price);
@@ -114,9 +114,8 @@ class Workorder extends FactoryForm
             }
             $this->assign('price_total',$priceTotal);
             $this->assign('skus', is_array($skus) ? $skus : []);
-            $info['sku_id'] = is_int($skus) ? $skus : 0;
+            $info['default_sku_id'] = isset($skus[0]['sku_id'])? $skus[0]['sku_id']:0;
             $info['specs'] = json_decode($info['specs_json'],true);
-
             $this->assign('info', $info);
             $this->import_resource(array(
                 //'script'=> 'jquery.jqzoom-core.js',

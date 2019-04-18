@@ -71,7 +71,7 @@ class Goods extends Model
      * @param int $goodsId
      * @return array
      */
-    public function getGoodsSkus($goodsId = 0,$store=[])
+    public function getGoodsSkus($goodsId = 0,$store=[],$flag=true)
     {
         if ($goodsId <= 0) {
             $this->error = '参数错误';
@@ -101,7 +101,7 @@ class Goods extends Model
         $where = ['GS.is_del' => 0, 'GS.status' => 1, 'GS.goods_id' => $goodsId];
         $field='GS.sku_id,GS.sku_name,GS.sku_sn,GS.sku_thumb,GS.sku_stock,GS.install_price,GS.price,(GS.install_price+GS.price) as price_total,GS.spec_value,GS.sales';
         $skus = db('goods_sku')->alias('GS')->field($field)->order('GS.sort_order ASC,GS.update_time DESC')->where($where)->select();
-        if ($skus && count($skus) == 1) {
+        if ($flag && $skus && count($skus) == 1) {
             $sku = reset($skus);
             if ($sku && $sku['spec_value'] == "") {
                 return $sku['sku_id'];

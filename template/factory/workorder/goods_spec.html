@@ -5,7 +5,7 @@
             <div class="tab-panel active" id="tab-1">
                 <div class="goodsInfo clearfix">
                     <div class="goodsText" style="margin-left:0;">
-                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}"></h3>
+                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{$info.default_sku_id??0}"></h3>
                         <div class="priceBox">
                             <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
                         </div>
@@ -50,13 +50,13 @@
         //更新价格和库存
         var url = "/purchase/getspec/id/"+goods_id;
         $.post(url,{specs:specs},function(data){
-            if(data.status){
+            if(data.code){
                 $("#salePrice").text(data.data.price);
-                $("#skuid").val(data.data.skuid);
-                $("#saleSku").text(data.data.sku);
+                $("#skuid").val(data.data.sku_id);
+                $("#saleSku").text(data.data.sku_stock);
             }else{
                 $("#saleSku").text('--');
-                $("#skuText").text("无此规格");
+                $("#skuText").text(data.msg);
                 $(".form-button .buy_btn").attr('disabled',"true");
             }
         })
