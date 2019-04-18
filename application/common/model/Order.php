@@ -583,7 +583,7 @@ class Order extends Model
             $orderFrom = get_user_orderfrom($user, $orderType);
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
-            $factoryId = $user['factory_id'];
+            $factoryId = $factoryId = isset($user['factory_id']) ? $user['factory_id'] : 0;
             $sellerUdataId = $first ? $first['udata_id'] : 0;
             if (isset($user['udata_id']) && $sellerUdataId && $sellerUdataId == $user['udata_id']) {
                 $this->error = '不允许购买自己的商品';
