@@ -1332,22 +1332,24 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $detail]);
     }
     //获取商品规格列表
-    protected function getGoodsSkus()
+    protected function getGoodsSkus($flag = TRUE)
     {
         $goodsId = isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : 0;
         if (!$goodsId){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
-        $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        if ($flag) {
+            $user = $this->_checkUser();
+            if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+            }
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
         $where = [
             'goods_id'  => $goodsId,
             'is_del'    => 0,
             'status'    => 1,
-            'store_id'  => $user['factory_id'],
+            'store_id'  => $this->factory['store_id'],
         ];
         $detail = db('goods')->where($where)->find();
         if (!$detail) {
