@@ -47,9 +47,9 @@
                     
                     
                     <div class="imagesBox form-group clearfix" id="imgs">
-                        {if condition="$info && isset($info['imgs'])"}
                         <div class="swiper-container">
-                            <div class="swiper-wrapper">
+                            <div class="swiper-wrapper">                            	
+                        		{if condition="$info && isset($info['imgs'])"}
                                 {volist name="info.imgs" id="vo" mod="10"}
                                 <div class="swiper-slide">
                                     <div class="media radius clearfix">
@@ -68,11 +68,11 @@
                                     </div>
                                 </div>
                                 {/volist}
+                                {/if}
                             </div>
                             <div class="swiper-button-next"></div>
                             <div class="swiper-button-prev"></div>
                         </div>
-                        {/if}
                     </div>
                             
                             
