@@ -397,6 +397,13 @@ class Order extends Model
             'pay_time'   => time(),
             'update_time'=> time(),
         ];
+        if (isset($extra['remark']) && $extra['remark']) {
+            $data['remark']=$extra['remark'];
+        }
+        if (isset($extra['pay_sn']) && $extra['pay_sn']) {
+            $data['pay_sn']=$extra['pay_sn'];
+        }
+
         if ($paySn) {
             $data['pay_sn'] = $paySn;
         }
