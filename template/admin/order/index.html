@@ -77,7 +77,7 @@
 	              	{if condition="check_auth('order','pay') && $vo['user_store_id']!=$adminStore['store_id']  &&  $vo['pay_status'] == 0 && $vo['order_status'] == 1"}
 <!--	              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit js-open" title="确认收款" >确认收款</a>-->
 	              	{/if}
-                    {if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1"}
+                    {if condition="check_auth('myorder','pay') && $vo['pay_status'] == 0 && $vo['order_status'] == 1"}
 	              	<a href="{:url('myorder/pay',['order_sn'=>$vo['order_sn']])}"  class="button button-small bg-sub icon-money js-open" title="立即付款"> 立即付款</a>
 	              	{/if}
 	              	{if condition="check_auth('order','cancel') && $vo['pay_status'] == 0 AND $vo['order_status'] == 1"}
