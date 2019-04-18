@@ -25,7 +25,7 @@
                                 {notempty name="list"}
                                 {volist name="list" id="vo"}
                                 <tr>
-                                    <td><input type="checkbox" name='id[]' value="{$vo.sku_id}"></td>
+                                    <td><input type="checkbox" name='id[]' checked="checked" value="{$vo.sku_id}"></td>
                                     <td>{$vo.name ??''}</td>
                                     <td>{$vo.sku_name ??''}</td>
                                     <td><img src="{$vo.thumb|default='/static/base/images/default.png'}" width="100"></td>

@@ -53,7 +53,7 @@ class Store extends FactoryForm
             $remark = isset($params['remark']) ? trim($params['remark']) : '';
             $checkStatus = isset($params['check_status']) ? intval($params['check_status']) : 0;
             if (!$checkStatus && !$remark) {
-                $this->error('请填写拒绝理由');
+                $this->error('请填写备注（不通过原因）');
             }
             $status = $checkStatus > 0 ? 1: 2;
             $data = [

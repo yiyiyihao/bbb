@@ -88,11 +88,11 @@
 	                </div>
 	                <div class="form-group">
                         <div class="label">
-                            <label>商品编码</label>
+                            <label>商品编号</label>
                         </div>
                         <div class="field">
                             <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}" {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if}>
-                            <div class="input-note">商品编码请不要填写特殊字符</div>
+                            <div class="input-note">商品编号请不要填写特殊字符</div>
                         </div>
                     </div>
 					{if ($store_type != $Think.const.STORE_SERVICE_NEW)/}
@@ -135,7 +135,7 @@
                               <table id="table" class="table table-hover ">
                                 <tbody>
                                   <tr>
-                                    <th width="200">商品编码</th>
+                                    <th width="200">商品编号</th>
                                     <th width="*">商品规格</th>
                                     <th width="100">商品价格</th>
                                     <th width="100">安装费用</th>
@@ -170,7 +170,7 @@
                                           <th width="100">进货价格</th>
                                           <th width="100">零售价格</th>
 <!--                                          <th width="100">安装费用</th>-->
-                                          <th width="200">商品编码</th>
+                                          <th width="200">商品编号</th>
                                       </tr>
                                   </thead>
                                   <tbody>
