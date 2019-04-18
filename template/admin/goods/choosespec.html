@@ -5,7 +5,7 @@
             <div class="tab-panel active" id="tab-1">
                 <div class="goodsInfo clearfix">
                     <div class="goodsText" style="margin-left:0;">
-                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{notempty name='$info.sku_id'}{$info.sku_id}{/notempty}"></h3>
+                        <h3 class="goodsTitle">{$info.name}<input type="hidden" id="skuid" value="{$info.default_sku_id??0}"></h3>
                         <div class="priceBox">
                             <p><b>价格</b><span id="price" class="text-main">￥<i id="salePrice">{$price_total}</i></span></p>
                         </div>

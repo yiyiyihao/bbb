@@ -299,7 +299,7 @@ class Goods extends FormBase
      */
     public function choosespec(){
         $info = $this->_assignInfo();
-        $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore);
+        $skus = $this->model->getGoodsSkus($info['goods_id'],$this->adminStore,false);
         if ($this->adminStore['store_type'] == STORE_DEALER) {
             $minMax = db('goods_sku_service')->fieldRaw("max(price_service+install_price_service) as max,min(price_service+install_price_service) as min")->where([
                 'store_id'=>$this->channelId,
@@ -325,12 +325,11 @@ class Goods extends FormBase
         }
         $this->assign('price_total',$priceTotal);
         $this->assign('skus', is_array($skus) ? $skus : []);
-        $info['sku_id'] = is_int($skus) ? $skus : 0;
+        $info['default_sku_id'] = isset($skus[0]['sku_id']) ? $skus[0]['sku_id'] : 0;
         $info['specs'] = json_decode($info['specs_json'],true);
-
         $this->assign('info', $info);
         $this->import_resource(array(
-//             'script'=> 'jquery.jqzoom-core.js',
+        //  'script'=> 'jquery.jqzoom-core.js',
             'style' => 'goods.css,jquery.jqzoom.css',
         ));
         $this->view->engine->layout(false);
