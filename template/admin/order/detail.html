@@ -4,22 +4,32 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
+                        {if condition="input('tab',0,'intval')==2"}
+                        <li class="active"><a href="#tab-2">订单商品</a></li>
+                        {else /}
                         <li class="active"><a href="#tab-1">下单信息</a></li>
                         <li class=""><a href="#tab-2">订单商品</a></li>
                         <li class=""><a href="#tab-3">订单操作日志</a></li>
+                        {/if}
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
-                <div class="tab-panel active" id="tab-1">
-                    {include file="order/_detail" /} 
+                {if condition="input('tab',0,'intval')==2"}
+                <div class="tab-panel active" id="tab-2">
+                    {include file="order/_skus" /}
                 </div>
-            	<div class="tab-panel" id="tab-2">
-            		{include file="order/_skus" /}
-            	</div>
-            	<div class="tab-panel" id="tab-3">
-            		{include file="order/_log" /} 
-            	</div>
+                {else /}
+                <div class="tab-panel active" id="tab-1">
+                    {include file="order/_detail" /}
+                </div>
+                <div class="tab-panel" id="tab-2">
+                    {include file="order/_skus" /}
+                </div>
+                <div class="tab-panel" id="tab-3">
+                    {include file="order/_log" /}
+                </div>
+                {/if}
             </div>
             <div class="panel-foot">
                 <div class="form-button">

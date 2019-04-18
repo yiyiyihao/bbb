@@ -29,8 +29,9 @@ class Order extends Model
                 //判断订单申请安装状态
                 $applyStatus = 0;
                 $worderCount = db('work_order')->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
+                $orderCount = db('order_sku')->where(['order_id' => $value['order_id']])->sum('num');
+                $list[$key]['num_total']=$orderCount;
                 if ($worderCount > 0) {
-                    $orderCount = db('order_sku')->where(['order_id' => $value['order_id']])->sum('num');
                     if ($orderCount > $worderCount) {
                         $applyStatus = 1;//部分商品已安装
                     }else{

@@ -87,7 +87,11 @@
 	              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-blue" refresh="true">确定完成</a>
 	              	{/if}
                     {if condition="check_auth('workorder','add') && $vo['_apply_status']['ossub_id']>0 && $vo['_apply_status']['status'] !=2"}
+                        {if condition="$vo['num_total']==1"}
 	              		<a href="{:url('workorder/add', ['ossub_id' => $vo['_apply_status']['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
+                        {else /}
+                        <a href="{:url('detail', ['order_sn' => $vo['order_sn'],'tab'=>2])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
+                        {/if}
 	              	{/if}
               	</span>
               </td>
