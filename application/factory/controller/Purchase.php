@@ -162,14 +162,7 @@ class Purchase extends FactoryForm
         }
         $storeId = $sku['store_id'];
         if ($this->adminStore['store_type'] == STORE_DEALER) {
-            $storeId = db('store_dealer')->alias('SD')->join('store S', 'S.store_id=SD.ostore_id', 'INNER')->where([
-                'SD.store_id' => $this->adminStore['store_id'],
-                'S.is_del'    => 0,
-                'S.status'    => 1,
-            ])->value('ostore_id');
-            if (empty($storeId)) {
-                $this->error('服务商不存在或被禁用');
-            }
+            $storeId=$this->channelId;
         }
         $payments = $orderModel->getOrderPayments($storeId, 1);
         if (empty($payments)) {

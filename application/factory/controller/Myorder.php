@@ -6,6 +6,7 @@ class Myorder extends commonOrder
 {
     public $orderSkuModel;
     public $orderSkuServiceModel;
+    private $channelId=0;
     
     public function __construct()
     {
@@ -19,6 +20,27 @@ class Myorder extends commonOrder
         unset($this->subMenu['add']);
         $this->orderSkuModel = db('order_sku');
         $this->orderSkuServiceModel = new \app\common\model\OrderService();
+        $this->init();
+
+    }
+
+    private function init()
+    {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $channelId = db('store_dealer')->alias('SD')
+                ->join('store S', 'SD.ostore_id=S.store_id')
+                ->where([
+                    'SD.store_id'  => $this->adminStore['store_id'],
+                    'S.status'     => 1,
+                    'S.is_del'     => 0,
+                    'S.store_type' => STORE_SERVICE_NEW,
+                ])
+                ->value('ostore_id');
+            if (empty($channelId)) {
+                $this->error('服务商不存在或已被禁用');
+            }
+            $this->channelId = $channelId;
+        }
     }
     
     public function return()
@@ -117,7 +139,11 @@ class Myorder extends commonOrder
         $sku = $oSkus[0];//单次仅购买一个产品
         $this->assign('order', $detail);
         if ($step == 1) {
-            $payments = $this->model->getOrderPayments($detail['store_id'], 1);
+            $storeId = $detail['store_id'];
+            if ($this->adminStore['store_type'] == STORE_DEALER) {
+                $storeId=$this->channelId;
+            }
+            $payments = $this->model->getOrderPayments($storeId, 1);
             $this->assign('payments', $payments);
             $this->assign('skus', $oSkus);
         }elseif($step == 2){
