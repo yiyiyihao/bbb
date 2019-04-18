@@ -3196,7 +3196,7 @@ class Admin extends Index
      * @param boolean $checkFlag 是否验证用户对应商户信息
      * @return array
      */
-    private function _checkUser($checkFlag = TRUE)
+    protected function _checkUser($checkFlag = TRUE)
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
             //$userId = 2;//厂商
