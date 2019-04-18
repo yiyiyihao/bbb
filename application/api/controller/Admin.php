@@ -538,7 +538,7 @@ class Admin extends Index
     protected function getShareDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $url = isset($this->postParams['share_url']) ? $this->postParams['share_url'] : '';
@@ -598,7 +598,7 @@ class Admin extends Index
     protected function getShareCode()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $info = db('store')->where('store_id',$user['store_id'])->find();
@@ -656,7 +656,7 @@ class Admin extends Index
     protected function getBulletinList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $unread = isset($this->postParams['unread']) ? intval($this->postParams['unread']) : 0;
@@ -689,7 +689,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '公告ID不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         if ($user['admin_type'] != ADMIN_FACTORY) {
@@ -756,7 +756,7 @@ class Admin extends Index
     protected function getUnreadBulletinCount(){
         $user = $this->_checkUser();
         $unReadCount = 0;
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $unread = isset($this->postParams['unread']) ? intval($this->postParams['unread']) : 0;
@@ -2263,7 +2263,7 @@ class Admin extends Index
     protected function dispatchWorkOrder()
     {
         list($user,$installer)=$this->_checkInstaller();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
@@ -2302,7 +2302,7 @@ class Admin extends Index
     protected function cancelWorkOrder()
     {
         $user=$this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_DEALER,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_DEALER,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : '';
@@ -2386,7 +2386,7 @@ class Admin extends Index
     protected function getInstallerList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $where = [
@@ -2435,7 +2435,7 @@ class Admin extends Index
     protected function getInstallerCheckList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $field='job_no,realname,phone,status,check_status,admin_remark,add_time';
@@ -2496,7 +2496,7 @@ class Admin extends Index
     {
         $field = 'store_id,job_no,realname,phone,idcard_font_img,idcard_back_img,check_status,security_record_num,add_time,remark,admin_remark,update_time';
         list($user, $info) = $this->_checkInstaller($field);
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         unset($info['store_id']);
@@ -2507,7 +2507,7 @@ class Admin extends Index
     protected function checkInstaller()
     {
         list($user, $info) = $this->_checkInstaller();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         
@@ -2592,7 +2592,7 @@ class Admin extends Index
     protected function editInstaller()
     {
         list($user,$info)=$this->_checkInstaller();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $data['realname'] = isset($this->postParams['realname']) ? trim($this->postParams['realname']) : '';
@@ -2626,7 +2626,7 @@ class Admin extends Index
     protected function setInstallerStatus()
     {
         list($user,$info)=$this->_checkInstaller();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $status = isset($this->postParams['status']) ? trim($this->postParams['status']) : '';
@@ -2647,7 +2647,7 @@ class Admin extends Index
     protected function delInstaller()
     {
         list($user,$info)=$this->_checkInstaller();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         if ($info['check_status']!=1) {
@@ -2667,7 +2667,7 @@ class Admin extends Index
     protected function getFinanceData()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $result=$this->_withdrawConfig($user);
@@ -2677,7 +2677,7 @@ class Admin extends Index
     protected function applyWithdraw()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $check=$this->_withdrawConfig($user);
@@ -2753,7 +2753,7 @@ class Admin extends Index
     protected function getWithdrawList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $where=[
@@ -2781,7 +2781,7 @@ class Admin extends Index
     protected function getWithdrawDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
@@ -2867,7 +2867,7 @@ class Admin extends Index
     protected function getServiceIncomeList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $model=db('store_service_income');
@@ -2894,7 +2894,7 @@ class Admin extends Index
     protected function getServiceIncomeDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
@@ -2925,7 +2925,7 @@ class Admin extends Index
     protected function getWithdrawConfig()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $model = db('store_bank');
@@ -2949,7 +2949,7 @@ class Admin extends Index
     protected function addWithdrawConfig()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $model = db('store_bank');
@@ -2977,7 +2977,7 @@ class Admin extends Index
     protected function editWithdrawConfig()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
@@ -3173,7 +3173,7 @@ class Admin extends Index
     private function _checkInstaller($field = '*')
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY, ADMIN_SERVICE, ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $jobNo = isset($this->postParams['job_no']) ? trim($this->postParams['job_no']) : '';
