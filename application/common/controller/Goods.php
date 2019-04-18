@@ -30,6 +30,7 @@ class Goods extends FormBase
         $this->assign('goodsCates', get_goods_cate());
         $this->assign('goodsTypes', goodstype());
         $this->assign('stockReduces', $this->stockReduces);
+        $this->init();
     }
 
     public function init()
