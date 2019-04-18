@@ -30,7 +30,7 @@ class Order extends Model
                 $applyStatus = 0;
                 $worderCount = db('work_order')->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
                 $orderCount = db('order_sku')->where(['order_id' => $value['order_id']])->sum('num');
-                $list[$key]['num_total']=$orderCount;
+                $list[$key]['num_total']=intval($orderCount);
                 if ($worderCount > 0) {
                     if ($orderCount > $worderCount) {
                         $applyStatus = 1;//部分商品已安装
@@ -583,7 +583,7 @@ class Order extends Model
             $orderFrom = get_user_orderfrom($user, $orderType);
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
-            $factoryId = $first ? $first['factory_id'] : 0;
+            $factoryId = $user['factory_id'];
             $sellerUdataId = $first ? $first['udata_id'] : 0;
             if (isset($user['udata_id']) && $sellerUdataId && $sellerUdataId == $user['udata_id']) {
                 $this->error = '不允许购买自己的商品';
