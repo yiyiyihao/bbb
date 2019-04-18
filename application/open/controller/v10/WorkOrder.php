@@ -256,9 +256,9 @@ class WorkOrder extends Base
         $data['address'] = $request->param('address');
         $data['appointment'] = $request->param('appointment_start', '', 'trim,strtotime');
         $data['appointment_end'] = $request->param('appointment_end', '', 'trim,strtotime');
-        $data['fault_desc'] = $request->param('fault_desc');
+        $data['fault_desc'] = $request->param('fault_desc','');
         $data['goods_id'] = $request->param('goods_id', '0', 'intval');
-        $data['device_sn'] = $request->param('device_sn');
+        $data['device_sn'] = $request->param('device_sn','');
         $data['device_type'] = $request->param('device_type','');
         $data['work_order_type'] = $request->param('work_type',2,'intval');
         if ($data['appointment'] > $data['appointment_end']) {
@@ -267,12 +267,12 @@ class WorkOrder extends Base
         if ($data['appointment_end']-$data['appointment']>21600) {
             return $this->dataReturn(100100, '预约开始时与结束时间跨度不能超过6小时');
         }
-        if ($data['work_order_type']==2 && empty($data['device_sn'])){
-            return $this->dataReturn(100100, '提交维修工单时设备串码不能为空');
-        }
-        if ($data['work_order_type']==1 && empty($data['device_type'])  && empty($data['device_sn']) ) {
-            return $this->dataReturn(100100, '提交安装工单时，设备串码和设备类型不能同时为空');
-        }
+        //if ($data['work_order_type']==2 && empty($data['device_sn'])){
+        //    return $this->dataReturn(100100, '提交维修工单时设备串码不能为空');
+        //}
+        //if ($data['work_order_type']==1 && empty($data['device_type'])  && empty($data['device_sn']) ) {
+        //    return $this->dataReturn(100100, '提交安装工单时，设备串码和设备类型不能同时为空');
+        //}
         if ($data['work_order_type']==1) {
             $where=[
                 ['work_order_type','=',1],
@@ -373,11 +373,11 @@ class WorkOrder extends Base
             $list['code'] = 0;
             return $this->dataReturn($list);
         }
-        foreach ($list['data']['list'] as $key => $value) {
-            $list['data']['list'][$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
-            unset($list['data']['list'][$key]['cate_thumb']);
+        foreach ($list['list'] as $key => $value) {
+            $list['list'][$key]['thumb'] = $value['cate_thumb'] ? $value['cate_thumb'] : $value['thumb'];
+            unset($list['list'][$key]['cate_thumb']);
         }
-        return $this->dataReturn($list);
+        return $this->dataReturn(0,'ok',$list);
     }
 
 

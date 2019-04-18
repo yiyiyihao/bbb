@@ -120,7 +120,7 @@ class WorkOrderVal extends Validate
         return $this->only(['openid', 'goods_id','device_sn','work_type', 'user_name', 'user_mobile', 'region_id', 'region_name', 'address', 'appointment_start','appointment_end', 'fault_desc'])
             ->append('openid', 'require|alphaNum')
             //->append('device_sn|设备串码', 'require')
-            ->append('goods_id|商品ID', 'integer')
+            ->append('goods_id|商品ID', 'require|integer')
             ->append('work_type|工单类型', 'require|number|in:1,2')
             ->append('user_name|客户姓名', 'require|chsAlpha|min:2|max:20')
             ->append('user_mobile|客户手机号', 'require|mobile')
@@ -129,7 +129,7 @@ class WorkOrderVal extends Validate
             ->append('address|安装地址', 'require|chsDash')
             ->append('appointment_start|预约开始时间', 'require|date|after:' . date('Y-m-d'))
             ->append('appointment_end|预约结束时间', 'require|date|after:' . date('Y-m-d'))
-            ->append('fault_desc|故障描述信息', 'require|max:120');
+            ->append('fault_desc|故障描述信息', 'max:120');
     }
 
     //获取可维修商列表
