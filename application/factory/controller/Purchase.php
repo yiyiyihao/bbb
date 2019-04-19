@@ -135,20 +135,20 @@ class Purchase extends FactoryForm
     {
         $params = $this->request->param();
         $type = $this->request->param('create_type');
+        $remark = $this->request->param('remark','');
+
         if ($type && $type == 'cart') {
             $skuId = $this->request->param('id','0','intval');
-            $orderModel = new \app\common\model\Order();
             if (!$skuId) {
                 $this->error('请选择买单商品');
             }
             $num = 0;
             $sku['store_id'] = 1;
-            $remark = '';
+
         }else{
             $type = 'goods';
             $skuId = isset($params['sku_id']) ? intval($params['sku_id']) : 0;
             $num = isset($params['num']) ? intval($params['num']) : 0;
-            $remark = isset($params['remark']) ? trim($params['remark']) : '';
             if ($skuId <= 0 || $num <= 0) {
                 $this->error('参数错误');
             }
