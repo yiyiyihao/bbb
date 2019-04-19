@@ -357,7 +357,7 @@
                         <div class="field">
                             <input type="hidden" name="skuid[]" value={$skuList[0]['sku_id']} />
                             <input type="hidden" name="spec_name[]" value="{$skuList[0]['sku_name']}"/>
-                            <input type="text" class="input"  name="price_service[]" size="40" value="{$skuList[0]['price_service'] ?? $skuList[0]['price'] }" datatype="n">
+                            <input type="text" class="input"  name="price_service[]" size="40" value="{$skuList[0]['price_service'] ?? $skuList[0]['price'] }" datatype="/^[0-9]+\.?[0-9]{0,2}$/">
                             <div class="input-note"></div>
                         </div>
                     </div>

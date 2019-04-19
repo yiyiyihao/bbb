@@ -88,7 +88,7 @@ class Goods extends FormBase
                 $result = (new GoodsSkuService)->save($data, $where);
             }
             $maxMin=array_map(function ($price,$fee=0) {
-                return $price+$fee;
+                return bcadd(floatval($price),$fee,2);
             },$priceService,$installService);
             $max = max($maxMin);
             $min = min($maxMin);
