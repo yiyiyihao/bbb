@@ -1332,17 +1332,15 @@ class Admin extends Index
         $this->_returnMsg(['detail' => $detail]);
     }
     //获取商品规格列表
-    protected function getGoodsSkus($flag = TRUE)
+    protected function getGoodsSkus()
     {
         $goodsId = isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : 0;
         if (!$goodsId){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
-        if ($flag) {
-            $user = $this->_checkUser();
-            if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-            }
+        $user = $this->_checkUser();
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
         $where = [
@@ -1635,7 +1633,7 @@ class Admin extends Index
     protected function getOrderDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1645,7 +1643,7 @@ class Admin extends Index
         $orderModel = new \app\common\model\Order();
         $orderField = 'order_id,order_type,order_sn,real_amount,order_status,pay_status,delivery_status,finish_status';
         $orderField .= ',pay_code,store_id,pay_time,close_refund_status,add_time,remark, user_store_id, user_id';
-        $skuField = 'sku_name,sku_thumb,sku_spec,num,price';
+        $skuField = 'sku_name,sku_thumb,sku_spec,num,real_price, price';
         $result = $orderModel->getOrderDetail($orderSn, $user, FALSE, FALSE, $orderField, $skuField);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
@@ -1709,7 +1707,7 @@ class Admin extends Index
     protected function cancelOrder()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
