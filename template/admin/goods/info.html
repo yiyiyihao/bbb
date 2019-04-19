@@ -10,30 +10,30 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	<!-- {include file="common/factory" /} -->
+                    <!-- {include file="common/factory" /} -->
+                    {if $store_type ==$Think.const.STORE_FACTORY}
                     <div class="form-group">
-						<div class="label">
-							<label>商品分类</label>
-						</div>
-						<div class="field">
-							<select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择商品分类！"  {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if}>
-								{foreach name="cates" item="cate" key="key"}
-									<option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option> 
-								{/foreach}
-							</select>
-							<div class="input-note">请选择商品类型</div>
-						</div>
-					</div>
+                        <div class="label">
+                            <label>商品分类</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="cate_id" id="cate_id" datatype="n"nullmsg="请选择商品分类！">
+                                {foreach name="cates" item="cate" key="key"}
+                                <option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option>
+                                {/foreach}
+                            </select>
+                            <div class="input-note">请选择商品类型</div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <div class="label">
                             <label>商品名称</label>
                         </div>
                         <div class="field">
-                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}" {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if} >
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}" >
                             <div class="input-note">商品名称请不要填写特殊字符</div>
                         </div>
                     </div>
-                    {if $store_type ==$Think.const.STORE_FACTORY}
                     <div class="form-group">
                         <div class="label">
                             <label>上传图片</label>
@@ -43,24 +43,19 @@
                             <div class="input-note note">请上传不大于2M的图片,支持多图上传(建议尺寸:500px*500px)</div>
                         </div>
                     </div>
-                    {/if}
-                    
-                    
                     <div class="imagesBox form-group clearfix" id="imgs">
                         <div class="swiper-container">
-                            <div class="swiper-wrapper">                            	
-                        		{if condition="$info && isset($info['imgs'])"}
+                            <div class="swiper-wrapper">
+                                {if condition="$info && isset($info['imgs'])"}
                                 {volist name="info.imgs" id="vo" mod="10"}
                                 <div class="swiper-slide">
                                     <div class="media radius clearfix">
-                                        {if $store_type ==$Think.const.STORE_FACTORY}
                                         <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
                                         {eq name="mod" value="0"}
                                         <span>我是封面</span>
                                         {else /}
                                         <span class="uptofirst">设为封面</span>
                                         {/eq}
-                                        {/if}
                                         <img src="{$vo ?? ''}" >
                                         <div class="media-body">
                                             <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
@@ -74,19 +69,18 @@
                             <div class="swiper-button-prev"></div>
                         </div>
                     </div>
-                            
-                            
-		              <div class="form-group">
-		                  <div class="label">
-		                    <label>封面图片</label>
-		                  </div>
-		                  <div class="field">
-		                    <div class="image_preview" style="margin-bottom:10px;">
-		                    <input name="thumb" type="hidden" class="input title_img" value="{$info['thumb'] ?? ''}" />
-		                    <img src="{$info.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="120"></div>
-		                  </div>
-	                </div>
-	                <div class="form-group">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>封面图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="image_preview" style="margin-bottom:10px;">
+                                <input name="thumb" type="hidden" class="input title_img" value="{$info['thumb'] ?? ''}" />
+                                <img src="{$info.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="120">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <div class="label">
                             <label>商品编号</label>
                         </div>
@@ -95,146 +89,79 @@
                             <div class="input-note">商品编号请不要填写特殊字符</div>
                         </div>
                     </div>
-					{if ($store_type != $Think.const.STORE_SERVICE_NEW)/}
                     <div class="form-group">
                         <div class="label">
-                          <label>商品规格</label>
+                            <label>商品规格</label>
                         </div>
                         <div class="field">
-                          <div class="field-text">                          	
-                            <ul class="fieldlist">
-                                {volist name="specList" id="vo"}
-                                <li>
-                                    <span data-id="{$vo.spec_id}" data-spec="{$vo.name}">{$vo.name}</span> : 
-                                    <div class="specList"> 
-                                    {volist name="vo['spec_value']" id="val"}
-                                    <span data-spec="{$vo.name}" data-id="{$vo.spec_id}">{$val}</span>
-                                    {/volist} 
-                                    </div>
-                                </li> 
-                                {/volist}
-                            </ul>
-                            {if $store_type ==$Think.const.STORE_FACTORY}
-                            <span class="button bg-main" id="create">生成</span>
-                            {else/}
-                            <span class="field-mask"></span>
-                            {/if}
-                          </div>
+                            <div class="field-text">
+                                <ul class="fieldlist">
+                                    {volist name="specList" id="vo"}
+                                    <li>
+                                        <span data-id="{$vo.spec_id}" data-spec="{$vo.name}">{$vo.name}</span> :
+                                        <div class="specList">
+                                            {volist name="vo['spec_value']" id="val"}
+                                            <span data-spec="{$vo.name}" data-id="{$vo.spec_id}">{$val}</span>
+                                            {/volist}
+                                        </div>
+                                    </li>
+                                    {/volist}
+                                </ul>
+                                {if $store_type ==$Think.const.STORE_FACTORY}
+                                <span class="button bg-main" id="create" style="cursor:pointer;">生成</span>
+                                {else/}
+                                <span class="field-mask"></span>
+                                {/if}
+                            </div>
                         </div>
                     </div>
-                    {/if}
-
-					{if (($store_type == $Think.const.STORE_SERVICE_NEW && $skuList) || $store_type != $Think.const.STORE_SERVICE_NEW)/}
                     <div class="form-group">
                         <div class="label">
-                          <label>规格明细</label>
+                            <label>规格明细</label>
                         </div>
-                        <div class="field">                
-                          <div class="table-responsive" style="padding:10px 0;">
-                              {if $store_type ==$Think.const.STORE_FACTORY}
-                              <table id="table" class="table table-hover ">
-                                <tbody>
-                                  <tr>
-                                    <th width="200">商品编号</th>
-                                    <th width="*">商品规格</th>
-                                    <th width="100">商品价格</th>
-                                    <th width="100">安装费用</th>
-                                    <th width="100">库存</th>
-                                    <th width="80">操作</th>
-                                  </tr>
-                                  {if isset($skuList) && !empty($skuList)}
-                                  {volist name="skuList" id="vo" empty=""}
+                        <div class="field">
+                            <div class="table-responsive" style="padding:10px 0;">
+                                <table id="table" class="table table-hover ">
+                                    <tbody>
+                                    <tr>
+                                        <th width="200">商品编号</th>
+                                        <th width="*">商品规格</th>
+                                        <th width="100">商品价格</th>
+                                        <th width="100">安装费用</th>
+                                        <th width="100">库存</th>
+                                        <th width="80">操作</th>
+                                    </tr>
+                                    {if isset($skuList) && !empty($skuList)}
+                                    {volist name="skuList" id="vo" empty=""}
                                     <tr class="skubox">
                                         <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value={$vo.spec_json} />
-                                        <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" datatype="*" /></td>
-                                        <td>{$vo.sku_name}<input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" /></td>
+                                            <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" datatype="*" /></td>
+                                        <td>{$vo.sku_name?? '-'}<input type="hidden" name="spec_name[]" value="{$vo.sku_name ?? ''}" {notempty name="vo.sku_name"}datatype="*"{/notempty} /></td>
                                         <td><input class="input" type="text" name="price[]" size="10" value="{$vo.price}" datatype="*" /></td>
                                         <td><input class="input" type="text" name="install_price[]" size="10" value="{$vo.install_price}" datatype="*" /></td>
                                         <td><input class="input" type="number" name="sku_stock[]" size="10" value="{$vo.sku_stock}" datatype="n" /></td>
                                         <td><span class="delSpec button button-small bg-red icon-delete"></span></td>
                                     </tr>
-                                  {/volist}
-                                  {else /}
-                                  <tr>
-                                      <td colspan="6" align="center" class="empty">暂无数据</td>
-                                  </tr>
-                                  {/if}
-                                </tbody>
-                              </table>
-                              {elseif ($store_type ==$Think.const.STORE_SERVICE_NEW)/}
-                              <table id="table" class="table table-hover ">
-                                  <thead>
-                                      <tr>
-                                          <th width="60">序号</th>
-                                          <th width="*">商品规格</th>
-                                          <th width="100">进货价格</th>
-                                          <th width="100">零售价格</th>
-<!--                                          <th width="100">安装费用</th>-->
-                                          <th width="200">商品编号</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody>
-                                  {if isset($skuList) && !empty($skuList)}
-                                  {volist name="skuList" id="vo" empty="" key="k"}
-                                  <tr>
-                                      <td>{$k}</td>
-                                      <td>
-                                          <input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" />
-                                          {$vo.sku_name}
-                                      </td>
-                                      <td>{:bcadd($vo.price,0,2)}</td>
-                                      <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
-<!--                                      <td><input class="input" type="text" name="install_price_service[]" size="10" value="{$vo.install_price_service}" datatype="*" /></td>-->
-                                      <td>
-                                          <input type="hidden" name="skuid[]" value={$vo.sku_id} />
-                                          {$vo.sku_sn}
-                                      </td>
-                                  </tr>
-                                  {/volist}
-                                  {else /}
-                                  <tr>
-                                      <td colspan="6" align="center" class="empty">暂无数据</td>
-                                  </tr>
-                                  {/if}
-                                  </tbody>
-                              </table>
-                              {/if}
-                          </div>    
+                                    {/volist}
+                                    {else /}
+                                    <tr class="default-sku">
+                                        <!--<td colspan="6" align="center" class="empty">暂无数据</td>-->
+                                        <td><input type="hidden" name="spec_json[]" value='' />
+                                            <input class="input" type="text" name="sku_sn[]" value="" datatype=""  datatype="*" /></td>
+                                        <td><input class="input" type="text" name="spec_name[]" value="" disabled="disabled" style="width: 95%;" /></td>
+                                        <td><input class="input" type="text" name="price[]" size="10" value="" datatype="*" /></td>
+                                        <td><input class="input" type="text" name="install_price[]" size="10" value="" datatype="*" /></td>
+                                        <td><input class="input" type="number" name="sku_stock[]" size="10" value="" datatype="n" /></td>
+                                        <td><span class=" button button-small bg-gray icon-delete disabled" disabled="disabled" style="cursor: pointer;"></span></td>
+                                    </tr>
+                                    {/if}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="input-note">商品规格明细至少填一个，或单击规格<b style="color: red;font-weight: bold; font-size: 18px;">生成</b>按钮批量生成</div>
                         </div>
                     </div>
-                    {/if}
-                    {if $store_type !=$Think.const.STORE_FACTORY && $info && empty($skuList)}
-                    <div class="form-group">
-		                <div class="label">
-		                  <label>商品售价</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="min_price" datatype="*" name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		            </div>
-                    {/if}
-                    {if $store_type ==$Think.const.STORE_FACTORY}
-                    <div class="form-group">
-		                <div class="label">
-		                  <label>商品最低售价</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="min_price" datatype="*" {if ($info && isset($info['specs_json']) && $info['specs_json'])}readonly="readonly"{/if} name="min_price" size="12" value="{$info.min_price|default=0.00}" nullmsg="请填写商品售价！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		            </div>
-                    <div class="form-group install {if (($info && $info['goods_type'] != 1))}hide{/if}">
-		                <div class="label">
-		                  <label>安装费用</label>
-		                </div>
-		                <div class="field">
-		                  <input type="text" class="input" id="install_price" name="install_price" size="12" value="{$info.install_price|default=0.00}" datatype="*" nullmsg="请填写商品安装费用！"> 元
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
-		              
-		              <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
+                    <div class="form-group sample {if (!$info || ($info && $info['goods_type'] != 2))}hide{/if}">
                         <div class="label">
                             <label>样品限购数量</label>
                         </div>
@@ -243,26 +170,17 @@
                             <div class="input-note">单个用户样品限购数量(只有样品类型的商品才有此设置  样品不需要安装费设置)</div>
                         </div>
                     </div>
-		              <div class="form-group">
-		                <div class="label">
-		                  <label>商品库存</label>
-		                </div>
-		                <div class="field">
-		                  <input type="number" min="0" class="input" id="goods_stock" name="goods_stock" size="12" value="{$info.goods_stock|default=0}" nullmsg="请填写商品库存！" {if condition="$info && isset($info['skuinfo']) && $info['skuinfo']"}disabled="disabled"{/if}>
-		                  <div class="input-note"></div>
-		                </div>
-		              </div>
-		              <div class="form-group">
+                    <div class="form-group">
                         <div class="label">
                             <label>库存计数</label>
                         </div>
                         <div class="field">
                             <div class="button-group radio">
-                            {volist name="stockReduces" id="stockReduce"}
+                                {volist name="stockReduces" id="stockReduce"}
                                 <label class='button{if (!$info && (!$info && $i == 1 ) ) || (isset($info['stock_reduce_time']) && $info['stock_reduce_time'] == $key)} active{/if}'>
-                                	<input name="stock_reduce_time" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['stock_reduce_time']) && $info['stock_reduce_time'] == $key)}checked="checked"{/if} type="radio">{$stockReduce}
+                                <input name="stock_reduce_time" value="{$key}" {if (!$info && $i == 1 ) ||(isset($info['stock_reduce_time']) && $info['stock_reduce_time'] == $key)}checked="checked"{/if} type="radio">{$stockReduce}
                                 </label>
-                            {/volist}
+                                {/volist}
                             </div>
                             <div class="input-note">请选择库存计数类型</div>
                         </div>
@@ -276,52 +194,35 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
-                    {/if}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>电商专用</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                {notpresent name="info.e_commerce"}
+                                {assign name="info.e_commerce" value="0" /}
+                                {/notpresent}
+                                <label class='button {if condition="$info.e_commerce eq 1"} active{/if}'><input name="e_commerce" value="1" {if condition="$info.e_commerce eq 1"} checked="checked"{/if} type="radio">是</label>
+                                <label class='button {if condition="$info.e_commerce eq 0"} active{/if}'><input name="e_commerce" value="0" {if condition="$info.e_commerce eq 0"} checked="checked"{/if} type="radio">否</label>
+                            </div>
+                            <div class="input-note">电商专用商品,服务商不允许下单/进货</div>
+                        </div>
+                    </div>
                     <div id="expand"></div>
                     <div class="form-group">
                         <div class="label">
                             <label>是否上架</label>
                         </div>
                         <div class="field">
-                           {notpresent name="info.status"}
-                                {assign name="info.status" value="1" /}
-                           {/notpresent}
                             <div class="button-group radio">
-                                {if condition="$info.status eq 1"}
-                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="1" type="radio">
-                                {/if}是</label>
-                                {if condition="$info.status eq 0"}
-                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="0" type="radio">
-                                {/if}否</label>
+                                {notpresent name="info.status"}
+                                {assign name="info.status" value="1" /}
+                                {/notpresent}
+                                <label class="button {if condition='$info.status eq 1'}active{/if}"><input name="status" value="1" {if condition='$info.status eq 1'}checked="checked"{/if} type="radio">是</label>
+                                <label class="button {if condition='$info.status eq 0'}active{/if}"><input name="status" value="0" {if condition='$info.status eq 0'}checked="checked"{/if} type="radio">是</label>
                             </div>
                             <div class="input-note">下架后不在前台显示</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>电商专用</label>
-                        </div>
-                        <div class="field">
-                           {notpresent name="info.e_commerce"}
-                                {assign name="info.e_commerce" value="0" /}
-                           {/notpresent}
-                            <div class="button-group radio">
-                                {if condition="$info.e_commerce eq 1"}
-                                <label class="button active"><input name="e_commerce" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="e_commerce" value="1" type="radio">
-                                {/if}是</label>
-                                {if condition="$info.e_commerce eq 0"}
-                                <label class="button active"><input name="e_commerce" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="e_commerce" value="0" type="radio">
-                                {/if}否</label>
-                            </div>
-                            <div class="input-note">电商专用商品,服务商不允许下单/进货</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -332,9 +233,160 @@
                             <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$skuList[0]['sort_order_service'] ?? $info.sort_order|default=1}">
                             <div class="input-note">数字小的显示在前面</div>
                         </div>
-                    </div>                    
+                    </div>
+                    {elseif $store_type ==$Think.const.STORE_SERVICE_NEW /}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商品分类</label>
+                        </div>
+                        <div class="field">
+                            <select class="input" name="cate_id" id="cate_id" datatype="n" nullmsg="请选择商品分类！" disabled="disabled">
+                                {foreach name="cates" item="cate" key="key"}
+                                <option value="{$cate['cate_id']}" {if !$info || (isset($info['cate_id']) && $info['cate_id'] == $cate['cate_id'])}selected="selected"{/if} >{$cate.name}</option>
+                                {/foreach}
+                            </select>
+                            <div class="input-note">请选择商品类型</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商品名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" datatype="*" value="{$info['name'] ?? ''}" disabled="disabled" >
+                            <div class="input-note">商品名称请不要填写特殊字符</div>
+                        </div>
+                    </div>
+                    <div class="imagesBox form-group clearfix" id="imgs">
+                        <div class="swiper-container">
+                            <div class="swiper-wrapper">
+                                {if condition="$info && isset($info['imgs'])"}
+                                {volist name="info.imgs" id="vo" mod="10"}
+                                <div class="swiper-slide">
+                                    <div class="media radius clearfix">
+                                        <img src="{$vo ?? ''}" >
+                                        <div class="media-body">
+                                            <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" disabled="disabled" />
+                                        </div>
+                                    </div>
+                                </div>
+                                {/volist}
+                                {/if}
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>封面图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="image_preview" style="margin-bottom:10px;">
+                                <input name="thumb" type="hidden" class="input title_img" value="{$info['thumb'] ?? ''}" />
+                                <img src="{$info.thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="120">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商品编号</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" id="goods_sn" name="goods_sn" size="40" value="{$info['goods_sn'] ?? ''}" {if $store_type !=$Think.const.STORE_FACTORY}disabled="disabled"{/if}>
+                            <div class="input-note">商品编号请不要填写特殊字符</div>
+                        </div>
+                    </div>
+
+                    {if condition='isset($skuList) && !empty($skuList) && count($skuList)>1'}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>规格明细</label>
+                        </div>
+                        <div class="field">
+                            <div class="table-responsive" style="padding:10px 0;">
+                                <table id="table" class="table table-hover ">
+                                    <thead>
+                                    <tr>
+                                        <th width="60">序号</th>
+                                        <th width="*">商品规格</th>
+                                        <th width="100">进货价格</th>
+                                        <th width="100">零售价格</th>
+                                        <!--<th width="100">安装费用</th>-->
+                                        <th width="200">商品编号</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {volist name="skuList" id="vo" empty="" key="k"}
+                                    <tr>
+                                        <td>{$k}</td>
+                                        <td>
+                                            <input type="hidden" name="spec_name[]" value="{$vo.sku_name}" datatype="*" />
+                                            {$vo.sku_name}
+                                        </td>
+                                        <td>{:bcadd($vo.price,0,2)}</td>
+                                        <td><input class="input" type="text" name="price_service[]" size="10" value="{$vo.price_service ?? $vo.price }" datatype="*" /></td>
+                                        <!--<td><input class="input" type="text" name="install_price_service[]" size="10" value="{$vo.install_price_service}" datatype="*" /></td>-->
+                                        <td>
+                                            <input type="hidden" name="skuid[]" value={$vo.sku_id} />
+                                            {$vo.sku_sn}
+                                        </td>
+                                    </tr>
+                                    {/volist}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    {elseif isset($skuList) && !empty($skuList) && count($skuList)==1}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>进货价格</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input"  size="20" value="{:bcadd($skuList[0]['price'],0,2)}" disabled="disabled">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>商品售价</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" name="skuid[]" value={$skuList[0]['sku_id']} />
+                            <input type="hidden" name="spec_name[]" value="{$skuList[0]['sku_name']}"/>
+                            <input type="text" class="input"  name="price_service[]" size="40" value="{$skuList[0]['price_service'] ?? $skuList[0]['price'] }" datatype="n">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    {/if}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>是否上架</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <label class="button {if condition='$info.status eq 1'}active{/if}"><input name="status" value="1" {if condition='$info.status eq 1'}checked="checked"{/if} type="radio">是</label>
+                                <label class="button {if condition='$info.status eq 0'}active{/if}"><input name="status" value="0" {if condition='$info.status eq 0'}checked="checked"{/if} type="radio">是</label>
+                            </div>
+                            <div class="input-note">下架后不在前台显示</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$skuList[0]['sort_order_service'] ?? $info.sort_order|default=1}">
+                            <div class="input-note">数字小的显示在前面</div>
+                        </div>
+                    </div>
+                    {/if}
                 </div>
             </div>
+
             <div class="panel-foot">
                 <div class="form-button">
                     {if $store_type ==$Think.const.STORE_FACTORY}

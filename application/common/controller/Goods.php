@@ -58,7 +58,6 @@ class Goods extends FormBase
             $skuIds = $this->request->param('skuid', 0, 'intval');
             $priceService = $this->request->param('price_service');
             $installService = $this->request->param('install_price_service',[],'intval');
-            //p($installService);
             $status = $this->request->param('status');
             $sortOrder = $this->request->param('sort_order');
             $id = $this->request->param('id', 0, 'intval');
@@ -426,7 +425,7 @@ class Goods extends FormBase
         $sid = $info && $info['store_id'] ? $info['store_id'] : 0;
         $this->assign('store_type', $this->adminStore['store_type']);
         $this->_getCategorys($sid);
-        $skuinfo = db('goods_sku')->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
+        $skuinfo = db('goods_sku')->where(['goods_id' => $id, 'is_del' => 0, 'status' => 1])->find();
         $info['skuinfo'] = $skuinfo;
         $info['imgnum'] = isset($info['imgs']) && $info['imgs'] ? count(json_decode($info['imgs'])) : 0;
         $info['imgs'] = isset($info['imgs']) && $info['imgs'] ? json_decode($info['imgs'], TRUE) : [];
@@ -468,12 +467,18 @@ class Goods extends FormBase
                     'GS.is_del'    => 0,
                     'GS.status'    => 1,
                     'GS.store_id'  => $this->adminStore['factory_id'],
-                    'GS.spec_json' => ['NEQ', ''],
+                    //'GS.spec_json' => ['NEQ', ''],
                 ];
                 $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $this->adminStore['store_id'];
                 $skuList = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->select();
             } else {//厂商
-                $where = ['goods_id' => $id, 'is_del' => 0, 'status' => 1, 'store_id' => $this->adminStore['store_id'], 'spec_json' => ['neq', ""]];
+                $where = [
+                    'goods_id' => $id,
+                    'is_del' => 0,
+                    'status' => 1,
+                    'store_id' => $this->adminStore['store_id'],
+                    //'spec_json' => ['neq', ""]
+                ];
                 $skuList = db('goods_sku')->where($where)->order("sku_id")->select();
             }
             //p($skuList);
@@ -484,10 +489,6 @@ class Goods extends FormBase
     function _getData()
     {
         $data = parent::_getData();
-        $goodsSn = $data['goods_sn'];
-        if (!$goodsSn) {
-            $this->error('商品编码不能为空');
-        }
         $params = $this->request->param();
         $pkId = isset($params['id']) ? intval($params['id']) : 0;
         $cateId = isset($params['cate_id']) ? intval($params['cate_id']) : 0;
@@ -503,6 +504,17 @@ class Goods extends FormBase
         $skuSn = isset($params['sku_sn']) ? $params['sku_sn'] : [];
         $specName = isset($params['spec_name']) ? $params['spec_name'] : [];
         $specSku = isset($params['sku_stock']) ? $params['sku_stock'] : [];
+
+        $goodsSn = $data['goods_sn'];
+        $count = count($skuSn);
+        if ($count == 0) {
+            $this->error('请填写商品价格等信息');
+        }
+        $goodsSn = $goodsSn ? $goodsSn : ($count == 1 ? $skuSn[0] : '');
+        if (!$goodsSn) {
+            $this->error('商品编码不能为空');
+        }
+
         if (!$cateId) {
             $this->error('请选择商品分类');
         }
@@ -555,8 +567,8 @@ class Goods extends FormBase
         if (!$stockReduceTime || !isset($this->stockReduces[$stockReduceTime])) {
             $this->error('请选择库存计数类型');
         }
-        if (!empty($specJson) && is_array($specJson)) {
-            foreach ($specJson as $k => $v) {
+        if (!empty($skuSn) && is_array($skuSn)) {
+            foreach ($skuSn as $k => $v) {
                 $price = floatval($specPrice[$k]);
                 $stock = intval($specSku[$k]);
                 $ssn = trim($skuSn[$k]);
@@ -572,11 +584,9 @@ class Goods extends FormBase
             }
         }
         if ($pkId) {
-            $skuinfo = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1, 'spec_json' => ['neq', ""]])->find();
+            $skuinfo = db('goods_sku')->where(['goods_id' => $pkId, 'is_del' => 0, 'status' => 1, /*'spec_json' => ['neq', ""]*/])->find();
             if ($skuinfo) {
                 unset($data['goods_stock']);
-            } else {
-                $data['max_price'] = $data['min_price'];
             }
         }
         $data['thumb'] = isset($data['thumb']) && $data['thumb'] ? $data['thumb'] : (isset($data['imgs']) && $data['imgs'] ? $data['imgs'][0] : '');
@@ -598,10 +608,10 @@ class Goods extends FormBase
         $minPrice = $maxPrice = $goodsStock = 0;
         $skuIds = isset($data['skuid']) ? $data['skuid'] : [];
         if (!empty($specSns) && is_array($specSns)) {
-            $specJson = $data['spec_json'];
+            $specJson = $data['spec_json'] ?? [];
             $specPrice = $data['price'];
             $installPrice = $data['install_price'];
-            $specName = $data['spec_name'];
+            $specName = $data['spec_name'] ?? [];
             $specSku = $data['sku_stock'];
             //清空当前商品属性
             $where = ['goods_id' => $id, 'is_del' => 0];
@@ -627,9 +637,9 @@ class Goods extends FormBase
                 $skuData = [
                     'goods_cate'            => intval($data['goods_cate']),
                     'goods_type'            => $data['goods_type'],
-                    'sku_name'              => $specName[$k],
+                    'sku_name'              => $specName[$k]?? $data['name'],
                     'sku_sn'                => trim($v),
-                    'spec_json'             => $specJson[$k],
+                    'spec_json'             => $specJson[$k] ??'',
                     'sku_stock'             => $stock,
                     'spec_value'            => $specValue ? implode(';', $specValue) : '',
                     'price'                 => $price,
@@ -656,7 +666,7 @@ class Goods extends FormBase
             $goodsData = array(
                 'specs_json'  => trim($data['specs_json']),
                 'min_price'   => $minPrice,
-                'max_price'   => $maxPrice,
+                'max_price'   => $maxPrice > $minPrice ? $maxPrice : $minPrice,
                 'goods_stock' => $goodsStock,
             );
             $this->model->where(['goods_id' => $id])->update($goodsData);
@@ -668,25 +678,8 @@ class Goods extends FormBase
     function _afterAdd($pkId = 0, $data = [])
     {
         if ($pkId) {
-            if (isset($data['spec_json']) && $data['spec_json'] != '') {
+            if (isset($data['sku_sn']) && $data['sku_sn'] != '') {
                 $this->_goodsSpec($pkId, $data);
-            } else {
-                //添加默认商品属性
-                $skuData = [
-                    'goods_cate'            => intval($data['goods_cate']),
-                    'goods_type'            => intval($data['goods_type']),
-                    'goods_id'              => $pkId,
-                    'sku_sn'                => trim($data['goods_sn']),
-                    'sku_name'              => '',
-                    'spec_json'             => '',
-                    'sku_stock'             => intval($data['goods_stock']),
-                    'price'                 => floatval($data['min_price']),
-                    'install_price'         => floatval($data['install_price']),
-                    'store_id'              => intval($data['store_id']),
-                    'stock_reduce_time'     => intval($data['stock_reduce_time']),
-                    'sample_purchase_limit' => intval($data['sample_purchase_limit']),
-                ];
-                $skuId = db('goods_sku')->insertGetId($skuData);
             }
             setcookie("goodsUpload", NULL);
         }

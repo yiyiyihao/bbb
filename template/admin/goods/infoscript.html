@@ -114,34 +114,38 @@
 					layer.msg("请填写商品编码");
 					return;
 				}
-				$("#table tbody").find(".skubox").remove();
-                $("#table tbody").find(".empty").remove();
-				//layer.msg("创建中,请稍候……",{icon:16});
-				var sepcArr = [];
-				$(".fieldlist li").each(function(index, element) {
-                    var sLen = $(this).find(".active").length;
-					if(sLen > 0){
-						var specid = $(this).children("span").attr("data-id");
-						var specname = $(this).children("span").attr("data-spec");
-						var specList = [];
-						var valList = {};
-						$(this).find(".active").each(function(index, element) {                            
-							var value = $(this).text();
-							specList.push(value);
-                        });
-						valList.specid = specid;
-						valList.specname = specname;
-						valList.list = specList;
-						sepcArr.push(valList);
-					}
+				layer.confirm('生成新规格将覆盖原有规格信息',function (index) {
+                    layer.close(index)
+				    $("#table tbody").find(".skubox").remove();
+                    $("#table tbody").find(".default-sku").remove();
+                    //layer.msg("创建中,请稍候……",{icon:16});
+                    var sepcArr = [];
+                    $(".fieldlist li").each(function(index, element) {
+                        var sLen = $(this).find(".active").length;
+                        if(sLen > 0){
+                            var specid = $(this).children("span").attr("data-id");
+                            var specname = $(this).children("span").attr("data-spec");
+                            var specList = [];
+                            var valList = {};
+                            $(this).find(".active").each(function(index, element) {
+                                var value = $(this).text();
+                                specList.push(value);
+                            });
+                            valList.specid = specid;
+                            valList.specname = specname;
+                            valList.list = specList;
+                            sepcArr.push(valList);
+                        }
+                    });
+                    selectSpec = sepcArr;
+                    var specsJson = JSON.stringify(sepcArr);
+                    $("#specs_json").val(specsJson);
+                    $("#min_price").attr('readonly', true);
+                    $("#install_price").attr("readonly",true);
+                    //debug(JSON.stringify(sepcArr));
+                    combine(0,{},goodsSn);
                 });
-				selectSpec = sepcArr;
-				var specsJson = JSON.stringify(sepcArr);
-				$("#specs_json").val(specsJson);
-				$("#min_price").attr('readonly', true);
-				$("#install_price").attr("readonly",true);
-				//debug(JSON.stringify(sepcArr));
-				combine(0,{},goodsSn);
+
 			}else{
 				layer.msg("未选择规格");
 			}
