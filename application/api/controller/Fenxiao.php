@@ -1,8 +1,6 @@
 <?php
 namespace app\api\controller;
-
 use think\Db;
-
 class Fenxiao extends Admin
 {
     private $factoryId;
@@ -1178,4 +1176,4 @@ class Fenxiao extends Admin
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
         }
-    }
+    }}
