@@ -1179,10 +1179,3 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
         }
     }
-    
-    protected function getsessionid()
-    {
-        echo session_id();
-        die();
-    }
-}
