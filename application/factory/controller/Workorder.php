@@ -9,6 +9,7 @@ class Workorder extends FactoryForm
     var $type = 1;
     var $statusList;
     var $orderTypes;
+    private $orgInfo;
     public function __construct()
     {
         $this->modelName = 'work_order';
@@ -239,15 +240,44 @@ class Workorder extends FactoryForm
         }
         $type = isset($info['work_order_type']) ? intval($info['work_order_type']) : 0;
         //只有渠道和零售商可以编辑安装工单
-        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        //@updated at 04/22 2019 新服务商可以编辑预约时间
+        if ($type == 1 && !in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
         //只有厂商可以编辑维修工单
-        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])) {
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO ACCESS'));
         }
+        $this->orgInfo=$info;
         return parent::edit();
     }
+
+    public function _afterEdit($id=0,$data=[])
+    {
+        $info = $this->orgInfo;
+        $map = [
+            'user_name'   => '客户名称',
+            'phone'       => '客户电话',
+            'region_name' => '客户地址',
+            'address'     => '客户地址',
+            'appointment' => '预约时间',
+            'fault_desc'  => '备注',
+            'images'      => '图片',
+        ];
+        $arr=[];
+        foreach ($map as $k=>$v) {
+            if ($data[$k] != $info[$k]) {
+                if ($k=='appointment') {
+                    $info[$k]=time_to_date($info[$k]);
+                    $data[$k]=time_to_date($data[$k]);
+                }
+                $arr[]=$v.':'.$info[$k].'，修改为:'.$data[$k];
+            }
+        }
+        $msg=implode(',',$arr);
+        $this->model->worderLog($info,$this->adminUser,0,'编辑工单',$msg);
+    }
+    
     public function add()
     {
         $this->subMenu['showmenu'] = false;

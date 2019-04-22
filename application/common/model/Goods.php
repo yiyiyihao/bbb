@@ -91,7 +91,7 @@ class Goods extends Model
                     'GS.is_del'    => 0,
                     'GS.status'    => 1,
                     'GS.store_id'  => $store['factory_id'],
-                    'GS.spec_json' => ['NEQ', ''],
+                    //'GS.spec_json' => ['NEQ', ''],
                 ];
                 $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
                 $skus = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->select();

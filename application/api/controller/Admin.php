@@ -781,7 +781,7 @@ class Admin extends Index
     protected function getStoreList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $sortOrder = isset($this->postParams['sortorder']) ? trim($this->postParams['sortorder']) : '';
@@ -853,7 +853,7 @@ class Admin extends Index
         }
         $order = '';
         if ($sortOrder == 'amount') {
-            if (in_array($storeType, [STORE_SERVICE, STORE_CHANNEL])) {
+            if (in_array($storeType, [STORE_SERVICE, STORE_CHANNEL,ADMIN_SERVICE_NEW])) {
                 $order .= 'SF.total_amount DESC, ';
             }else{
                 $order .= 'sample_amount DESC, ';
@@ -926,7 +926,7 @@ class Admin extends Index
     {
         if (!$storeId) {
             $user = $this->_checkUser();
-            if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_FACTORY])) {
+            if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_FACTORY])) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
             }
             $storeNo = isset($this->postParams['store_no']) ?trim($this->postParams['store_no']) : '';
@@ -952,6 +952,9 @@ class Admin extends Index
             case STORE_CHANNEL:
                 $model = 'channel';
                 break;
+            case STORE_SERVICE_NEW:
+                $model = 'channel';
+                break;
             case STORE_DEALER:
                 $model = 'dealer';
                 break;
@@ -971,7 +974,7 @@ class Admin extends Index
         if ($returnField) {
             return $info;
         }
-        if ($user['admin_type'] == ADMIN_CHANNEL && $user['store_id'] != $detail['ostore_id']) {
+        if (in_array($user['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])  && $user['store_id'] != $detail['ostore_id']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商户不存在或已删除']);
         }
         if ($info['store_type'] != STORE_DEALER) {
@@ -980,7 +983,7 @@ class Admin extends Index
             $account = $account ? $account : [];
         }
         if ($info['store_type'] != STORE_SERVICE) {
-            if ($info['store_type'] == STORE_CHANNEL) {
+            if (in_array($info['store_type'],[STORE_CHANNEL,STORE_SERVICE_NEW])) {
                 //获取渠道商下的零售商数量
                 $info['dealer_count'] = db('store')->alias('S')->join('store_dealer SD', 'SD.store_id = S.store_id', 'INNER')->where(['is_del' => 0, 'check_status' => 1, 'ostore_id' => $info['store_id']])->count();
             }
@@ -1011,7 +1014,7 @@ class Admin extends Index
     protected function addDealer()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
         }
         $params = $this->_verifyStoreForm();
@@ -1058,7 +1061,7 @@ class Admin extends Index
     protected function editDealer()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商编辑权限']);
         }
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
@@ -1130,7 +1133,7 @@ class Admin extends Index
     protected function delDealer()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商编辑权限']);
         }
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
@@ -1170,7 +1173,7 @@ class Admin extends Index
     protected function getStoreCheckList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $where = [
@@ -1211,7 +1214,7 @@ class Admin extends Index
     protected function getStoreCheckDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'store_id, enter_type, address, store_type, store_no, check_status, admin_remark, name, user_name, mobile, security_money, region_name, idcard_font_img, idcard_back_img, signing_contract_img, license_img, group_photo, add_time';
@@ -1231,7 +1234,7 @@ class Admin extends Index
     protected function checkStore()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $checkStatus = isset($this->postParams['check_result'])  ? intval($this->postParams['check_result']) : FALSE;
@@ -1268,7 +1271,7 @@ class Admin extends Index
     protected function getGoodsList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         
@@ -1297,7 +1300,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
@@ -1339,7 +1342,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
         $user = $this->_checkUser();
-        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
@@ -1378,7 +1381,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品规格不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
@@ -1411,7 +1414,7 @@ class Admin extends Index
     protected function createOrder()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $skuId = isset($this->postParams['sku_id']) ? intval($this->postParams['sku_id']) : 0;
@@ -1443,7 +1446,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderModel = new \app\common\model\Order();
@@ -1480,7 +1483,7 @@ class Admin extends Index
     protected function getOrderList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
@@ -1557,7 +1560,7 @@ class Admin extends Index
     protected function getDealerOrderList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '仅渠道商有零售商新增权限']);
         }
         $where = [
@@ -1633,7 +1636,7 @@ class Admin extends Index
     protected function getOrderDetail()
     {
         $user = $this->_checkUser();
-        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1707,7 +1710,7 @@ class Admin extends Index
     protected function cancelOrder()
     {
         $user = $this->_checkUser();
-        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1726,7 +1729,7 @@ class Admin extends Index
     protected function getOrderSkuSubDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1757,7 +1760,7 @@ class Admin extends Index
     protected function applyWorkOrder()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1875,7 +1878,7 @@ class Admin extends Index
     protected function applyServiceOrder()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_DEALER])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
@@ -1930,7 +1933,7 @@ class Admin extends Index
     protected function getServiceOrderList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $where = [
@@ -1979,7 +1982,7 @@ class Admin extends Index
     protected function getServiceOrderDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
@@ -1990,9 +1993,9 @@ class Admin extends Index
         if ($user && isset($user['store_id']) && $user['store_id'] > 0) {
             if ($user['admin_type'] == ADMIN_FACTORY) {
                 $where['S.store_id'] = $user['store_id'];
-            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER])){
+            }elseif (in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER])){
                 $storeIds = [$user['store_id']];
-                if ($user['admin_type'] == ADMIN_CHANNEL) {
+                if (in_array($user['admin_type'],[ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
                     //获取零售商的下级经销商
                     $ids = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where(['S.is_del' => 0, 'SD.ostore_id' => $user['store_id']])->column('S.store_id');
                     $storeIds = $ids ? array_merge($ids, $storeIds) : $storeIds;
@@ -2024,7 +2027,7 @@ class Admin extends Index
     protected function cancelServiceOrder()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW ,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
@@ -2048,7 +2051,7 @@ class Admin extends Index
     protected function serviceOrderCheck()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_FACTORY])) {
+        if (!in_array($user['admin_type'], [ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前管理员无操作权限']);
         }
         $serviceSn = isset($this->postParams['service_sn']) ? trim($this->postParams['service_sn']) : '';
@@ -2185,6 +2188,9 @@ class Admin extends Index
             case ADMIN_SERVICE://服务商
                 $where['store_id'] = $user['store_id'];
                 break;
+            case ADMIN_SERVICE_NEW://服务商
+                $where['store_id'] = $user['store_id'];
+                break;
             case ADMIN_CHANNEL://渠道商
                 $where['post_store_id'] = $user['store_id'];
                 break;
@@ -2317,6 +2323,9 @@ class Admin extends Index
             case ADMIN_SERVICE://服务商
                 $where['store_id'] = $user['store_id'];
                 break;
+            case ADMIN_SERVICE_NEW://服务商
+                $where['store_id'] = $user['store_id'];
+                break;
             case ADMIN_CHANNEL://渠道商
                 $where['post_store_id'] = $user['store_id'];
                 break;
@@ -2371,7 +2380,7 @@ class Admin extends Index
             'status' => 1,
             'check_status'=> 1,
             'factory_id'  => $user['factory_id'],
-            'store_type' => STORE_SERVICE,
+            'store_type' => ['IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
             'region_id' => ['IN', $childs],
         ];
         $field = 'store_no, name';
@@ -2394,14 +2403,14 @@ class Admin extends Index
         $where['UI.is_del']=0;
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $where['UI.factory_id']=$user['store_id'];
-        } elseif ($user['admin_type'] == ADMIN_SERVICE) {
+        } elseif (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $where['UI.store_id']=$user['store_id'];
         }
         $sortorder = isset($this->postParams['sortorder']) ? trim($this->postParams['sortorder']) : '';
         $key = isset($this->postParams['key']) ? trim($this->postParams['key']) : '';
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
         if ($storeNo && $user['admin_type'] == ADMIN_FACTORY) {
-            $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0,'store_type'=>STORE_SERVICE])->find();
+            $store=db('store')->where(['store_no'=>$storeNo,'is_del'=>0,'store_type'=>['IN',[STORE_SERVICE,STORE_SERVICE_NEW]]])->find();
             if (empty($store)) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在或已被删除']);
             }
@@ -2475,7 +2484,7 @@ class Admin extends Index
         //}
         if ($user['admin_type'] == ADMIN_FACTORY) {
             $where['factory_id']=$user['store_id'];
-        } elseif ($user['admin_type'] == ADMIN_SERVICE) {
+        } elseif (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $where['store_id']=$user['store_id'];
         }
         $order='add_time DESC';
@@ -2523,7 +2532,7 @@ class Admin extends Index
         //if ($user['admin_type'] == ADMIN_FACTORY && $checkStatus != -1) {
         //    $this->error(lang('NO_OPERATE_PERMISSION'));
         //}
-        if ($user['admin_type'] == ADMIN_SERVICE && $checkStatus != -3) {
+        if (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])  && $checkStatus != -3) {
             $this->_returnMsg(['errCode' => 2, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
@@ -2805,7 +2814,7 @@ class Admin extends Index
     protected function getChannelIncomeList()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $model=db('store_commission');
@@ -2835,7 +2844,7 @@ class Admin extends Index
     protected function getChannelIncomeDetail()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $id = isset($this->postParams['id']) ? intval($this->postParams['id']) : '';
@@ -3005,7 +3014,7 @@ class Admin extends Index
     protected function setDealerStatus()
     {
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL])) {
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         $storeNo = isset($this->postParams['store_no']) ? trim($this->postParams['store_no']) : '';
@@ -3183,7 +3192,7 @@ class Admin extends Index
         if (empty($info)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '工号不正确或该工程师已被删除']);
         }
-        if ($user['admin_type'] == ADMIN_SERVICE && $info['store_id'] != $user['store_id']) {
+        if (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW]) && $info['store_id'] != $user['store_id']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
         }
         return [$user,$info];
