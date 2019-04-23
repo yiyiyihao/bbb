@@ -2,38 +2,34 @@
 use think\Facade;
 
 // 应用公共文件
-function get_user_orderfrom($user = [], $orderType = 1)
+function get_user_orderfrom($user = [])
 {
-    if ($orderType == 2) {
-        $orderFrom = 4;
-    }else{
-        if ($user) {
-            if (isset($user['store_type'])) {
-                switch ($user['store_type']) {
-                    case STORE_SERVICE_NEW:
-                        $orderFrom = 1;//服务商订单
-                        break;
-                    case STORE_DEALER:
-                        $orderFrom = 2;//零售商订单
-                        break;
-                    case STORE_FACTORY:
-                        $orderFrom = 3;//电商客服
-                        break;
-                    default:
-                        $orderFrom = 1;
-                        break;
-                }
-            }else{
-                $orderFrom = 4;//自有电商
+    if ($user) {
+        if (isset($user['store_type'])) {
+            switch ($user['store_type']) {
+                case STORE_SERVICE_NEW:
+                    $orderFrom = 1;//服务商订单
+                    break;
+                case STORE_DEALER:
+                    $orderFrom = 2;//零售商订单
+                    break;
+                case STORE_FACTORY:
+                    $orderFrom = 3;//电商客服
+                    break;
+                default:
+                    $orderFrom = 1;
+                    break;
             }
         }else{
-            $orderFrom = 0;
+            $orderFrom = 4;//自有电商
         }
+    }else{
+        $orderFrom = 0;
     }
     return $orderFrom;
 }
 
-function get_order_from($from = FALSE)
+function get_order_from($from = FALSE, $source = FALSE)
 {
     $fromTxts = [
         1  => '服务商订单',
@@ -45,7 +41,20 @@ function get_order_from($from = FALSE)
         return $fromTxts;
     }
     if (isset($fromTxts[$from])) {
-        return $fromTxts[$from];
+        $str = '';
+        if ($source) {
+            if ($from == 4) {
+                switch ($source) {
+                    case 'fenxiao':
+                        $str = '分销活动';
+                    break;
+                    default:
+                        $str = '自有商城';
+                    break;
+                }
+            }
+        }
+        return $fromTxts[$from].($str ? "(".$str.")" : '');
     }else{
         return '';
     }
@@ -59,7 +68,12 @@ function get_order_from($from = FALSE)
 function get_promotion_status($info = [])
 {
     if(!$info){
-        return [];
+        return [
+            0 => '已禁用',
+            -1 => '未开始',
+            -2 => '已结束',
+            1 => '进行中',
+        ];
     }
     if ($info['status'] != 1){
         return [
@@ -87,22 +101,6 @@ function get_promotion_status($info = [])
                 'text' => '进行中',
             ];
         }
-    }
-}
-function get_wroder_from($from = FALSE)
-{
-    $fromTxts = [
-        1  => '渠道工单',
-        2  => '电商工单',
-        3  => '电商工单',
-    ];
-    if ($from === FALSE) {
-        return $fromTxts;
-    }
-    if (isset($fromTxts[$from])) {
-        return $fromTxts[$from];
-    }else{
-        return '';
     }
 }
 function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
@@ -134,8 +132,8 @@ function get_check_status($status = FALSE){
 
 function get_order_type($type = FALSE){
     $typeList = [
-        1   =>  '渠道订单',
-        2   =>  '电商订单',
+        1   =>  '批发订单',
+        2   =>  '零售订单',
     ];
     if ($type === FALSE) {
         return $typeList;
