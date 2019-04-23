@@ -1156,7 +1156,11 @@ class Index extends ApiBase
         if($order)  $model->order($order);
         if($group)  $model->group($group);
         if ($this->pageSize > 0) {
-            $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            if (method_exists($model, 'save')) {
+                $result = $model->alias($alias)->join($join)->where($where)->having($having)->order($order)->field($field)->group($group)->paginate($this->pageSize, false, ['page' => $this->page]);
+            }else{
+                $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            }
             if ($result) {
                 return $result->items();
             }
