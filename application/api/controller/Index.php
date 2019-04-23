@@ -35,6 +35,7 @@ class Index extends ApiBase
         }
         //客户端签名密钥
         $this->signKeyList = [
+            'H5_FENXIAO'        => '0X65M8ixVmwq',
             'H5_MANAGER'        => 'VO17NvGtExcc',
             'APPLETS_INTALLER'  => 'SjeGczso8Ya2',
             'APPLETS_USER'      => 'SjeGczso8Ya3',
@@ -1004,9 +1005,8 @@ class Index extends ApiBase
         if (!$image) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片数据不能为空']);
         }
-        $type = isset($this->postParams['type']) ? trim($this->postParams['type']) : '';
-        $type = 'idcard';
-        if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service'])) {
+        $type = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'idcard';
+        if (!$type || !in_array($type, ['idcard', 'store_profile', 'distributor', 'order_service'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片类型错误']);
         }
         
@@ -1154,7 +1154,11 @@ class Index extends ApiBase
         if($order)  $model->order($order);
         if($group)  $model->group($group);
         if ($this->pageSize > 0) {
-            $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            if (method_exists($model, 'save')) {
+                $result = $model->alias($alias)->join($join)->where($where)->having($having)->order($order)->field($field)->group($group)->paginate($this->pageSize, false, ['page' => $this->page]);
+            }else{
+                $result = $model->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            }
             if ($result) {
                 return $result->items();
             }
@@ -1266,7 +1270,7 @@ class Index extends ApiBase
             if($key == 'sign' || $key == 'signkey' || $val === "")continue;
             else	$para [$key] = $params[$key];
         }
-        $this->postParams['sign_data'] = $para;
+//         $this->postParams['sign_data'] = $para;
         //对待签名参数数组排序
         ksort($para);
         reset($para);
