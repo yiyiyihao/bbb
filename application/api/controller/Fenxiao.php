@@ -20,18 +20,6 @@ class Fenxiao extends Admin
         $this->returnLogin = FALSE;
         parent::uploadImageSource($verifyUser);
     }
-//     //发送短信验证码
-//     protected function sendSmsCode($types = [])
-//     {
-//         $types = ['apply_distributor'];
-//         parent::sendSmsCode($types);
-//     }
-//     //短信验证码验证
-//     protected function checkSmsCode($types = [])
-//     {
-//         $types = ['apply_distributor'];
-//         parent::checkSmsCode($types);
-//     }
     /**
      * 获取首页分销列表
      */
