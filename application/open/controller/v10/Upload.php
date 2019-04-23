@@ -8,7 +8,7 @@ use app\open\controller\Base;
 
 class Upload extends Base
 {
-    public function upImg()
+    public function upImg2()
     {
         $file = $this->request->file('file');
         if (!$file) {
@@ -25,7 +25,7 @@ class Upload extends Base
         return $this->dataReturn(0,'图片上传成功',$result);
     }
 
-    public function upImageSource()
+    public function upImg()
     {
         $image=$this->request->param('file','','trim');
         if (!$image) {
