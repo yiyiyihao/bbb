@@ -14,6 +14,11 @@ class Fenxiao extends Admin
         parent::__construct();
         $this->factoryId = $this->factory['store_id'];
     }
+    protected function logout(){
+        session('api_wechat_oauth', []);
+        session('api_fenxiao_login', []);
+        $this->_returnMsg(['msg' => 'ok']);
+    }
     //上传图片
     protected function uploadImageSource($verifyUser = FALSE)
     {
@@ -618,18 +623,18 @@ class Fenxiao extends Admin
     {
         if(isset($this->postParams['test'])){
             #TODO 删除模拟用户数据
-            $result=[
-               'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
-               'appid' => 'wxa57c32c95d2999e5',
-               'nickname' => 'John',
-               'sex' => 1,
-               'language' => 'zh_CN',
-               'city' => '深圳',
-               'province' => '广东',
-               'country' => '中国',
-               'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/6ntVHaKIrYePQicia4vSnzoCVlnjHDrOg5fwhiciaJmyDC785qC5ibMJdzDq3KF92ZzEaHCrBm2w8QsnPnh2TZbIEkg/132',
-               'privilege' =>[],
-            ];
+//             $result=[
+//                'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
+//                'appid' => 'wxa57c32c95d2999e5',
+//                'nickname' => 'John',
+//                'sex' => 1,
+//                'language' => 'zh_CN',
+//                'city' => '深圳',
+//                'province' => '广东',
+//                'country' => '中国',
+//                'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/6ntVHaKIrYePQicia4vSnzoCVlnjHDrOg5fwhiciaJmyDC785qC5ibMJdzDq3KF92ZzEaHCrBm2w8QsnPnh2TZbIEkg/132',
+//                'privilege' =>[],
+//             ];
             $result=[
                 'openid' => 'oU6IZ111111111111111111111',
                 'appid' => 'wxa57c32c95d2999e5',
@@ -1337,6 +1342,7 @@ class Fenxiao extends Admin
         if (!$this->postParams) {
             $signKey = '0X65M8ixVmwq';
             $this->postParams = $this->request->param();
+            
             $this->postParams['timestamp'] = time();
             $this->postParams['version'] = '1.0';
             $this->postParams['signkey'] = $signKey;
