@@ -1268,7 +1268,7 @@ class Index extends ApiBase
             if($key == 'sign' || $key == 'signkey' || $val === "")continue;
             else	$para [$key] = $params[$key];
         }
-        $this->postParams['sign_data'] = $para;
+//         $this->postParams['sign_data'] = $para;
         //对待签名参数数组排序
         ksort($para);
         reset($para);
