@@ -40,6 +40,7 @@ KindEditor.lang({
 	removeformat : '删除格式',
 	image : '图片',
 	multiimage : '批量图片上传',
+	goods : '选择商品',
 	flash : 'Flash',
 	media : '视音频',
 	table : '表格',

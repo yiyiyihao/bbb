@@ -123,8 +123,18 @@ class Goods extends FormBase
         }
         return $list;
     }
+    
+    //编辑器选择商品
+    public function choose(){
+        $this->subMenu = false;
+        return $this->fetch();
+    }
 
-
+    //异步取得商品详情
+    public function getAjaxInfo(){
+        
+    }
+    
     //商品详情管理
     public function detail()
     {

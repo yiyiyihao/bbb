@@ -253,7 +253,7 @@ K.options = {
 	minChangeSize : 50,
 	zIndex : 811213,
 	items : [//,"multiimage"
-		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull"
+		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull","|","goods"
 	],
 	noDisableItems : ['source', 'fullscreen'],
 	colorTable : [
@@ -3546,6 +3546,9 @@ function _getInitHtml(themesPath, bodyClass, cssPath, cssData) {
 		'	border:1px dotted #AAA;',
 		'	font-size:0;',
 		'	height:2px;',
+		'}',
+		'.web_goods_iframe {',
+		'	border-radius:4px;height:40px;background:#f5f5f5;color:#576b95;',
 		'}',
 		'</style>'
 	];
