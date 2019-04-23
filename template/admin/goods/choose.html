@@ -1,0 +1,63 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+	<div class="panel-body">
+    	<div class="form-group js-select" posturl="{:url('goods/getAjaxList')}" str="选择商品" searchName="请输入商品名称" formname="goods_id" validtype="*"></div>
+        <div class="form-group" style="display:none">
+            <div class="label">
+                <label>商品风格</label>
+            </div>
+            <div class="field">
+                    <div class="button-group radio">
+                        <label class="button active"><input name="goodsThemes" value="0" checked="checked" type="radio">
+                        <span class="icon icon-check"></span> 默认风格</label>
+                        <label class="button"><input name="goodsThemes" value="1" type="radio">
+                        <span class="icon icon-times"></span> 天空蓝</label>
+                    </div>
+                    <div class="input-note"></div>
+                </div>
+        </div>
+    </div>    
+</form>
+    <div class="panel-foot" style="text-align:right">
+    	<span class="button button-common bg-main" id="submit">确定</span>
+        <span class="button button-common">取消</span>
+    </div>
+<script>	
+    function getGoodsInfo(){
+			var goodsId = $("select[name='goods_id']").val();
+			var goodsName = $("select[name='goods_id']").text();
+			//console.log(goodsName);
+			var goodsInfo = {
+				'goodsId'	: goodsId,
+				'goodsName'	: goodsName
+			};
+			//var theme = 0;
+			//var goodsInfo = getAjaxInfo(goodsId,theme);
+			var html = '<iframe class="web_goods_iframe" data-id="'+goodsId+'" data-name="'+goodsName+'" frameborder=0 srcdoc="'+goodsName+'"></iframe>';
+			return html;
+			//return goodsInfo;
+	}
+	function getAjaxInfo(goodsId,theme){
+		var html = '';
+		$.ajax({
+			url : "{:url('goods/getAjaxInfo')}",
+			type : "post",
+			data : {id:goodsId},
+			async : false,
+			success : function(data) {
+				html  = '<div class="_goodsInfoBox theme'+theme+'" data-id="'+data.id+'">';
+				html += '<span class="_goodsImgWrap"><img src="'+data.thumb+'" class="_goodsImg"></span>';
+				html += '<span class="_goodsTit">'+data.name+'</span>';
+				html += '<p class="_goodsMore"><span class="_goodsPrice fl">￥'+data.min_price+'</span><span class="button bg-main fr">购买</span></p>';
+				html += '</div><p>&nbsp;&nbsp;</p>';
+			}
+		});
+		return html;
+	}
+</script>
+<script>
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage();
+		
+    }); 
+</script>
