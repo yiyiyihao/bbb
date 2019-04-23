@@ -57,7 +57,7 @@
           {volist name="list" id="vo" key="key"}
             <tr>
               <td>{$vo.order_sn}</td>
-              <td>{:get_order_from($vo.order_from)}</td>
+              <td>{:get_order_from($vo.order_from, $vo.order_source)}</td>
               <td>{if isset($vo['sname']) && !empty($vo['sname'])}{$vo.sname}{else /}{$vo.ssname ??''}{/if}</td>
               <td>{$vo['pay_sn']}</td>
               <td>{$vo.real_amount}元</td>
@@ -73,6 +73,9 @@
               </td>
               <td>
               	<span class="button-group">
+              		<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit js-open" title="确认收款" >确认收款</a>
+	              	<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit" title="发货" >发货</a>
+              	
 	              	<a  href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-detail">订单查看</a>
 	              	{if condition="check_auth('order','pay') && $vo['user_store_id']!=$adminStore['store_id']  &&  $vo['pay_status'] == 0 && $vo['order_status'] == 1"}
 <!--	              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit js-open" title="确认收款" >确认收款</a>-->
@@ -84,7 +87,7 @@
 	              	<a href="javascript:;" url="{:url('cancel', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-red icon-trash js-action" refresh="true" title="取消订单">取消订单</a>
 	              	{/if}
 	              	{if condition="check_auth('order','finish') &&  $vo['pay_status'] == 1 AND $vo['order_status'] == 1 AND $vo['delivery_status'] == 2 AND $vo['finish_status'] != 2"}
-	              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-blue" refresh="true">确定完成</a>
+	              		<a href="javascript:;" url="{:url('finish', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-blue js-action" refresh="true"  title="确定完成">确定完成</a>
 	              	{/if}
                     {if condition="check_auth('workorder','add') && $vo['_apply_status']['ossub_id']>0 && $vo['_apply_status']['status'] !=2"}
                         {if condition="$vo['num_total']==1"}

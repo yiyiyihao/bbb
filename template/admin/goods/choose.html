@@ -24,7 +24,7 @@
 <script>	
     function getGoodsInfo(){
 			var goodsId = $("select[name='goods_id']").val();
-			var goodsName = $("select[name='goods_id']").text();
+			var goodsName = $("select[name='goods_id']").find("option:selected").text();
 			//console.log(goodsName);
 			var goodsInfo = {
 				'goodsId'	: goodsId,
