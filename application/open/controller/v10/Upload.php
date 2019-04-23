@@ -8,7 +8,7 @@ use app\open\controller\Base;
 
 class Upload extends Base
 {
-    public function upImg2()
+    public function upImg()
     {
         $file = $this->request->file('file');
         if (!$file) {
@@ -25,7 +25,7 @@ class Upload extends Base
         return $this->dataReturn(0,'图片上传成功',$result);
     }
 
-    public function upImg()
+    public function upImageSource()
     {
         $image=$this->request->param('file','','trim');
         if (!$image) {
@@ -37,7 +37,7 @@ class Upload extends Base
         $fileSize = strlen($image);
         //图片上传到七牛
         $upload = new \app\common\controller\UploadBase();
-        $result = $upload->qiniuUploadData($image, 'api_'.$type.'_', $type, $fileSize);
+        $result = $upload->qiniuUploadData($image, 'api_', '', $fileSize);
         if (!$result || !$result['status']) {
             return $this->dataReturn(1,$result['info']);
         }
