@@ -626,7 +626,7 @@ class Order extends Model
             }
             $userModel = new \app\common\model\User();
             //验证手机号格式
-            if (!check_mobile($addrPhone)) {
+            if (!empty($addrPhone) && !check_mobile($addrPhone)) {
                 $this->error = '手机号格式错误';
                 return FALSE;
             }
