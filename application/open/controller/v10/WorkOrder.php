@@ -26,7 +26,7 @@ class WorkOrder extends Base
             return $this->dataReturn($userCheck);
         }
         $user = $userCheck['data'];
-        $status = $request->param('status', '', 'intval');
+        $status = $request->param('status', '');
         $workOrderType = $request->param('type', '', 'intval');
         $where = ['WO.is_del' => 0];
         $join = [
@@ -42,7 +42,7 @@ class WorkOrder extends Base
             $where['work_order_type'] = $workOrderType;
         }
         if ('' !== $status) {
-            $where['WO.work_order_status'] = $status;
+            $where['WO.work_order_status'] = intval($status);
         }
         $order = 'WO.worder_id desc,wstatus ASC,WO.work_order_status ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'WO', $join);
