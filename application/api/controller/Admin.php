@@ -1308,7 +1308,7 @@ class Admin extends Index
             'goods_id'  => $goodsId,
             'is_del'    => 0,
             'status'    => 1,
-            'store_id'  => $this->factory['factory_id'],
+            'store_id'  => $this->factory['store_id'],
         ];
         $detail = db('goods')->where($where)->field($field)->find();
         if (!$detail) {
