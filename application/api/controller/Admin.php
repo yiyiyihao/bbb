@@ -74,7 +74,7 @@ class Admin extends Index
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型不能为空')]);
         }
-        if (!in_array($type,['register','change_phone','apply_distributor'])){
+        if (!in_array($type,['register','change_phone','apply_distributor','save_bank'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
         parent::sendSmsCode();
@@ -88,7 +88,7 @@ class Admin extends Index
         if (!$type) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('验证短信类型不能为空')]);
         }
-        if (!in_array($type,['register','change_phone','apply_distributor'])){
+        if (!in_array($type,['register','change_phone','apply_distributor','save_bank'])){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('短信类型错误')]);
         }
         ## @todo 测试专用
