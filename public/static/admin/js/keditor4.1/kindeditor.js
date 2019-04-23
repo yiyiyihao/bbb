@@ -253,7 +253,7 @@ K.options = {
 	minChangeSize : 50,
 	zIndex : 811213,
 	items : [//,"multiimage"
-		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull","|","goods"
+		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull"
 	],
 	noDisableItems : ['source', 'fullscreen'],
 	colorTable : [

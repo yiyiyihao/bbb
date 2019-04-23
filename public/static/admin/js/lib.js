@@ -24,6 +24,9 @@ $.fn.Editor = function (options) {
                 },
                 width: '100%'
             };
+			if(options.items){
+				editorConfig.items = options.items;
+			}
             editorConfig = $.extend(editorConfig, options.config);
             var str = idName + ' = KindEditor.create(id, editorConfig);';
             eval(str);
@@ -449,7 +452,8 @@ $.fn.FormPage = function (options) {
         if (form.find(".js-editor").length > 0) {
             form.find('.js-editor').Editor({
                 uploadUrl: options.editorUploadUrl,
-                uploadParams: options.uploadParams
+                uploadParams: options.uploadParams,
+				items: options.items
             });
         }
         //时间选择

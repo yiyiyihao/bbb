@@ -219,7 +219,11 @@
 <script>
     Do.ready('base', function () {
         //表单综合处理
-        $('#form').FormPage();
+        $('#form').FormPage({
+			'items'  : [
+		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull"
+	,"|","goods"]
+		});
     }); 
     var goods = $.parseJSON( '{:json_encode($goods)}' );
     var promTypes = $.parseJSON( '{:json_encode($promTypes)}' );
