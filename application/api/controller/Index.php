@@ -586,6 +586,9 @@ class Index extends ApiBase
         $idcardFontImg = isset($this->postParams['idcard_font_img']) ? trim($this->postParams['idcard_font_img']) : '';
         $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
         $workTime = isset($this->postParams['work_time']) ? trim($this->postParams['work_time']) : '';
+        if (strtotime($workTime)<=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '从业时间格式错误']);
+        }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if (!$realname){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '真实姓名(realname)缺失']);
@@ -599,12 +602,12 @@ class Index extends ApiBase
         $installerModel = new \app\common\model\UserInstaller();
         $phone = $user['phone'];
         $data = [
-            'realname'  => $realname,
-            'phone'     => $phone,
-            'remark'    => $remark,
-            'idcard_font_img' => $idcardFontImg,
-            'idcard_back_img' => $idcardBackImg,
-            'work_time' => $workTime,
+            'realname'            => $realname,
+            'phone'               => $phone,
+            'remark'              => $remark,
+            'idcard_font_img'     => $idcardFontImg,
+            'idcard_back_img'     => $idcardBackImg,
+            'work_time'           => $workTime,
             'security_record_num' => $securityRecordNum,
         ];
         $checkStatus = -3;
