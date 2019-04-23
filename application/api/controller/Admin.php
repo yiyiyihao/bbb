@@ -2127,6 +2127,9 @@ class Admin extends Index
             case ADMIN_SERVICE://服务商
                 $where['WO.store_id'] = $user['store_id'];
                 break;
+            case ADMIN_SERVICE_NEW://服务商
+                $where['WO.store_id'] = $user['store_id'];
+                break;
             case ADMIN_CHANNEL://渠道商
                 $where['WO.post_store_id'] = $user['store_id'];
                 break;
