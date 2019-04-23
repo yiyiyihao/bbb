@@ -71,7 +71,7 @@ class Order extends FormBase
             if ($result === FALSE) {
                 $this->error($this->model->error);
             }else{
-                $this->success('确认付款成功', url('index'));
+                $this->success('确认付款成功', url('finance'));
             }
         }else{
             $this->subMenu['menu'][] = [
