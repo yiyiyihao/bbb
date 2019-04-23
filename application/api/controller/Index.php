@@ -38,7 +38,8 @@ class Index extends ApiBase
             'H5_FENXIAO'        => '0X65M8ixVmwq',
             'H5_MANAGER'        => 'VO17NvGtExcc',
             'APPLETS_INTALLER'  => 'SjeGczso8Ya2',
-            'APPLETS_USER'      => 'SjeGczso8Ya3',
+            'APPLETS_USER'      => 'fYb180XXDddf',
+            'APPLETS_USER1'     => 'SjeGczso8Ya3',
             'TEST'              => 'ds7p7auqyjj8',
         ];
         $this->verifySignParam($this->postParams);
