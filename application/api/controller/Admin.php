@@ -1274,11 +1274,8 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL, ADMIN_SERVICE_NEW,ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        
         $salesOrder = isset($this->postParams['sales_order'])  && $this->postParams['sales_order'] ? 'sales DESC' : 'sales ASC';
-        
         $keyword = isset($this->postParams['keyword'])  && trim($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
-        
         $where = [
             'is_del' => 0,
             'status' => 1,
@@ -1290,6 +1287,9 @@ class Admin extends Index
         $order = $salesOrder.',sort_order ASC, add_time desc';
         $field = 'name,goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
         $list = $this->_getModelList(db('goods'), $where, $field, $order);
+        foreach ($list as $k=>$v) {
+            $list[$k]['price']=$v['max_price']>$v['min_price']? $v['min_price'].'~'.$v['max_price']:$v['min_price'];
+        }
         $this->_returnMsg(['list' => $list]);
     }
     //获取商品详情
