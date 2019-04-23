@@ -235,27 +235,21 @@ class Fenxiao extends Admin
         $field = 'nickname, avatar';
         $field .= ', O.order_sn, real_amount';
         $field .= ', sku_name, sku_thumb, sku_spec, num, real_price';
-        $field .= ', UDC.value as commission_amount, UDC.status, O.add_time';
+        $field .= ', UDC.value as commission_amount, UDC.commission_status, O.add_time';
         $alias = 'UDC';
         $join = [
             ['order O', 'O.order_sn = UDC.order_sn', 'INNER'],
             ['order_sku OS', 'O.order_id = OS.order_id', 'INNER'],
             ['user_data UD', 'UD.udata_id = UDC.post_udata_id', 'INNER'],
         ];
-        $statusTxt = [
-            -1 => '已取消',
-            0 => '已下单',
-            1 => '已支付',
-            2 => '已返佣',
-        ];
         $result = $this->_getModelList(model('user_distributor_commission'), $where, $field, $order, $alias, $join);
         if ($result && isset($result)) {
             foreach ($result as $key => $value) {
                 $result[$key]['_status'] = [
-                    'status' => $value['status'],
-                    'status_text' => isset($statusTxt[$value['status']]) ? $statusTxt[$value['status']] : '',
+                    'status' => $value['commission_status'],
+                    'status_text' => isset($statusTxt[$value['status']]) ? get_commission_status($value['commission_status']) : '',
                 ];
-                unset($result[$key]['status']);
+                unset($result[$key]['commission_status']);
             }
         }
         $this->_returnMsg(['list' => $result]);
@@ -478,16 +472,11 @@ class Fenxiao extends Admin
             $params['address']      = $address['address'];
         }
         $orderModel = new \app\common\model\Order();
-//         $result = $orderModel->where('order_sn', '20190423093605531009179738974')->find();
         $result = $orderModel->createOrder($loginUser, 'goods', $sku['sku_id'], $num, $submit, $params, $remark, 2);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
         if ($submit) {
-            if ($promot && $join) {
-                $commissionModel = new \app\common\model\UserDistributorCommission();
-                $commissionModel->calculate(1, $result, $promot, $promotSku, $join);
-            }
             $this->_returnMsg(['order_sn' => $result['order_sn']]);
         }else{
             $this->_returnMsg(['datas' => $result]);

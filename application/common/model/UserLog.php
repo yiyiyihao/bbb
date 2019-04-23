@@ -13,7 +13,7 @@ class UserLog extends Model
     {
         parent::initialize();
     }
-    public function record($userId, $field = 'balance', $value = 0, $actionType = '', $extra = [])
+    public function record($userId, $field = 'amount', $value = 0, $actionType = '', $extra = [])
     {
         $userModel = new \app\common\model\User();
         $user = $userModel->where('user_id', $userId)->find();
@@ -31,9 +31,9 @@ class UserLog extends Model
             }
         }
         $detail = [
-            'value' => $user[$field],//更新之前的数据
-            'order_sn' => $extra && isset($extra['order_sn']) ? trim($extra['order_sn']) : '',
-            'extra_id' => $extra && isset($extra['extra_id']) ? intval($extra['extra_id']) : '',
+            'value'     => $user[$field],//更新之前的数据
+            'order_sn'  => $extra && isset($extra['order_sn']) ? trim($extra['order_sn']) : '',
+            'extra_id'  => $extra && isset($extra['extra_id']) ? intval($extra['extra_id']) : '',
         ];
         $data = [
             'user_id'   => $userId,

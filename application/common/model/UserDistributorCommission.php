@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model;
 use think\Model;
+use think\Db;
 
 class UserDistributorCommission extends Model
 {
@@ -14,36 +15,46 @@ class UserDistributorCommission extends Model
         parent::initialize();
     }
     /**
-     * 创建订单-记录佣金返回数据
-     * @param int $step
+     * 佣金记录
      * @param array $order
-     * @param array $promotion
+     * @param int $promotId
      * @param array $promotSku
-     * @param array $join
+     * @param int $joinId
      * @return boolean
      */
-    public function calculate($step = 1, $order, $promotion = [], $promotSku = [], $join = [])
+    public function calculate($order, $promotId = 0, $orderSku = [], $joinId = 0)
     {
-        if ($step == 1 && $order && $promotion && $promotSku && $join) {
-            //1 销售佣金计算
-            $result = $this->_save($order, $promotion, $promotSku, $join, 1);
-            //2 管理佣金计算
-            $result = $this->_save($order, $promotion, $promotSku, $join, 2);
-            return TRUE;
-        }elseif ($step == 2 || $step == -1){
-            $status = $step == 2 ? 1: -1;
-            $where = [
-                ['order_sn',    '=', $order['order_sn']],
-                ['join_id',     '=', $order['promot_join_id']],
-                ['promot_id',   '=', $order['promot_id']],
-                ['status',      '=', 0],
-            ];
-            $logIds = $this->where($where)->column('log_id');
-            if ($logIds) {
-                $result = $this->save(['status' => $status], ['log_id' => ['IN', $logIds]]);
-            }
+        if (!$orderSku) {
+            return FALSE;
         }
-        return FALSE;
+        $where = [
+            ['is_del', '=', 0],
+            ['join_id', '=', $joinId],
+            ['promot_id', '=', $promotId],
+            ['store_id', '=', $order['factory_id']],
+//             ['udata_id', '<>', $order['udata_id']],
+        ];
+        $join = model('PromotionJoin')->where($where)->find();
+        if (!$join) {
+            return FALSE;
+        }
+        $goodsId = $orderSku['goods_id'];
+        $where = [
+            ['promot_id', '=', $promotId],
+            ['is_del', '=', 0],
+            ['goods_id', '=', $goodsId],
+            ['store_id', '=', $order['factory_id']],
+        ];
+        $promotSku = model('PromotionSku')->where($where)->find();
+        if (!$promotSku) {
+            return FALSE;
+        }
+        //1 销售佣金计算
+        $result = $this->_save($order, $promotSku, $join, 1);
+        //2 管理佣金计算
+        $result = $this->_save($order, $promotSku, $join, 2);
+        return TRUE;
+        
     }
     /**
      * 订单佣金结算
@@ -56,7 +67,7 @@ class UserDistributorCommission extends Model
             ['order_sn',    '=', $order['order_sn']],
             ['join_id',     '=', $order['promot_join_id']],
             ['promot_id',   '=', $order['promot_id']],
-            ['status',      '=', 1],
+            ['commission_status', '=', 0],
         ];
         $logs = $this->where($where)->select();
         if (!$logs) {
@@ -64,6 +75,7 @@ class UserDistributorCommission extends Model
         }
         $logIds = [];
         $userLogModel = new \app\common\model\UserLog();
+        $userModel = model('User');
         foreach ($logs as $key => $value) {
             $logId = intval($value['log_id']);
             if (!$logId) {
@@ -76,14 +88,53 @@ class UserDistributorCommission extends Model
                 'order_sn' => $value['order_sn'],
                 'extra_id' => $logId,
             ];
-            $result = $userLogModel->record($value['user_id'], 'balance', $value['value'], 'fenxiao_order', $extra);
+            $result = $userLogModel->record($value['user_id'], 'amount', $value['value'], 'fenxiao_order', $extra);
+            if ($result !== FALSE && $value['value'] > 0) {
+                //减少待结算金额 总金额不变
+                $data = [
+                    'pending_amount' => Db::raw('pending_amount-'.$value),
+                ];
+                $result = $userModel->save($data, ['user_id' => $value['user_id']]);
+            }
         }
-        $result = $this->save(['status' => 2], ['log_id' => ['IN', $logIds]]);
+        //收益状态(0待结算 1已结算 2已退还)
+        $result = $this->save(['commission_status' => 1], ['log_id' => ['IN', $logIds]]);
         return TRUE;
     }
-    
-    
-    private function _save($order, $promotion, $promotSku, $join, $type = 1)
+    /**
+     * 佣金退还
+     * @param array $order
+     */
+    public function return($order)
+    {
+        $where = [
+            ['order_sn',    '=', $order['order_sn']],
+            ['join_id',     '=', $order['promot_join_id']],
+            ['promot_id',   '=', $order['promot_id']],
+            ['commission_status', '=', 0],//收益状态(0待结算 1已结算 2已退还)
+        ];
+        $logs = $this->where($where)->select();
+        if (!$logs) {
+            return FALSE;
+        }
+        $userModel = model('User');
+        $logIds = [];
+        foreach ($logs as $key => $value) {
+            $logIds[] = $value['log_id'];
+            if ($value['value'] > 0) {
+                //减少待结算金额和总金额
+                $data = [
+                    'pending_amount' => Db::raw('pending_amount-'.$value),
+                    'total_amount' => Db::raw('total_amount-'.$value),
+                ];
+                $result = $userModel->save($data, ['user_id' => $value['user_id']]);
+            }
+        }
+        //收益状态(0待结算 1已结算 2已退还)
+        $result = $this->save(['commission_status' => 2], ['log_id' => ['IN', $logIds]]);
+        return TRUE;
+    }
+    private function _save($order, $promotSku, $join, $type = 1)
     {
         $field = $type == 1? 'sale' : 'manage';
         $distrtId = $join['distrt_id'];
@@ -123,10 +174,10 @@ class UserDistributorCommission extends Model
                 $value = $realAmount > 0 ? $realAmount*$cValue/100 : 0;
                 break;
             case 'fix_amount':
-                $value = $realAmount > 0 ? $realAmount*$cValue/100 : 0;
+                $value = $realAmount > $cValue ? $cValue : $realAmount;
                 break;
             default:
-                ;
+                return FALSE;
                 break;
         }
         //保留小数点后两位四舍五入
@@ -137,7 +188,7 @@ class UserDistributorCommission extends Model
             'distrt_id' => $distrtId,
             'value'     => $value,
             'comm_type' => $type,
-            'commission_json' => $commissionJson,
+            'commission_json'   => $commissionJson,
             'settle_type'   => $commission['type'],
             'settle_value'  => $commission['value'],
             'order_sn'      => $order['order_sn'],
@@ -145,15 +196,17 @@ class UserDistributorCommission extends Model
             'promot_id'     => $join['promot_id'],
             'post_udata_id' => $order['udata_id'],
             'post_user_id'  => $order['user_id'],
+            'commission_status' => 0,//收益状态(0待结算 1已结算 2已退还)
         ];
         $result = $this->save($data);
-        //佣金入账
-        $extra = [
-            'msg'   => ($value['comm_type']==1 ? '销售' : '管理').'佣金入账',
-            'order_sn' => $value['order_sn'],
-            'extra_id' => $logId,
-        ];
-        $result = model('UserLog')->record($value['user_id'], 'balance', $value['value'], 'fenxiao_order', $extra);
+        if($value > 0){
+            //增加用户待结算金额和总金额
+            $data = [
+                'pending_amount' => Db::raw('pending_amount+'.$value),
+                'total_amount' => Db::raw('total_amount+'.$value),
+            ];
+            $result = model('User')->save($data, ['user_id' => $userId]);
+        }
         return TRUE;
     }
 }
