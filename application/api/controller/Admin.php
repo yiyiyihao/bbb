@@ -1300,7 +1300,7 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
         $user = $this->_checkUser();
-        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
+        if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
         $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
@@ -1308,7 +1308,7 @@ class Admin extends Index
             'goods_id'  => $goodsId,
             'is_del'    => 0,
             'status'    => 1,
-            'store_id'  => $user['factory_id'],
+            'store_id'  => $this->factory['factory_id'],
         ];
         $detail = db('goods')->where($where)->field($field)->find();
         if (!$detail) {
