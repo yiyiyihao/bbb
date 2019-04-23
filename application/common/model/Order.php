@@ -161,7 +161,13 @@ class Order extends Model
             $action = isset($user['admin_type']) && $user['admin_type'] == ADMIN_FACTORY ? '确认完成' : '确认收货';
         }
         $this->orderTrack($order, 0, $remark);
-        return $this->orderLog($order, $user, $action, $remark);
+        $this->orderLog($order, $user, $action, $remark);
+        if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
+            //分销佣金结算
+            $commissionModel = new \app\common\model\UserDistributorCommission();
+            $commissionModel->settlement($order);
+        }
+        return TRUE;
     }
     /**
      * 订单发货操作
@@ -433,6 +439,11 @@ class Order extends Model
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
         
+        if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
+            $commissionModel = new \app\common\model\UserDistributorCommission();
+            $commissionModel->calculate(2, $order);
+        }
+        
         if (in_array($order['order_type'], [1])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
@@ -535,9 +546,14 @@ class Order extends Model
         }
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, '取消订单', $remark);
+        if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
+            //分销佣金结算
+            $commissionModel = new \app\common\model\UserDistributorCommission();
+            $commissionModel->calculate(-1, $order);
+        }
         return TRUE;
     }
-    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1, $orderFrom = 1)
+    public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1)
     {
         if (!$user) {
             $this->error = lang('param_error');
@@ -587,10 +603,11 @@ class Order extends Model
                 $this->error = '请选择下单商品';
                 return FALSE;
             }
-            $orderFrom = get_user_orderfrom($user, $orderType);
+            $orderFrom = !isset($param['order_from']) ? get_user_orderfrom($user) : intval($param['order_from']);
+            $orderSource = isset($param['order_source']) ? trim($param['order_source']) : '';
             $first = isset($list['skus']) ? reset($list['skus']) : [];
             $storeId = $first ? $first['store_id'] : 0;
-            $factoryId = $factoryId = isset($user['factory_id']) ? $user['factory_id'] : 0;
+            $factoryId = isset($user['factory_id']) ? $user['factory_id'] : 0;
             $sellerUdataId = $first ? $first['udata_id'] : 0;
             if (isset($user['udata_id']) && $sellerUdataId && $sellerUdataId == $user['udata_id']) {
                 $this->error = '不允许购买自己的商品';
@@ -609,9 +626,8 @@ class Order extends Model
             }
             $userModel = new \app\common\model\User();
             //验证手机号格式
-            $result = $userModel->checkPhone(0, $addrPhone);
-            if ($result === FALSE) {
-                $this->error = $userModel->error;
+            if (!check_mobile($addrPhone)) {
+                $this->error = '手机号格式错误';
                 return FALSE;
             }
             if ($list['all_amount'] <= 0) {
@@ -634,7 +650,7 @@ class Order extends Model
                 'udata_id'        => isset($user['udata_id']) ? intval($user['udata_id']) : 0,
 
                 'pay_code'        => isset($param['pay_code']) ? $param['pay_code'] : '',
-                'pay_type'        => isset($param['pay_type']) ? $param['pay_type'] : '',
+                'pay_type'        => isset($param['pay_type']) ? $param['pay_type'] : 1,
                 'goods_amount'    => $list['sku_amount'],
                 'install_amount'  => $list['install_amount'],
                 'delivery_amount' => $list['delivery_amount'],
@@ -649,6 +665,10 @@ class Order extends Model
                 'update_time'     => time(),
                 'extra'           => '',
                 'order_from'      => $orderFrom,
+                'order_source'    => $orderSource,
+                'promot_type'     => $param && isset($param['promotion']) ? $param['promotion']['promot_type']: '',
+                'promot_id'       => $param && isset($param['promotion']) ? $param['promotion']['promot_id']: '',
+                'promot_join_id'  => $param && isset($param['join']['join_id']) ? intval($param['join']['join_id']): 0,
             ];
             $orderModel = db('order');
             $orderSkuModel = db('order_sku');

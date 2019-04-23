@@ -11,6 +11,7 @@ class LogCode extends Model
 	    'register'     => '注册',
 	    'bind_phone'   => '绑定手机号',
 	    'change_phone' => '更换手机号',
+	    'apply_distributor' => '申请代言人',
 	];
 	//自定义初始化
     protected function initialize()
