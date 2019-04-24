@@ -202,7 +202,7 @@ class WechatPayApi
     /*
      *与微信通讯获得二维码地址信息，必须以xml格式
      */
-    private function _wechatPostXmlCurl($xml, $url, $second = 300, $cert = FALSE)
+    private function _wechatPostXmlCurl($xml, $url, $second = 1000, $cert = FALSE)
     {
         //初始化curl
         $ch = curl_init();

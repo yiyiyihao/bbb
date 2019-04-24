@@ -1,6 +1,6 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
 	<div class="panel-body">
-    	<div class="form-group js-select" posturl="{:url('goods/getAjaxList')}" str="选择商品" searchName="请输入商品名称" formname="goods_id" validtype="*"></div>
+    	<div class="form-group js-select" posturl="{:url('promotion/getAjaxList', ['id'=> $Think.get.id])}" str="选择商品" searchName="请输入商品名称" formname="goods_id" validtype="*"></div>
         <div class="form-group" style="display:none">
             <div class="label">
                 <label>商品风格</label>

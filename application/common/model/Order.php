@@ -162,11 +162,6 @@ class Order extends Model
         }
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, $action, $remark);
-        if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
-            //分销佣金结算
-            $commissionModel = new \app\common\model\UserDistributorCommission();
-            $commissionModel->settlement($order);
-        }
         return TRUE;
     }
     /**
@@ -421,6 +416,7 @@ class Order extends Model
         }
         $order = $this->getOrderSkus($order, FALSE);
         $skus = $order['skus'];
+        
         //将订单设置为已支付状态
         $result = $this->where(['order_id' => $order['order_id'], 'pay_status' => ['<>', 1]])->update($data);
         if ($result === FALSE) {
@@ -440,8 +436,9 @@ class Order extends Model
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
         
         if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
+            //分销佣金入账
             $commissionModel = new \app\common\model\UserDistributorCommission();
-            $commissionModel->calculate(2, $order);
+            $commissionModel->calculate($order, $order['promot_id'], $skus[0], $order['promot_join_id']);
         }
         
         if (in_array($order['order_type'], [1])) {
@@ -546,11 +543,6 @@ class Order extends Model
         }
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, '取消订单', $remark);
-        if ($order['promot_join_id'] && $order['promot_type'] == 'fenxiao') {
-            //分销佣金结算
-            $commissionModel = new \app\common\model\UserDistributorCommission();
-            $commissionModel->calculate(-1, $order);
-        }
         return TRUE;
     }
     public function createOrder($user, $from, $skuId, $num, $submit = FALSE, $param = [], $remark = '', $orderType = 1)

@@ -12,6 +12,7 @@ class LogCode extends Model
 	    'bind_phone'   => '绑定手机号',
 	    'change_phone' => '更换手机号',
 	    'apply_distributor' => '申请代言人',
+	    'save_bank'    =>    '保存银行卡信息',
 	];
 	//自定义初始化
     protected function initialize()

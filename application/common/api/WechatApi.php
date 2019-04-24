@@ -163,7 +163,7 @@ class WechatApi
      * 微信接口:获取分享jsapi_ticket
      * @return boolean|mixed|unknown
      */
-    public function getWechatJsApiTicket() {
+    public function getWechatJsApiTicket($refresh = FALSE) {
         $appid = isset($this->config['appid']) ? trim($this->config['appid']) : '';
         if (!$appid) {
             $this->error = 'APPID不能为空';
@@ -171,7 +171,7 @@ class WechatApi
         }
         $ticketName = 'jsapi_ticket_'.$appid;
         $jsapiTicket = \think\facade\Cache::get($ticketName);
-        if (!$jsapiTicket) {
+        if (!$jsapiTicket || $refresh) {
             $accessToken = $this->getWechatAccessToken();
             if ($accessToken === FALSE) {
                 return FALSE;

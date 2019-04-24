@@ -32,7 +32,7 @@ class UserDistributorCommission extends Model
             ['join_id', '=', $joinId],
             ['promot_id', '=', $promotId],
             ['store_id', '=', $order['factory_id']],
-//             ['udata_id', '<>', $order['udata_id']],
+            ['udata_id', '<>', $order['udata_id']],
         ];
         $join = model('PromotionJoin')->where($where)->find();
         if (!$join) {

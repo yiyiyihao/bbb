@@ -99,6 +99,8 @@ function get_promotion_status($info = [])
             return [
                 'status' => 1,
                 'text' => '进行中',
+                'start_time' => $info['start_time'],
+                'end_time' => $info['end_time'],
             ];
         }
     }

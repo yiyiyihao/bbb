@@ -21,6 +21,7 @@ class QiniuApi
                 'goods_thumb_100'   => '?imageMogr2/auto-orient/thumbnail/100x100!/blur/1x0/quality/75',
                 'goods_thumb_500'   => '?imageMogr2/auto-orient/thumbnail/!500x500r/gravity/Center/crop/500x500/format/jpg/blur/1x0/quality/75',
                 'goods_thumb_1000'  => '?imageMogr2/auto-orient/thumbnail/!1000x1000r/gravity/Center/crop/1000x1000/format/jpg/blur/1x0/quality/75',
+                'fenxiao_cover'     => '?imageMogr2/auto-orient/thumbnail/374x488>/blur/1x0/quality/100',
             ],
         ];
     }

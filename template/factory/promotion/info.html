@@ -4,8 +4,12 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">{$name}</a></li>
-                        <li class=""><a href="#tab-2">活动详情</a></li>
+                    	{if (!$info)}
+                    	<li class="active"><a href="#tab-1">{$name}</a></li>
+                    	{else/}
+                    	<li class="active"><a href="#tab-1">{$name}</a></li>
+                        <li class=""><a href="{:url('edit', ['id' => $info['promot_id'], 'detail' => 1])}">活动详情</a></li>
+                    	{/if}
                     </ul>
                 </div>
             </div>
@@ -160,55 +164,15 @@
                         </div>
                     </div>
                 </div>  
-                <div class="tab-panel" id="tab-2">
-                	<div class="form-group">
-		                <div class="label">
-		                  <label>活动详情</label>
-		                </div>
-		                <div class="field">
-		                  <textarea class="input js-editor" id="content" name="content" rows="30">
-		                  	{$info.content|raw|default=''}
-		                  </textarea>
-		                </div>
-		              </div>
-		              <div class="form-group">
-                        <div class="label">
-                            <label>活动状态</label>
-                        </div>
-                        <div class="field">
-                           {notpresent name="info.status"}
-                                {assign name="info.status" value="1" /}
-                           {/notpresent}
-                            <div class="button-group radio">
-                                {if condition="$info.status eq 1"}
-                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="1" type="radio">
-                                {/if}
-                                可用</label>
-                                {if condition="$info.status eq 0"}
-                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
-                                {else /}
-                                <label class="button"><input name="status" value="0" type="radio">
-                                {/if}
-                                禁用</label>
-                            </div>
-                            <div class="input-note">禁用后不会在前台显示</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>排序</label>
-                        </div>
-                        <div class="field">
-                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
-                            <div class="input-note">数字小的显示在前面</div>
-                        </div>
-                    </div> 
-                </div>              
             <div class="panel-foot">
                 <div class="form-button">
+                    <!-- <button class="button bg-main" type="submit">保存</button> -->
+                    {if (!$info)}
+                    <button id="next" class="button bg-yellow" >下一步</button>
+                    {else/}
                     <button class="button bg-main" type="submit">保存</button>
+                    <button id="next" class="button bg-yellow" type="submit">下一步</button>
+                    {/if}
                     <button class="button bg" type="reset">重置</button>
                     <div id="tips"></div>
                 </div>
@@ -219,11 +183,27 @@
 <script>
     Do.ready('base', function () {
         //表单综合处理
+        var next = true;
+		$("#dosubmit").click(function(){
+			next = false;
+		})
         $('#form').FormPage({
-			'items'  : [
-		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull"
-	,"|","goods"]
-		});
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'fenxiao_cover_', 'thumb_type' => 'fenxiao_cover'])}",
+        	'returnFun'	: function(data){
+				//跳转到属性编辑页面
+				if(next){
+					window.location.href = '{:url("edit")}/id/'+data.data+'/detail/1';
+				}else{
+					layer.confirm(data.msg, {
+						btn: ['确定', '关闭'],
+					}, function(){
+						window.location.href = data.url;
+					}, function(){
+						window.location.reload();
+					});
+				}
+			},
+        });
     }); 
     var goods = $.parseJSON( '{:json_encode($goods)}' );
     var promTypes = $.parseJSON( '{:json_encode($promTypes)}' );

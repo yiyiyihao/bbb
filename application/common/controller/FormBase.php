@@ -12,6 +12,8 @@ class FormBase extends CommonBase
     var $indextempfile;
     var $perPage;
     var $uploadUrl;
+    
+    public $returnUrl = '';
     public function __construct()
     {
         parent::__construct();
@@ -130,7 +132,9 @@ class FormBase extends CommonBase
         if(IS_POST){
             $data = $this->_getData();
             if (method_exists($this->model, 'save')) {
-                $pkId = $this->model->save($data);
+                $orderModel = new \app\common\model\Activity();
+                $result = $this->model->save($data);
+                $pkId = $this->model->getKey();
             }else{
                 $pkId = $this->model->insertGetId($data);
             }
@@ -187,7 +191,8 @@ class FormBase extends CommonBase
                     $this->_afterEdit($pkId, $data);
                     $msg .= lang('SUCCESS');
                     unset($routes['id']);
-                    $this->success($msg, url("index", $routes), $pkId);
+                    $returnUrl = $this->returnUrl ? $this->returnUrl :url("index", $routes); 
+                    $this->success($msg, $returnUrl, $pkId);
                 }else{
                     $msg .= lang('FAIL');
                     $this->error(($error ? $error : $msg));

@@ -12,8 +12,45 @@ class Promotion extends FormBase
         parent::__construct();
         $this->promTypes = $this->model->promTypes;
         $this->assign('promTypes', $this->promTypes);
-//         pre(json_decode($this->adminUser['groupPurview'], 1));
     }
+    public function getAjaxList($where = [], $field = '')
+    {
+        $info = $this->_assignInfo();
+        $params = $this->request->param();
+        unset($params['_']);
+        $keyword = isset($params['word']) ? trim($params['word']) : '';
+        $isPage = isset($params['isPage']) ? intval($params['isPage']) : 0;
+        $currectPage   = isset($params['page']) ? intval($params['page']) : 0;
+        unset($params['word'], $params['isPage'], $params['page']);
+        $this->model = new \app\common\model\PromotionSku();
+        $pk = $this->model->getPk();
+        $where = [
+            ['PSK.is_del', '=', 0],
+            ['PSK.status', '=', 1],
+            ['PSK.promot_id', '=', $info['promot_id']],
+        ];
+        if ($keyword) {
+            $where[] = ['name', 'like', '%'.$keyword.'%'];
+        }
+        $alias = 'PSK';
+        $join = [
+            ['goods G', 'G.goods_id = PSK.goods_id', 'INNER'],
+        ];
+        $count =  $this->model->where($where)->alias($alias)->join($join)->count();
+        $field = 'PSK.goods_id as id, G.name';
+        $list = $this->model->field($field)->alias($alias)->join($join)->where($where)->order('PSK.add_time DESC')->paginate($this->perPage, $count, ['page' => $currectPage, 'ajax' => TRUE]);
+        $page = '';
+        if ($list) {
+            $page = $list->render();
+            $list = $list->toArray()['data'];
+        }
+        $data = array(
+            'data'  => $list,
+            'page' => $page,
+        );
+        $this->ajaxJsonReturn($data);
+    }
+    
     public function joins()
     {
         $info = parent::_assignInfo();
@@ -46,6 +83,17 @@ class Promotion extends FormBase
         $this->assign('page', $page);
         return $this->fetch('joins');
     }
+    
+    public function edit()
+    {
+        $params = $this->request->param();
+        $detail = isset($params['detail']) ? $params['detail']: 0;
+        if ($detail > 0) {
+            $this->infotempfile = 'detail';
+        }
+        return parent::edit();
+    }
+    
     
     function _assignInfo($pkId = 0)
     {
@@ -123,122 +171,127 @@ class Promotion extends FormBase
         $data = parent::_getData();
         $name = isset($data['name']) ?trim($data['name']) : '';
         $coverImg = isset($data['cover_img']) ?trim($data['cover_img']) : '';
-        $startTime = $data['start_time'] = isset($data['start_time']) ? strtotime($data['start_time']) : '';
-        $endTime = $data['end_time'] = isset($data['end_time']) ?strtotime($data['end_time']) : '';
-        if (!$name) {
-            $this->error('活动名称不能为空');
-        }
-        if (!$coverImg) {
-            $this->error('请上传活动封面图片');
-        }
-        if (!$startTime) {
-            $this->error('活动开始时间错误');
-        }
-        if (!$endTime) {
-            $this->error('活动结束时间错误');
-        }
-        if ($endTime <= $startTime) {
-            $this->error('活动结束时间必须大于开始时间');
-        }
-        if ($endTime <= time()) {
-            $this->error('活动结束时间必须大于当前时间');
-        }
-        //判断活动名称是否已存在
-        $where = [
-            ['is_del', '=', 0],
-            ['name', '=', $name],
-            ['store_id', '=', $this->adminFactory['store_id']],
-        ];
-        $id = $this->request->param('id', 0, 'intval');
-        if ($id) {
-            $where[] = ['promot_id', '<>', $id];
-        }else{
-            $data['store_id'] = $this->adminFactory['store_id'];
-        }
-        $exist = $this->model->where($where)->find();
-        if ($exist) {
-            $this->error('活动名称已存在');
-        }
-        $data['content'] = isset($data['content']) ? trim($data['content']) : '';
-        $goodsIds = isset($data['goods_id']) ? $data['goods_id'] : [];
-        if (!$goodsIds || !is_array($goodsIds)) {
-            $this->error('活动选择商品不能为空');
-        }
-        $goodsArr = $skus = [];
-        $goodsModel = model('goods');
-        foreach ($goodsIds as $key => $value) {
-            $goodsId = intval($value);
-            if ($goodsId > 0) {
-                $where = [
-                    ['is_del', '=', 0],
-                    ['goods_id', '=', $goodsId],
-                    ['store_id', '=', $this->adminFactory['store_id']],
-                ];
-                $exist = $goodsModel->where($where)->find();
-                if (!$exist) {
-                    $this->error('选择商品不存在');
-                }
-                $i = array_search($goodsId, $goodsArr);
-                if ($i !== FALSE) {
-                    $this->error('第'.($key+1).'行商品 与 第'.($i+1).'行商品重复');
-                }
-                $saleType = isset($data['sale_type'][$key]) ? trim($data['sale_type'][$key]):'';
-                if (!$saleType || !isset($this->promTypes[$saleType])) {
-                    $this->error('第'.($key+1).'行商品 佣金结算类型错误');
-                }
-                $name = $this->promTypes[$saleType];
-                $saleValue = isset($data['sale_value'][$key]) ? sprintf("%0.2f", $data['sale_value'][$key]):'';
-                if ($saleValue <= 0) {
-                    $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 错误');
-                }
-                if ($saleType == 'ratio') {
-                    if ($saleValue >= 100) {
-                        $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过100');
-                    }
-                }else{
-                    $maxPrice = $exist['max_price'] > 0 ? $exist['max_price'] : $exist['min_price'];
-                    if ($saleValue > $maxPrice) {
-                        $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过'.$maxPrice);
-                    }
-                }
-                $manageType = isset($data['manage_type'][$key]) ? trim($data['manage_type'][$key]):'';
-                if (!$manageType || !isset($this->promTypes[$manageType])) {
-                    $this->error('第'.($key+1).'行商品 佣金结算类型错误');
-                }
-                $name = $this->promTypes[$manageType];
-                $manageValue = isset($data['manage_value'][$key]) ? sprintf("%0.2f", $data['manage_value'][$key]):'';
-                if ($manageValue <= 0) {
-                    $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 错误');
-                }
-                if ($manageType == 'ratio') {
-                    if ($manageValue >= 100) {
-                        $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过100');
-                    }
-                }else{
-                    if ($manageValue > $exist['max_price']) {
-                        $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过'.$exist['max_price']);
-                    }
-                }
-                
-                $goodsArr[$key] = $goodsId;
-                
-                $skus[] = [
-                    'goods_id' => $goodsId,
-                    'sku_id' => 0,
-                    'store_id' => $this->adminFactory['store_id'],
-                    'sale_commission' => json_encode([
-                        'type' => $saleType,
-                        'value' => $saleValue,
-                    ]),
-                    'manage_commission' => json_encode([
-                        'type' => $manageType,
-                        'value' => $manageValue,
-                    ]),
-                ];
+        $startTime = isset($data['start_time']) ? strtotime($data['start_time']) : '';
+        $endTime = isset($data['end_time']) ?strtotime($data['end_time']) : '';
+        $detail = $this->request->param('detail');
+        if ($this->request->param('id') && !$detail) {
+            $data['start_time'] = $startTime;
+            $data['end_time'] = $endTime;
+            if (!$name) {
+                $this->error('活动名称不能为空');
             }
+            if (!$coverImg) {
+                $this->error('请上传活动封面图片');
+            }
+            if (!$startTime) {
+                $this->error('活动开始时间错误');
+            }
+            if (!$endTime) {
+                $this->error('活动结束时间错误');
+            }
+            if ($endTime <= $startTime) {
+                $this->error('活动结束时间必须大于开始时间');
+            }
+            if ($endTime <= time()) {
+                $this->error('活动结束时间必须大于当前时间');
+            }
+            //判断活动名称是否已存在
+            $where = [
+                ['is_del', '=', 0],
+                ['name', '=', $name],
+                ['store_id', '=', $this->adminFactory['store_id']],
+            ];
+            $id = $this->request->param('id', 0, 'intval');
+            if ($id) {
+                $where[] = ['promot_id', '<>', $id];
+            }else{
+                $data['store_id'] = $this->adminFactory['store_id'];
+            }
+            $exist = $this->model->where($where)->find();
+            if ($exist) {
+                $this->error('活动名称已存在');
+            }
+            $data['content'] = isset($data['content']) ? trim($data['content']) : '';
+            $goodsIds = isset($data['goods_id']) ? $data['goods_id'] : [];
+            if (!$goodsIds || !is_array($goodsIds)) {
+                $this->error('活动选择商品不能为空');
+            }
+            $goodsArr = $skus = [];
+            $goodsModel = model('goods');
+            foreach ($goodsIds as $key => $value) {
+                $goodsId = intval($value);
+                if ($goodsId > 0) {
+                    $where = [
+                        ['is_del', '=', 0],
+                        ['goods_id', '=', $goodsId],
+                        ['store_id', '=', $this->adminFactory['store_id']],
+                    ];
+                    $exist = $goodsModel->where($where)->find();
+                    if (!$exist) {
+                        $this->error('选择商品不存在');
+                    }
+                    $i = array_search($goodsId, $goodsArr);
+                    if ($i !== FALSE) {
+                        $this->error('第'.($key+1).'行商品 与 第'.($i+1).'行商品重复');
+                    }
+                    $saleType = isset($data['sale_type'][$key]) ? trim($data['sale_type'][$key]):'';
+                    if (!$saleType || !isset($this->promTypes[$saleType])) {
+                        $this->error('第'.($key+1).'行商品 佣金结算类型错误');
+                    }
+                    $name = $this->promTypes[$saleType];
+                    $saleValue = isset($data['sale_value'][$key]) ? sprintf("%0.2f", $data['sale_value'][$key]):'';
+                    if ($saleValue <= 0) {
+                        $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 错误');
+                    }
+                    if ($saleType == 'ratio') {
+                        if ($saleValue >= 100) {
+                            $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过100');
+                        }
+                    }else{
+                        $maxPrice = $exist['max_price'] > 0 ? $exist['max_price'] : $exist['min_price'];
+                        if ($saleValue > $maxPrice) {
+                            $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过'.$maxPrice);
+                        }
+                    }
+                    $manageType = isset($data['manage_type'][$key]) ? trim($data['manage_type'][$key]):'';
+                    if (!$manageType || !isset($this->promTypes[$manageType])) {
+                        $this->error('第'.($key+1).'行商品 佣金结算类型错误');
+                    }
+                    $name = $this->promTypes[$manageType];
+                    $manageValue = isset($data['manage_value'][$key]) ? sprintf("%0.2f", $data['manage_value'][$key]):'';
+                    if ($manageValue <= 0) {
+                        $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 错误');
+                    }
+                    if ($manageType == 'ratio') {
+                        if ($manageValue >= 100) {
+                            $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过100');
+                        }
+                    }else{
+                        if ($manageValue > $exist['max_price']) {
+                            $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过'.$exist['max_price']);
+                        }
+                    }
+                    
+                    $goodsArr[$key] = $goodsId;
+                    
+                    $skus[] = [
+                        'goods_id' => $goodsId,
+                        'sku_id' => 0,
+                        'store_id' => $this->adminFactory['store_id'],
+                        'sale_commission' => json_encode([
+                            'type' => $saleType,
+                            'value' => $saleValue,
+                        ]),
+                        'manage_commission' => json_encode([
+                            'type' => $manageType,
+                            'value' => $manageValue,
+                        ]),
+                    ];
+                }
+            }
+            $data['skus'] = $skus;
+            $data['promot_type'] = 'fenxiao';
         }
-        $data['skus'] = $skus;
-        $data['promot_type'] = 'fenxiao';
         return $data;
     }
     function _getOrder()
