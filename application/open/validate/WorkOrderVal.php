@@ -74,7 +74,7 @@ class WorkOrderVal extends Validate
         return $this->only(['openid', 'type', 'status', 'job_no', 'keyword'])
             ->append('openid', 'require|alphaNum')
             ->append('type', 'number|in:0,1,2')
-            ->append('status', 'number|between:-1,4')
+            ->append('status', 'integer|between:-1,4')
             ->append('job_no', 'num_code')
             ->append('keyword', 'chsAlphaNum');
     }
