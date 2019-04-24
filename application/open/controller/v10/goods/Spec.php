@@ -7,21 +7,22 @@ use think\Request;
 class Spec extends Base
 {
     private $specsModel;
+    private $user;
+    private $error = FALSE;
+    private $postParams;
     
     public function __construct(Request $request)
     {
         parent::__construct();
         $this->specsModel = model('goods_spec');
+        $this->postParams = $request->param();
+        $this->user = $this->postParams['user'];
         /**
          * Error 开头:002200
          */
     }
     public function list()
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $field = 'spec_id as specid, name as specname, value as list, status';
         $where = [
             ['udata_id', '=', $this->user['udata_id']],
@@ -98,19 +99,17 @@ class Spec extends Base
      */
     private function _verifySpec($specId = 0, $field = '')
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         if (!$specId) {
             $specId = isset($this->postParams['specid']) ? intval($this->postParams['specid']) : '';
         }
         if (!$specId) {
+            $this->error = true;
             return $this->dataReturn('002200', 'missing specid');
         }
         $field = $field ? $field : '*';
         $info = $this->specsModel->field($field)->where('spec_id', $specId)->where('udata_id', $this->user['udata_id'])->where('is_del', 0)->find();
         if (!$info) {
+            $this->error = true;
             return $this->dataReturn('002201', 'spec not exist');
         }
         return $info->toArray();
@@ -122,19 +121,18 @@ class Spec extends Base
      */
     private function _checkField($info = [])
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $name = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
         $value = isset($this->postParams['list']) ? $this->postParams['list'] : [];
         if (!$name) {
+            $this->error = true;
             return $this->dataReturn('002202', 'missing name');
         }
         if (!$value) {
+            $this->error = true;
             return $this->dataReturn('002203', 'missing list');
         }
         if (!is_array($value)) {
+            $this->error = true;
             return $this->dataReturn('002204', 'invalid list');
         }
         //判断规格名称是否存在
@@ -149,6 +147,7 @@ class Spec extends Base
         }
         $exist = $this->specsModel->where($where)->find();
         if ($exist) {
+            $this->error = true;
             return $this->dataReturn('002205', 'name exist');
         }
         $return =  [

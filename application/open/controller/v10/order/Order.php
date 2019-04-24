@@ -7,12 +7,17 @@ use think\Request;
 class Order extends Base
 {
     private $orderModel;
+    private $user;
+    private $error = FALSE;
+    private $postParams;
     private $sellerLimit = FALSE;
     
     public function __construct(Request $request)
     {
         parent::__construct();
         $this->orderModel = new \app\common\model\Order();
+        $this->postParams = $request->param();
+        $this->user = $this->postParams['user'];
         /**
          * Error 开头:003000
          */
@@ -290,8 +295,7 @@ class Order extends Base
         $num = isset($this->postParams['num']) ? intval($this->postParams['num']) : 0;
         $submit = isset($this->postParams['submit']) ? intval($this->postParams['submit']) : 0;
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
-//         $address = isset($this->postParams['address']) ? $this->postParams['address'] : [];
-        $addressId = isset($this->postParams['address_id']) ? $this->postParams['address_id'] : [];
+        $address = isset($this->postParams['address']) ? $this->postParams['address'] : [];
         if (!isset($this->postParams['sku_id'])) {
             return $this->dataReturn('003000', 'missing sku_id');
         }
@@ -304,52 +308,34 @@ class Order extends Base
         if ($num <= 0) {
             return $this->dataReturn('003003', 'invalid num');
         }
-        $address = [];
         if ($submit > 0) {
-            if (!$addressId) {
-                return $this->dataReturn('003004', 'missing address_id');
+            if (!isset($this->postParams['address'])) {
+                return $this->dataReturn('003004', 'missing address');
             }
-            $where = [
-                ['address_id', '=', $addressId],
-                ['is_del', '=', 0],
-                ['status', '=', 1],
-                ['udata_id', '=', $this->user['udata_id']],
-            ];
-            $exist = model('user_address')->where($where)->find();
-            if (!$exist) {
-                return $this->dataReturn('003005', 'address not exist');
+            if (!is_array($address)) {
+                return $this->dataReturn('003005', 'invalid address');
             }
-            $address = [
-                'address_name'  => $exist['name'],
-                'address_phone' => $exist['phone'],
-                'region_id'     => $exist['region_id'],
-                'region_name'   => $exist['region_name'],
-                'address'       => $exist['address'],
-            ];
-//             if (!is_array($address)) {
-//                 return $this->dataReturn('003005', 'invalid address');
-//             }
-//             $name = isset($address['address_name']) ? trim($address['address_name']) : '';
-//             $phone = isset($address['address_phone']) ? trim($address['address_phone']) : '';
-//             $regionId = isset($address['region_id']) ? intval($address['region_id']) : '';
-//             $regionName = isset($address['region_name']) ? trim($address['region_name']) : '';
-//             $detail = isset($address['detail']) ? trim($address['detail']) : '';
-//             if (!$name) {
-//                 return $this->dataReturn('003006', 'missing address_name under the address array');
-//             }
-//             if (!$phone) {
-//                 return $this->dataReturn('003007', 'missing address_phone under the address array');
-//             }
-//             if (!$regionId) {
-//                 return $this->dataReturn('003008', 'missing region_id under the address array');
-//             }
-//             if (!$regionName) {
-//                 return $this->dataReturn('003009', 'missing region_name under the address array');
-//             }
-//             if (!$detail) {
-//                 return $this->dataReturn('003010', 'missing detail under the address array');
-//             }
-//             $address['address'] = $detail;
+            $name = isset($address['address_name']) ? trim($address['address_name']) : '';
+            $phone = isset($address['address_phone']) ? trim($address['address_phone']) : '';
+            $regionId = isset($address['region_id']) ? intval($address['region_id']) : '';
+            $regionName = isset($address['region_name']) ? trim($address['region_name']) : '';
+            $detail = isset($address['detail']) ? trim($address['detail']) : '';
+            if (!$name) {
+                return $this->dataReturn('003006', 'missing address_name under the address array');
+            }
+            if (!$phone) {
+                return $this->dataReturn('003007', 'missing address_phone under the address array');
+            }
+            if (!$regionId) {
+                return $this->dataReturn('003008', 'missing region_id under the address array');
+            }
+            if (!$regionName) {
+                return $this->dataReturn('003009', 'missing region_name under the address array');
+            }
+            if (!$detail) {
+                return $this->dataReturn('003010', 'missing detail under the address array');
+            }
+            $address['address'] = $detail;
         }
         $result = $this->orderModel->createOrder($this->user, 'goods', $skuId, $num, $submit, $address, $remark, 2);
         if ($result === FALSE) {
@@ -392,6 +378,7 @@ class Order extends Base
             $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
         }
         if (!$orderSn) {
+            $this->error = true;
             return $this->dataReturn('003012', 'missing order_sn');
         }
         $field = $field ? $field : '*';
@@ -405,6 +392,7 @@ class Order extends Base
         }
         $info = $this->orderModel->field($field)->where($where)->find();
         if (!$info) {
+            $this->error = true;
             return $this->dataReturn('003013', 'order not exist');
         }
         return $info->toArray();

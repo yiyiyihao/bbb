@@ -7,56 +7,38 @@ use think\Request;
 class Goods extends Base
 {
     private $goodsModel;
+    private $user;
+    private $error = FALSE;
+    private $postParams;
+    private $getSelf = TRUE;
     
     public function __construct(Request $request)
     {
         parent::__construct();
         $this->goodsModel = model('goods');
         $this->postParams = $request->param();
+        $this->user = $this->postParams['user'];
         /**
          * Error 开头:002000
          */
     }
     /**
-     * 获取当前应用可购买商品列表
+     * 获取用户可购买商品列表
      * @return \think\response\Json
      */
     public function index()
     {
-        $result = $this->checkStoreManager(FALSE);
-        if ($this->error) {
-            return $result;
-        }
-        $openAppid = $this->user['open_appid'];
-        $where = [
-            ['open_appid', '=', $openAppid],
-            ['factory_id', '<>', 0],
-            ['is_del',          '=', 0],
-            ['third_type',      '=', 'echodata'],
-            ['user_type',       '=', 'open'],
-        ];
-        $user = model('user_data')->where($where)->column('udata_id');
-        if ($user) {
-            $where = [
-                ['udata_id', 'IN', $user],
-                ['is_del', '=', 0],
-            ];
-        }else{
-            $where = [
-                ['udata_id', '<', 0],
-            ];
-        }
         $field = 'goods_id, cate_id, name, goods_sn, thumb, min_price, max_price, install_price, goods_stock, sales';
+        $where = [
+            ['store_id', '=', $this->user['factory_id']],
+            ['is_del', '=', 0],
+        ];
         $result = $this->getModelList($this->goodsModel, $where, $field, 'add_time ASC');
         return $this->dataReturn(0, 'ok', $result);
     }
     
     public function beforeAdd()
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $where = [
             ['is_del', '=', 0],
             ['status', '=', 1],
@@ -79,10 +61,6 @@ class Goods extends Base
     }
     public function list()
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $field = 'goods_id, cate_id, name, goods_sn, thumb, min_price, max_price, install_price, goods_stock, sales';
         $where = [
             ['udata_id', '=', $this->user['udata_id']],
@@ -113,7 +91,7 @@ class Goods extends Base
     }
     public function getskus()
     {
-        $info = $this->_verifyGoods(0, FALSE, FALSE);
+        $info = $this->_verifyGoods();
         if ($this->error) {
             return $info;
         }
@@ -121,6 +99,7 @@ class Goods extends Base
             ['goods_id', '=', $info['goods_id']],
             ['is_del', '=', 0],
             ['status', '=', 1],
+            ['store_id', '=', $this->user['factory_id']],
             ['spec_json', '<>', ""],
         ];
         $field = 'sku_id, sku_name, sku_sn, sku_thumb, sku_stock, spec_value, price, install_price, sales';
@@ -294,32 +273,27 @@ class Goods extends Base
      * @param string $field
      * @return \think\response\Json|array
      */
-    public function _verifyGoods($goodsId = 0, $field = '', $verifyManager = TRUE)
+    public function _verifyGoods($goodsId = 0, $field = '')
     {
-        if ($verifyManager) {
-            $result = $this->checkStoreManager();
-            if ($this->error) {
-                return $result;
-            }
-        }
-        
         if (!$goodsId) {
             $goodsId = isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : '';
         }
         if (!$goodsId) {
+            $this->error = true;
             return $this->dataReturn('002000', 'missing goods_id');
         }
         $field = $field ? $field : '*';
         $where = [
             ['goods_id', '=', $goodsId],
             ['is_del', '=', 0],
+            ['store_id', '=', $this->user['factory_id']],
         ];
-        if ($verifyManager) {
-            $where[] = ['store_id', '=', $this->user['factory_id']];
+        if ($this->getSelf) {
             $where[] = ['udata_id', '=', $this->user['udata_id']];
         }
         $info = $this->goodsModel->field($field)->where($where)->find();
         if (!$info) {
+            $this->error = true;
             return $this->dataReturn('002001', 'goods not exist');
         }
         return $info->toArray();
@@ -331,10 +305,6 @@ class Goods extends Base
      */
     private function _checkField($info = [])
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $name = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
         $goodsSn = isset($this->postParams['goods_sn']) ? trim($this->postParams['goods_sn']) : '';
         $cateId = isset($this->postParams['cate_id']) ? intval($this->postParams['cate_id']) : '';
@@ -351,9 +321,11 @@ class Goods extends Base
         $specs = isset($this->postParams['specs'])  ? $this->postParams['specs'] : [];
         $specSkus = isset($this->postParams['spec_skus'])  ? $this->postParams['spec_skus'] : [];
         if (!$name) {
+            $this->error = true;
             return $this->dataReturn('002002', 'missing name');
         }
         if (!$cateId) {
+            $this->error = true;
             return $this->dataReturn('002003', 'missing cate_id');
         }
         //判断分类是否存在
@@ -365,6 +337,7 @@ class Goods extends Base
         ];
         $cate = model('goods_cate')->where($where)->find();
         if (!$cate) {
+            $this->error = true;
             return $this->dataReturn('002005', 'cate not exist');
         }
         //判断商品名称是否存在
@@ -379,32 +352,41 @@ class Goods extends Base
         }
         $exist = $this->goodsModel->where($where)->find();
         if ($exist) {
+            $this->error = true;
             return $this->dataReturn('002018', 'name exist');
         }
         if (!$thumb) {
+            $this->error = true;
             return $this->dataReturn('002004', 'missing thumb');
         }
         if (!isset($this->postParams['price'])) {
+            $this->error = true;
             return $this->dataReturn('002005', 'missing price');
         }
         if ($minPrice <= 0) {
+            $this->error = true;
             return $this->dataReturn('002006', 'invalid price');
         }
         if ($goodsStock <= 0) {
+            $this->error = true;
             return $this->dataReturn('002007', 'invalid goods_stock');
         }
         if (!$imgs) {
+            $this->error = true;
             return $this->dataReturn('002008', 'missing imgs');
         }
         if (!is_array($imgs)) {
+            $this->error = true;
             return $this->dataReturn('002009', 'invalid imgs');
         }
         if (!$params) {
+            $this->error = true;
             return $this->dataReturn('002010', 'missing params');
         }
         $skuData = $skuids = [];
         if ($specs) {
             if (!is_array($specs)) {
+                $this->error = true;
                 return $this->dataReturn('002011', 'invalid specs');
             }
             $goodsSpecModel = model('goods_spec');
@@ -413,6 +395,7 @@ class Goods extends Base
                 $specname = isset($v['specname']) ? trim($v['specname']): '';
                 $list = isset($v['list']) ? $v['list']: [];
                 if (!$specid || !$specname || !$list || !is_array($list)) {
+                    $this->error = true;
                     return $this->dataReturn('002011', 'invalid specs');
                 }
                 $where = [
@@ -423,13 +406,16 @@ class Goods extends Base
                 //判断specid是否存在
                 $exist = $goodsSpecModel->where($where)->find();
                 if (!$exist) {
+                    $this->error = true;
                     return $this->dataReturn('002012', 'specs not exist');
                 }
             }
             if (!$specSkus) {
+                $this->error = true;
                 return $this->dataReturn('002013', 'missing spec_skus');
             }
             if (!is_array($specSkus)) {
+                $this->error = true;
                 return $this->dataReturn('002014', 'invalid spec_skus');
             }
             $goodsStock = $minPrice = $maxPrice = 0;
@@ -446,15 +432,19 @@ class Goods extends Base
                     $specSkus[$k]['sn'] = $ssn;
                 }
                 if (!$skuName || !$price || !$stock || !$ssn) {
+                    $this->error = true;
                     return $this->dataReturn('002014', 'invalid spec_skus');
                 }
                 if ($price <= 0) {
+                    $this->error = true;
                     return $this->dataReturn('002015', 'invalid specs price(must be greater than 0)');
                 }
                 if ($stock <= 0) {
+                    $this->error = true;
                     return $this->dataReturn('002016', 'invalid specs stock(must be greater than 0)');
                 }
                 if (!$ssn) {
+                    $this->error = true;
                     return $this->dataReturn('002017', 'missing specs sn');
                 }
                 $goodsStock = $stock + $goodsStock;
@@ -491,6 +481,7 @@ class Goods extends Base
             }
             $exist = $this->goodsModel->where($where)->find();
             if ($exist) {
+                $this->error = true;
                 return $this->dataReturn('002019', 'goods_sn exist');
             }
         }

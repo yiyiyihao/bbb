@@ -14,21 +14,22 @@ use think\Request;
 class Cate extends Base
 {
     private $cateModel;
+    private $user;
+    private $error = FALSE;
+    private $postParams;
     
     public function __construct(Request $request)
     {
         parent::__construct();
         $this->cateModel = model('goods_cate');
+        $this->postParams = $request->param();
+        $this->user = $this->postParams['user'];
         /**
          * Error 开头:002100
          */
     }
     public function list()
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $parentId = isset($this->postParams['parent_id']) ? intval($this->postParams['parent_id']) : '';
         if ($parentId) {
             $parent = $this->_verifyCate($parentId, '*');
@@ -106,19 +107,17 @@ class Cate extends Base
      */
     private function _verifyCate($cateId = 0, $field = '')
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         if (!$cateId) {
             $cateId = isset($this->postParams['cate_id']) ? intval($this->postParams['cate_id']) : '';
         }
         if (!$cateId) {
+            $this->error = true;
             return $this->dataReturn('002100', 'missing cate_id');
         }
         $field = $field ? $field : '*';
         $info = $this->cateModel->field($field)->where('cate_id', $cateId)->where('udata_id', $this->user['udata_id'])->where('is_del', 0)->find();
         if (!$info) {
+            $this->error = true;
             return $this->dataReturn('002101', 'cate not exist');
         }
         return $info->toArray();
@@ -130,13 +129,10 @@ class Cate extends Base
      */
     private function _checkField($info = [])
     {
-        $result = $this->checkStoreManager();
-        if ($this->error) {
-            return $result;
-        }
         $name = isset($this->postParams['name']) ? trim($this->postParams['name']) : '';
         $parentId = isset($this->postParams['parent_id']) ? intval($this->postParams['parent_id']) : '';
         if (!$name) {
+            $this->error = true;
             return $this->dataReturn('002102', 'missing name');
         }
         if ($parentId) {
@@ -148,6 +144,7 @@ class Cate extends Base
             ];
             $exist = $this->cateModel->where($where)->find();
             if (!$exist) {
+                $this->error = true;
                 return $this->dataReturn('002103', 'cate not exist');
             }
         }
@@ -163,6 +160,7 @@ class Cate extends Base
         }
         $exist = $this->cateModel->where($where)->find();
         if ($exist) {
+            $this->error = true;
             return $this->dataReturn('002104', 'name exist');
         }
         $return =  [
