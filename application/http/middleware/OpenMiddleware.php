@@ -38,8 +38,8 @@ class OpenMiddleware
             if ($this->error) {
                 $response = $user;
             }else{
-                $request->user = $user;
-                $response = $next($request, $user);
+                $request->user = $user ? $user : [];
+                $response = $next($request);
             }
         }
         $end = microtime(true);
@@ -54,85 +54,114 @@ class OpenMiddleware
     private function getUser($request)
     {
         $params = $request->param();
-        $thirdOpenid = isset($params['openid']) ? trim($params['openid']) : '';
         $developerId = isset($params['developer_id']) ? trim($params['developer_id']) : '';
         if (!$developerId) {
             $this->error = TRUE;
             return json(dataFormat('-2', 'invalid url'));
         }else{
-            if (!$thirdOpenid) {
-                $this->error = TRUE;
-                return json(dataFormat('001001', 'missing openid'));
-            }else{
-                //验证openid准确性
-                $token = $request->header('echodata-token');
-                $url = $this->url.'/v1/user/info';
-                $post = [
-                    'openid' => $thirdOpenid,
-                ];
-                $header = [
-                    'echodata-token:'.$token,
-                ];
-                $result = curl_post_https($url, $post, $header);
-                if ($result['code'] !== 0) {
+            $uri = $request->pathinfo();
+            //不需要验证openid的接口
+            $noVerifyRequest = [
+                'v10/wechat/authorize_url', 'v10/wechat/userinfo',
+            ];
+            if (!in_array($uri, $noVerifyRequest)) {
+                $echodataOpenid = isset($params['openid']) ? trim($params['openid']) : '';
+                $openid = isset($params['openid']) ? trim($params['openid']) : '';
+                if (!$openid) {
                     $this->error = TRUE;
-                    return json(dataFormat($result['code'], $result['msg']));
-                }
-                $udata = isset($result['data']) ? $result['data'] : [];
-                $appid = $udata && isset($udata['appid']) ? $udata['appid'] : '';
-                $udataModel = model('user_data');
-                $where = [
-                    ['third_openid',    '=', $thirdOpenid],
-                    ['is_del',          '=', 0],
-                    ['third_type',      '=', 'echodata'],
-                    ['user_type',       '=', 'open'],
-                ];
-                $user = $udataModel->where($where)->find();
-                $user = $user ? $user->toArray() : [];
-                if (!$user) {
-                    $storeId = 0;
-                    if ($appid) {
-                        //判断appid对应商户是否存在
-                        $storeModel = new \app\common\model\Store();
-                        $store = $storeModel->alias('S')->join('store_echodata SE', 'SE.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SE.appid' => $appid])->find();
-                        if (!$store) {
-                            $data = ['appid' => $appid, 'developer_id' => $developerId, 'store_type' => 5, 'config_json' => ''];
-                            $result = $storeModel->save($data);
-                            if (!$result) {
-                                $this->error = TRUE;
-                                return json(dataFormat('-4', 'abnormal parameter'));
-                            }
-                            $storeId = $storeModel->store_id;
-                        }else{
-                            $storeId = $store['store_id'];
-                        }
-                    }
-                    $userService = new \app\common\model\User();
-                    $openid = $userService->getUserOpenid();
-                    $data = [
-                        'openid'      => $openid,
-                        'factory_id'  => $storeId,
-                        'third_type'  => 'echodata',
-                        'user_type'   => 'open',
-                        'appid'       => $appid,
-                        'third_openid'=> $thirdOpenid,
-                        'avatar'      => $udata && isset($udata['avatar']) ? $udata['avatar'] : '',
-                        'nickname'    => $udata && isset($udata['nickname']) ? $udata['nickname'] : '',
-                        'gender'      => $udata && isset($udata['gender']) ? intval($udata['gender']) : '',
-                        'phone'       => $udata && isset($udata['phone']) ? intval($udata['phone']) : '',
-                        'unionid'     => '',
+                    return json(dataFormat('001001', 'missing openid'));
+                }else{
+                    $udataModel = model('user_data');
+                    
+                    $openid = isset($params['openid']) ? trim($params['openid']) : '';
+                    $echodataAppid = isset($params['echodata_appid']) ? trim($params['echodata_appid']) : '';
+                    $where = [
+                        ['echodata_appid',  '=', $echodataAppid],
+                        ['openid',          '=', $openid],
+                        ['is_del',          '=', 0],
+                        ['user_type',       '=', 'echodata'],
                     ];
-                    $result = $udataModel->save($data);
-                    if (!$result) {
+                    $user = $udataModel->where($where)->find();
+                    $user = $user ? $user->toArray() : [];
+                    if (!$user) {
                         $this->error = TRUE;
-                        return json(dataFormat('001001', 'missing openid'));
+                        return json(dataFormat('001002', 'user not exist'));
                     }
-                    $data['udata_id'] = $udataModel->udata_id;
-                    $user = $data;
+                    return $user;
+                    
+                    
+                    
+                    //验证openid准确性
+                    $token = $request->header('echodata-token');
+                    $url = $this->url.'/v1/user/info';
+                    $post = [
+                        'openid' => $echodataOpenid,
+                    ];
+                    $header = [
+                        'echodata-token:'.$token,
+                    ];
+                    $result = curl_post_https($url, $post, $header);
+                    if ($result['code'] !== 0) {
+                        $this->error = TRUE;
+                        return json(dataFormat($result['code'], $result['msg']));
+                    }
+                    $udata = isset($result['data']) ? $result['data'] : [];
+                    $echodataAppid = $udata && isset($udata['appid']) ? $udata['appid'] : '';
+                    
+                    $where = [
+                        ['echodata_appid',  '=', $echodataAppid],
+                        ['echodata_openid', '=', $echodataOpenid],
+                        ['is_del',          '=', 0],
+                        ['third_type',      '=', 'echodata'],
+                        ['user_type',       '=', 'open'],
+                    ];
+                    $user = $udataModel->where($where)->find();
+                    $user = $user ? $user->toArray() : [];
+                    if (!$user) {
+                        $storeId = 0;
+//                         if ($echodataAppid) {
+//                             //判断appid对应商户是否存在
+//                             $storeModel = new \app\common\model\Store();
+//                             $store = $storeModel->alias('S')->join('store_echodata SE', 'SE.store_id = S.store_id', 'INNER')->where(['S.is_del' => 0, 'SE.appid' => $echodataAppid])->find();
+//                             if (!$store) {
+//                                 $data = ['appid' => $echodataAppid, 'developer_id' => $developerId, 'store_type' => 5, 'config_json' => ''];
+//                                 $result = $storeModel->save($data);
+//                                 if (!$result) {
+//                                     $this->error = TRUE;
+//                                     return json(dataFormat('-4', 'abnormal parameter'));
+//                                 }
+//                                 $storeId = $storeModel->store_id;
+//                             }else{
+//                                 $storeId = $store['store_id'];
+//                             }
+//                         }
+                        $userService = new \app\common\model\User();
+                        $openid = $userService->getUserOpenid();
+                        $data = [
+                            'openid'      => $openid,
+                            'factory_id'  => 1,
+                            'third_type'  => 'echodata',
+                            'user_type'   => 'open',
+                            'echodata_appid'    => $echodataAppid,
+                            'echodata_openid'   => $echodataOpenid,
+                            'avatar'      => $udata && isset($udata['avatar']) ? $udata['avatar'] : '',
+                            'nickname'    => $udata && isset($udata['nickname']) ? $udata['nickname'] : '',
+                            'gender'      => $udata && isset($udata['gender']) ? intval($udata['gender']) : '',
+                            'phone'       => $udata && isset($udata['phone']) ? intval($udata['phone']) : '',
+                            'unionid'     => '',
+                        ];
+                        $result = $udataModel->save($data);
+                        if (!$result) {
+                            $this->error = TRUE;
+                            return json(dataFormat('001001', 'missing openid'));
+                        }
+                        $data['udata_id'] = $udataModel->udata_id;
+                        $user = $data;
                 }else{
                     $udataId = $user['udata_id'];
                 }
                 return $user;
+            }
             }
         }
     }

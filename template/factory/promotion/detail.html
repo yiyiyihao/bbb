@@ -1,0 +1,78 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                    	<li class=""><a href="{:url('edit', ['id' => $info['promot_id']])}">{$name}</a></li>
+                        <li class="active"><a href="#tab-1">活动详情</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+		                <div class="label">
+		                  <label>活动详情</label>
+		                </div>
+		                <div class="field">
+		                  <textarea class="input js-editor" id="content" name="content" rows="30">
+		                  	{$info.content|raw|default=''}
+		                  </textarea>
+		                </div>
+		              </div>
+		              <div class="form-group">
+                        <div class="label">
+                            <label>活动状态</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                {if condition="!$info || ($info && $info.status eq 1)"}
+                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="1" type="radio">
+                                {/if}
+                                可用</label>
+                                {if condition="$info && $info.status eq 0"}
+                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="0" type="radio">
+                                {/if}
+                                禁用</label>
+                            </div>
+                            <div class="input-note">禁用后不会在前台显示</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" class="input" id="sort_order" name="sort_order" size="60" value="{$info.sort_order|default=1}">
+                            <div class="input-note">数字小的显示在前面</div>
+                        </div>
+                    </div> 
+                </div>              
+            <div class="panel-foot">
+                <div class="form-button">
+                    <!-- <button class="button bg-main" type="submit">保存</button> -->
+                    <a class="button bg-yellow" href="{:url('edit', ['id' => $info['promot_id']])}">上一步</a>
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+	var id = '{$info.promot_id}';//不允许删除
+    Do.ready('base', function () {
+        //表单综合处理
+        $('#form').FormPage({
+			'items'  : [
+		"undo","redo","|","formatblock","fontname","fontsize","forecolor","hilitecolor","bold","italic","underline","strikethrough","removeformat","|","image","|","justifyleft","justifycenter","justifyright","justifyfull"
+	,"|","goods"]
+		});
+    }); 
+</script>

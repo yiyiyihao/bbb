@@ -23,5 +23,5 @@ return [
     'type'           => '',
     // 是否自动开启 SESSION
     'auto_start'     => false,
-    'domain'         => '',
+    'domain'         => 'wanjiaan.com',
 ];

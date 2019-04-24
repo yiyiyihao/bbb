@@ -10,17 +10,12 @@ class Cart extends Base
 {
     private $cartModel;
     private $orderModel;
-    private $user;
-    private $error = FALSE;
-    private $postParams;
 
     public function __construct(Request $request)
     {
         parent::__construct();
         $this->cartModel = model('cart');
         $this->orderModel = new \app\common\model\Order();
-        $this->postParams = $request->param();
-        $this->user = $request->user;
         /**
          * Error 开头:003100
          */
@@ -37,6 +32,39 @@ class Cart extends Base
     }
 
 
+    private function _checkSku($skuId)
+    {
+        $openAppid = $this->user['open_appid'];
+        $where = [
+            ['open_appid', '=', $openAppid],
+            ['factory_id', '<>', 0],
+            ['is_del',          '=', 0],
+            ['third_type',      '=', 'echodata'],
+            ['user_type',       '=', 'open'],
+        ];
+        $user = model('user_data')->where($where)->column('udata_id');
+        if (!$user) {
+            return $this->dataReturn('003101', '该商品不存在或已经删除');
+        }
+        //判断sku_id是否存在
+        $where = [
+            ['sku_id', '=', $skuId],
+            ['is_del', '=', 0],
+            ['udata_id', 'IN', $user],
+        ];
+        $sku = model('goods_sku')->where($where)->find();
+        if (!$sku) {
+            return $this->dataReturn('003101', '该商品不存在或已经删除');
+        }
+        if (!$sku['status']) {
+            return $this->dataReturn('003102', '该商品已经删除');
+        }
+        //判断是否是自己的商品
+        if ($sku['udata_id'] == $this->user['udata_id']) {
+            return $this->dataReturn('003104', '厂商不能自产自销');
+        }
+        return $sku;
+    }
 
 
     /**
@@ -57,24 +85,12 @@ class Cart extends Base
         $num=$request->param('num',0,'intval');
 
         //判断sku_id是否存在
-        $where = [
-            ['sku_id', '=', $skuId],
-            ['is_del', '=', 0],
-            ['store_id', '=', $this->user['factory_id']],
-        ];
-        $sku = model('goods_sku')->where($where)->find();
-        if (!$sku) {
-            return $this->dataReturn('003101', '该商品不存在或已经删除');
-        }
-        if (!$sku['status']) {
-            return $this->dataReturn('003102', '该商品已经删除');
+        $sku = $this->_checkSku($skuId);
+        if ($this->error) {
+            return $sku;
         }
         if ($sku['sku_stock'] < $num) {
             return $this->dataReturn('003103', '该商品库存不足');
-        }
-        //判断是否是自己的商品
-        if ($sku['udata_id'] == $this->user['udata_id']) {
-            return $this->dataReturn('003104', '厂商不能自产自销');
         }
         //判断购物车商品是否存在
         $where = [
@@ -137,11 +153,10 @@ class Cart extends Base
             ['cart_id', 'in', $cartId],
             ['udata_id', '=', $this->user['udata_id']],
         ];
-        $info = $this->cartModel->where($where)->select();
-        if (!$info) {
+        $cartIds = $this->cartModel->where($where)->column('cart_id');
+        if (!$cartIds) {
             return $this->dataReturn('003106', '商品不存在或已删除');
         }
-        $cartIds=array_column($info->toArray(),'cart_id');
         $result = $this->cartModel->whereIn('cart_id',$cartIds)->delete();
         if ($result === FALSE) {
             return $this->dataReturn(-1, '系统故障，请稍后重试');
@@ -167,27 +182,19 @@ class Cart extends Base
             return $this->dataReturn('003107', '商品不存在或已删除');
         }
         //判断sku_id是否存在
-        $where = [
-            ['sku_id', '=', $exist['sku_id']],
-            ['is_del', '=', 0],
-            ['store_id', '=', $this->user['factory_id']],
-        ];
-        $sku = model('goods_sku')->where($where)->find();
-        if (!$sku) {
-            return $this->dataReturn('003108', '商品规格不存在或已删除');
-        }
-        if (!$sku['status']) {
-            return $this->dataReturn('003109', '商品已删除');
+        $sku = $this->_checkSku($exist['sku_id']);
+        if ($this->error) {
+            return $sku;
         }
         if ($sku['sku_stock'] < $num) {
-            return $this->dataReturn('003110', '商品已库存不足');
+            return $this->dataReturn('003103', '该商品库存不足');
         }
         $data = ['num' => $num];
         $result = $this->cartModel->save($data, ['cart_id' => $cartId]);
         if ($result === FALSE) {
             return $this->dataReturn(-1, '系统故障，请稍后重试');
         }
-        return $this->dataReturn(0, '操作成功');
+        return $this->dataReturn(0, 'ok');
     }
 
     public function preview(Request $request)
@@ -196,26 +203,28 @@ class Cart extends Base
         if (!$check->scene('preview')->check($request->param())) {
             return $this->dataReturn('003100', $check->getError());
         }
-        $skuIds=$request->param('sku_ids',[],'intval');
-        if (!is_array($skuIds)) {
-            $skuIds=array($skuIds);
+        $cartIds=$request->param('cart_ids',[],'intval');
+        if (!is_array($cartIds)) {
+            $cartIds = [$cartIds];
         }
-        $skuIds = array_unique(array_filter($skuIds, function ($v,$k) {
+        $cartIds = array_unique(array_filter($cartIds, function ($v,$k) {
             return $v>0;
         },ARRAY_FILTER_USE_BOTH));
-        if (empty($skuIds)) {
+            if (empty($cartIds)) {
             return $this->dataReturn('003112', '请选择预览的商品');
         }
-        foreach ($skuIds as $key => $skuId) {
+        $skuIds = [];
+        foreach ($cartIds as $key => $cartId) {
             //判断购物车商品是否存在
             $where = [
-                ['sku_id', '=', $skuId],
+                ['cart_id', '=', $cartId],
                 ['udata_id', '=', $this->user['udata_id']],
             ];
             $info = $this->cartModel->where($where)->find();
             if (!$info) {
-                return $this->dataReturn('003113', '请求参数错误【SKU_ID_NOT_EXIST(' . $skuId . ')】');
+                return $this->dataReturn('003113', '请求参数错误【SKU_ID_NOT_EXIST(' . $cartId . ')】');
             }
+            $skuIds[] = $info['sku_id'];
         }
         $result = $this->_getCartData($this->user,$skuIds);
         return $this->dataReturn($result);

@@ -9,7 +9,7 @@ KindEditor.plugin('goods', function(K) {
 				  shadeClose: true,
 				  shade: 0.3,
 				  area: ['700px', '538px'],
-				  content: '/goods/choose', //iframe的url
+				  content: '/goods/choose?id='+id, //iframe的url
 				  success: function(layero, index){
 					var body = layer.getChildFrame('body', index);
 					var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();

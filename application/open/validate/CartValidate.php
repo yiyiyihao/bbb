@@ -50,8 +50,8 @@ class CartValidate extends Validate
     //购物车商品预览
     public function scenePreview()
     {
-        return $this->only(['sku_ids'])
-            ->append('sku_ids', 'require');
+        return $this->only(['cart_ids'])
+            ->append('cart_ids', 'require');
     }
 
 }
