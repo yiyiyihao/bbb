@@ -179,8 +179,8 @@ class System extends adminSystem
                 }
                 //商品安装-工程师确认配置信息 @JOE 04/24 2019
                 $cateId=$this->request->param('cate_id',0,'intval');
+                $factoryId = $this->adminUser['factory_id'];
                 if ($cateId) {
-                    $factoryId = $this->adminUser['factory_id'];
                     $cate=GoodsCate::where([
                         'store_id'=> $factoryId,
                         'is_del'=>0,
@@ -203,36 +203,39 @@ class System extends adminSystem
                     $types=$this->request->param('type',1,'intval');
                     $sortOrders=$this->request->param('sort_order',1,'intval');
                     $optValues=$this->request->param('value');
-                    foreach ($names as $k=>$name ) {
-                        $data = [];
-                        $where = [];
-                        if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
-                            $data = [
-                                'name'        => $name,
-                                'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
-                                'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
-                                'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
-                                'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
-                            ];
-                            $where = [
-                                'key'      => $key,
-                                'is_del'   => 0,
-                                'store_id' => $factoryId,
-                                'id'       => $configId[$k]
-                            ];
-                        } else {//配置不存在则直接新增
-                            $data = [
-                                'store_id'    => $factoryId,
-                                'key'         => $key,
-                                'name'        => $name,
-                                'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
-                                'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
-                                'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
-                                'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
-                            ];
+                    if (!empty($names)) {
+                        foreach ($names as $k=>$name ) {
+                            $data = [];
+                            $where = [];
+                            if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                                $data = [
+                                    'name'        => $name,
+                                    'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                                    'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                                    'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                                    'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                                ];
+                                $where = [
+                                    'key'      => $key,
+                                    'is_del'   => 0,
+                                    'store_id' => $factoryId,
+                                    'id'       => $configId[$k]
+                                ];
+                            } else {//配置不存在则直接新增
+                                $data = [
+                                    'store_id'    => $factoryId,
+                                    'key'         => $key,
+                                    'name'        => $name,
+                                    'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                                    'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                                    'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                                    'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                                ];
+                            }
+                            $result = (new ConfigForm())->save($data, $where);
                         }
-                        $result = (new ConfigForm())->save($data, $where);
                     }
+
                 }
                 //商品安装-用户确认配置信息 @JOE 04/25 2019
                 $key = 'work_order_assess';
