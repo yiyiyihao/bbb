@@ -1019,7 +1019,7 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片数据不能为空']);
         }
         $type = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'idcard';
-        if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service', 'apply_distributor', 'save_bank'])) {
+        if (!$type || !in_array($type, ['idcard', 'store_profile', 'order_service', 'distributor'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '图片类型错误']);
         }
         
