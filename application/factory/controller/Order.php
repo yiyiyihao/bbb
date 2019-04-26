@@ -118,6 +118,10 @@ class Order extends commonOrder
             $where['order_from'] = 3;
             $where['user_store_id'] = $this->adminStore['store_id'];
         }
+
+        if ($this->adminStore['store_type'] == STORE_FACTORY) {
+            $where['S.store_type'] = ['NEQ',STORE_DEALER];
+        }
         return $where;
     }
 }
