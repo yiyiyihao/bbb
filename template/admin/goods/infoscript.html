@@ -14,7 +14,12 @@
 	var next = true;
 	$("#dosubmit").click(function(){
 		next = false;
-	})
+	});
+	
+	//无规格商品默认商品编号作为规格编号
+    $('#goods_sn').change(function () {
+        $('tr.default-sku input[name="sku_sn[]"]').val($(this).val());
+    });
     Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage({
