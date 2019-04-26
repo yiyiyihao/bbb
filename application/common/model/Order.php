@@ -1323,6 +1323,7 @@ class Order extends Model
             }
             $store = $storeModel->field('store_id, name')->where(['store_id' => $storeId])->find();
             $skuIds = !empty($skuIds) ? $skuIds : implode(',', $skuList);
+            $storeIds=array_unique(array_filter($storeIds));
             if (count($storeIds) > 1) {
                 $this->error = '不允许跨厂商购买产品';
                 return FALSE;
