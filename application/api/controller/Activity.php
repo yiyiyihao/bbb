@@ -435,8 +435,10 @@ class Activity extends BaseApi
             'region_id' => $region_id,
             'region_name' => $region_name,
             'address' => $address,
+            'order_from'    => 4,//自有电商订单
+            'order_source'  => 'every_nine_free',//自有订单:自有商城 mall/分销活动 fenxiao 逢九免单every_nine_free
         ];
-        $orderType = 2;//活动订单类型
+        $orderType = 2;
         $user = [
             'udata_id' => $udata_id,
         ];

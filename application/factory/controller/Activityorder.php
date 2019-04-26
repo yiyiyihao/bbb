@@ -68,6 +68,11 @@ class Activityorder extends commonOrder
             return $this->fetch();
         }
     }
+    public function pay()
+    {
+        $this->returnUrl = url('Activityorder/index');
+        return parent::pay();
+    }
     private function _checkActivity($order)
     {
         $actInfo=db('activity')->where([
@@ -123,11 +128,23 @@ class Activityorder extends commonOrder
     {
         if ($list) {
             foreach ($list as $key => $value) {
+                if ($value['pay_code']) {
+                    $list[$key]['pay_name'] = db('payment')->where(['pay_code' => $value['pay_code'], 'is_del' => 0, 'store_id' => $value['store_id']])->value('name');
+                }
                 $return = $this->_checkActivity($value);
                 $list[$key]['return_type'] = $return['return_type'];
+                $list[$key]['order_source'] = get_order_source($value['order_source']);
             }
         }
         return $list;
+    }
+    function _getJoin(){
+        $join[] = ['user_data UD', 'UD.udata_id = O.udata_id', 'INNER'];
+        return $join;
+    }
+    function _getField(){
+        $field= 'O.*';
+        return $field;
     }
     protected function _buildmap($param = []){
         $params = $this->request->param();

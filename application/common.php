@@ -29,7 +29,7 @@ function get_user_orderfrom($user = [])
     return $orderFrom;
 }
 
-function get_order_from($from = FALSE, $source = FALSE)
+function get_order_from($from = FALSE)
 {
     $fromTxts = [
         1  => '服务商订单',
@@ -41,20 +41,23 @@ function get_order_from($from = FALSE, $source = FALSE)
         return $fromTxts;
     }
     if (isset($fromTxts[$from])) {
-        $str = '';
-        if ($source) {
-            if ($from == 4) {
-                switch ($source) {
-                    case 'fenxiao':
-                        $str = '分销活动';
-                    break;
-                    default:
-                        $str = '自有商城';
-                    break;
-                }
-            }
-        }
-        return $fromTxts[$from].($str ? "(".$str.")" : '');
+        return $fromTxts[$from];
+    }else{
+        return '';
+    }
+}
+function get_order_source($source = FALSE)
+{
+    $fromTxts = [
+        'fenxiao'  => '分销活动',
+        'every_nine_free'  => '逢九免单',
+        'mall'  => '自有商城',
+    ];
+    if ($source === FALSE) {
+        return $fromTxts;
+    }
+    if (isset($fromTxts[$source])) {
+        return $fromTxts[$source];
     }else{
         return '';
     }

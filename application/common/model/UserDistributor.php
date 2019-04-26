@@ -15,7 +15,7 @@ class UserDistributor extends Model
     }
     public function save($data = [], $where = [], $sequence = null)
     {
-        if ($where && isset($data['check_status']) && $data['check_status'] == 1) {
+        if (!$where) {
             $code = self::_getCode();
             if ($code === FALSE) {
                 $this->error = '分销员code生成数量限制(每日)';

@@ -5,6 +5,8 @@ class Fenxiao extends Admin
 {
     private $factoryId;
     private $promotType = 'fenxiao';
+    private $shareType = 2;//分享
+    private $visitType = 1;//访问
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -18,14 +20,6 @@ class Fenxiao extends Admin
         session('api_wechat_oauth', []);
         session('api_fenxiao_login', []);
         $this->_returnMsg(['msg' => 'ok']);
-    }
-    /**
-     * 上传图片
-     */
-    protected function uploadImageSource($verifyUser = FALSE)
-    {
-        $this->returnLogin = FALSE;
-        parent::uploadImageSource($verifyUser);
     }
     protected function getRegions($field = "region_id, region_name, parent_id")
     {
@@ -103,7 +97,8 @@ class Fenxiao extends Admin
         if ($skus) {
             if (is_array($skus)) {
                 foreach ($skus as $key => $value) {
-                    $skus[$key]['price'] = bcadd($value['price'],$value['install_price'],2);
+//                     $skus[$key]['price'] = bcadd($value['price'],$value['install_price'],2);
+                    $skus[$key]['price_total'] = $value['price'];
                     $skus[$key]['sku_thumb'] = $value['sku_thumb'] ? $value['sku_thumb'] : $detail['thumb'];
                     unset($skus[$key]['install_price']);
                 }
@@ -123,11 +118,11 @@ class Fenxiao extends Admin
         $this->_checkDistributor();
         $where = [
             ['P.store_id', '=', $this->factoryId],
-            ['P.is_del', '=', 0]
+            ['P.is_del', '=', 0],
         ];
         $alias = 'P';
         $join = [
-            ['promotion_join PJ', 'PJ.promot_id = P.promot_id AND distrt_id = '.$loginUser['distributor']['distrt_id'], 'LEFT'],
+            ['promotion_join PJ', 'PJ.promot_id = P.promot_id AND PJ.is_del=0 AND distrt_id = '.$loginUser['distributor']['distrt_id'], 'LEFT'],
         ];
         $order = 'P.add_time ASC';
         $field = 'P.promot_id, P.name, P.cover_img, P.start_time, P.end_time, P.add_time, P.status, PJ.join_id';
@@ -157,7 +152,8 @@ class Fenxiao extends Admin
             ['is_del', '=', 0],
             ['store_id', '=', $this->factoryId],
             ['promot_id', '=', $promot['promot_id']],
-            ['udata_id', '=', $loginUser['udata_id']]
+            ['udata_id', '=', $loginUser['udata_id']],
+            ['distrt_id', '=', $loginUser['distributor']['distrt_id']]
         ];
         $promotionJoinModel = model('PromotionJoin');
         $exist = $promotionJoinModel->where($where)->find();
@@ -219,10 +215,12 @@ class Fenxiao extends Admin
         $urlArray = explode('#', $url);
         $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
         $signature = sha1($string);
+        $config = get_store_config($this->factoryId, TRUE, 'invite_share');
+        $distributorPromot = isset($config['distributor_promot']) ? $config['distributor_promot'] : [];
         $detail = [
-            "title"     => $join['name'],
-            "description"=> $join['name'],
-            "img_url"   => $join['cover_img']
+            "title"     => $distributorPromot && isset($distributorPromot['title']) ? $distributorPromot['title'] :$join['name'],
+            "description"=> $distributorPromot&& isset($distributorPromot['description']) ? $distributorPromot['description'] :$join['name'],
+            "img_url"   => $distributorPromot&& isset($distributorPromot['img_url']) ? $distributorPromot['img_url'] :$join['cover_img']
         ];
         $detail['sign_package'] = array(
             "appId"     => $appid,
@@ -234,6 +232,53 @@ class Fenxiao extends Admin
         );
         $this->_returnMsg(['detail' => $detail]);
     }
+    
+    protected function getWechatJssdk()
+    {
+        $url = isset($this->postParams['share_url']) ? $this->postParams['share_url'] : '';
+        if (!$url) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'share_url不能为空']);
+        }
+        $shareType = isset($this->postParams['share_type']) ? trim($this->postParams['share_type']) : '';
+        $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
+        $appid = $wechatApi ? $wechatApi->config['appid'] : '';
+        if (!$appid) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信配置错误']);
+        }
+        $jsapiTicket = $wechatApi->getWechatJsApiTicket();
+        if ($jsapiTicket === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+        }
+        $url = urldecode($url);
+        $timestamp = time();
+        $nonceStr = get_nonce_str(16, 1);
+        // 这里参数的顺序要按照 key 值 ASCII 码升序排序
+        $rawString = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
+        $urlArray = explode('#', $url);
+        $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
+        $signature = sha1($string);
+        $sign = array(
+            "appId"     => $appid,
+            "nonceStr"  => $nonceStr,
+            "timestamp" => $timestamp,
+            "url"       => $url,
+            "signature" => $signature,
+            "rawString" => $rawString
+        );
+        if ($shareType && $shareType == 'distributor_apply') {
+            $config = get_store_config($this->factoryId, TRUE, 'invite_share');
+            $distributorPromot = isset($config['distributor_apply']) ? $config['distributor_apply'] : [];
+            $detail = [
+                "title"     => $distributorPromot && isset($distributorPromot['title']) ? $distributorPromot['title'] : '',
+                "description"=> $distributorPromot&& isset($distributorPromot['description']) ? $distributorPromot['description'] :'',
+                "img_url"   => $distributorPromot&& isset($distributorPromot['img_url']) ? $distributorPromot['img_url'] :'',
+            ];
+        }else{
+            $detail = [];
+        }
+        $this->_returnMsg(['sign_package' => $sign, 'detail' => $detail]);
+    }
+    
     /**
      * 我的推广活动
      */
@@ -243,8 +288,8 @@ class Fenxiao extends Admin
         $this->_checkDistributor();
         $where = [
             ['PJ.store_id', '=', $this->factoryId],
-            ['PJ.udata_id', '=', $loginUser['udata_id']],
-            ['PJ.distrt_id', '=', $loginUser['distributor']['distrt_id']],
+//             ['PJ.udata_id', '=', $loginUser['udata_id']],
+            ['PJ.distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
             ['PJ.is_del',   '=', 0],
         ];
         $alias = 'PJ';
@@ -282,7 +327,7 @@ class Fenxiao extends Admin
             ['udata_id','=', $loginUser['udata_id']],
             ['join_id', '=', $joinId],
             ['leave_time', '=', 0],
-            ['type', '=', 1],
+            ['type', '=', $this->visitType],
         ];
         $exist = $visitModel->where($where)->order('add_time DESC')->find();
         if ($exist) {
@@ -309,8 +354,9 @@ class Fenxiao extends Admin
         $where = [
             ['P.store_id', '=', $this->factoryId],
             ['P.is_del', '=', 0],
-            ['PJV.distrt_id', '=', $loginUser['distributor']['distrt_id']],
-            ['PJV.type', '=', 1],
+            ['PJV.distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
+            ['PJV.udata_id', '<>' ,$loginUser['udata_id']],
+            ['PJV.type', '=', $this->visitType],
         ];
         $alias = 'PJV';
         $join = [
@@ -318,11 +364,11 @@ class Fenxiao extends Admin
             ['user_data UD', 'PJV.udata_id = UD.udata_id', 'LEFT'],
         ];
         $order = 'PJV.add_time DESC';
-        $field = 'PJV.visit_id, UD.nickname, UD.avatar, P.promot_id, P.name, P.cover_img, PJV.visit_num, PJV.update_time as visit_time, PJV.stay_length';
+        $field = 'PJV.visit_id, UD.nickname, UD.avatar, P.promot_id, P.name, P.cover_img, PJV.visit_num, PJV.add_time as visit_time, PJV.stay_length';
         $result = $this->_getModelList(model('PromotionJoinVisit'), $where, $field, $order, $alias, $join);
         if ($result) {
             foreach ($result as $key => $value) {
-                $result[$key]['stay_length'] = $value['stay_length'].' 秒';
+                $result[$key]['stay_length'] = $value['stay_length'].' S';
             }
         }
         $this->_returnMsg(['list' => $result]);
@@ -395,7 +441,7 @@ class Fenxiao extends Admin
         }
         $where = [
             ['visit_id', '=', $visitId],
-            ['distrt_id', '=', $loginUser['distributor']['distrt_id']],
+            ['distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
         ];
         $visit = model('PromotionJoinVisit')->where($where)->find();
         if (!$visit) {
@@ -410,7 +456,8 @@ class Fenxiao extends Admin
             ['P.is_del', '=', 0],
             ['P.is_del', '=', 0],
             ['PJV.udata_id', '=', $visit['udata_id']],
-            ['PJV.distrt_id', '=', $loginUser['distributor']['distrt_id']]
+            ['PJV.distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
+            ['PJV.type', '=' ,$this->visitType],
         ];
         $alias = 'PJV';
         $join = [
@@ -421,23 +468,24 @@ class Fenxiao extends Admin
         $result = $this->_getModelList(model('PromotionJoinVisit'), $where, $field, $order, $alias, $join);
         if ($result) {
             foreach ($result as $key => $value) {
-                $result[$key]['stay_length'] = $value['stay_length'].' 秒';
+                $result[$key]['stay_length'] = $value['stay_length'].' S';
                 $result[$key]['visit_time'] = time_to_date($value['visit_time']);
             }
         }
         //计算分享次数 打开次数 下单次数
         $map = [
             ['udata_id', '=', $visit['udata_id']],
-            ['type', '=', 1],
+            ['type', '=', $this->visitType],
             ['distrt_id', '=', $loginUser['distributor']['distrt_id']],
         ];
-        $static = model('PromotionJoinVisit')->field('count(IF(type = 2, true, null)) as share_count, count(IF(type = 1, true, null)) as click_count')->where($map)->find();
+        $static = model('PromotionJoinVisit')->field('count(IF(type = '.$this->shareType.', true, null)) as share_count, count(IF(type = '.$this->visitType.', true, null)) as click_count')->where($map)->find();
         $where = [
-            ['udata_id', '=', $visit['udata_id']],
+            ['post_udata_id', '=', $visit['udata_id']],
             ['distrt_id', '=', $loginUser['distributor']['distrt_id']],
+            ['comm_type', '=', 1],
         ];
         //获取用户对应分销员信息
-        $orderCount = model('UserDistributor')->where($where)->count();
+        $orderCount = model('UserDistributorCommission')->where($where)->count();
         $return = [
             'user'  => $user,
             'static'=> [
@@ -521,7 +569,7 @@ class Fenxiao extends Admin
         ];
         $join = [
             ['promotion P', 'P.promot_id = PJ.promot_id', 'INNER'],
-            ['user_distributor UD', 'UD.distrt_id = PJ.distrt_id', 'INNER'],
+            ['user_distributor UD', 'UD.udata_id = PJ.udata_id', 'INNER'],
         ];
         $promotionJoinModel = model('PromotionJoin');
         $join = $promotionJoinModel->alias('PJ')->join($join)->where($where)->find();
@@ -529,7 +577,7 @@ class Fenxiao extends Admin
             if($join['start_time'] <= time() && $join['end_time'] > time()){
                 $visitModel = model('PromotionJoinVisit');
                 $data = [
-                    'type'      => 2,//分享
+                    'type'      => $this->shareType,//分享
                     'store_id'  => $this->factoryId,
                     'promot_id' => $join['promot_id'],
                     'join_id'   => $join['udata_id'],
@@ -557,9 +605,9 @@ class Fenxiao extends Admin
         $this->_checkDistributor();
         $where = [
             ['PJ.store_id', '=', $this->factoryId],
-            ['PJ.udata_id', '=', $loginUser['udata_id']],
             ['PJ.distrt_id', '=', $loginUser['distributor']['distrt_id']],
             ['PJ.is_del', '=', 0],
+            ['PJ.share_count', '>', 0],
         ];
         $alias = 'PJ';
         $join = [
@@ -575,7 +623,7 @@ class Fenxiao extends Admin
                 $map = [
                     ['store_id', '=' ,$this->factoryId],
                     ['join_id', '=' ,$value['join_id']],
-                    ['type', '=' ,2],
+                    ['type', '=' , $this->shareType],
                 ];
                 $join = [
                     ['user_data UD', 'UD.udata_id = PJV.udata_id', 'INNER'],
@@ -672,7 +720,8 @@ class Fenxiao extends Admin
         $loginUser = $this->_checkUser('udata_id, user_id, openid, third_openid');
         $order = $this->_verifyOrder(FALSE, FALSE, $loginUser);
         $order = [
-            'openid'    => 'oU6IZxGSEUFnZh3Oe2Nu6-IuI17k',
+//             'openid'    => 'oU6IZxGSEUFnZh3Oe2Nu6-IuI17k',
+            'openid'    => $loginUser['third_openid'],
             'order_sn'  => $order['order_sn'],
             'real_amount' => $order['real_amount'],
             'store_id'  => $this->factoryId,
@@ -693,10 +742,11 @@ class Fenxiao extends Admin
             ['udata_id', '=', $loginUser['udata_id']],
             ['factory_id', '=', $this->factoryId],
         ];
-        $field = 'count(IF(order_status = 1 AND pay_status = 0, true, null)) as status1';
-        $field .= ',count(IF(order_status = 1 AND pay_status = 1 AND delivery_status = 0, true, null)) as status2';
-        $field .= ',count(IF(order_status = 1 AND pay_status = 1 AND delivery_status = 2, true, null)) as status3';
-        $field .= ',count(IF(order_status = 1 AND pay_status = 1 AND delivery_status = 2 AND finish_status = 2, true, null)) as status4';
+        $field = 'count(IF((order_status = 1 AND pay_status = 0), 1, null)) as status1';
+        $field .= ',count(IF((order_status = 1 AND pay_status = 1 AND delivery_status != 2), 1, null)) as status2';
+        $field .= ',count(IF((order_status = 1 AND pay_status = 1 AND delivery_status = 2 AND finish_status != 2), 1, null)) as status3';
+        $field .= ',count(IF((order_status = 1 AND pay_status = 1 AND delivery_status = 2 AND finish_status = 2), 1, null)) as status4';
+        
         $order = model('order')->field($field)->where($map)->find();
         $this->_returnMsg(['order_data' => $order]);
     }
@@ -709,7 +759,8 @@ class Fenxiao extends Admin
         $loginUser = $this->_checkUser();
         $status = isset($this->postParams['status']) ? intval($this->postParams['status']) : 0;
         $where = [
-            ['udata_id', '=', $loginUser['udata_id']]
+            ['udata_id', '=', $loginUser['udata_id']],
+            ['factory_id', '=', $this->factoryId],
         ];
         if ($status) {
             switch ($status) {
@@ -738,9 +789,11 @@ class Fenxiao extends Admin
                     $where[] = ['order_status', '<>', 1];
                     break;
                 default:
-                    ;
+                    
                 break;
             }
+        }else{
+            $where[] = ['order_status', '=', 1];
         }
         $order = 'add_time DESC';
         $field = 'order_id, order_type, pay_type, order_sn, real_amount, order_status, pay_status, delivery_status, finish_status';
@@ -968,7 +1021,6 @@ class Fenxiao extends Admin
             ['is_del',      '=', 0],
             ['factory_id',  '=', $this->factoryId],
         ];
-        
         $exist = $distributorModel->where($where)->find();
         if ($exist) {
             if ($exist['check_status'] == 1) {
@@ -991,6 +1043,7 @@ class Fenxiao extends Admin
                 'factory_id' => $this->factoryId,
                 'face_avatar'=> $faceAvatar,
                 'username' => $phone,
+                'phone'    => $phone,
                 'password' => $userModel->pwdEncryption($password),
                 'nickname' => $loginUser['nickname'],
                 'realname' => $realname,
@@ -1004,18 +1057,39 @@ class Fenxiao extends Admin
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);
         }
-        $data = [
-            'udata_id'  => $loginUser['udata_id'],
-            'user_id'   => $userId,
-            'factory_id'=> $this->factoryId,
-            'realname'  => $realname,
-            'phone'     => $phone,
-            'face_avatar'=> $faceAvatar,
+        $where = [
+            ['udata_id',    '=', $loginUser['udata_id']],
+            ['factory_id',  '=', $this->factoryId],
         ];
-        if ($parentCode && isset($parent) && $parentCode) {
-            $data['parent_id'] = $parent['distrt_id'];
+        $exist = $distributorModel->where($where)->find();
+        if ($exist) {
+            $data = [
+                'user_id' => $userId,
+                'realname'  => $realname,
+                'phone'     => $phone,
+                'face_avatar'=> $faceAvatar,
+                'is_del'    => 0,
+                'check_status' => 0,
+                'add_time'  => time(),
+            ];
+            if ($parentCode && isset($parent) && $parentCode) {
+                $data['parent_id'] = $parent['distrt_id'];
+            }
+            $result = $distributorModel->save($data, ['distrt_id' => $exist['distrt_id']]);
+        }else{
+            $data = [
+                'udata_id'  => $loginUser['udata_id'],
+                'user_id'   => $userId,
+                'factory_id'=> $this->factoryId,
+                'realname'  => $realname,
+                'phone'     => $phone,
+                'face_avatar'=> $faceAvatar,
+            ];
+            if ($parentCode && isset($parent) && $parentCode) {
+                $data['parent_id'] = $parent['distrt_id'];
+            }
+            $result = $distributorModel->save($data);
         }
-        $result = $distributorModel->save($data);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);
         }
@@ -1311,18 +1385,17 @@ class Fenxiao extends Admin
         $where = [
             ['store_id', '=' ,$this->factoryId],
             ['distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
-            ['udata_id', '=' ,$loginUser['udata_id']],
+            ['udata_id', '<>' ,$loginUser['udata_id']],
             ['add_time', '>=' ,$beginToday],
-            ['type', '=' ,2],
+            ['type', '=' , $this->visitType],//1打开 2分享
         ];
         $todayVisit = model('PromotionJoinVisit')->where($where)->count();
         
         $where = [
             ['store_id', '=' ,$this->factoryId],
             ['distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
-            ['udata_id', '=' ,$loginUser['udata_id']],
             ['add_time', '>=' ,$beginToday],
-            ['type', '=' ,1],
+            ['type', '=' ,$this->shareType],
         ];
         $todayShare = model('PromotionJoinVisit')->where($where)->count();
         
@@ -1378,8 +1451,18 @@ class Fenxiao extends Admin
         if ($user['amount'] <= 0) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '没有可提现额度']);
         }
-        if ($amount >= $user['amount']) {
+        if ($amount > $user['amount']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '最大提现金额为'.$user['amount'].'元']);
+        }
+        $config = get_store_config($this->factoryId, TRUE, 'default');
+        //判断商户是否可提现
+        if ($config && isset($config['monthly_withdraw_start_date']) && isset($config['monthly_withdraw_end_date'])) {
+            $setting['withdraw_start_date']=$min = intval($config['monthly_withdraw_start_date']);
+            $setting['withdraw_end_date']=$max = intval($config['monthly_withdraw_end_date']);
+            $day = intval(date('d'));
+            if ($day < $min || $day > $max) {
+                $this->_returnMsg(['errCode' => 2, 'errMsg' => '每月提现时间：'.$min.'日-'.$max.'日']);
+            }
         }
         $data = [
             'store_id'  => $this->factoryId,
@@ -1399,7 +1482,7 @@ class Fenxiao extends Admin
         $result = $withdrawModel->save($data);
         if ($result !== FALSE) {
             $params = [
-                'remark' => '申请提现',
+                'msg' => '提现',
                 'log_id' => $withdrawModel->log_id,
             ];
             //记录成功后减少可提现金额
@@ -1452,7 +1535,7 @@ class Fenxiao extends Admin
             ['PJ.store_id', '=', $this->factoryId],
             ['UD.is_del', '=', 0],
             ['UD.factory_id', '=', $this->factoryId],
-//             ['PJ.udata_id', '<>', $loginUser['udata_id']],
+            ['PJ.udata_id', '<>', $loginUser['udata_id']],
             ['P.is_del', '=', 0],
             ['P.status', '=', 1],
             ['P.start_time', '<=', time()],
@@ -1473,7 +1556,7 @@ class Fenxiao extends Admin
             $where = [
                 ['udata_id','=', $loginUser['udata_id']],
                 ['join_id', '=', $joinId],
-                ['type', '=', 1],
+                ['type', '=', $this->visitType],
             ];
             $exist = $visitModel->where($where)->order('add_time DESC')->find();
             if (!$exist) {
@@ -1483,7 +1566,7 @@ class Fenxiao extends Admin
             }else{
                 $visitNum = $exist['visit_num'] + 1;
             }
-            $result = $visitModel->save([
+            $data = [
                 'store_id'  => $this->factoryId,
                 'promot_id' => $join['promot_id'],
                 'join_id'   => $join['udata_id'],
@@ -1492,7 +1575,9 @@ class Fenxiao extends Admin
                 'user_id'   => $loginUser['user_id'],
                 'join_id'   => $joinId,
                 'visit_num' => $visitNum,
-            ]);
+            ];
+//             pre($data);
+            $result = $visitModel->save($data);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);
             }
@@ -1764,7 +1849,7 @@ class Fenxiao extends Admin
             ];
             $user = $user->toArray();
             //获取用户对应分销员信息
-            $exist = model('UserDistributor')->field('distrt_id, distrt_code, realname, phone, check_status, check_remark, status')->where($where)->find();
+            $exist = model('UserDistributor')->field('distrt_id, face_avatar, distrt_code, realname, phone, check_status, check_remark, status')->where($where)->find();
             $user['distributor'] = $exist ? $exist->toArray() : [];
             return $user;
         }else{

@@ -50,7 +50,38 @@ class Promotion extends FormBase
         );
         $this->ajaxJsonReturn($data);
     }
-    
+    public function config(){
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $config = get_store_config($this->adminStore['store_id'], TRUE);
+        $params = [];
+        if (IS_POST) {
+            $storeModel = model('store');
+            $params = $this->request->post();
+            if (!$params) {
+                $this->error('参数异常');
+            }
+            $configKey = 'default';
+            foreach ($params as $key => $value) {
+                if (!is_array($value)) {
+                    $config[$configKey][$key] = trim($value);
+                }else{
+                    $config[$key]=isset($config[$key])? $config[$key]:[];
+                    $config[$key] =array_merge($config[$key],$value);
+                }
+            }
+            $configJson = $config ? json_encode($config): '';
+            $result = $storeModel->save(['config_json' => $configJson], ['store_id' => $this->adminStore['store_id']]);
+            if ($result === FALSE) {
+                $this->error($storeModel->error);
+            }
+            $this->success('编辑成功');
+        }else{
+            $this->assign('config', $config);
+        }
+        return $this->fetch();
+    }
     public function joins()
     {
         $info = parent::_assignInfo();
@@ -174,7 +205,7 @@ class Promotion extends FormBase
         $startTime = isset($data['start_time']) ? strtotime($data['start_time']) : '';
         $endTime = isset($data['end_time']) ?strtotime($data['end_time']) : '';
         $detail = $this->request->param('detail');
-        if ($this->request->param('id') && !$detail) {
+        if (!$detail) {
             $data['start_time'] = $startTime;
             $data['end_time'] = $endTime;
             if (!$name) {
@@ -206,12 +237,12 @@ class Promotion extends FormBase
                 $where[] = ['promot_id', '<>', $id];
             }else{
                 $data['store_id'] = $this->adminFactory['store_id'];
+                $data['content'] = '';
             }
             $exist = $this->model->where($where)->find();
             if ($exist) {
                 $this->error('活动名称已存在');
             }
-            $data['content'] = isset($data['content']) ? trim($data['content']) : '';
             $goodsIds = isset($data['goods_id']) ? $data['goods_id'] : [];
             if (!$goodsIds || !is_array($goodsIds)) {
                 $this->error('活动选择商品不能为空');

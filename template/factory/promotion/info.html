@@ -170,7 +170,7 @@
                     {if (!$info)}
                     <button id="next" class="button bg-yellow" >下一步</button>
                     {else/}
-                    <button class="button bg-main" type="submit">保存</button>
+                    <!-- <button class="button bg-main" type="submit">保存</button> -->
                     <button id="next" class="button bg-yellow" type="submit">下一步</button>
                     {/if}
                     <button class="button bg" type="reset">重置</button>
@@ -188,7 +188,7 @@
 			next = false;
 		})
         $('#form').FormPage({
-        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'fenxiao_cover_', 'thumb_type' => 'fenxiao_cover'])}",
+        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'fenxiao_cover_'])}",
         	'returnFun'	: function(data){
 				//跳转到属性编辑页面
 				if(next){

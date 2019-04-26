@@ -71,7 +71,8 @@ class Order extends FormBase
             if ($result === FALSE) {
                 $this->error($this->model->error);
             }else{
-                $this->success('确认付款成功', url('finance'));
+                $url = $this->returnUrl ? $this->returnUrl : url('finance');
+                $this->success('确认付款成功', $url);
             }
         }else{
             $this->subMenu['menu'][] = [
@@ -268,7 +269,7 @@ class Order extends FormBase
     protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
-//             'order_type' => 1,
+            'order_type' => 1,
         ];
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;

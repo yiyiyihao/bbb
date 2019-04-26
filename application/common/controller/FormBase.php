@@ -187,7 +187,7 @@ class FormBase extends CommonBase
                 }else{
                     $result = db($this->modelName)->where($where)->update($data);
                 }
-                if($result){
+                if($result !== FALSE){
                     $this->_afterEdit($pkId, $data);
                     $msg .= lang('SUCCESS');
                     unset($routes['id']);

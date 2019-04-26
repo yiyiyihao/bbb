@@ -1,0 +1,86 @@
+<div class="panel admin-box">
+	<div class="table-tools clearfix ">
+        <div class="float-left">
+            <form method="get" action="">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <div class="field">
+                            <input type="text" class="input" id="name" name="name" size="40" value="{$_GET['name'] ?? ''}" placeholder="用户名称">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="field">
+                            <select class="input" name="wstatus" id="wstatus">
+                            	<option value="-5">==提现状态==</option>
+                            	{foreach name="$wstatusList" item="status" key="key"}
+									<option value="{$key}" {if (isset($_GET['wstatus']) && $_GET['wstatus'] == $key)}selected="selected"{/if} >{$status}</option> 
+								{/foreach}
+							</select>
+                        </div>
+                    </div>
+                    <div class="form-button">
+                        <button class="button" type="submit">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+  <div class="table-responsive">
+    <table id="table" class="table table-hover ">
+      <tbody>
+        <tr>
+          <th width="*">用户名称</th>
+          <th width="*">提现金额</th>
+          <th width="*">提现账户</th>
+          <th width="*">提现状态</th>
+          <th width="*">申请时间</th>
+          <th width="*">处理时间</th>
+          <th width="*">申请留言</th>
+          <th width="*">审核备注</th>
+          <th width="*">操作</th>
+        </tr>
+        {notempty name="list"}
+          {volist name="list" id="vo" key="key"}
+            <tr>
+              <td>{$vo.realname}</td>
+              <td>{$vo['amount']}元</td>
+              <td>
+              	收款人姓名:{$vo['realname']} <br>
+              	银行卡号: {$vo['bank_no']}({$vo['bank_name']})
+              </td>
+              <td>{:get_withdraw_status($vo['withdraw_status'])}
+              	<br>
+              	{if condition="$vo['withdraw_status'] == 2 && isset($vo['transfer_no']) && $vo['transfer_no']"}
+              	转账流水号 :  {$vo['transfer_no']}
+              	{/if}
+              </td>
+              <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
+              <td>
+              	{if condition="$vo['check_time']"}
+              	{$vo['check_time']|date="Y-m-d H:i:s"} 
+              	{else/}-
+              	{/if}
+              </td>
+              <td>{$vo['apply_msg']}</td>
+              <td>{$vo['remark']}</td>
+              <td>
+              	<span class="button-group">
+              	{if condition="$vo['withdraw_status'] == 0"}
+              	<a href="{:url('check', ['id' => $vo['log_id']])}" class="button button-small icon-check bg-yellow">审核</a>
+              	{/if}
+              	<a href="{:url('detail', ['id' => $vo['log_id']])}"  class="button button-small icon-detail bg-main"> 查看详情</a>
+                </span>
+              </td>
+            </tr>
+          {/volist}
+        {/notempty}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-foot table-foot clearfix">{$page|raw}</div>
+</div>
+<script>
+    Do.ready('base', function () {
+       $('#table').Table({});
+    });
+</script>

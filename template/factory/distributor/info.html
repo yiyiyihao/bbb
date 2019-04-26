@@ -28,6 +28,31 @@
                         	<div class="input-note"></div>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分销员状态</label>
+                        </div>
+                        <div class="field">
+                           {notpresent name="info.status"}
+                                {assign name="info.status" value="1" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.status eq 1"}
+                                <label class="button active"><input name="status" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="1" type="radio">
+                                {/if}
+                                可用</label>
+                                {if condition="$info.status eq 0"}
+                                <label class="button active"><input name="status" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="status" value="0" type="radio">
+                                {/if}
+                                禁用</label>
+                            </div>
+                            <div class="input-note">禁用后不会在前台显示</div>
+                        </div>
+                    </div>
                 </div>                
             <div class="panel-foot">
                 <div class="form-button">

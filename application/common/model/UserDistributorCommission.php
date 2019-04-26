@@ -75,7 +75,7 @@ class UserDistributorCommission extends Model
         }
         $logIds = [];
         $userLogModel = new \app\common\model\UserLog();
-        $userModel = model('User');
+        $userModel = new \app\common\model\User();
         foreach ($logs as $key => $value) {
             $logId = intval($value['log_id']);
             if (!$logId) {
@@ -84,17 +84,14 @@ class UserDistributorCommission extends Model
             $logIds[] = $logId;
             //佣金入账
             $extra = [
-                'msg'   => ($value['comm_type']==1 ? '销售' : '管理').'佣金入账',
+                'msg'   => '分销'.($value['comm_type']==1 ? '销售' : '管理').'佣金入账',
                 'order_sn' => $value['order_sn'],
                 'extra_id' => $logId,
             ];
             $result = $userLogModel->record($value['user_id'], 'amount', $value['value'], 'fenxiao_order', $extra);
             if ($result !== FALSE && $value['value'] > 0) {
                 //减少待结算金额 总金额不变
-                $data = [
-                    'pending_amount' => Db::raw('pending_amount-'.$value),
-                ];
-                $result = $userModel->save($data, ['user_id' => $value['user_id']]);
+                $result = $userModel->where('user_id', $value['user_id'])->setDec('pending_amount', $value['value']);
             }
         }
         //收益状态(0待结算 1已结算 2已退还)

@@ -1,0 +1,92 @@
+<div class="tab-panel active" id="tab-1">
+        <div class="form-group">
+            <div class="label">
+                <label>提现金额</label>
+            </div>
+            <div class="field">
+            	<span class="field-text">{$info['amount']}元</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="label">
+                <label>提现用户名称</label>
+            </div>
+            <div class="field">
+            	<span class="field-text">{$info['user']['realname'] ?? ''}</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="label">
+                <label>提现用户手机号</label>
+            </div>
+            <div class="field">
+            	<span class="field-text">{$info['user']['phone'] ?? ''}</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="label">
+                <label>提现状态</label>
+            </div>
+            <div class="field">
+                <div class="button-group radio">
+                	<span class="field-text">{:get_withdraw_status($info['withdraw_status'])}</span>
+                </div>
+            </div>
+        </div>
+        {if ($info['withdraw_status'] != 0)}
+        <div class="form-group allowed">
+            <div class="label">
+                <label>转账流水号</label>
+            </div>
+            <div class="field">
+                <div class="button-group radio">
+                	<span class="field-text">{$info['transfer_no'] ?? ''}</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group allowed">
+			<div class="label">
+					<label>转账凭证</label>
+				</div>
+				<div class="field">
+				     <div class="img_preview" style="margin-bottom:10px;"><img src="{$info['img']|default='/static/base/images/default.png'}" id="img_preview" width="120"></div>
+			</div>
+		</div>
+     	<div class="form-group">
+	         <div class="label">
+	             <label>备注</label>
+	         </div>
+	         <div class="field">
+	             <div class="button-group radio">
+	             	<span class="field-text">{$info['remark'] ?? ''}</span>
+	             </div>
+	         </div>
+     	</div>
+     	{/if}
+ 	</div>
+ 	<div class="tab-panel" id="tab-2">
+	 	<div class="form-group">
+	         <div class="label">
+	             <label>收款人姓名</label>
+	         </div>
+	         <div class="field">
+	         	<span class="field-text">{$info['realname'] ?? ''}</span>
+	         </div>
+	     </div>
+	     <div class="form-group">
+	         <div class="label">
+	             <label>到账银行名称</label>
+	         </div>
+	         <div class="field">
+	         	<span class="field-text">{$info['bank_name'] ?? ''}</span>
+	         </div>
+	     </div>
+	     <div class="form-group">
+	         <div class="label">
+	             <label>到账银行卡号</label>
+	         </div>
+	         <div class="field">
+	         	<span class="field-text">{$info['bank_no'] ?? ''}</span>
+	         </div>
+	     </div>
+	 </div>

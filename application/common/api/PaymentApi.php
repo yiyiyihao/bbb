@@ -92,13 +92,11 @@ class PaymentApi
             $this->config = $payment && $payment['config_json'] ? json_decode($payment['config_json'], TRUE): [];
         }
         $this->payCode = strtolower($payCode);
-//         $this->apiHost = 'http://zxjapi.zhidekan.me/';
-        if ($_SERVER['SERVER_ADDR'] == '120.24.97.163') {
-            $this->apiHost = 'http://api.imliuchang.cn/';
-        }else{
+        if ($_SERVER['SERVER_NAME'] == '*.smarlife.cn') {
             $this->apiHost = 'http://api.smarlife.cn/';
+        }else{
+            $this->apiHost = 'http://api.imliuchang.cn/';
         }
-        
     }
     /**
      * 初始化支付数据

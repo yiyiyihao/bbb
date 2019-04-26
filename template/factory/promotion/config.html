@@ -1,0 +1,103 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">分销员推广活动文案配置</a></li>
+                        <li><a href="#tab-2">代言人申请分享文案配置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+               	<div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>分享标题</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="invite_share[distributor_promot][title]" size="40" placeholder="请输入活动分享标题" datatype="*" value="{$config['invite_share']['distributor_promot']['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分享描述</label>
+                        </div>
+                        <div class="field">
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[distributor_promot][description]" placeholder="请输入活动分享描述" datatype="*">{$config['invite_share']['distributor_promot']['description'] ?? ''}</textarea>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分享图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="input-note"></div>
+                            <div class="form-group">
+								<input type="hidden" class="input" id="img_url_distributor_promot" name="invite_share[distributor_promot][img_url]" size="38" value="{$config['invite_share']['distributor_promot']['img_url']|default=''}" >
+				                <div class="img_url_distributor_promot_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['distributor_promot']['img_url']|default='/static/base/images/default.png'}" id="img_url_distributor_promot_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_distributor_promot" preview="img_url_distributor_promot_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
+                        </div>
+                    </div>
+               	</div>
+               	<div class="tab-panel" id="tab-2">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>分享标题</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="invite_share[distributor_apply][title]" size="40" placeholder="请输入代言人申请分享标题" datatype="*" value="{$config['invite_share']['distributor_apply']['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分享描述</label>
+                        </div>
+                        <div class="field">
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[distributor_apply][description]" placeholder="请输入代言人申请分享描述" datatype="*">{$config['invite_share']['distributor_apply']['description'] ?? ''}</textarea>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分享图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="input-note"></div>
+                            <div class="form-group">
+								<input type="hidden" class="input" id="img_url_distributor_apply" name="invite_share[distributor_apply][img_url]" size="38" value="{$config['invite_share']['distributor_apply']['img_url']|default=''}" >
+				                <div class="img_url_distributor_apply_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['distributor_apply']['img_url']|default='/static/base/images/default.png'}" id="img_url_distributor_apply_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_distributor_apply" preview="img_url_distributor_apply_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
+                        </div>
+                    </div>
+               	</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+Do.ready('base', function () {
+    //表单综合处理
+    $('#form').FormPage({
+    	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'wechat_share_', 'thumb_type' => 'wechat_share_thumb_'])}",
+    });
+})
+</script>
