@@ -1263,6 +1263,7 @@ class Order extends Model
                     $value['install_price']= 0;
                     $value['factory_id'] = $skuInfo['factory_id'];
                     $value['store_id'] = $skuInfo['store_id'];
+                    $value['factory_id'] = $skuInfo['factory_id'];
                 }else{
                     $value['factory_id'] = $value['store_id'];
                 }
