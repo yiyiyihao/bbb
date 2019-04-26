@@ -162,6 +162,11 @@ class Order extends Model
         }
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, $action, $remark);
+        
+        if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+            $userCommissionModel = new \app\common\model\UserDistributorCommission();
+            $userCommissionModel->settlement($order);
+        }
         return TRUE;
     }
     /**
@@ -398,9 +403,9 @@ class Order extends Model
             'pay_time'   => time(),
             'update_time'=> time(),
         ];
-        if (isset($extra['remark']) && $extra['remark']) {
-            $data['remark']=$extra['remark'];
-        }
+//         if (isset($extra['remark']) && $extra['remark']) {
+//             $data['remark']=$extra['remark'];
+//         }
         if (isset($extra['pay_sn']) && $extra['pay_sn']) {
             $data['pay_sn']=$extra['pay_sn'];
         }
@@ -525,9 +530,9 @@ class Order extends Model
             $this->error = '已发货, 不能取消当前订单';
             return FALSE;
         }
-        $result = $this->save(['order_status' => 2], ['order_id' => $order['order_id']]);
+        $result = $this->where('order_id', $order['order_id'])->update(['order_status' => 2, 'cancel_time' => time(), 'update_time' => time()]);
         if (!$result) {
-            $this->error = $this->error;
+            $this->error = '状态更新错误';
             return FALSE;
         }
         //取消订单，产品库存增加
@@ -842,7 +847,8 @@ class Order extends Model
                 $refundStatus = 2;
             }
             if ($order['close_refund_status'] != $refundStatus) {
-                $result = $this->save(['close_refund_status' => $refundStatus], ['order_id' => $order['order_id']]);
+//                 $result = $this->save(['close_refund_status' => $refundStatus], ['order_id' => $order['order_id']]);
+                $result = $this->where('order_id', $order['order_id'])->update(['close_refund_status' => $refundStatus, 'update_time' => time()]);
             }
             //判断当前订单下单商户是否是零售商订单 & 订单关闭退款退货功能后,订单结算处理(部分关闭不结算)
             if ($order['user_store_id'] == ADMIN_DEALER && $refundStatus == 2) {
@@ -877,6 +883,13 @@ class Order extends Model
                         }
                     }
                 }
+            }
+            if ($refundStatus == 2) {
+                if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+                    $userCommissionModel = new \app\common\model\UserDistributorCommission();
+                    $userCommissionModel->settlement($order);
+                }
+                
                 $remark = $remark ? $remark : '系统自动关闭退货退款功能';
                 $this->orderTrack($order, 0, $remark);
                 $this->orderLog($order, [], '关闭退货退款功能', $remark);
@@ -1268,7 +1281,8 @@ class Order extends Model
                         return FALSE;
                     }
                 }
-                $storeIds[$value['store_id']] = $storeId = $value['store_id'];
+//                 $storeIds[$value['store_id']] = $storeId = $value['store_id'];
+                $storeIds[$value['factory_id']] = $storeId = $value['factory_id'];
                 
                 //产品库存为0/已删除/已禁用 则为 已失效
                 $amount = 0;
