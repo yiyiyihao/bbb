@@ -35,6 +35,12 @@ class UserLog extends Model
             'order_sn'  => $extra && isset($extra['order_sn']) ? trim($extra['order_sn']) : '',
             'extra_id'  => $extra && isset($extra['extra_id']) ? intval($extra['extra_id']) : '',
         ];
+        if ($extra && isset($extra['order_sn'])) {
+            $detail['order_sn'] = trim($extra['order_sn']);
+        }
+        if ($extra && isset($extra['extra_id'])) {
+            $detail['extra_id'] = intval($extra['extra_id']);
+        }
         $data = [
             'user_id'   => $userId,
             'type'      => $field,
@@ -42,7 +48,9 @@ class UserLog extends Model
             'action_type' => $actionType,
             'msg'       => $extra && isset($extra['msg']) ? trim($extra['msg']) : '',
             'detail'    => json_encode($detail),
+            'add_time'  => time(),
+            'update_time'  => time(),
         ];
-        return $this->save($data);
+        return $this->insert($data);
     }
 }

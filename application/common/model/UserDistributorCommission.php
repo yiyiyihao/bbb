@@ -88,10 +88,12 @@ class UserDistributorCommission extends Model
                 'order_sn' => $value['order_sn'],
                 'extra_id' => $logId,
             ];
-            $result = $userLogModel->record($value['user_id'], 'amount', $value['value'], 'fenxiao_order', $extra);
-            if ($result !== FALSE && $value['value'] > 0) {
+            $amount = $value['value'];
+            $userId = intval($value['user_id']);
+            $result = $userLogModel->record($userId, 'amount', $amount, 'fenxiao_order', $extra);
+            if ($result !== FALSE && $amount > 0) {
                 //减少待结算金额 总金额不变
-                $result = $userModel->where('user_id', $value['user_id'])->setDec('pending_amount', $value['value']);
+                $result = $userModel->where('user_id', $userId)->setDec('pending_amount', $amount);
             }
         }
         //收益状态(0待结算 1已结算 2已退还)
