@@ -686,7 +686,10 @@ class Goods extends FormBase
             );
             $this->model->where(['goods_id' => $id])->update($goodsData);
             //删除多余的SKU
-            GoodsSku::where(['sku_id'=>['NOT IN',$skuIdsExist]])->update(['is_del'=>1,'update_time'=>time()]);
+            GoodsSku::where([
+                'sku_id'   => ['NOT IN', $skuIdsExist],
+                'goods_id' => $id,
+            ])->update(['is_del' => 1, 'update_time' => time()]);
             return true;
         }
     }
