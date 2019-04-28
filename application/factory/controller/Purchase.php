@@ -229,21 +229,6 @@ class Purchase extends FactoryForm
         }
         //零售商
         if ($this->adminStore['store_type'] == STORE_DEALER) {
-            $where=[
-                ['SD.store_id','=',$this->adminStore['store_id']],
-                ['S.status', '=', 1],
-                ['S.is_del', '=', 0],
-                ['S.store_type', '=', STORE_SERVICE_NEW],
-            ];
-            $channel=db('store_dealer')
-                ->alias('SD')
-                ->field('S.store_id,S.store_type')
-                ->join('store S','S.store_id=SD.ostore_id')
-                ->where($where)
-                ->find();
-            if (empty($channel)) {
-                return json(dataFormat(0,'服务商不存或已被禁用'));
-            }
             $field = 'GS.sku_id,GS.sku_stock,(GSS.price_service+GSS.install_price_service) AS price';
             $where = [
                 'GS.goods_id'  => $id,
@@ -252,7 +237,7 @@ class Purchase extends FactoryForm
                 'GS.store_id'  => $this->adminStore['factory_id'],
                 'GS.spec_json' => $specs,
             ];
-            $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $channel['store_id'];
+            $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $this->channelId;
             $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
             if (empty($skuInfo)) {
                 return json(dataFormat(0,'查无该规格商品'));
