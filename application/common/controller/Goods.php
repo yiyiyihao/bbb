@@ -642,7 +642,9 @@ class Goods extends FormBase
                 $specValue = '';
                 if ($specJson[$k]) {
                     $specValue = json_decode($specJson[$k], true);
-                    $specValue=implode(';',array_values($specValue));
+                    if ($specValue) {
+                        $specValue=implode(';',array_values($specValue));
+                    }
                 }
                 $price = floatval($specPrice[$k]);
                 $install = floatval($installPrice[$k]);
