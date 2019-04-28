@@ -216,12 +216,11 @@ class Fenxiao extends Admin
         $urlArray = explode('#', $url);
         $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
         $signature = sha1($string);
-        $config = get_store_config($this->factoryId, TRUE, 'invite_share');
-        $distributorPromot = isset($config['distributor_promot']) ? $config['distributor_promot'] : [];
+        $config = isset($join['config']) ? json_decode($join['config'], 1) : [];
         $detail = [
-            "title"     => $distributorPromot && isset($distributorPromot['title']) ? $distributorPromot['title'] :$join['name'],
-            "description"=> $distributorPromot&& isset($distributorPromot['description']) ? $distributorPromot['description'] :$join['name'],
-            "img_url"   => $distributorPromot&& isset($distributorPromot['img_url']) ? $distributorPromot['img_url'] :$join['cover_img']
+            "title"     => $config && isset($config['share']['title']) ? $config['share']['title'] :$join['name'],
+            "description"=> $config && isset($config['share']['description']) ? $config['share']['description']:$join['name'],
+            "img_url"   => $config && isset($config['share']['img_url']) ? $config['share']['img_url']:$join['cover_img']
         ];
         $detail['sign_package'] = array(
             "appId"     => $appid,
@@ -298,10 +297,9 @@ class Fenxiao extends Admin
             ['promotion P', 'P.promot_id = PJ.promot_id', 'INNER'],
         ];
         $order = 'PJ.add_time ASC';
-        $field = 'PJ.promot_id, PJ.join_id,P.name, P.cover_img, P.start_time, P.end_time, P.status, PJ.share_count, PJ.click_count,  PJ.order_count, PJ.add_time as join_time';
+        $field = 'PJ.promot_id, PJ.join_id,P.name, P.cover_img, P.start_time, P.end_time, P.status, PJ.share_count, PJ.click_count,  PJ.order_pay_count as order_count, PJ.add_time as join_time';
         $result = $this->_getModelList(model('PromotionJoin'), $where, $field, $order, $alias, $join);
         if ($result) {
-            $order = model('Order');
             foreach ($result as $key => $value) {
                 $result[$key]['_status'] = get_promotion_status($value);
                 $result[$key]['start_time'] = $value['start_time'] ? date('Y-m-d H:i:s', $value['start_time']) : '';
@@ -1457,7 +1455,7 @@ class Fenxiao extends Admin
             'status'    => 1,
             'store_id'  => $this->factoryId,
         ];
-        $joins = model('PromotionJoin')->where($where)->field('sum(click_count) as click_count, sum(order_count) as order_count')->find();
+        $joins = model('PromotionJoin')->where($where)->field('sum(click_count) as click_count, sum(order_pay_count) as order_count')->find();
         $return['my_promotion']['click_count'] = $joins ? intval($joins['click_count']) : 0;
         $return['my_promotion']['order_count'] = $joins ? intval($joins['order_count']) : 0;
         $this->_returnMsg(['account' => $return]);
@@ -1520,7 +1518,7 @@ class Fenxiao extends Admin
         if ($result !== FALSE) {
             $params = [
                 'msg' => '提现',
-                'log_id' => $withdrawModel->log_id,
+                'extra_id' => $withdrawModel->log_id,
             ];
             //记录成功后减少可提现金额
             $userLogModel = new \app\common\model\UserLog();

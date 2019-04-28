@@ -82,6 +82,37 @@ class Promotion extends FormBase
         }
         return $this->fetch();
     }
+    public function setting(){
+        if (!$this->adminFactory || $this->adminUser['admin_type'] != ADMIN_FACTORY) {
+            $this->error(lang('NO ACCESS'));
+        }
+        $info = $this->_assignInfo();
+        $config = $info['config'] ? json_decode($info['config'], TRUE):[];
+        $params = [];
+        if (IS_POST) {
+            $params = $this->request->post();
+            if (!$params) {
+                $this->error('参数异常');
+            }
+            foreach ($params as $key => $value) {
+                if (!is_array($value)) {
+                    $config[$key] = trim($value);
+                }else{
+                    $config[$key]=isset($config[$key])? $config[$key]:[];
+                    $config[$key] =array_merge($config[$key],$value);
+                }
+            }
+            $configJson = $config ? json_encode($config): '';
+            $result = $this->model->save(['config' => $configJson], ['promot_id' => $info['promot_id']]);
+            if ($result === FALSE) {
+                $this->error($this->model->error);
+            }
+            $this->success('配置成功', url('index'));
+        }else{
+            $this->assign('config', $config);
+        }
+        return $this->fetch();
+    }
     public function joins()
     {
         $info = parent::_assignInfo();
@@ -205,6 +236,7 @@ class Promotion extends FormBase
         $startTime = isset($data['start_time']) ? strtotime($data['start_time']) : '';
         $endTime = isset($data['end_time']) ?strtotime($data['end_time']) : '';
         $detail = $this->request->param('detail');
+        $id = $this->request->param('id', 0, 'intval');
         if (!$detail) {
             $data['start_time'] = $startTime;
             $data['end_time'] = $endTime;
@@ -232,7 +264,6 @@ class Promotion extends FormBase
                 ['name', '=', $name],
                 ['store_id', '=', $this->adminFactory['store_id']],
             ];
-            $id = $this->request->param('id', 0, 'intval');
             if ($id) {
                 $where[] = ['promot_id', '<>', $id];
             }else{
@@ -323,6 +354,9 @@ class Promotion extends FormBase
             $data['skus'] = $skus;
             $data['promot_type'] = 'fenxiao';
         }
+        if (!$id) {
+            $data['config'] = '';
+        }
         return $data;
     }
     function _getOrder()
@@ -357,6 +391,7 @@ class Promotion extends FormBase
         $table = parent::_tableData();
         if ($table['actions']['button']) {
             $table['actions']['button'][] = ['text'  => '参与用户','action'=> 'condition', 'icon'  => 'list','bgClass'=> 'bg-yellow','condition'=>['action'=>'joins','rule'=>' $vo["status"]']];
+            $table['actions']['button'][] = ['text'  => ' 推广文案配置','action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-main','condition'=>['action'=>'setting','rule'=>' $vo["status"]']];
             $table['actions']['width']  = '*';
         }
         return $table;

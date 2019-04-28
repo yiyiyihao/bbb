@@ -131,8 +131,10 @@ class Activityorder extends commonOrder
                 if ($value['pay_code']) {
                     $list[$key]['pay_name'] = db('payment')->where(['pay_code' => $value['pay_code'], 'is_del' => 0, 'store_id' => $value['store_id']])->value('name');
                 }
-                $return = $this->_checkActivity($value);
-                $list[$key]['return_type'] = $return['return_type'];
+                if ($value['order_source'] == 'every_nine_free') {
+                    $return = $this->_checkActivity($value);
+                    $list[$key]['return_type'] = $return['return_type'];
+                }
                 $list[$key]['order_source'] = get_order_source($value['order_source']);
             }
         }

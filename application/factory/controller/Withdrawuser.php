@@ -80,7 +80,7 @@ class Withdrawuser extends FactoryForm
                 }else{
                     $params = [
                         'msg' => '提现失败',
-                        'log_id' => $info['log_id'],
+                        'extra_id' => $info['log_id'],
                     ];
                     //记录成功后减少可提现金额
                     $userLogModel = new \app\common\model\UserLog();

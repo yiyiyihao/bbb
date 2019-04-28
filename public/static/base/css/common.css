@@ -456,8 +456,8 @@ a:focus,a:hover{color:#009688;} /*链接-悬浮颜色*/
 {color:#fff;border-color:#f00;background-color:#f00;} /*点缀色-文本-边框-背景*/
 /*--------自定义文字气泡-带删除--------*/
 .pop-box{padding: 1px; float:left;margin-bottom: 10px;}
-.pop-box .pop-border{ border: 1px solid #bababa; }
+.pop-box .pop-border{ border: 1px solid #bababa;}
 .pop-box .pop-close{background: url('/static/base/js/layer/skin/default/icon.png') no-repeat -125px -26px;background-size: 700% 203%;height: 25px;width: 25px;display: inline-block;position: relative;right: 21px;top: -10px;cursor: pointer;}
-.pop-box .pop-content{display: inline-block; padding:5px 8px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;border-radius: 4px;}
+.pop-box .pop-content{display: inline-block; padding: 8px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
 .pop-box .pop-content:hover{color: #8c8c8c;}
 .no-select{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor: pointer}

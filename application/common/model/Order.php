@@ -455,6 +455,7 @@ class Order extends Model
             if ($exist) {
                 $visitModel->save(['order_sn' => $order['order_sn'], 'order_status' => 2], ['visit_id' => $exist['visit_id']]);
             }
+            model('PromotionJoin')->where('join_id', $order['promot_join_id'])->setInc('order_pay_count', 1);
         }
         if (in_array($order['order_type'], [1])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
