@@ -61,6 +61,7 @@ class Fenxiao extends Admin
         if ($result && isset($result)) {
             foreach ($result as $key => $value) {
                 $result[$key]['_status'] = get_promotion_status($value);
+                $result[$key]['start_time_text'] = $value['start_time'] ? date('Y-m-d', $value['start_time']) : '';
                 $result[$key]['start_time'] = $value['start_time'] ? date('Y-m-d H:i:s', $value['start_time']) : '';
                 $result[$key]['end_time'] = $value['end_time'] ? date('Y-m-d H:i:s', $value['end_time']) : '';
                 unset($result[$key]['status']);
@@ -365,10 +366,23 @@ class Fenxiao extends Admin
         ];
         $order = 'PJV.add_time DESC';
         $field = 'PJV.visit_id, UD.nickname, UD.avatar, P.promot_id, P.name, P.cover_img, PJV.visit_num, PJV.add_time as visit_time, PJV.stay_length';
+        $field .= ',PJV.order_sn, PJV.order_status, PJV.share_id';
         $result = $this->_getModelList(model('PromotionJoinVisit'), $where, $field, $order, $alias, $join);
         if ($result) {
             foreach ($result as $key => $value) {
                 $result[$key]['stay_length'] = $value['stay_length'].' S';
+                $action = '访问';
+                if ($value['share_id'] > 0) {
+                    $action.= '-分享';
+                }
+                if ($value['order_sn']) {
+                    $action.= '-下单';
+                    if ($value['order_status'] == 2) {
+                        $action.= '-支付';
+                    }
+                }
+                $result[$key]['action_text'] = $action;
+                unset($result[$key]['order_sn'], $result[$key]['order_status']);
             }
         }
         $this->_returnMsg(['list' => $result]);
@@ -475,7 +489,6 @@ class Fenxiao extends Admin
         //计算分享次数 打开次数 下单次数
         $map = [
             ['udata_id', '=', $visit['udata_id']],
-            ['type', '=', $this->visitType],
             ['distrt_id', '=', $loginUser['distributor']['distrt_id']],
         ];
         $static = model('PromotionJoinVisit')->field('count(IF(type = '.$this->shareType.', true, null)) as share_count, count(IF(type = '.$this->visitType.', true, null)) as click_count')->where($map)->find();
@@ -588,7 +601,21 @@ class Fenxiao extends Admin
                 ];
                 $result = $visitModel->save($data);
                 if ($result !== FALSE) {
-                    $result = $promotionJoinModel->where('join_id', $joinId)->setInc('share_count', 1);
+                    $promotionJoinModel->where('join_id', $joinId)->setInc('share_count', 1);
+                }
+                $where = [
+                    ['udata_id','=', $loginUser['udata_id']],
+                    ['store_id', '=', $this->factoryId],
+                    ['join_id', '=', $joinId],
+                    ['type', '=', $this->visitType],
+                ];
+//                 pre($where, 1);
+                $exist = $visitModel->where($where)->order('add_time DESC')->find();
+                pre($exist, 1);
+                if ($exist) {
+//                     $visitModel->save(['share_id' => $visitModel->visit_id], ['visit_id' => $exist['visit_id']]);
+                    $result = $visitModel->where('visit_id', $exist['visit_id'])->update(['share_id' => $visitModel->visit_id]);
+//                     pre($result);
                 }
             }
             $this->_returnMsg(['msg' => 'success']);
@@ -705,6 +732,16 @@ class Fenxiao extends Admin
         if ($submit) {
             if ($promot && $join && $promot['add_time'] <= time() && $promot['end_time'] >= time()) {
                 model('PromotionJoin')->where('join_id', $join['join_id'])->setInc('order_count', 1);
+            }
+            $visitModel = model('PromotionJoinVisit');
+            $where = [
+                ['udata_id','=', $loginUser['udata_id']],
+                ['join_id', '=', $joinId],
+                ['type', '=', $this->visitType],
+            ];
+            $exist = $visitModel->where($where)->order('add_time DESC')->find();
+            if ($exist) {
+                $visitModel->save(['order_sn' => $result['order_sn'], 'order_status' => 1], ['visit_id' => $exist['visit_id']]);
             }
             $this->_returnMsg(['order_sn' => $result['order_sn']]);
         }else{
@@ -1576,7 +1613,6 @@ class Fenxiao extends Admin
                 'join_id'   => $joinId,
                 'visit_num' => $visitNum,
             ];
-//             pre($data);
             $result = $visitModel->save($data);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);

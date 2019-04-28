@@ -154,8 +154,8 @@ class UserDistributorCommission extends Model
                 if (!$parent) {
                     return FALSE;
                 }
-                $userId = $distrtor['user_id'];
-                $distrtId = $distrtor['distrt_id'];
+                $userId = $parent['user_id'];
+                $distrtId = $parent['distrt_id'];
             }else{
                 return FALSE;
             }
@@ -194,8 +194,10 @@ class UserDistributorCommission extends Model
             'post_udata_id' => $order['udata_id'],
             'post_user_id'  => $order['user_id'],
             'commission_status' => 0,//收益状态(0待结算 1已结算 2已退还)
+            'add_time'  => time(),
+            'update_time'  => time(),
         ];
-        $result = $this->save($data);
+        $result = $this->insert($data);
         if($value > 0){
             //增加用户待结算金额和总金额
             $data = [
