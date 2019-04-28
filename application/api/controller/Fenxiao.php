@@ -216,12 +216,11 @@ class Fenxiao extends Admin
         $urlArray = explode('#', $url);
         $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=".$urlArray[0];
         $signature = sha1($string);
-        $config = get_store_config($this->factoryId, TRUE, 'invite_share');
-        $distributorPromot = isset($config['distributor_promot']) ? $config['distributor_promot'] : [];
+        $config = isset($join['config']) ? json_decode($join['config'], 1) : [];
         $detail = [
-            "title"     => $distributorPromot && isset($distributorPromot['title']) ? $distributorPromot['title'] :$join['name'],
-            "description"=> $distributorPromot&& isset($distributorPromot['description']) ? $distributorPromot['description'] :$join['name'],
-            "img_url"   => $distributorPromot&& isset($distributorPromot['img_url']) ? $distributorPromot['img_url'] :$join['cover_img']
+            "title"     => $config && isset($config['share']['title']) ? $config['share']['title'] :$join['name'],
+            "description"=> $config && isset($config['share']['description']) ? $config['share']['description']:$join['name'],
+            "img_url"   => $config && isset($config['share']['img_url']) ? $config['share']['img_url']:$join['cover_img']
         ];
         $detail['sign_package'] = array(
             "appId"     => $appid,
