@@ -420,8 +420,8 @@ class Order extends Model
             $data['pay_code'] = $payCode;
         }
         $order = $this->getOrderSkus($order, FALSE);
-        $skus = $order['skus'];
         
+        $skus = $order['skus'];
         //将订单设置为已支付状态
         $result = $this->where(['order_id' => $order['order_id'], 'pay_status' => ['<>', 1]])->update($data);
         if ($result === FALSE) {
@@ -444,8 +444,18 @@ class Order extends Model
             //分销佣金入账
             $commissionModel = new \app\common\model\UserDistributorCommission();
             $commissionModel->calculate($order, $order['promot_id'], $skus[0], $order['promot_join_id']);
+            $visitModel = model('PromotionJoinVisit');
+            $where = [
+                ['udata_id','=', $order['udata_id']],
+                ['join_id', '=', $order['promot_join_id']],
+                ['type', '=', 1],
+                ['order_sn', '=', $order['order_sn']],
+            ];
+            $exist = $visitModel->where($where)->order('add_time DESC')->find();
+            if ($exist) {
+                $visitModel->save(['order_sn' => $order['order_sn'], 'order_status' => 2], ['visit_id' => $exist['visit_id']]);
+            }
         }
-        
         if (in_array($order['order_type'], [1])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
