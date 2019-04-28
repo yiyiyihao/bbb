@@ -481,7 +481,7 @@ class Goods extends FormBase
                     //'GS.spec_json' => ['NEQ', ''],
                 ];
                 $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $this->adminStore['store_id'];
-                $skuList = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->select();
+                $skuList = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'INNER')->select();
             } else {//厂商
                 $where = [
                     'goods_id' => $id,
