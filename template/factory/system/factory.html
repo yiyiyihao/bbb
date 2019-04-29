@@ -13,8 +13,10 @@
                         <li><a href="#tab-4">审核配置</a></li>
                         <li><a href="#tab-5">财务设置</a></li>
                         <li><a href="#tab-6">服务设置</a></li>
-                        <li><a href="#tab-7">工程师安装确认配置</a></li>
-                        <li><a href="#tab-8">客户安装确认配置</a></li>
+                        <li><a href="#tab-7">【工程师】安装确认单</a></li>
+                        <li><a href="#tab-8">【用户】安装确认单</a></li>
+                        <li><a href="#tab-9">【工程师】维修确认单</a></li>
+                        <li><a href="#tab-10">【用户】维修确认单</a></li>
                     </ul>
                 </div>
             </div>
@@ -255,7 +257,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <select class="input" name="type2[]" id="type" datatype="n" nullmsg="请选择字段类型！">
+                                            <select class="input" name="type2[]"  data-v="{$vo.type}" datatype="n" nullmsg="请选择字段类型！">
                                                 <option value="0" {if $vo.type=="0"}selected="selected"{/if}>文本</option>
                                                 <option value="1" {if $vo.type=="1"}selected="selected"{/if}>数字</option>
                                                 <option value="2" {if $vo.type=="2"}selected="selected"{/if}>单选</option>
@@ -273,7 +275,7 @@
                                             <div class="pop-content pop-border">{$v}</div><i class="pop-close"></i></span>
                                             {/volist}
                                             {/notempty}
-                                            <a class="button button-small icon-plus  pop-box-add" data-i="{$k}" data-item="2"></a>
+                                            <a class="button button-small icon-plus  pop-box-add {if $vo.type<2||$vo.type>4}hidden{/if}" data-i="{$k}" data-item="2"></a>
                                         </td>
                                         <td><input type="text" name="sort_order2[]" class="input" value="{$vo.sort_order}"></td>
                                         <td><a class="button bg-red button-small icon-delete" href="javascript:;" title="删除"></a></td>
@@ -290,13 +292,145 @@
                                 </table>
                                 <span class="button bg-main no-select create-opt" data-item="2">添加字段</span>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
+                <div class="tab-panel" id="tab-9">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>配置明细</label>
+                        </div>
+                        <div class="field">
+                            <div class="table-responsive">
+                                <table  class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th width="100">字段名</th>
+                                        <th width="120">必填</th>
+                                        <th width="150">类型</th>
+                                        <th >选项列表(仅对单选，多选、下拉列表有效)</th>
+                                        <th style="width: 80px;">排序</th>
+                                        <th width="100">操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {notempty name='repairConfirm'}
+                                    {foreach $repairConfirm as $k=>$vo}
+                                    <tr>
+                                        <td><input type="hidden" name="config_id3[]" value="{$vo.id}"><input type="text" name="name3[]" placeholder="字段名不能为空" value="{$vo.name}" datatype="*" class="input"></td>
+                                        <td>
+                                            <div class="button-group radio">
+                                                <label class="button {if $vo.is_required==1}active{/if}"><input type="hidden" name="is_required3[]" value="{$vo.is_required}"><input value="1" {if $vo.is_required==1}checked="checked"{/if} type="radio">是</label>
+                                                <label class="button {if $vo.is_required==0}active{/if}"><input value="0" {if $vo.is_required==0}checked="checked"{/if} type="radio">否</label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select class="input" name="type3[]"  data-v="{$vo.type}" datatype="n" nullmsg="请选择字段类型！">
+                                                <option value="0" {if $vo.type=="0"}selected="selected"{/if}>文本</option>
+                                                <option value="1" {if $vo.type=="1"}selected="selected"{/if}>数字</option>
+                                                <option value="2" {if $vo.type=="2"}selected="selected"{/if}>单选</option>
+                                                <option value="3" {if $vo.type=="3"}selected="selected"{/if}>多选</option>
+                                                <option value="4" {if $vo.type=="4"}selected="selected"{/if}>下拉列表</option>
+                                                <option value="5" {if $vo.type=="5"}selected="selected"{/if}>日期</option>
+                                                <option value="6" {if $vo.type=="6"}selected="selected"{/if}>富文本</option>
+                                                <option value="7" {if $vo.type=="7"}selected="selected"{/if}>图片</option>
+                                            </select>
+                                        </td>
+                                        <td class="opt-group">
+                                            {notempty name='vo.value'}
+                                            {volist name='vo.value' id='v'}
+                                            <span class="pop-box"><input type="hidden" value="{$v}" name="value3[{$k}][]">
+                                            <div class="pop-content pop-border">{$v}</div><i class="pop-close"></i></span>
+                                            {/volist}
+                                            {/notempty}
+                                            <a class="button button-small icon-plus  pop-box-add {if $vo.type<2||$vo.type>4}hidden{/if}" data-i="{$k}" data-item="3"></a>
+                                        </td>
+                                        <td><input type="text" name="sort_order3[]" class="input" value="{$vo.sort_order}"></td>
+                                        <td><a class="button bg-red button-small icon-delete" href="javascript:;" title="删除"></a></td>
+                                    </tr>
+                                    {/foreach}
+                                    {/notempty}
+                                    {empty name='repairConfirm'}
+                                    <tr class="opt-empty">
+                                        <td colspan="6" align="center">请添加字段</td>
+                                    </tr>
+                                    {/empty}
 
+                                    </tbody>
+                                </table>
+                                <span class="button bg-main no-select create-opt" data-item="3">添加字段</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="tab-10">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>配置明细</label>
+                        </div>
+                        <div class="field">
+                            <div class="table-responsive">
+                                <table  class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th width="100">字段名</th>
+                                        <th width="120">必填</th>
+                                        <th width="150">类型</th>
+                                        <th >选项列表(仅对单选，多选、下拉列表有效)</th>
+                                        <th style="width: 80px;">排序</th>
+                                        <th width="100">操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {notempty name='repairUserConfirm'}
+                                    {foreach $repairUserConfirm as $k=>$vo}
+                                    <tr>
+                                        <td><input type="hidden" name="config_id4[]" value="{$vo.id}"><input type="text" name="name4[]" placeholder="字段名不能为空" value="{$vo.name}" datatype="*" class="input"></td>
+                                        <td>
+                                            <div class="button-group radio">
+                                                <label class="button {if $vo.is_required==1}active{/if}"><input type="hidden" name="is_required4[]" value="{$vo.is_required}"><input value="1" {if $vo.is_required==1}checked="checked"{/if} type="radio">是</label>
+                                                <label class="button {if $vo.is_required==0}active{/if}"><input value="0" {if $vo.is_required==0}checked="checked"{/if} type="radio">否</label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select class="input" name="type4[]"  data-v="{$vo.type}" datatype="n" nullmsg="请选择字段类型！">
+                                                <option value="0" {if $vo.type=="0"}selected="selected"{/if}>文本</option>
+                                                <option value="1" {if $vo.type=="1"}selected="selected"{/if}>数字</option>
+                                                <option value="2" {if $vo.type=="2"}selected="selected"{/if}>单选</option>
+                                                <option value="3" {if $vo.type=="3"}selected="selected"{/if}>多选</option>
+                                                <option value="4" {if $vo.type=="4"}selected="selected"{/if}>下拉列表</option>
+                                                <option value="5" {if $vo.type=="5"}selected="selected"{/if}>日期</option>
+                                                <option value="6" {if $vo.type=="6"}selected="selected"{/if}>富文本</option>
+                                                <option value="7" {if $vo.type=="7"}selected="selected"{/if}>图片</option>
+                                            </select>
+                                        </td>
+                                        <td class="opt-group">
+                                            {notempty name='vo.value'}
+                                            {volist name='vo.value' id='v'}
+                                            <span class="pop-box"><input type="hidden" value="{$v}" name="value4[{$k}][]">
+                                            <div class="pop-content pop-border">{$v}</div><i class="pop-close"></i></span>
+                                            {/volist}
+                                            {/notempty}
+                                            <a class="button button-small icon-plus  pop-box-add {if $vo.type<2||$vo.type>4}hidden{/if}" data-i="{$k}" data-item="4"></a>
+                                        </td>
+                                        <td><input type="text" name="sort_order4[]" class="input" value="{$vo.sort_order}"></td>
+                                        <td><a class="button bg-red button-small icon-delete" href="javascript:;" title="删除"></a></td>
+                                    </tr>
+                                    {/foreach}
+                                    {/notempty}
+                                    {empty name='repairUserConfirm'}
+                                    <tr class="opt-empty">
+                                        <td colspan="6" align="center">请添加字段</td>
+                                    </tr>
+                                    {/empty}
 
+                                    </tbody>
+                                </table>
+                                <span class="button bg-main no-select create-opt" data-item="4">添加字段</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
@@ -335,7 +469,7 @@
 <style>
 .pop-box .pop-content{padding: 5px 10px;}
 .pop-box-add{border: none;font-size: 20px; cursor: pointer;}
-#table,#table2{margin-bottom: 10px;}
+table{margin-bottom: 10px;}
 </style>
 <script>
 
@@ -373,9 +507,9 @@
             table.find('tr.opt-empty').remove();
             var len=tbody.find('tr').length;
             html='<tr><td><input type="hidden" name="config_id'+item+'[]" value=""><input type="text" name="name'+item+'[]" datatype="*" class="input" placeholder="字段名不能为空"></td><td><div class="button-group radio"><label class="button active"><input type="hidden" name="is_required'+item+'[]" value="1"><input  value="1"  checked="checked" type="radio">是</label><label class="button "><input  value="0"  type="radio">否</label></div>' +
-                '</td><td><select class="input" name="type'+item+'[]" id="type" datatype="n" nullmsg="请选择字段类型！">' +
+                '</td><td><select class="input" name="type'+item+'[]" id="type" data-v="0" datatype="n" nullmsg="请选择字段类型！">' +
                 '<option value=0>文本</option><option value=1>数字</option><option value=2>单选</option><option value=3>多选</option><option value=4>下拉列表</option><option value=5>日期</option><option value=6>富文本</option><option value=7>图片</option></select></td>' +
-                '<td class="opt-group"><a class="button button-small icon-plus  pop-box-add" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
+                '<td class="opt-group"><a class="button button-small icon-plus  pop-box-add hidden" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
                 '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td></tr>';
             tbody.append(html);
         });
@@ -390,21 +524,43 @@
         });
 
         //更改字段类型
-        $('#table').on('change','select',function () {
-            // opt=$(this);
-            // layer.confirm('修改选项类型会改变原有数据？', {
-            //     btn: ['确定','取消'] //按钮
-            // }, function(){
-            //     console.log(opt.val());
-            //     return false;
-            // }, function(){
-            //     console.log(opt.attr('data-v'));
-            //     $(this).val(opt.attr('data-v'));
-            //     // layer.msg('也可以这样', {
-            //     //     time: 20000, //20s后自动关闭
-            //     //     btn: ['明白了', '知道了']
-            //     // });
-            // });
+        $('form table').on('change','select',function () {
+            opt=$(this);
+            newVal=opt.val();
+            orgVal=opt.attr('data-v');
+            if (orgVal) {
+                layer.confirm('修改选项类型会改变原有数据？', {
+                    btn: ['确定', '取消'] //按钮
+                }, function (index, layero) {
+                    opt.attr("value", newVal);
+                    opt.val(newVal);
+                    addButton = opt.parents('tr').find('a.pop-box-add');
+                    if (newVal >= 2 && newVal <= 4) {
+                        addButton.removeClass('hidden');
+                    } else {
+                        addButton.addClass('hidden');
+                    }
+                    layer.close(index);
+                    return false;
+                }, function () {
+                    opt.attr("value", orgVal);
+                    opt.val(orgVal);
+                    // layer.msg('也可以这样', {
+                    //     time: 20000, //20s后自动关闭
+                    //     btn: ['明白了', '知道了']
+                    // });
+                });
+            } else {
+                opt.attr("value", newVal);
+                opt.val(newVal);
+                addButton = opt.parents('tr').find('a.pop-box-add');
+                if (newVal >= 2 && newVal <= 4) {
+                    addButton.removeClass('hidden');
+                } else {
+                    addButton.addClass('hidden');
+                }
+            }
+
         });
 
         //获取商品分类配置
@@ -447,7 +603,7 @@
                     }else {
                         html+='<input type="hidden" value="" name="value['+i+']" />';
                     }
-                    html+='<a  class="button button-small icon-plus pop-box-add" data-i="'+i+'" data-item=""></a>';
+                    html+='<a  class="button button-small icon-plus pop-box-add '+(optType>=2 && optType<=4? "":"hidden" )+'" data-i="'+i+'" data-item=""></a>';
                     html+='</td><td><input type="text" name="sort_order[]"  value="'+data[i].sort_order+'" class="input"></td>' +
                         '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td>' +
                         '</tr>';
