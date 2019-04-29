@@ -1,5 +1,6 @@
 <?php
 namespace app\common\controller;
+use app\common\model\GoodsSku;
 use app\common\model\GoodsService;
 use app\common\model\GoodsSkuService;
 use think\Request;
@@ -480,7 +481,7 @@ class Goods extends FormBase
                     //'GS.spec_json' => ['NEQ', ''],
                 ];
                 $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' . $this->adminStore['store_id'];
-                $skuList = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'left')->select();
+                $skuList = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'INNER')->select();
             } else {//厂商
                 $where = [
                     'goods_id' => $id,
@@ -623,54 +624,60 @@ class Goods extends FormBase
             $installPrice = $data['install_price'];
             $specName = $data['spec_name'] ?? [];
             $specSku = $data['sku_stock'];
-            //清空当前商品属性
-            $where = ['goods_id' => $id, 'is_del' => 0];
-            if ($skuIds) {
-                $where['sku_id'] = ['NOT IN', $skuIds];
-            }
-            db('goods_sku')->where($where)->update(['is_del' => 1, 'update_time' => time()]);
-            foreach ($specSns as $k => $v) {
-                $price = floatval($specPrice[$k]);
-                $install = floatval($installPrice[$k]);
+
+            $skuIdsExist=[];
+            foreach ($specSns as $k=>$v) {
+                $where=[];
+                if (isset($skuIds[$k]) && $skuIds[$k]) {
+                    $where['sku_id'] = $skuIds[$k];
+                } else {
+                    $where['goods_id'] = $id;
+                    $where['is_del'] = 0;
+                    $where['sku_name'] = $specName[$k] ?? $data['name'];
+                }
+                $sku=GoodsSku::where($where)->find();
+
                 $stock = intval($specSku[$k]);
-                $minPrice = !$minPrice ? $price : min($minPrice, $price);
-                $maxPrice = !$maxPrice ? $price : max($maxPrice, $price);
-                $specValue = [];
+                $goodsStock += $stock;
+                $specValue = '';
                 if ($specJson[$k]) {
-                    $spec = json_decode($specJson[$k], true);
-                    if ($spec) {
-                        foreach ($spec as $k1 => $v1) {
-                            $specValue[] = $v1;
-                        }
+                    $specValue = json_decode($specJson[$k], true);
+                    if ($specValue) {
+                        $specValue=implode(';',array_values($specValue));
                     }
                 }
+                $price = floatval($specPrice[$k]);
+                $install = floatval($installPrice[$k]);
+                $minPrice = !$minPrice ? $price : min($minPrice, $price);
+                $maxPrice = !$maxPrice ? $price : max($maxPrice, $price);
                 $skuData = [
                     'goods_cate'            => intval($data['goods_cate']),
                     'goods_type'            => $data['goods_type'],
-                    'sku_name'              => $specName[$k]?? $data['name'],
+                    'sku_name'              => $specName[$k] ?? $data['name'],
                     'sku_sn'                => trim($v),
-                    'spec_json'             => $specJson[$k] ??'',
+                    'spec_json'             => $specJson[$k] ?? '',
                     'sku_stock'             => $stock,
-                    'spec_value'            => $specValue ? implode(';', $specValue) : '',
+                    'spec_value'            => $specValue,
                     'price'                 => $price,
                     'install_price'         => $install,
                     'stock_reduce_time'     => intval($data['stock_reduce_time']),
                     'sample_purchase_limit' => intval($data['sample_purchase_limit']),
+                    'store_id'              => $data['store_id'],
+                    'goods_id'              => $id,
+                    'is_del'                => 0,
+                    'status'                => 1,
                 ];
-                if ($skuIds) {
-                    db('goods_sku')->where(['sku_id' => $skuIds[$k]])->update($skuData);
-                } else {
-                    $skuData['store_id'] = $data['store_id'];
-                    $skuData['goods_id'] = $id;
-                    $dataSet[] = $skuData;
+                $model=new GoodsSku();
+                $where=[];
+                if (!empty($sku)) {
+                    $where=['sku_id'=>$sku['sku_id']];
                 }
-                $goodsStock += $stock;
-            }
-            if ($dataSet && !$skuIds) {
-                $result = db('goods_sku')->insertAll($dataSet);
+                $result=$model->save($skuData,$where);
                 if ($result === false) {
-                    $this->error('系统错误');
+                    $this->error('系统错误，保存失败！');
+                    return false;
                 }
+                $skuIdsExist[]=$model->sku_id;
             }
             //更新商品属性
             $goodsData = array(
@@ -680,7 +687,11 @@ class Goods extends FormBase
                 'goods_stock' => $goodsStock,
             );
             $this->model->where(['goods_id' => $id])->update($goodsData);
-            //             $this->success("商品属性修改成功!", url("index"), TRUE);
+            //删除多余的SKU
+            GoodsSku::where([
+                'sku_id'   => ['NOT IN', $skuIdsExist],
+                'goods_id' => $id,
+            ])->update(['is_del' => 1, 'update_time' => time()]);
             return true;
         }
     }
@@ -812,7 +823,7 @@ class Goods extends FormBase
             'G.status'   => 1,
             'G.store_id' => $this->adminUser['factory_id'],
             'G.e_commerce'   => 0,
-            //'G.activity_id'   => 0,
+            //'G.activity_id' => 0,
         ];
         if (IS_POST) {
             $ids = $request->param('id', 'intval');
@@ -876,13 +887,27 @@ class Goods extends FormBase
             $this->success("导入成功！");
         } else {
             $field = 'G.goods_id,G.name,G.min_price,G.max_price,G.specs_json,G.goods_sn';
-            $order = 'G.goods_id DESC';
-            $joinOn='G.goods_id = GS.goods_id AND GS.is_del = 0 AND GS.store_id ='.$this->adminUser['store_id'];
             $join=[
-                //['goods_sku GDS','GDS.goods_id=G.goods_id','INNER'],
-                ['goods_service GS',$joinOn,'LEFT'],
+                ['goods G','G.goods_id=GS.goods_id','INNER'],
+                ['goods_sku_service GSS','GS.sku_id= GSS.sku_id AND GSS.is_del=0 AND GSS.store_id='.$this->adminUser['store_id'],'LEFT'],
             ];
-            $query = $this->model->alias('G')->field($field)->join($join)->where($where)->whereNull('GS.id')->order($order)->paginate($this->perPage, false,['query' => input('param.')]);
+            $where = [
+                'G.status'     => 1,
+                'G.is_del'     => 0,
+                'GS.status'    => 1,
+                'GS.is_del'    => 0,
+                'G.e_commerce' => 0,
+                'G.store_id'   => $this->adminUser['factory_id'],
+                'GSS.sku_id'   => null,
+            ];
+            $query=db('goods_sku')
+                ->alias('GS')
+                ->field($field)
+                ->join($join)
+                ->where($where)
+                //->whereNull('GSS.sku_id')
+                ->group('GS.goods_id')
+                ->paginate($this->perPage, false,['query' => input('param.')]);
             $list = $query->items();
             $list = array_map(function ($item) {
                 $specs = json_decode($item['specs_json'], true);

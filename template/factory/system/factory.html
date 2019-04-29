@@ -13,15 +13,13 @@
                         <li><a href="#tab-4">审核配置</a></li>
                         <li><a href="#tab-5">财务设置</a></li>
                         <li><a href="#tab-6">服务设置</a></li>
-                        <li><a href="#tab-7">工程师安装确认配置</a></li>
-                        <li><a href="#tab-8">客户安装确认配置</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
-                {if (!isset($config['wechat_applet']))}
-                <div class="tab-panel active" id="tab-0">
-                    <div class="form-group">
+            	{if (!isset($config['wechat_applet']))}
+            	<div class="tab-panel active" id="tab-0">
+                	<div class="form-group">
                         <div class="label">
                             <label>APPID(智享家师傅端)</label>
                         </div>
@@ -60,7 +58,7 @@
                 </div>
                 {/if}
                 <div class="tab-panel active" id="tab-1">
-                    <div class="form-group">
+                	<div class="form-group">
                         <div class="label">
                             <label>待支付订单取消时间</label>
                         </div>
@@ -84,24 +82,24 @@
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-2">
-                    <div class="form-group">
+                	<div class="form-group">
                         <div class="label">
                             <label>渠道佣金比例</label>
                         </div>
                         <div class="field">
-                            <label>其下级零售商销售额的</label>
+                        	<label>其下级零售商销售额的</label>
                             <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$config['default']['channel_commission_ratio'] ?? 0}">
                             <label>%</label>
                         </div>
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-3">
-                    <div class="form-group">
+                	<div class="form-group">
                         <div class="label">
                             <label>工程师安装服务费比例</label>
                         </div>
                         <div class="field">
-                            <label>安装服务费的</label>
+                        	<label>安装服务费的</label>
                             <input type="text" class="input" id="servicer_return_ratio" name="servicer_return_ratio" size="5" datatype="n" value="{$config['default']['servicer_return_ratio'] ?? 100}">
                             <label>% 作为售后工程师的绩效考核金</label>
                         </div>
@@ -111,7 +109,7 @@
                             <label>工单自动评价时间</label>
                         </div>
                         <div class="field">
-                            <label>售后服务完成，如用户未评价，</label>
+                        	<label>售后服务完成，如用户未评价，</label>
                             <input type="number" min="1" class="input" id="workorder_auto_assess_day" name="workorder_auto_assess_day" size="5" datatype="n" value="{$config['default']['workorder_auto_assess_day'] ?? ''}">
                             <label>天后，系统自动给好评并完成服务费结算；</label>
                             <div class="input-note">未设置则当前厂商下的售后工单无自动好评和自动服务结算操作</div>
@@ -119,19 +117,19 @@
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-4">
-                    <div class="form-group">
+                	<div class="form-group">
                         <div class="label">
                             <label>售后工程师审核</label>
                         </div>
                         <div class="field">
-                            <div class="button-group radio">
-                                {if condition="!isset($config['default']['installer_check'])"}
-                                {assign name="config.default.installer_check" value="1" /}
-                                {/if}
-                                <label class="button {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}active{/if}">
-                                <input name="installer_check" value="1" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>是</label>
-                                <label class="button {if (!isset($config['default']['installer_check']) || !$config['default']['installer_check'] == 1)}active{/if}">
-                                <input name="installer_check" value="0" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>否</label>
+                        	<div class="button-group radio">
+                        		{if condition="!isset($config['default']['installer_check'])"}
+                        		{assign name="config.default.installer_check" value="1" /}
+                        		{/if}
+                            	<label class="button {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}active{/if}">
+                            	<input name="installer_check" value="1" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>是</label>
+                            	<label class="button {if (!isset($config['default']['installer_check']) || !$config['default']['installer_check'] == 1)}active{/if}">
+                            	<input name="installer_check" value="0" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>否</label>
                             </div>
                             <div class="input-note">配置售后工程师申请:服务商审核后是否需要厂商审核才能成为售后工程师</div>
                         </div>
@@ -141,26 +139,26 @@
                             <label>渠道商操作审核</label>
                         </div>
                         <div class="field">
-                            {if condition="!isset($config['default']['channel_operate_check'])"}
-                            {assign name="config.default.channel_operate_check" value="1" /}
-                            {/if}
-                            <div class="button-group radio">
-                                <label class="button {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}active{/if}">
-                                <input name="channel_operate_check" value="1" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
-                                <label class="button {if (!isset($config['default']['channel_operate_check']) || !$config['default']['channel_operate_check'] == 1)}active{/if}">
-                                <input name="channel_operate_check" value="0" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
+                        	{if condition="!isset($config['default']['channel_operate_check'])"}
+                       		{assign name="config.default.channel_operate_check" value="1" /}
+                       		{/if}
+                        	<div class="button-group radio">
+                            	<label class="button {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}active{/if}">
+                            	<input name="channel_operate_check" value="1" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
+                            	<label class="button {if (!isset($config['default']['channel_operate_check']) || !$config['default']['channel_operate_check'] == 1)}active{/if}">
+                            	<input name="channel_operate_check" value="0" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
                             </div>
                             <div class="input-note">渠道商在新增、删除、编辑零售商时,是否需要厂商审核后操作才能完成</div>
                         </div>
                     </div>-->
                 </div>
-                <div class="tab-panel" id="tab-5">
-                    <div class="form-group">
+            	<div class="tab-panel" id="tab-5">
+                	<div class="form-group">
                         <div class="label">
                             <label>提现日期设置</label>
                         </div>
                         <div class="field">
-                            <label>每月</label>
+                        	<label>每月</label>
                             <input type="number" min="1" max="27" class="input" id="monthly_withdraw_start_date" name="monthly_withdraw_start_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_start_date'] ?? ''}">
                             <label>日 ~ </label>
                             <input type="number" min="2" max="28" class="input" id="monthly_withdraw_end_date" name="monthly_withdraw_end_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_end_date'] ?? ''}">
@@ -168,9 +166,9 @@
                             <!-- <div class="input-note">未设置则当前厂商下的商户无提现日期限制</div> -->
                         </div>
                     </div>
-                </div>
-                <div class="tab-panel" id="tab-6">
-                    <div class="form-group">
+               </div>
+               <div class="tab-panel" id="tab-6">
+                	<div class="form-group">
                         <div class="label">
                             <label>厂商客服电话</label>
                         </div>
@@ -179,123 +177,7 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
-                </div>
-                <div class="tab-panel" id="tab-7">
-                    <div class="form-group">
-                        <div class="label">
-                            <label>商品分类</label>
-                        </div>
-                        <div class="field">
-                            <select class="input" name="cate_id" id="cate_id"  nullmsg="请选择商品分类！">
-                                <option value="">==请选择==</option>
-                                {foreach name="cates" item="cate" key="key"}
-                                <option value="{$cate['cate_id']}">{$cate.name}</option>
-                                {/foreach}
-                            </select>
-                            <div class="input-note">请选择商品类型</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="label">
-                            <label>配置明细</label>
-                        </div>
-                        <div class="field">
-                            <div class="table-responsive">
-                                <table id="table" class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th width="100">字段名</th>
-                                            <th width="120">必填</th>
-                                            <th width="150">类型</th>
-                                            <th >选项列表(仅对单选，多选、下拉列表有效)</th>
-                                            <th style="width: 80px;">排序</th>
-                                            <th width="100">操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr class="opt-empty">
-                                        <td colspan="6" align="center">请选择商品类型</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <span class="button bg-main no-select create-opt" data-item="">添加字段</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-                <div class="tab-panel" id="tab-8">
-                    <div class="form-group">
-                        <div class="label">
-                            <label>配置明细</label>
-                        </div>
-                        <div class="field">
-                            <div class="table-responsive">
-                                <table id="table2" class="table table-hover">
-                                    <thead>
-                                    <tr>
-                                        <th width="100">字段名</th>
-                                        <th width="120">必填</th>
-                                        <th width="150">类型</th>
-                                        <th >选项列表(仅对单选，多选、下拉列表有效)</th>
-                                        <th style="width: 80px;">排序</th>
-                                        <th width="100">操作</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {notempty name='userConfirm'}
-                                    {foreach $userConfirm as $k=>$vo}
-                                    <tr>
-                                        <td><input type="hidden" name="config_id2[]" value="{$vo.id}"><input type="text" name="name2[]" placeholder="字段名不能为空" value="{$vo.name}" datatype="*" class="input"></td>
-                                        <td>
-                                            <div class="button-group radio">
-                                                <label class="button {if $vo.is_required==1}active{/if}"><input type="hidden" name="is_required2[]" value="{$vo.is_required}"><input value="1" {if $vo.is_required==1}checked="checked"{/if} type="radio">是</label>
-                                                <label class="button {if $vo.is_required==0}active{/if}"><input value="0" {if $vo.is_required==0}checked="checked"{/if} type="radio">否</label>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <select class="input" name="type2[]" id="type" datatype="n" nullmsg="请选择字段类型！">
-                                                <option value="0" {if $vo.type=="0"}selected="selected"{/if}>文本</option>
-                                                <option value="1" {if $vo.type=="1"}selected="selected"{/if}>数字</option>
-                                                <option value="2" {if $vo.type=="2"}selected="selected"{/if}>单选</option>
-                                                <option value="3" {if $vo.type=="3"}selected="selected"{/if}>多选</option>
-                                                <option value="4" {if $vo.type=="4"}selected="selected"{/if}>下拉列表</option>
-                                                <option value="5" {if $vo.type=="5"}selected="selected"{/if}>日期</option>
-                                                <option value="6" {if $vo.type=="6"}selected="selected"{/if}>富文本</option>
-                                            </select>
-                                        </td>
-                                        <td class="opt-group">
-                                            {notempty name='vo.value'}
-                                            {volist name='vo.value' id='v'}
-                                            <span class="pop-box"><input type="hidden" value="{$v}" name="value2[{$k}][]">
-                                            <div class="pop-content pop-border">{$v}</div><i class="pop-close"></i></span>
-                                            {/volist}
-                                            {/notempty}
-                                            <a class="button button-small icon-plus  pop-box-add" data-i="{$k}" data-item="2"></a>
-                                        </td>
-                                        <td><input type="text" name="sort_order2[]" class="input" value="{$vo.sort_order}"></td>
-                                        <td><a class="button bg-red button-small icon-delete" href="javascript:;" title="删除"></a></td>
-                                    </tr>
-                                    {/foreach}
-                                    {/notempty}
-                                    {empty name='userConfirm'}
-                                    <tr class="opt-empty">
-                                        <td colspan="6" align="center">请选择商品类型</td>
-                                    </tr>
-                                    {/empty}
-
-                                    </tbody>
-                                </table>
-                                <span class="button bg-main no-select create-opt" data-item="2">添加字段</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-
-
+               </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
@@ -307,197 +189,9 @@
         </div>
     </div>
 </form>
-
-
-<div  style="display: none;padding-top: 10px;" id="form2">
-    <form method="post" action="" class="form-x admin-form form-auto" id="opt-form">
-        <div class="form-group">
-            <div class="label">
-                <label>选项名</label>
-            </div>
-            <div class="field">
-                <input type="text" name="opt-name" class="input" id="opt-name" datatype="n"  size="50" maxlength="20"  value="">
-                <div class="input-note"></div>
-            </div>
-        </div>
-<!--        <div class="form-group">-->
-<!--            <div class="label">-->
-<!--                <label>选项值</label>-->
-<!--            </div>-->
-<!--            <div class="field">-->
-<!--                <input type="text" name="opt-value" class="input" id="opt-value"  datatype="*" size="50" maxlength="20"  value="">-->
-<!--                <div class="input-note"></div>-->
-<!--            </div>-->
-<!--        </div>-->
-    </form>
-</div>
-<style>
-.pop-box .pop-content{padding: 5px 10px;}
-.pop-box-add{border: none;font-size: 20px; cursor: pointer;}
-#table,#table2{margin-bottom: 10px;}
-</style>
 <script>
-
-    Do.ready('base','dialog', function () {
+    Do.ready('base', function () {
         //表单综合处理
         $('#form').FormPage();
-        $('form').on('click','.pop-close',function () {
-            $(this).parent('.pop-box').remove();
-        });
-
-        //删除字段
-        $('form').on('click','.icon-delete',function () {
-            item=$(this);
-            layer.confirm('确定要删除吗？',function () {
-                item.parents('tr').remove();
-                layer.closeAll();
-            });
-        });
-
-        //创建字段
-        $('.create-opt').click(function () {
-            var item=$(this).attr('data-item');
-            if (!item) {
-                var cate_id=$('#cate_id');
-                if (!cate_id.val()) {
-                    cate_id.parents('.form-group').addClass('check-error');
-                    cate_id.siblings(".input-note").text("请选择商品分类");
-                    return  false;
-                }
-                cate_id.parents('.form-group').removeClass('check-error');
-                cate_id.siblings(".input-note").text("");
-            }
-            var table=$(this).prev('table');
-            var tbody=table.find('tbody');
-            table.find('tr.opt-empty').remove();
-            var len=tbody.find('tr').length;
-            html='<tr><td><input type="hidden" name="config_id'+item+'[]" value=""><input type="text" name="name'+item+'[]" datatype="*" class="input" placeholder="字段名不能为空"></td><td><div class="button-group radio"><label class="button active"><input type="hidden" name="is_required'+item+'[]" value="1"><input  value="1"  checked="checked" type="radio">是</label><label class="button "><input  value="0"  type="radio">否</label></div>' +
-                '</td><td><select class="input" name="type'+item+'[]" id="type" datatype="n" nullmsg="请选择字段类型！">' +
-                '<option value=0>文本</option><option value=1>数字</option><option value=2>单选</option><option value=3>多选</option><option value=4>下拉列表</option><option value=5>日期</option><option value=6>富文本</option></select></td>' +
-                '<td class="opt-group"><a class="button button-small icon-plus  pop-box-add" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
-                '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td></tr>';
-            tbody.append(html);
-        });
-        
-
-        //是否必填
-        $('form').on('click','input[type="radio"]',function () {
-            $(this).attr('checked','checked');
-            $(this).parents(".radio").find("label.active").removeClass("active").find('input').removeAttr('checked');
-            $(this).parent('label').addClass("active");
-            $(this).parents(".radio").find("input[type=hidden]").val($(this).val());
-        });
-
-        //更改字段类型
-        $('#table').on('change','select',function () {
-            // opt=$(this);
-            // layer.confirm('修改选项类型会改变原有数据？', {
-            //     btn: ['确定','取消'] //按钮
-            // }, function(){
-            //     console.log(opt.val());
-            //     return false;
-            // }, function(){
-            //     console.log(opt.attr('data-v'));
-            //     $(this).val(opt.attr('data-v'));
-            //     // layer.msg('也可以这样', {
-            //     //     time: 20000, //20s后自动关闭
-            //     //     btn: ['明白了', '知道了']
-            //     // });
-            // });
-        });
-
-        //获取商品分类配置
-        $('#cate_id').change(function () {
-            $.post('{:url("getCateConf")}',{cate_id:$(this).val()},function (result) {
-                console.log(result);
-                $('#table tbody').html('');
-                html='';
-                if (result.code != '0') {
-                    html='<tr class="opt-empty"><td colspan="6" align="center">'+result.msg+'</td></tr>';
-                    $('#table tbody').append(html);
-                    return false;
-                }
-                data=result.data;
-                for (i=0;i<data.length;i++){
-                    html='<tr><td><input type="hidden" name="config_id[]" value="'+data[i].id+'"><input type="text" name="name[]" placeholder="字段名不能为空" class="input" value="'+data[i].name+'"></td><td><div class="button-group radio">';
-
-                    html+='<label class="button '+(data[i].is_required=='1'? 'active':'')+'"><input type="hidden" name="is_required[]" value="'+data[i].is_required+'"><input value="1" '+(data[i].is_required=='1'? 'checked="checked"':'')+' type="radio">是</label>';
-                    html+='<label class="button '+(data[i].is_required=='0'? 'active':'')+'"><input value="0" '+(data[i].is_required=='0'? 'checked="checked"':'')+' type="radio">否</label>';
-
-                    var optType=parseInt(data[i].type);
-                    html+='</div></td><td><select class="input" data-v="'+optType+'" name="type[]" id="type" datatype="n" nullmsg="请选择字段类型！">';
-                    html+='<option value=0 '+(optType==0 ? 'selected="selected"':'')+'>文本</option>' +
-                        '<option value=1 '+(optType==1 ? 'selected="selected"':'')+'>数字</option>' +
-                        '<option value=2 '+(optType==2 ? 'selected="selected"':'')+'>单选</option>' +
-                        '<option value=3 '+(optType==3 ? 'selected="selected"':'')+'>多选</option>' +
-                        '<option value=4 '+(optType==4 ? 'selected="selected"':'')+'>下拉列表</option>' +
-                        '<option value=5 '+(optType==5 ? 'selected="selected"':'')+'>日期</option>' +
-                        '<option value=6 '+(optType==6 ? 'selected="selected"':'')+'>富文本</option>' +
-                        '</select></td><td class="opt-group">';
-                    if (optType>=2 && optType<=4){
-                        $.each(data[i].value,function (index,item) {
-                            html+='<span class="pop-box">' +
-                                '<input  type="hidden"  value="'+item+'" name="value['+i+'][]" />' +
-                                '<div class="pop-content pop-border">'+item+'</div>' +
-                                '<i class="pop-close"></i>' +
-                                '</span>';
-                        });
-                    }else {
-                        html+='<input type="hidden" value="" name="value['+i+']" />';
-                    }
-                    html+='<a  class="button button-small icon-plus pop-box-add" data-i="'+i+'" data-item=""></a>';
-                    html+='</td><td><input type="text" name="sort_order[]"  value="'+data[i].sort_order+'" class="input"></td>' +
-                        '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td>' +
-                        '</tr>';
-                    $('#table tbody').append(html);
-                }
-            });
-
-        });
-
-
-        //添加字段选项
-        $('form').on('click','.pop-box-add',function () {
-            var opt_name=$('#opt-name');
-            //var opt_val=$('#opt-value');
-            //opt_val.val('');
-            opt_name.val('');
-            var i=$(this).attr('data-i');
-            var item=$(this).attr('data-item');
-            console.log(item);
-            var box_add=$(this);
-            layer.open({
-                title: '添加选项'
-                ,shade:0
-                ,type:1
-                ,area: ['600px', '260px']
-                ,btn:['确定','重置']
-                ,content: $('#form2')
-                ,yes:function (index, layero) {
-                    if (opt_name.val() == '') {
-                        opt_name.parents('.form-group').addClass('check-error');
-                        opt_name.siblings(".input-note").text("选项名不能为空");
-                        return  false;
-                    }
-                    opt_name.parents('.form-group').removeClass('check-error');
-                    opt_name.siblings(".input-note").text("");
-                    var html='<span class="pop-box">' +
-                        '<input  type="hidden"  value="'+opt_name.val()+'" name="value'+item+'['+i+'][]" />' +
-                        '<div class="pop-content pop-border">'+opt_name.val()+'</div>' +
-                        '<i class="pop-close"></i>' +
-                        '</span>';
-                    box_add.before(html);
-                    opt_name.val('');
-                    layer.close(index);
-                }
-                ,btn2: function(index, layero){
-                    opt_name.val('');
-                    return false;//开启该代码可禁止点击该按钮关闭
-                }
-            });
-        });
-
-
-
     }); 
 </script>
