@@ -1197,7 +1197,7 @@ class Order extends Model
                     ['C.store_id', '=', $user['store_id']],
                 ];
             }
-            
+            $where[] = ['C.is_del', '=', 0];
             if ($skuIds) {
                 $where[] = ['C.sku_id', 'IN', $skuIds];
             }
