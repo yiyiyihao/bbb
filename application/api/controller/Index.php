@@ -1,6 +1,8 @@
 <?php
 namespace app\api\controller;
 
+use app\common\model\ConfigForm;
+
 class Index extends ApiBase
 {
     public $method;
@@ -937,6 +939,7 @@ class Index extends ApiBase
         if($scores){
             $temp = [];
             $config = $this->getWorkOrderAssessConfig(TRUE);
+            $config=$config['score'];
             $scores = array_column($scores, 'score', 'config_id');
             foreach ($config as $key => $value) {
                 $id = $value['config_id'];
@@ -968,10 +971,19 @@ class Index extends ApiBase
             }
         }
         $config = db('config')->field('config_id, name, config_value as score')->order('sort_order ASC, add_time ASC')->where(['is_del' => 0, 'status' => 1, 'config_key' => CONFIG_WORKORDER_ASSESS])->select();
+        $form = ConfigForm::field('id config_id,name,is_required,type,value')->where([
+            'key'      => 'work_order_assess',
+            'is_del'   => 0,
+            'store_id' => $this->factory['store_id'],
+        ])->order('sort_order')->select();
+        $result = [
+            'score'  => $config,
+            'detail' => $form,
+        ];
         if ($return) {
-            return $config;
+            return $result;
         }
-        $this->_returnMsg(['config' => $config]);
+        $this->_returnMsg(['config' => $result]);
     }
     //上传图片接口
     protected function uploadImage($verifyUser = TRUE)
