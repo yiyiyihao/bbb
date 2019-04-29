@@ -57,8 +57,8 @@
                         </div>
                         <div class="field">
                             <div class="button-group radio">
-                            	<label class="button active"><input name="is_delivery" value="0" type="radio">无需物流配送</label>
-                            	<!-- <label class="button "><input name="is_delivery" value="1" checked="checked" type="radio">选择第三方配送方式</label> -->
+                            	<label class="button active"><input name="is_delivery" checked="checked" value="0" type="radio">无需物流配送</label>
+                            	<label class="button "><input name="is_delivery" value="1" type="radio">选择第三方配送方式</label>
                             </div>
                             <div class="input-note">商品发货是否需要物流配送</div>
                         </div>
@@ -114,7 +114,6 @@
         $('#form').FormPage();
 		$("input[name='is_delivery']").change(function(){
 			var is_delivery = $(this).val();
-			alert(is_delivery);
 			if(is_delivery > 0){
 				$('.delivery1').show();
 			}else{
