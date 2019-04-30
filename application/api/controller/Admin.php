@@ -1430,7 +1430,7 @@ class Admin extends Index
         if ($user['admin_type']==ADMIN_DEALER) {
             $field='GS.sku_id,GS.sku_thumb,GSS.price_service price,GSS.install_price_service install_price,GS.sku_stock,GS.sales';
             $chanelId=$this->getChanelId($user['store_id']);
-            $skuInfo = db('goods_sku')->alias('GS')->field($field)->join(['goods_sku_service GSS','GSS.goods_id=GS.goods_id AND GSS.is_del=0 AND GSS.status=1 AND GSS.store_id='.$chanelId])->where("GS.goods_id = {$goodsId} AND GS.spec_json='{$specs}' AND GS.status=1 AND GS.is_del=0")->find();
+            $skuInfo = db('goods_sku')->alias('GS')->field($field)->join('goods_sku_service GSS','GSS.sku_id=GS.sku_id  AND GSS.is_del=0 AND GSS.status=1 AND GSS.store_id='.$chanelId)->where("GS.goods_id = {$goodsId} AND GS.spec_json='{$specs}' AND GS.status=1 AND GS.is_del=0")->find();
         }else{
             $field='sku_id,sku_thumb,price,install_price,sku_stock,sales';
             $skuInfo = db('goods_sku')
