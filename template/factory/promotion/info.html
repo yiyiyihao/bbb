@@ -137,7 +137,7 @@
 							          	</select>
 							          </td>
 							          <td width="100">
-							          	<input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value="{$data.sale_commission.value}">
+							          	<input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value="{$data.sale_commission.value}"> <span class="show_text">{$data['sale_commission']['type']=='ratio'?'%':'元'}</span></td>
 							          </td>
 							          <td width="100">
 							          	<select class="input" name="manage_type[]">
@@ -149,7 +149,7 @@
 							          	</select>
 							          </td>
 							          <td width="100">
-							          	<input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value="{$data.manage_commission.value}">
+							          	<input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value="{$data.manage_commission.value}"> <span class="show_text">{$data['manage_commission']['type']=='ratio'?'%':'元'}</span></td>
 							          </td>
 							          <td width="100">
 							          	<a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a>
@@ -207,83 +207,104 @@
     }); 
     var goods = $.parseJSON( '{:json_encode($goods)}' );
     var promTypes = $.parseJSON( '{:json_encode($promTypes)}' );
+	
     $(".clone_item").on("click",function(){
-    	  var eq = $("#table tr.item").length;
-    	  if(eq > 0){
-    		  if(checkItem()){
-    				bulidItem(eq);
-    		  }
-    	  }else{
-    		  bulidItem(eq);
-    	  }
-    	});
-    	function item_del(obj){
-    		var rows = $(obj).parents("tr").prevAll("tr.item").length + 1;//行号
-    		if(rows <= 1){
-    			layer.msg('当前行不允许删除');
-    			return false;
-    		}
-    	  $(obj).parents("tr").remove();
-    	}
-    	function bulidItem(eq){
-    		var html = '';
-    		
-    		  html += '<tr class="item">';
-    		  html += '  <td width="*" class="item"><select class="input" name="goods_id[]">';
-    		  if(goods){
-    			  for(var g in goods){  
-    				  html += '<option value="'+g+'">'+goods[g]+'</option>';
-   			      }  
-    		  }
-    		  html += '  </select></td>';
-    		  
-    		  html += '  <td width="*" class="item"><select class="input" name="sale_type[]">';
-    		  if(promTypes){
-    			  for(var t in promTypes){  
-    				  html += '<option value="'+t+'">'+promTypes[t]+'</option>';
-   			      }  
-    		  }
-    		  html += '  </select></td>';
-    		  html += '  <td width="100"><input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value=""></td>';
-    		  
-    		  html += '  <td width="*" class="item"><select class="input" name="manage_type[]">';
-    		  if(promTypes){
-    			  for(var t in promTypes){  
-    				  html += '<option value="'+t+'">'+promTypes[t]+'</option>';
-   			      }  
-    		  }
-    		  html += '  </select></td>';
-    		  html += '  <td width="100"><input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value=""></td>';
-    		  
-    		  html += '  <td><a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>';
-    		  html += '</tr>';
-    		  
-    		  $("table tbody").append(html);
-    	}
-    	function checkItem(){
-    		//取得现有对象
-    		var items = $("#table tbody tr.item");
-    		var flag = 1;
-    		var ret = $.each(items,function(index,item){
-    			var inputs = $(item).find("input");
-    			var rs = $.each(inputs,function(i,input){
-    				if($(input).val() == ''){
-    					$(input).parent().addClass("check-error");
-    					$(input).focus();
-    					flag = 0;
-    					return false;
-    				}else{
-    					$(input).parent().removeClass("check-error");
-    				}
-    			})
-    			if(!rs){
-    				return false;
-    			}
-    		})
-    		if(flag){
-    			return true;
-    		}else{
-    			return false;
-    		}
-    	}
+	  var eq = $("#table tr.item").length;
+	  if(eq > 0){
+		  if(checkItem()){
+				bulidItem(eq);
+		  }
+	  }else{
+		  bulidItem(eq);
+	  }
+	});
+	
+	$("#table").on('change','.item select',function(){
+		var value = $(this).val();
+		//console.log(value);
+		var txt = '';
+		switch(value){
+			case 'ratio':
+				txt = '%';
+				break;
+			case 'fix_amount':
+				txt = '元';
+				break;
+		}
+		if(txt){
+			$(this).parent().next().find(".show_text").text(txt);
+		}
+	})
+	
+	function item_del(obj){
+		var rows = $(obj).parents("tr").prevAll("tr.item").length + 1;//行号
+		if(rows <= 1){
+			layer.msg('当前行不允许删除');
+			return false;
+		}
+	  $(obj).parents("tr").remove();
+	}
+	
+	function bulidItem(eq){
+		var html = '';
+		
+		  html += '<tr class="item">';
+		  html += '  <td width="*"><select class="input" name="goods_id[]">';
+		  if(goods){
+			  for(var g in goods){  
+				  html += '<option value="'+g+'">'+goods[g]+'</option>';
+			  }  
+		  }
+		  html += '  </select></td>';
+		  
+		  html += '  <td width="*"><select class="input" name="sale_type[]">';
+		  if(promTypes){
+			  for(var t in promTypes){  
+				  html += '<option value="'+t+'">'+promTypes[t]+'</option>';
+			  }  
+		  }
+		  html += '  </select></td>';
+		  html += '  <td width="100"><input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value=""> <span class="show_text">%</span></td>';
+		  
+		  html += '  <td width="*" class="item"><select class="input" name="manage_type[]">';
+		  if(promTypes){
+			  for(var t in promTypes){  
+				  html += '<option value="'+t+'">'+promTypes[t]+'</option>';
+			  }  
+		  }
+		  html += '  </select></td>';
+		  html += '  <td width="100"><input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value=""> <span class="show_text">%</span></td>';
+		  
+		  html += '  <td><a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a></td>';
+		  html += '</tr>';
+		  
+		  $("table tbody").append(html);
+	}
+	
+	function checkItem(){
+		//取得现有对象
+		var items = $("#table tbody tr.item");
+		var flag = 1;
+		var ret = $.each(items,function(index,item){
+			var inputs = $(item).find("input");
+			var rs = $.each(inputs,function(i,input){
+				if($(input).val() == ''){
+					$(input).parent().addClass("check-error");
+					$(input).focus();
+					flag = 0;
+					return false;
+				}else{
+					$(input).parent().removeClass("check-error");
+				}
+			})
+			if(!rs){
+				return false;
+			}
+		})
+		if(flag){
+			return true;
+		}else{
+			return false;
+		}
+	}
 </script>
