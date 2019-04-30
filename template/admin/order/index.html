@@ -73,7 +73,7 @@
               </td>
               <td>
                   <span class="button-group">
-                    {if condition='check_auth('order','detail')'}
+                    {if condition="check_auth('order','detail')"}
                         <a  href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-detail">订单查看</a>
                     {/if}
 	              	{if condition="check_auth('order','pay') && $vo['user_store_id']!=$adminStore['store_id']  &&  $vo['pay_status'] == 0 && $vo['order_status'] == 1"}
