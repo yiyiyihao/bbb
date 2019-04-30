@@ -1429,6 +1429,7 @@ class Admin extends Index
         $detail=$this->getGoodsInfo($goodsId,$user);
         if ($user['admin_type']==ADMIN_DEALER) {
             $field='GS.sku_id,GS.sku_thumb,GSS.price_service price,GSS.install_price_service install_price,GS.sku_stock,GS.sales';
+            $specs=$specs=='{}'?'':$specs;
             $chanelId=$this->getChanelId($user['store_id']);
             $skuInfo = db('goods_sku')->alias('GS')->field($field)->join('goods_sku_service GSS','GSS.sku_id=GS.sku_id  AND GSS.is_del=0 AND GSS.status=1 AND GSS.store_id='.$chanelId)->where("GS.goods_id = {$goodsId} AND GS.spec_json='{$specs}' AND GS.status=1 AND GS.is_del=0")->find();
         }else{
