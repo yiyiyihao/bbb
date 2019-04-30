@@ -1330,21 +1330,30 @@ class Admin extends Index
         if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
+        $field = 'G.goods_id,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
+        $join=[];
+        if ($user['admin_type'] == ADMIN_SERVICE_NEW) {
+            $field.=',G.min_price,G.max_price,G.specs_json';
+        } elseif ($user['admin_type'] == ADMIN_DEALER) {
+            $channelId=$this->getChanelId($user['store_id']);
+            $field.=',GS.min_price_service min_price,GS.max_price_service max_price,GS.specs_json_service specs_json';
+            $join[]=['goods_service GS','GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$channelId];
+        }
         $where = [
-            'goods_id'  => $goodsId,
-            'is_del'    => 0,
-            'status'    => 1,
-            'store_id'  => $this->factory['store_id'],
+            'G.goods_id'  => $goodsId,
+            'G.is_del'    => 0,
+            'G.status'    => 1,
+            'G.store_id'  => $this->factory['store_id'],
         ];
-        $detail = db('goods')->where($where)->field($field)->find();
+        $detail = db('goods')->alias('G')->join($join)->where($where)->field($field)->find();
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
         }
         $detail['imgs'] = $detail['imgs'] ? json_decode($detail['imgs'], 1) : [];
         $detail['specs_json'] = $detail['specs_json'] ? json_decode($detail['specs_json'], 1) : [];
         $goodsModel = new \app\common\model\Goods();
-        $skus = $goodsModel->getGoodsSkus($goodsId);
+        $store=db('store')->where(['is_del'=>0,'status'=>1])->find($user['store_id']);
+        $skus = $goodsModel->getGoodsSkus($goodsId,$store);
         $detail['sku_id'] = 0;
         $detail['skus'] = [];
         if ($skus) {
