@@ -1287,12 +1287,12 @@ class Admin extends Index
         $order = $salesOrder.',G.sort_order ASC,G.add_time desc';
         $field = 'G.name,G.goods_id,G.goods_sn,G.thumb,G.goods_stock,G.sales';
         $join=[];
-        if ($user['admin_type'] == ADMIN_SERVICE_NEW) {
-            $field.=',G.min_price,G.max_price';
-        } elseif ($user['admin_type'] == ADMIN_DEALER) {
+        if ($user['admin_type'] == ADMIN_DEALER) {
             $channelId=$this->getChanelId($user['store_id']);
             $field.=',GS.min_price_service min_price,GS.max_price_service max_price';
             $join[]=['goods_service GS','GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$channelId];
+        }else{
+            $field.=',G.min_price,G.max_price';
         }
         $list = $this->_getModelList(db('goods'), $where, $field, $order,'G',$join);
         foreach ($list as $k=>$v) {
@@ -1317,6 +1317,30 @@ class Admin extends Index
         }
         return $channelId;
     }
+
+    private function getGoodsInfo($goodsId,$user)
+    {
+        $field = 'G.goods_id,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
+        $join=[];
+        if ($user['admin_type'] == ADMIN_DEALER) {
+            $channelId=$this->getChanelId($user['store_id']);
+            $field.=',GS.min_price_service min_price,GS.max_price_service max_price,GS.specs_json_service specs_json';
+            $join[]=['goods_service GS','GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$channelId];
+        }else{
+            $field.=',G.min_price,G.max_price,G.specs_json';
+        }
+        $where = [
+            'G.goods_id'  => $goodsId,
+            'G.is_del'    => 0,
+            'G.status'    => 1,
+            'G.store_id'  => $this->factory['store_id'],
+        ];
+        $detail = db('goods')->alias('G')->join($join)->where($where)->field($field)->find();
+        if (!$detail) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
+        }
+        return $detail;
+    }
     
     
     //获取商品详情
@@ -1330,25 +1354,7 @@ class Admin extends Index
         if (isset($user['admin_type']) && !in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $field = 'G.goods_id,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
-        $join=[];
-        if ($user['admin_type'] == ADMIN_SERVICE_NEW) {
-            $field.=',G.min_price,G.max_price,G.specs_json';
-        } elseif ($user['admin_type'] == ADMIN_DEALER) {
-            $channelId=$this->getChanelId($user['store_id']);
-            $field.=',GS.min_price_service min_price,GS.max_price_service max_price,GS.specs_json_service specs_json';
-            $join[]=['goods_service GS','GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$channelId];
-        }
-        $where = [
-            'G.goods_id'  => $goodsId,
-            'G.is_del'    => 0,
-            'G.status'    => 1,
-            'G.store_id'  => $this->factory['store_id'],
-        ];
-        $detail = db('goods')->alias('G')->join($join)->where($where)->field($field)->find();
-        if (!$detail) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
-        }
+        $detail=$this->getGoodsInfo($goodsId,$user);
         $detail['imgs'] = $detail['imgs'] ? json_decode($detail['imgs'], 1) : [];
         $detail['specs_json'] = $detail['specs_json'] ? json_decode($detail['specs_json'], 1) : [];
         $goodsModel = new \app\common\model\Goods();
@@ -1420,19 +1426,18 @@ class Admin extends Index
         if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW, ADMIN_DEALER, ADMIN_FACTORY])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
-        $field = 'goods_id, goods_sn, thumb, imgs, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales, content, specs_json';
-        $where = [
-            'goods_id'  => $goodsId,
-            'is_del'    => 0,
-            'status'    => 1,
-            'store_id'  => $user['factory_id'],
-        ];
-        $detail = db('goods')->where($where)->find();
-        if (!$detail) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
+        $detail=$this->getGoodsInfo($goodsId,$user);
+        if ($user['admin_type']==ADMIN_DEALER) {
+            $field='GS.sku_id,GS.sku_thumb,GSS.price_service price,GSS.install_price_service install_price,GS.sku_stock,GS.sales';
+            $chanelId=$this->getChanelId($user['store_id']);
+            $skuInfo = db('goods_sku')->alias('GS')->field($field)->join(['goods_sku_service GSS','GSS.goods_id=GS.goods_id AND GSS.is_del=0 AND GSS.status=1 AND GSS.store_id='.$chanelId])->where("GS.goods_id = {$goodsId} AND GS.spec_json='{$specs}' AND GS.status=1 AND GS.is_del=0")->find();
+        }else{
+            $field='sku_id,sku_thumb,price,install_price,sku_stock,sales';
+            $skuInfo = db('goods_sku')
+                ->field($field)
+                ->where("goods_id = {$goodsId} AND spec_json='{$specs}' AND status=1 AND is_del=0")
+                ->find();
         }
-        
-        $skuInfo = db('goods_sku')->where("goods_id = {$goodsId} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
         if(!$skuInfo){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品对应规格不存在或已删除']);
         }
