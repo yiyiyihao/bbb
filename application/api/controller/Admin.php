@@ -1277,21 +1277,48 @@ class Admin extends Index
         $salesOrder = isset($this->postParams['sales_order'])  && $this->postParams['sales_order'] ? 'sales DESC' : 'sales ASC';
         $keyword = isset($this->postParams['keyword'])  && trim($this->postParams['keyword']) ? trim($this->postParams['keyword']) : '';
         $where = [
-            'is_del' => 0,
-            'status' => 1,
-            'store_id' => $user['factory_id'],
+            'G.is_del' => 0,
+            'G.status' => 1,
+            'G.store_id' => $user['factory_id'],
         ];
         if (!empty($keyword)) {
-            $where[] = ['', 'EXP', \think\Db::raw('name like "%'.$keyword.'%" or goods_sn like "%'.$keyword.'%"')];
+            $where[] = ['', 'EXP', \think\Db::raw('G.name like "%'.$keyword.'%" or G.goods_sn like "%'.$keyword.'%"')];
         }
-        $order = $salesOrder.',sort_order ASC, add_time desc';
-        $field = 'name,goods_id, goods_sn, thumb, (min_price + install_price) as min_price, (max_price + install_price) as max_price, goods_stock, sales';
-        $list = $this->_getModelList(db('goods'), $where, $field, $order);
+        $order = $salesOrder.',G.sort_order ASC,G.add_time desc';
+        $field = 'G.name,G.goods_id,G.goods_sn,G.thumb,G.goods_stock,G.sales';
+        $join=[];
+        if ($user['admin_type'] == ADMIN_SERVICE_NEW) {
+            $field.=',G.min_price,G.max_price';
+        } elseif ($user['admin_type'] == ADMIN_DEALER) {
+            $channelId=$this->getChanelId($user['store_id']);
+            $field.=',GS.min_price_service min_price,GS.max_price_service max_price';
+            $join[]=['goods_service GS','GS.goods_id=G.goods_id AND GS.is_del=0 AND GS.status=1 AND GS.store_id='.$channelId];
+        }
+        $list = $this->_getModelList(db('goods'), $where, $field, $order,'G',$join);
         foreach ($list as $k=>$v) {
             $list[$k]['price']=$v['max_price']>$v['min_price']? $v['min_price'].'~'.$v['max_price']:$v['min_price'];
         }
         $this->_returnMsg(['list' => $list]);
     }
+
+    private function getChanelId($storeId)
+    {
+        $channelId = db('store_dealer')->alias('SD')
+            ->join('store S', 'SD.ostore_id=S.store_id')
+            ->where([
+                'SD.store_id'  => $storeId,
+                'S.status'     => 1,
+                'S.is_del'     => 0,
+                'S.store_type' => STORE_SERVICE_NEW,
+            ])
+            ->value('ostore_id');
+        if (empty($channelId)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商不存在或已被禁用']);
+        }
+        return $channelId;
+    }
+    
+    
     //获取商品详情
     protected function getGoodsDetail()
     {
@@ -3210,10 +3237,8 @@ class Admin extends Index
     {
         if (isset($this->postParams['TEST']) && $this->postParams['TEST']) {
             //$userId = 2;//厂商
-            $userId =4;//渠道商
-            //$userId = 5;//零售商
-            //$userId = 6;//服务商
-            
+            $userId = 95;//零售商
+            //$userId = 94;//服务商
             $userId = isset($this->postParams['user_id']) ? intval($this->postParams['user_id']) : $userId;
             $loginUser = db('user')->alias('U')->join('store S', 'S.store_id = U.store_id', 'INNER')->field('user_id, U.factory_id, U.store_id, store_no, store_type, admin_type, is_admin, username, realname, nickname, phone, U.status')->find($userId);
             if (!$loginUser) {
