@@ -717,10 +717,12 @@ class Workorder extends FactoryForm
         if ($data['appointment'] <= time()) {
             $this->error('预约服务时间必须大于当前时间');
         }
-        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $data['carry_goods'] = 0;
-        }else{
-            $data['carry_goods'] = $type == 1 ? 1 : 0;
+        if (!$info) {
+            if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                $data['carry_goods'] = 0;
+            }else{
+                $data['carry_goods'] = $type == 1 ? 1 : 0;
+            }
         }
         return $data;
     }

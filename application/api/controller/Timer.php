@@ -85,7 +85,7 @@ class Timer extends ApiBase
                     }
                 }
                 if ($finishMap) {
-                    $finishSql = 'order_status = 1 AND pay_status = 1 AND pay_time > 0 AND close_refund_status != 2';
+                    $finishSql = 'order_status = 1 AND pay_status = 1 AND finish_status = 2 AND pay_time > 0 AND close_refund_status != 2';
                     $finishSql .= ' AND ('.implode(' OR ', $finishMap).')';
                     $orders = $orderModel->where($finishSql)->select();
                     if ($orders) {

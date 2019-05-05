@@ -79,18 +79,33 @@ class Fenxiao extends Admin
         if (!$goodsId){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
-        $field = 'goods_id, goods_sn, thumb, name, specs_json, min_price, max_price, content';
+        $info = $this->_verifyPromot(false, false, TRUE, FALSE);
+        $info['_status'] = get_promotion_status($info);
+        $field = 'goods_id, goods_sn, thumb, name, specs_json, min_price, content';
         $where = [
-            'goods_id'  => $goodsId,
-            'is_del'    => 0,
-            'status'    => 1,
-            'store_id'  => $this->factoryId,
+            ['is_del', '=', 0],
+            ['status', '=', 1],
+            ['goods_id', '=', $goodsId],
+            ['store_id', '=', $this->factoryId],
         ];
-        $detail = db('goods')->where($where)->field($field)->find();
+        $detail = model('goods')->where($where)->field($field)->find();
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
         }
         $detail['specs_json'] = $detail['specs_json'] ? json_decode($detail['specs_json'], 1) : [];
+        
+        $where = [
+            ['is_del', '=', 0],
+            ['status', '=', 1],
+            ['promot_id', '=', $info['promot_id']],
+            ['goods_id', '=', $goodsId],
+            ['sku_id', '=', 0],
+        ];
+        $promotSku = model('PromotionSku')->field('*')->where($where)->order('sort_order ASC')->find();
+        if (!$promotSku) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
+        }
+        $detail['min_price'] = $promotSku['promot_price'];
         $goodsModel = new \app\common\model\Goods();
         $skus = $goodsModel->getGoodsSkus($goodsId);
         $detail['sku_id'] = 0;
@@ -98,8 +113,7 @@ class Fenxiao extends Admin
         if ($skus) {
             if (is_array($skus)) {
                 foreach ($skus as $key => $value) {
-//                     $skus[$key]['price'] = bcadd($value['price'],$value['install_price'],2);
-                    $skus[$key]['price_total'] = $value['price'];
+                     $skus[$key]['price_total'] = $skus[$key]['price'] = $promotSku['promot_price'];
                     $skus[$key]['sku_thumb'] = $value['sku_thumb'] ? $value['sku_thumb'] : $detail['thumb'];
                     unset($skus[$key]['install_price']);
                 }
@@ -147,7 +161,7 @@ class Fenxiao extends Admin
     {
         $loginUser = $this->_checkUser();
         $this->_checkDistributor();
-        $promot = $this->_verifyPromot();
+        $promot = $this->_verifyPromot(false, false, TRUE, TRUE);
         //判断当前用户是否已领取当前活动
         $where = [
             ['is_del', '=', 0],
@@ -291,6 +305,7 @@ class Fenxiao extends Admin
 //             ['PJ.udata_id', '=', $loginUser['udata_id']],
             ['PJ.distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
             ['PJ.is_del',   '=', 0],
+            ['P.is_del',   '=', 0],
         ];
         $alias = 'PJ';
         $join = [
@@ -515,48 +530,23 @@ class Fenxiao extends Admin
     {
         $loginUser = $this->_checkUser();
         $field = 'promot_id, promot_type, name, cover_img, start_time, end_time, add_time, status, content';
-        $info = $this->_verifyPromot(false, $field);
+        $info = $this->_verifyPromot(false, $field, TRUE, FALSE);
         $joinId = isset($this->postParams['join_id']) ? intval($this->postParams['join_id']) : '';
         $info['_status'] = get_promotion_status($info);
         $info['start_time'] = $info['start_time'] ? date('Y-m-d H:i:s', $info['start_time']) : '';
         $info['end_time'] = $info['end_time'] ? date('Y-m-d H:i:s', $info['end_time']) : '';
-        if ($info['_status']['status'] == 1) {
-            //获取分销商品列表
-            $where = [
-                ['PS.promot_id',   '=', $info['promot_id']],
-                ['PS.is_del',      '=', 0],
-                ['G.is_del',       '=', 0],
-                ['G.status',       '=', 1],
-                ['PS.store_id',    '=', $this->factoryId]
-            ];
-            $join = [
-                ['goods G', 'G.goods_id = PS.goods_id', 'INNER'],
-            ];
-            $field = 'PS.goods_id, G.name, G.thumb, G.min_price, G.max_price, G.specs_json';
-            $skus = model('PromotionSku')->alias('PS')->join($join)->field($field)->where($where)->order('PS.sort_order ASC')->select();
-            $skus = $skus ? $skus->toArray() : [];
-            if ($skus) {
-                foreach ($skus as $key => $value) {
-                    $skus[$key]['specs_json'] = $value['specs_json'] ? json_decode($value['specs_json'], 1) : [];
-                    if (!$value['specs_json']) {
-                        $where = [
-                            ['is_del', '=', 0],
-                            ['goods_id', '=', $value['goods_id']],
-                            ['spec_json', '=', ""],
-                        ];
-                        $skus[$key]['sku_id'] = model('GoodsSku')->where($where)->value('sku_id');
-                    }
-                }
-            }
-            $info['goods'] = $skus;
-        }else{
-            $info['goods'] = [];
-        }
         if($joinId && $info['_status']['status'] == 1){
             //打开分享页面
             $this->_countShare();
         }
-        $this->_returnMsg(['detail' => $info]);
+        //判断当前用户是否存在已支付的订单
+        $where = [
+            ['udata_id', '=', $loginUser['udata_id']],
+            ['factory_id', '=', $this->factoryId],
+            ['pay_status', '=', 1],
+        ];
+        $order = model('Order')->where($where)->find();
+        $this->_returnMsg(['detail' => $info, 'order_pay' => $order ? "1" : "0"]);
     }
     /**
      * 分享统计
@@ -574,7 +564,6 @@ class Fenxiao extends Admin
             ['PJ.store_id', '=', $this->factoryId],
             ['UD.is_del', '=', 0],
             ['UD.factory_id', '=', $this->factoryId],
-//             ['PJ.udata_id', '<>', $loginUser['udata_id']],
             ['P.is_del', '=', 0],
             ['P.status', '=', 1],
         ];
@@ -698,7 +687,22 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'submit不能为空']);
         }
         $join = [];
-        if($joinId && $promot['start_time'] <= time() && $promot['end_time'] > time()){
+        if ($promot['start_time'] <= time() && $promot['end_time'] > time()) {
+            if($joinId){
+                $where = [
+                    ['is_del', '=', 0],
+                    ['join_id', '=', $joinId],
+                    ['promot_id', '=', $promot['promot_id']],
+                    ['store_id', '=', $this->factoryId],
+                    ['udata_id', '<>', $loginUser['udata_id']],
+                ];
+                $join = model('PromotionJoin')->where($where)->find();
+            }
+            $promotSku = $promotSku->toArray();
+        }else{
+            $promotSku = [];
+        }
+        /* if($joinId && $promot['start_time'] <= time() && $promot['end_time'] > time()){
             $where = [
                 ['is_del', '=', 0],
                 ['join_id', '=', $joinId],
@@ -707,11 +711,12 @@ class Fenxiao extends Admin
                 ['udata_id', '<>', $loginUser['udata_id']],
             ];
             $join = model('PromotionJoin')->where($where)->find();
-        }
+        } */
         $params = [
             'order_from'    => 4,//自有电商订单
             'order_source'  => 'fenxiao',//自有订单:自有商城 mall/分销活动 fenxiao
             'promotion'     => $promot,//分销数据详情
+            'promotionsku'  => $promotSku,//分销数据详情
             'join'          => $join ? $join: 0,//分销员参与分销活动
         ];
         if ($submit) {
@@ -1041,6 +1046,7 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '输入密码不一致']);
         }
         $distributorModel = model('UserDistributor');
+        $parentId = 0;
         if ($parentCode) {
             $where = [
                 ['distrt_code', '=', $parentCode],
@@ -1049,6 +1055,23 @@ class Fenxiao extends Admin
                 ['factory_id',  '=', $this->factoryId],
             ];
             $parent = $distributorModel->where($where)->find();
+            $parentId = $parent ? $parent['distrt_id'] : 0;
+        }
+        if (!$parentId) {
+            //申请的时候 默认绑定最后一次成功支付的订单的推荐人(如果有)
+            $map = [
+                ['O.udata_id', '=', $loginUser['udata_id']],
+                ['O.order_status', '=', 1],
+                ['O.pay_status', '=', 1],
+                ['O.order_source', '=', 'fenxiao'],
+                ['O.promot_type', '=', 'fenxiao'],
+                ['O.promot_id', '>', 0],
+                ['O.promot_join_id', '>', 0],
+            ];
+            $join = [
+                ['promotion_join PJ', 'PJ.join_id= O.promot_join_id', 'INNER'],
+            ];
+            $parentId = model('Order')->alias('O')->join($join)->where($map)->order('pay_time DESC')->value('PJ.distrt_id');
         }
         //判断当前用户是否已经成为分销员
         $where = [
@@ -1088,7 +1111,7 @@ class Fenxiao extends Admin
             ];
             $userId = $userModel->save($data);
         }
-        $result = model('UserData')->save(['user_id' => $userId], ['udata_id' => $loginUser['udata_id']]);
+        $result = model('UserData')->save(['user_id' => $userId, 'phone' => $phone], ['udata_id' => $loginUser['udata_id']]);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);
         }
@@ -1106,10 +1129,8 @@ class Fenxiao extends Admin
                 'is_del'    => 0,
                 'check_status' => 0,
                 'add_time'  => time(),
+                'parent_id'  => intval($parentId),
             ];
-            if ($parentCode && isset($parent) && $parentCode) {
-                $data['parent_id'] = $parent['distrt_id'];
-            }
             $result = $distributorModel->save($data, ['distrt_id' => $exist['distrt_id']]);
         }else{
             $data = [
@@ -1119,10 +1140,8 @@ class Fenxiao extends Admin
                 'realname'  => $realname,
                 'phone'     => $phone,
                 'face_avatar'=> $faceAvatar,
+                'parent_id'  => intval($parentId),
             ];
-            if ($parentCode && isset($parent) && $parentCode) {
-                $data['parent_id'] = $parent['distrt_id'];
-            }
             $result = $distributorModel->save($data);
         }
         if ($result === FALSE) {
@@ -1794,7 +1813,7 @@ class Fenxiao extends Admin
         }
         return $info->toArray();
     }
-    private function _verifyPromot($promotId = '', $field = '', $required = TRUE)
+    private function _verifyPromot($promotId = '', $field = '', $required = TRUE, $valid = TRUE)
     {
         if (!$promotId) {
             $promotId = isset($this->postParams['promot_id']) ? intval($this->postParams['promot_id']) : '';
@@ -1807,12 +1826,23 @@ class Fenxiao extends Admin
             ['promot_id', '=', $promotId],
             ['promot_type', '=', $this->promotType],
             ['is_del', '=', 0],
-            ['store_id', '=', $this->factoryId]
+            ['store_id', '=', $this->factoryId],
         ];
         $promotionModel = new \app\common\model\Promotion();
         $info = $promotionModel->field($field)->where($where)->find();
+        if (!$info['status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '活动已禁用']);
+        }
         if ($required && !$info) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '活动不存在或已删除']);
+        }
+        if ($valid) {
+            if ($info['start_time'] > time()) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '活动未开始']);
+            }
+            if ($info['end_time'] < time()) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '活动已结束']);
+            }
         }
         return $info ? $info->toArray() : [];
     }
