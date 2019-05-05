@@ -145,6 +145,75 @@ class Promotion extends FormBase
         $this->assign('page', $page);
         return $this->fetch('joins');
     }
+    public function commissions()
+    {
+        $joinId = $this->request->param('join_id');
+        if (!$joinId) {
+            $this->error('参数错误');
+        }
+        $where = [
+            ['is_del', '=', '0'],
+            ['join_id', '=', $joinId],
+            ['store_id', '=', $this->adminFactory['store_id']],
+        ];
+        $join = model('promotion_join')->where($where)->find();
+        if (!$join) {
+            $this->error('参数错误');
+        }
+        $level = $this->request->param('level');
+        $where = [
+            ['UDC.distrt_id', '=', $join['distrt_id']],
+        ];
+        if ($level > 0) {
+            switch ($level) {
+                case 1://销售佣金
+                    $where[] = ['comm_type', '=', 1];
+                    break;
+                case 2://管理佣金
+                    $where[] = ['comm_type', '=', 2];
+                    break;
+                default:
+                    $this->error('');
+                    break;
+            }
+        }
+        $order = 'UDC.add_time DESC';
+        $field = 'UD.nickname, UD.avatar';
+        $field .= ', O.order_sn, real_amount';
+        $field .= ', UDC.comm_type , O.order_type, O.pay_type, O.order_sn, O.real_amount, O.order_status, O.pay_status, O.delivery_status, O.finish_status';
+        $field .= ', sku_name, sku_thumb, sku_spec, num, real_price';
+        $field .= ', UDC.value as commission_amount, UDC.*, O.add_time';
+        $alias = 'UDC';
+        $join = [
+            ['order O', 'O.order_sn = UDC.order_sn', 'INNER'],
+            ['order_sku OS', 'O.order_id = OS.order_id', 'INNER'],
+            ['user_data UD', 'UD.udata_id = UDC.post_udata_id', 'INNER'],
+        ];
+//         $result = $this->_getModelList(model('user_distributor_commission'), $where, $field, $order, $alias, $join);
+        
+        $model = model('user_distributor_commission');
+        $count  = $model->alias($alias)->join($join)->field($field)->where($where)->count();
+        $list   = $model->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate($this->perPage,$count, ['query' => input('param.')]);
+        if ($list) {
+            foreach ($list as $key => $value) {
+                if ($value['commission_status'] !== 0) {
+                    $text = get_commission_status($value['commission_status']);
+                }else{
+                    $text = get_order_status($value)['status_text'];
+                }
+                $list[$key]['_status'] = [
+                    'commission_status' => $value['commission_status'],
+                    'status_text' => $text,
+                ];
+            }
+        }
+        // 获取分页显示
+        $page   = $list->render();
+        $list   = $list->toArray()['data'];
+        $this->assign('list',$list);// 赋值数据集
+        $this->assign('page', $page);
+        return $this->fetch();
+    }
     
     public function edit()
     {
@@ -169,7 +238,15 @@ class Promotion extends FormBase
             ['status', '=', 1],
             ['store_id', '=', $this->adminFactory['store_id']],
         ];
-        $goods = model('goods')->where($where)->column('goods_id, name');
+        $goods = model('goods')->where($where)->column('goods_id, name, min_price, max_price');
+        if (!$goods) {
+            $this->error('请先新增商品');
+        }
+        foreach ($goods as $key => $value) {
+            $goods[$key]['price'] = $value['min_price'] == $value['max_price'] ? $value['min_price'] : $value['min_price'].'-'.$value['max_price'];
+        }
+        $firset = reset($goods);
+        $this->assign('fid', $firset['goods_id']);
         $this->assign('goods', $goods);
         $datas = [];
         if ($info) {
@@ -296,6 +373,10 @@ class Promotion extends FormBase
                     if ($i !== FALSE) {
                         $this->error('第'.($key+1).'行商品 与 第'.($i+1).'行商品重复');
                     }
+                    $price = isset($data['price'][$key]) ? floatval($data['price'][$key]):'';
+                    if ($price <= 0) {
+                        $this->error('第'.($key+1).'行商品活动价格必须大于0');
+                    }
                     $saleType = isset($data['sale_type'][$key]) ? trim($data['sale_type'][$key]):'';
                     if (!$saleType || !isset($this->promTypes[$saleType])) {
                         $this->error('第'.($key+1).'行商品 佣金结算类型错误');
@@ -310,9 +391,8 @@ class Promotion extends FormBase
                             $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过100');
                         }
                     }else{
-                        $maxPrice = $exist['max_price'] > 0 ? $exist['max_price'] : $exist['min_price'];
-                        if ($saleValue > $maxPrice) {
-                            $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过'.$maxPrice);
+                        if ($saleValue > $price) {
+                            $this->error('第'.($key+1).'行商品 销售佣金 '.$name.' 不允许超过'.$price);
                         }
                     }
                     $manageType = isset($data['manage_type'][$key]) ? trim($data['manage_type'][$key]):'';
@@ -329,8 +409,8 @@ class Promotion extends FormBase
                             $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过100');
                         }
                     }else{
-                        if ($manageValue > $exist['max_price']) {
-                            $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过'.$exist['max_price']);
+                        if ($manageValue > $price) {
+                            $this->error('第'.($key+1).'行商品 管理佣金 '.$name.' 不允许超过'.$price);
                         }
                     }
                     
@@ -340,6 +420,7 @@ class Promotion extends FormBase
                         'goods_id' => $goodsId,
                         'sku_id' => 0,
                         'store_id' => $this->adminFactory['store_id'],
+                        'promot_price' => sprintf("%0.2f", $price),
                         'sale_commission' => json_encode([
                             'type' => $saleType,
                             'value' => $saleValue,

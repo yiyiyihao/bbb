@@ -127,7 +127,7 @@ class User extends Model
         }else{
             $userId = $exist['user_id'];
         }
-        $result = $udataModel->save(['user_id' => $userId], ['udata_id' => $udataInfo['udata_id']]);
+        $result = $udataModel->save(['user_id' => $userId, 'phone' => $phone], ['udata_id' => $udataInfo['udata_id']]);
         return $userId;
     }
     public function changePhone($user, $oldPhone, $phone)

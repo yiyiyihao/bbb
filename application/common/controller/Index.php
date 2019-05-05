@@ -16,7 +16,7 @@ class Index extends CommonBase
     public function index($template = '',$url = '')
     {
         $menuList = $this->getMenu();
-//         pre($menuList);
+        pre($menuList);
         $this->assign('menuList', $menuList);
         config('app_trace',false);
         return $this->fetch($template);

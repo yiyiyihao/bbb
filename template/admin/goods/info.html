@@ -134,7 +134,7 @@
                                     {if isset($skuList) && !empty($skuList)}
                                     {volist name="skuList" id="vo" empty=""}
                                     <tr class="skubox">
-                                        <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value={$vo.spec_json} />
+                                        <td><input type="hidden" name="skuid[]" value={$vo.sku_id} /><input type="hidden" name="spec_json[]" value='{$vo.spec_json}' />
                                             <input class="input" type="text" name="sku_sn[]" value="{$vo.sku_sn}" datatype="*" /></td>
                                         <td>{$vo.sku_name?? '-'}<input type="hidden" name="spec_name[]" value="{$vo.sku_name ?? ''}" {notempty name="vo.sku_name"}datatype="*"{/notempty} /></td>
                                         <td><input class="input" type="text" name="price[]" size="10" value="{$vo.price}" datatype="*" /></td>

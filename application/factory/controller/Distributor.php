@@ -45,7 +45,24 @@ class Distributor extends FormBase
             return $this->fetch();
         }
     }
-    
+    function _afterList($list)
+    {
+        if ($list) {
+            foreach ($list as $key => $value) {
+                if ($value['parent_id']) {
+                    $where = [
+                        ['distrt_id', '=', $value['parent_id']],
+                        ['is_del', '=', 0],
+                    ];
+                    $list[$key]['parent_name'] = $this->model->where($where)->value('realname');
+                }else{
+                    $list[$key]['parent_name'] = '-';
+                }
+                
+            }
+        }
+        return $list;
+    }
     
     function _assignInfo($pkId = 0)
     {

@@ -104,7 +104,7 @@ var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
 	     	layer.alert("剩余库存不足");
 			return;
 		}
-		return {sku_id:skuid,nums:nums};
+		return {sku_id:skuid,num:nums};
 	}
 	
 	function addCart(action){
@@ -135,7 +135,7 @@ var goods_total = "<?php echo $info['goods_stock'] ?>"; //库存
             var url = "{:url('confirm')}" + '/sku_id/'+skuid+'/num/'+nums+'/action/'+action;
             window.location.href = url;
 		}else {
-		    $.post('{:url("addCart")}',{sku_id:skuid,nums:nums},function (data) {
+		    $.post('{:url("addCart")}',{sku_id:skuid,num:nums},function (data) {
                 console.log(data);
                 if (data.code == 0) {
                     layer.open({

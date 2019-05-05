@@ -163,10 +163,10 @@ class Order extends Model
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, $action, $remark);
         
-        if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+        /* if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
             $userCommissionModel = new \app\common\model\UserDistributorCommission();
             $userCommissionModel->settlement($order);
-        }
+        } */
         return TRUE;
     }
     /**
@@ -420,7 +420,6 @@ class Order extends Model
             $data['pay_code'] = $payCode;
         }
         $order = $this->getOrderSkus($order, FALSE);
-        
         $skus = $order['skus'];
         //将订单设置为已支付状态
         $result = $this->where(['order_id' => $order['order_id'], 'pay_status' => ['<>', 1]])->update($data);
@@ -428,15 +427,21 @@ class Order extends Model
             $this->error = '订单操作异常';
             return FALSE;
         }
+        $nameStr = '';
         if ($skus) {
+            $len = count($skus);
             //处理订单产品中 库存计数为支付成功后减少库存的产品库存
             $goodsModel = new \app\common\model\Goods();
             foreach ($skus as $key => $value) {
+                if ($key <= 2) {
+                    $nameStr .= $value['sku_name'].' '.$value['sku_spec'].' * '.$value['num'] .($len == ($key+ 1) ? "": "\r\n");
+                }
                 if ($value['stock_reduce_time'] == 2) {//支付成功后减少库存
                     $result = $goodsModel->setGoodsStock($value, -$value['num']);
                 }
             }
         }
+        
         $this->orderLog($order, $user, '支付订单', $remark);
         $this->orderTrack($order, 0, '订单已付款, 等待商家发货');
         
@@ -459,6 +464,14 @@ class Order extends Model
         }
         if (in_array($order['order_type'], [1])) {
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
+        }
+        
+        //分销活动 发送微信模板通知
+        if ($order['promot_type'] == 'fenxiao') {
+            $informModel = new \app\common\model\LogInform();
+            $order['paid_amount'] = $paidAmount;
+            $order['goods_name'] = $nameStr;
+            $informModel->sendInform($order['factory_id'], 'wechat', ['udata_id' => $order['udata_id']], 'pay_success', $order);
         }
         return true;
 
@@ -600,7 +613,9 @@ class Order extends Model
                 return FALSE;
             break;
         }
-        $list = $this->_getCartDatas($user, $incart, $skuId, $num);
+        $promotType = $param && isset($param['promotion']) ? $param['promotion']['promot_type']: '';
+        $promotId = $param && isset($param['promotion']) ? $param['promotion']['promot_id']: '';
+        $list = $this->_getCartDatas($user, $incart, $skuId, $num, $param);
         if ($list === FALSE) {
             return FALSE;
         }
@@ -674,8 +689,8 @@ class Order extends Model
                 'extra'           => '',
                 'order_from'      => $orderFrom,
                 'order_source'    => $orderSource,
-                'promot_type'     => $param && isset($param['promotion']) ? $param['promotion']['promot_type']: '',
-                'promot_id'       => $param && isset($param['promotion']) ? $param['promotion']['promot_id']: '',
+                'promot_type'     => $promotType,
+                'promot_id'       => $promotId,
                 'promot_join_id'  => $param && isset($param['join']['join_id']) ? intval($param['join']['join_id']): 0,
             ];
             $orderModel = db('order');
@@ -833,6 +848,10 @@ class Order extends Model
             $this->error = '未支付,无操作权限';
             return FALSE;
         }
+        if ($order['finish_status'] != 2) {
+            $this->error = '订单未完成';
+            return FALSE;
+        }
         if ($order['close_refund_status'] == 2) {//0未关闭 1部分关闭  2已关闭
             $this->error = '售后申请已关闭';
             return FALSE;
@@ -900,7 +919,6 @@ class Order extends Model
                     $userCommissionModel = new \app\common\model\UserDistributorCommission();
                     $userCommissionModel->settlement($order);
                 }
-                
                 $remark = $remark ? $remark : '系统自动关闭退货退款功能';
                 $this->orderTrack($order, 0, $remark);
                 $this->orderLog($order, [], '关闭退货退款功能', $remark);
@@ -1184,9 +1202,12 @@ class Order extends Model
      * @param int $num
      * @return array
      */
-    public function _getCartDatas($user = [], $incart = FALSE, $skuIds = [], $num = 0)
+    public function _getCartDatas($user = [], $incart = FALSE, $skuIds = [], $num = 0, $param = [])
     {
         $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
+        $promotType = $param && isset($param['promotion']) ? $param['promotion']['promot_type']: '';
+        $promotId = $param && isset($param['promotion']) ? $param['promotion']['promot_id']: '';
+        $promotSku = $param && isset($param['promotionsku']) ? $param['promotionsku']: [];
         if ($incart) {
             if (!isset($user['user_id'])) {
                 $where = [
@@ -1212,11 +1233,11 @@ class Order extends Model
             $where=[
                 ['sku_id','IN',$skuIds],
             ];
-            //$where = [
-            //    'sku_id' => intval($skuIds),
-            //];
             $join = [['goods G', 'G.goods_id = S.goods_id', 'INNER']];
             $field = 'G.activity_id,G.activity_id,S.store_id,S.udata_id,S.sku_id,S.sku_sn,S.goods_type,G.goods_id,G.name,S.sku_name,S.price,S.install_price,'.$num.' as num,S.sample_purchase_limit,S.sku_thumb,G.thumb,S.sku_stock,S.stock_reduce_time,S.spec_value,G.is_del as gdel,G.status as gstatus,S.status as sstatus,S.is_del as sdel';
+            if ($promotSku) {
+                $field .= ', '.$promotSku['promot_price'].' as price';
+            }
             $list = model('GoodsSku')->alias('S')->join($join)->field($field)->where($where)->limit(1)->select();
             if (!$list) {
                 $this->error = '产品不存在或已删除';
@@ -1230,14 +1251,6 @@ class Order extends Model
             $storeModel = db('store');
             $skuList = $skus = $storeAmounts = [];
             $flag=FALSE;
-//             $store=db('store')->where([
-//                 'is_del'=>0,
-//                 'status'=>1,
-//             ])->find($user['store_id']);
-//             if (empty($store)) {
-//                 $this->error = '商户不存或已被删除';
-//                 return FALSE;
-//             }
             if ($user && isset($user['store_type']) && $user['store_type'] == STORE_DEALER) {
                 $where=[
                     ['SD.store_id','=',$user['store_id']],
@@ -1293,7 +1306,6 @@ class Order extends Model
                         return FALSE;
                     }
                 }
-//                 $storeIds[$value['store_id']] = $storeId = $value['store_id'];
                 $storeIds[$value['factory_id']] = $storeId = $value['factory_id'];
                 
                 //产品库存为0/已删除/已禁用 则为 已失效

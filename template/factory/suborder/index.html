@@ -78,7 +78,7 @@
               	<span class="button-group">
               	<a href="{:url('detail', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-main icon-eye">订单查看</a>
               	{if condition="$vo['pay_status'] == 0 && $vo['order_status'] == 1"}
-              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-red icon-eye">确认收款</a>
+<!--              	<a href="{:url('pay', ['order_sn' => $vo['order_sn']])}" class="button button-small bg-red icon-eye">确认收款</a>-->
               	{/if}
                 </span>
               </td>
