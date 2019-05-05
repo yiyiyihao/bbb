@@ -386,7 +386,7 @@ class Workorder extends FactoryForm
         $info = $this->_assignInfo();
         $type = $info['work_order_type'];
         //只有厂商、服务商、零售商有维修工单的查看权限
-        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_DEALER, ADMIN_SERVICE])) {
+        if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY,ADMIN_DEALER,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
@@ -717,10 +717,12 @@ class Workorder extends FactoryForm
         if ($data['appointment'] <= time()) {
             $this->error('预约服务时间必须大于当前时间');
         }
-        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
-            $data['carry_goods'] = 0;
-        }else{
-            $data['carry_goods'] = $type == 1 ? 1 : 0;
+        if (!$info) {
+            if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+                $data['carry_goods'] = 0;
+            }else{
+                $data['carry_goods'] = $type == 1 ? 1 : 0;
+            }
         }
         return $data;
     }
