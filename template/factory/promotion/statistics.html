@@ -1,0 +1,56 @@
+<div class="line-big col-space15">
+	<div class="xm12">
+    	<div class="panel admin-dashboard boxShadow">
+        	<div class="panel-body clearfix">
+            	<div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>总访问次数</h4>
+                        <div class="item-num">{$data.click_count ?? 0}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>总访问用户数</h4>
+                        <div class="item-num">{$data.click_user_count?? 0}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                    <div class="num-item-box col-box">
+                        <h4>总分享次数</h4>
+                        <div class="item-num">{$data.share_count?? 0}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>总分享用户数</h4>
+                        <div class="item-num">{$data.share_user_count?? 0}</div>
+                    </div>
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>下单数量</h4>
+                        <div class="item-num">{$data.order_count?? 0}</div>
+                    </div>  
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>总下单金额</h4>
+                        <div class="item-num">￥{$data.order_amount?? 0}</div>
+                    </div>  
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>支付订单数量</h4>
+                        <div class="item-num">{$data.order_pay_count?? 0}</div>
+                    </div>  
+                </div>
+                <div class="xm3">
+                	<div class="num-item-box col-box">
+                        <h4>总支付订单金额</h4>
+                        <div class="item-num">￥{$data.order_pay_amount?? 0}</div>
+                    </div>  
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
