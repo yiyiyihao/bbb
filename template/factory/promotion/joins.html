@@ -34,11 +34,13 @@
               <td>{$vo['phone'] ?? ''}</td>
               <td>{$vo['share_count']}</td>
               <td>{$vo.click_count}</td>
-              <td>{$vo.order_count ?? 0}</td>
+              <td>{$vo.order_pay_count ?? 0}</td>
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
               <td>
               	<span class="button-group">
+              		{if condition="check_auth('promotion','commissions') && $vo['order_pay_count'] > 0"}
 	              	<a href="{:url('commissions', ['join_id' => $vo['join_id']])}" class="button button-small bg-main icon-list"> 分润订单</a>
+	              	{/if}
               	</span>
               </td>
             </tr>
