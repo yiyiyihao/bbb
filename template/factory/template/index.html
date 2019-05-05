@@ -1,0 +1,59 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab">
+        <div class="panel admin-box active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <ul class="tab-nav">
+                        <li class="active"><a href="#tab-1">支付成功微信通知配置</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-body">
+               	<div class="tab-panel active" id="tab-1">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>模版ID</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="tpl_code" size="60" placeholder="微信模板消息模版ID" datatype="*" value="{$info['tpl_code'] ?? ''}">
+                            <div class="input-note">微信模板消息模版ID</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>标题</label>
+                        </div>
+                        <div class="field">
+                        	<input type="text" class="input" name="title" size="60" placeholder="通知标题" datatype="*" value="{$info['title'] ?? ''}">
+                            <div class="input-note">通知标题(示例：恭喜您，支付成功！)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>描述</label>
+                        </div>
+                        <div class="field">
+                        	<textarea rows="4" cols="60" class="input" name="description" placeholder="通知描述" datatype="*">{$info['description'] ?? ''}</textarea>
+                            <div class="input-note">通知描述(示例：感谢你的使用。)</div>
+                        </div>
+                    </div>
+               	</div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+Do.ready('base', function () {
+    //表单综合处理
+    $('#form').FormPage({
+    	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'wechat_share_', 'thumb_type' => 'wechat_share_thumb_'])}",
+    });
+})
+</script>
