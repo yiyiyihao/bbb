@@ -1,0 +1,217 @@
+
+<div  style="display: none;padding-top: 10px;" id="form2">
+    <form method="post" action="" class="form-x admin-form form-auto" id="opt-form">
+        <div class="form-group">
+            <div class="label">
+                <label>选项名</label>
+            </div>
+            <div class="field">
+                <input type="text" name="opt-name" class="input" id="opt-name" datatype="n"  size="50" maxlength="20"  value="">
+                <div class="input-note"></div>
+            </div>
+        </div>
+        <!--        <div class="form-group">-->
+        <!--            <div class="label">-->
+        <!--                <label>选项值</label>-->
+        <!--            </div>-->
+        <!--            <div class="field">-->
+        <!--                <input type="text" name="opt-value" class="input" id="opt-value"  datatype="*" size="50" maxlength="20"  value="">-->
+        <!--                <div class="input-note"></div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+    </form>
+</div>
+<style>
+    .pop-box .pop-content{padding: 5px 10px;}
+    .pop-box-add{border: none;font-size: 20px; cursor: pointer;}
+    table{margin-bottom: 10px;}
+</style>
+<script>
+
+    Do.ready('base','dialog', function () {
+
+        //表单综合处理
+        $('#form').FormPage();
+        $('form').on('click','.pop-close',function () {
+            $(this).parent('.pop-box').remove();
+        });
+
+        //删除字段
+        $('form').on('click','.icon-delete',function () {
+            item=$(this);
+            layer.confirm('确定要删除吗？',function () {
+                item.parents('tr').remove();
+                layer.closeAll();
+            });
+        });
+
+        //创建字段
+        $('.create-opt').click(function () {
+            var item=$(this).attr('data-item');
+            var cate_id=$(this).parents('.form-group').prev('.form-group').find('select');
+            if (!cate_id.val()) {
+                cate_id.parents('.form-group').addClass('check-error');
+                cate_id.siblings(".input-note").text("请选择商品分类");
+                return  false;
+            }
+            cate_id.parents('.form-group').removeClass('check-error');
+            cate_id.siblings(".input-note").text("");
+            var table=$(this).prev('table');
+            var tbody=table.find('tbody');
+            table.find('tr.opt-empty').remove();
+            var len=tbody.find('tr').length;
+            html='<tr><td><input type="hidden" name="config_id'+item+'[]" value=""><input type="text" name="name'+item+'[]" datatype="*" class="input" placeholder="字段名不能为空"></td><td><div class="button-group radio"><label class="button active"><input type="hidden" name="is_required'+item+'[]" value="1"><input  value="1"  checked="checked" type="radio">是</label><label class="button "><input  value="0"  type="radio">否</label></div>' +
+                '</td><td><select class="input" name="type'+item+'[]" id="type" data-v="0" datatype="n" nullmsg="请选择字段类型！">' +
+                '<option value=0>文本</option><option value=1>数字</option><option value=2>单选</option><option value=3>多选</option><option value=4>下拉列表</option><option value=5>日期</option><option value=6>文本域</option><option value=7>图片</option></select></td>' +
+                '<td class="opt-group"><a class="button button-small icon-plus  pop-box-add hidden" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
+                '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td></tr>';
+            tbody.append(html);
+        });
+
+
+        //是否必填
+        $('form').on('click','input[type="radio"]',function () {
+            $(this).attr('checked','checked');
+            $(this).parents(".radio").find("label.active").removeClass("active").find('input').removeAttr('checked');
+            $(this).parent('label').addClass("active");
+            $(this).parents(".radio").find("input[type=hidden]").val($(this).val());
+        });
+
+        //更改字段类型
+        $('form table').on('change','select',function () {
+            opt=$(this);
+            newVal=opt.val();
+            orgVal=opt.attr('data-v');
+            if (orgVal) {
+                layer.confirm('修改选项类型会改变原有数据？', {
+                    btn: ['确定', '取消'] //按钮
+                }, function (index, layero) {
+                    opt.attr("value", newVal);
+                    opt.val(newVal);
+                    addButton = opt.parents('tr').find('a.pop-box-add');
+                    if (newVal >= 2 && newVal <= 4) {
+                        addButton.removeClass('hidden');
+                    } else {
+                        addButton.addClass('hidden');
+                    }
+                    layer.close(index);
+                    return false;
+                }, function () {
+                    opt.attr("value", orgVal);
+                    opt.val(orgVal);
+                    // layer.msg('也可以这样', {
+                    //     time: 20000, //20s后自动关闭
+                    //     btn: ['明白了', '知道了']
+                    // });
+                });
+            } else {
+                opt.attr("value", newVal);
+                opt.val(newVal);
+                addButton = opt.parents('tr').find('a.pop-box-add');
+                if (newVal >= 2 && newVal <= 4) {
+                    addButton.removeClass('hidden');
+                } else {
+                    addButton.addClass('hidden');
+                }
+            }
+
+        });
+
+        //获取商品分类配置
+        $('.cate-select').change(function () {
+            var tbody=$(this).parents('.form-group').next('.form-group').find('tbody');
+            var item=$(this).attr('data-item');
+            var key=$(this).attr('data-key');
+            $.post('{:url("getCateConf")}',{cate_id:$(this).val(),item:item,key:key},function (result) {
+                console.log(result);
+                tbody.html('');
+                html='';
+                if (result.code != '0') {
+                    html='<tr class="opt-empty"><td colspan="6" align="center">'+result.msg+'</td></tr>';
+                    tbody.append(html);
+                    return false;
+                }
+                data=result.data;
+                for (i=0;i<data.length;i++){
+                    html='<tr><td><input type="hidden" name="config_id'+item+'[]" value="'+data[i].id+'"><input type="text" name="name'+item+'[]" placeholder="字段名不能为空" class="input" value="'+data[i].name+'"></td><td><div class="button-group radio">';
+                    html+='<label class="button '+(data[i].is_required=='1'? 'active':'')+'"><input type="hidden" name="is_required'+item+'[]" value="'+data[i].is_required+'"><input value="1" '+(data[i].is_required=='1'? 'checked="checked"':'')+' type="radio">是</label>';
+                    html+='<label class="button '+(data[i].is_required=='0'? 'active':'')+'"><input value="0" '+(data[i].is_required=='0'? 'checked="checked"':'')+' type="radio">否</label>';
+
+                    var optType=parseInt(data[i].type);
+                    html+='</div></td><td><select class="input" data-v="'+optType+'" name="type'+item+'[]" id="type" datatype="n" nullmsg="请选择字段类型！">';
+                    html+='<option value=0 '+(optType==0 ? 'selected="selected"':'')+'>文本</option>' +
+                        '<option value=1 '+(optType==1 ? 'selected="selected"':'')+'>数字</option>' +
+                        '<option value=2 '+(optType==2 ? 'selected="selected"':'')+'>单选</option>' +
+                        '<option value=3 '+(optType==3 ? 'selected="selected"':'')+'>多选</option>' +
+                        '<option value=4 '+(optType==4 ? 'selected="selected"':'')+'>下拉列表</option>' +
+                        '<option value=5 '+(optType==5 ? 'selected="selected"':'')+'>日期</option>' +
+                        '<option value=6 '+(optType==6 ? 'selected="selected"':'')+'>文本域</option>' +
+                        '<option value=7 '+(optType==7 ? 'selected="selected"':'')+'>图片</option>' +
+                        '</select></td><td class="opt-group">';
+                    if (optType>=2 && optType<=4){
+                        $.each(data[i].value,function (index,value) {
+                            html+='<span class="pop-box">' +
+                                '<input  type="hidden"  value="'+value+'" name="value'+item+'['+i+'][]" />' +
+                                '<div class="pop-content pop-border">'+value+'</div>' +
+                                '<i class="pop-close"></i>' +
+                                '</span>';
+                        });
+                    }else {
+                        html+='<input type="hidden" value="" name="value'+item+'['+i+']" />';
+                    }
+                    html+='<a  class="button button-small icon-plus pop-box-add '+(optType>=2 && optType<=4? "":"hidden" )+'" data-i="'+i+'" data-item="'+item+'"></a>';
+                    html+='</td><td><input type="text" name="sort_order'+item+'[]"  value="'+data[i].sort_order+'" class="input"></td>' +
+                        '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td>' +
+                        '</tr>';
+                    tbody.append(html);
+                }
+            });
+
+        });
+
+
+        //添加选项
+        $('form').on('click','.pop-box-add',function () {
+            var opt_name=$('#opt-name');
+            //var opt_val=$('#opt-value');
+            //opt_val.val('');
+            opt_name.val('');
+            var i=$(this).attr('data-i');
+            var item=$(this).attr('data-item');
+            console.log(item);
+            var box_add=$(this);
+            layer.open({
+                title: '添加选项'
+                ,shade:0
+                ,type:1
+                ,area: ['600px', '260px']
+                ,btn:['确定','重置']
+                ,content: $('#form2')
+                ,yes:function (index, layero) {
+                    if (opt_name.val() == '') {
+                        opt_name.parents('.form-group').addClass('check-error');
+                        opt_name.siblings(".input-note").text("选项名不能为空");
+                        return  false;
+                    }
+                    opt_name.parents('.form-group').removeClass('check-error');
+                    opt_name.siblings(".input-note").text("");
+                    var html='<span class="pop-box">' +
+                        '<input  type="hidden"  value="'+opt_name.val()+'" name="value'+item+'['+i+'][]" />' +
+                        '<div class="pop-content pop-border">'+opt_name.val()+'</div>' +
+                        '<i class="pop-close"></i>' +
+                        '</span>';
+                    box_add.before(html);
+                    opt_name.val('');
+                    layer.close(index);
+                }
+                ,btn2: function(index, layero){
+                    opt_name.val('');
+                    return false;//开启该代码可禁止点击该按钮关闭
+                }
+            });
+        });
+
+
+
+    });
+</script>

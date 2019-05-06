@@ -97,7 +97,7 @@
               {if condition="$type != 2"}
               <td><span class="tag bg-green">{:get_status($vo['carry_goods'])}</span></td>
               {/if}
-              <td><span class="tag bg-green">{:get_work_order_status($vo['work_order_status'])}</span></td>
+              <td><span class="tag bg-green">{:get_work_order_status($vo['work_order_status'])}</span>{if condition="$vo.is_overtime==1"}<span class="layui-badge">已超时</span>{/if}</td>
               <td>
                 <span class="button-group">
                     {if condition="check_auth('workorder','dispatch') && ($vo.work_order_status == 0 || $vo.work_order_status == 1 || $vo.work_order_status == 2) && (in_array($adminUser.admin_type,[$Think.const.ADMIN_SERVICE,$Think.const.ADMIN_SERVICE_NEW]))"}
@@ -137,7 +137,7 @@
     <div class="panel-foot table-foot clearfix">{$page|raw}</div>
 </div>
 <script>
-    Do.ready('base', function () {
+    Do.ready('base','layui', function () {
        $('#table').Table({});
         //表单综合处理
         $('#form').FormPage({});

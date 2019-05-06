@@ -1,6 +1,8 @@
 <?php
 namespace app\factory\controller;
 //售后工单管理
+use app\common\model\ConfigForm;
+use app\common\model\GoodsCate;
 use think\Request;
 
 class Workorder extends FactoryForm
@@ -49,8 +51,576 @@ class Workorder extends FactoryForm
         $this->indextempfile = 'index';
         return $this->index();
     }
+
+
+    private function getCate()
+    {
+        //商品分类
+        $storeId = $this->adminStore['store_id'];
+        $treeService = new \app\common\service\Tree();
+        $where = ['is_del' => 0, 'store_id' => $storeId];
+        $categorys = db('goods_cate')->field("cate_id, name, parent_id, sort_order,name as cname, status")->where($where)->order("sort_order ASC, parent_id")->select();
+        if ($categorys) {
+            $categorys = $treeService->getTree($categorys);
+        }
+        $this->assign('cates', $categorys);
+    }
+
+    /**
+     * 安装工单配置
+     */
+    public function install_config()
+    {
+        $this->getCate();
+        $this->subMenu['showmenu'] = false;
+        return $this->fetch();
+    }
+
+    /**
+     * 维修工单配置
+     */
+    public function repair_config()
+    {
+        $this->getCate();
+        $this->subMenu['showmenu'] = false;
+        return $this->fetch();
+    }
+
+
+    public function config_handle(Request $request)
+    {
+        if (!$request->isPost()) {
+            return json(dataFormat(1, '非法请求'));
+        }
+        $this->installAddConfig();
+        $this->installerConfirm();
+        $this->installUserConfirm();
+        $this->installerAssess();
+        $this->repairmanConfirm();
+        $this->repairUserConfirm();
+        $this->repairAssess();
+        $this->success('配置成功');
+        //return json(dataFormat(0, '配置保存成功'));
+
+    }
+
+    /**
+     * 工程师安装前填写安装确认表单
+     */
+    private function installerConfirm()
+    {
+        $item=2;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'installer_confirm_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+    /**
+     * 用户填写安装确认表单
+     */
+    private function installUserConfirm()
+    {
+        $item=3;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'install_user_confirm_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+    /**
+     * 工程师安装评价
+     */
+    private function installerAssess()
+    {
+        $item=4;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'installer_assess_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+    /**
+     * 工程师维修确认表单
+     */
+    private function repairmanConfirm()
+    {
+        $item=21;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'repairman_confirm_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+    /**
+     * 用户维修确认表单
+     */
+    private function repairUserConfirm()
+    {
+        $item=22;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'repair_user_confirm_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+    /**
+     * 用户维修评价表单
+     */
+    private function repairAssess()
+    {
+        $item=23;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'repair_assess_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+    }
+
+
+    /**
+     * 安装工单添加时配置
+     */
+    private function installAddConfig()
+    {
+        $item=1;
+        $cateId=$this->request->param('cate_id'.$item,0,'intval');
+        $factoryId = $this->adminUser['factory_id'];
+        if (!$cateId) {
+            return false;
+        }
+        $cate=GoodsCate::where([
+            'store_id'=> $factoryId,
+            'is_del'=>0,
+        ])->find($cateId);
+        if (empty($cate)) {
+            $this->error('该商品分类不存在或已删除');
+        }
+        $key = 'work_order_install_add_' . $cateId;
+        $configId=$this->request->param('config_id'.$item,[],'intval');
+        $configIdExist=array_unique(array_filter($configId));
+        //删除冗余的字段
+        ConfigForm::where([
+            'id'       => ['NOT IN', $configIdExist],
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->update(['is_del' => 1]);
+        $names=$this->request->param('name'.$item);
+        $isRequired=$this->request->param('is_required'.$item,1,'intval');
+        $types=$this->request->param('type'.$item,1,'intval');
+        $sortOrders=$this->request->param('sort_order'.$item,1,'intval');
+        $optValues=$this->request->param('value'.$item);
+        if (!empty($names)) {
+            foreach ($names as $k=>$name ) {
+                $data = [];
+                $where = [];
+                if (isset($types[$k]) && in_array($types[$k],[2,3,4]) && (!isset($optValues[$k]) ||empty($optValues[$k]))) {
+                    return $this->error('第'.($k+1).'行<b class="text-red">"'.$name.'"</b>类型为<b class="text-red">列表</b>时，列表选项不能为空');
+                }
+                if (isset($configId[$k]) && $configId[$k]) {//配置已存在则更新
+                    $data = [
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                    $where = [
+                        'key'      => $key,
+                        'is_del'   => 0,
+                        'store_id' => $factoryId,
+                        'id'       => $configId[$k]
+                    ];
+                } else {//配置不存在则直接新增
+                    $data = [
+                        'store_id'    => $factoryId,
+                        'key'         => $key,
+                        'name'        => $name,
+                        'is_required' => isset($isRequired[$k]) ? intval($isRequired[$k]) : 0,
+                        'type'        => isset($types[$k]) ? intval($types[$k]) : 0,
+                        'value'       => isset($optValues[$k]) ? json_encode($optValues[$k]) : '',
+                        'sort_order'  => isset($sortOrders[$k]) ? intval($sortOrders[$k]) : 0,
+                    ];
+                }
+                $result = (new ConfigForm())->save($data, $where);
+            }
+        }
+        
+    }
+
+
+
+
+
+    public function getCateConf()
+    {
+        $key=$this->request->param('key');
+        $cateId=$this->request->param('cate_id');
+        if (empty($key) || empty($cateId)) {
+            return json(dataFormat(1, '请选择商品分类'));
+        }
+        $result = ConfigForm::where([
+            'store_id' => $this->adminUser['factory_id'],
+            'key'      => $key.'_'.$cateId,
+            'is_del'   => 0,
+        ])->order('sort_order ASC,id ASC')->select();
+        if ($result->isEmpty()) {
+            return json(dataFormat(2, '暂无数据'));
+        }
+        return json(dataFormat(0, 'ok', $result));
+    }
+    
     public function _afterList($list){
         if ($list && $this->adminUser['admin_type'] == ADMIN_FACTORY) {
+            $now=time();
             foreach ($list as $key => $value) {
                 $exist = [];
                 if ($value['work_order_type'] == 1 && $value['work_order_status'] == 4) {
@@ -58,7 +628,6 @@ class Workorder extends FactoryForm
                     $exist = $this->model->where(['parent_id' => $value['worder_id'], 'work_order_type' => 2, 'work_order_status' => ['<>', -1]])->find();
                 }
                 $list[$key]['fix_id'] = isset($exist) && $exist ? $exist['worder_id']: 0;
-                
                 //判断当前工单是否有首次评价和追加评价
                 $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
                 $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
@@ -428,7 +997,8 @@ class Workorder extends FactoryForm
         return 'WO';
     }
     function _getField(){
-        $field = 'I.*, WO.*, G.name as gname, GS.sku_name, I.phone as installer_phone';
+        $now=time();
+        $field = 'I.*, WO.*, G.name as gname, GS.sku_name, I.phone as installer_phone,CASE when WO.work_order_status IN (0,1,2) AND WO.appointment<'.$now.' THEN 1 ELSE 0  END is_overtime';
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $field .= ',S.name';
         }
@@ -449,7 +1019,7 @@ class Workorder extends FactoryForm
     function  _getOrder()
     {
         //return 'order_status ASC, WO.add_time DESC';
-        return 'WO.add_time DESC';
+        return 'is_overtime DESC,WO.add_time DESC';
     }
     function _getWhere(){
         $params = $this->request->param();
