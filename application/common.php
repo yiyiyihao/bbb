@@ -899,6 +899,23 @@ function p($var,$flag=false){
     }
 }
 
+function pr($var,$flag=false){
+    $debugInfo = debug_backtrace();
+    $message= $debugInfo[0]['file']. ':'.$debugInfo[0]['line'];
+    $len=(mb_strlen($message)-6)/2;
+    $len=$len>0 && $len<=100 ? ceil($len):10;
+    echo '<p>[file path]: '.$message.'</p>';
+    echo '<p>[var type]:  '.gettype($var).'</p>';
+    echo '<pre>';
+    print_r($var);
+    echo '</pre>';
+    echo '<p>'.str_pad('',$len,'=').'华丽的分割线'.str_pad('',$len,'=').'</p>';
+    if(!$flag){
+        exit();
+    }
+}
+
+
 //实时写入日志
 function log_msg($message='',$type='debug'){
     $msg=var_export($message,true);

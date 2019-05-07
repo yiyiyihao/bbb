@@ -734,15 +734,15 @@ class Index extends ApiBase
         //$where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
         $where='WO.worder_sn='.$worderSn.' AND WO.is_del=0';
 
-        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
+        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id,G.name goods_name, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
         $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
-        $join = [];
+        $join = [
+            ['goods G','G.goods_id=WO.goods_id','LEFT'],
+        ];
         if ($installer) {
             //$where[] = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
             $where .= ' AND ( WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].'))';
-            $join = [
-                ['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'],
-            ];
+            $join[] =['work_order_installer_record WOIR', 'WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.is_del = 0', 'LEFT'];
             $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         }else{
             //$where['WO.post_user_id'] = $user['user_id'];
@@ -1035,6 +1035,45 @@ class Index extends ApiBase
         }
         unset($result['status']);
         $this->_returnMsg(['msg' => '图片上传成功', 'file' => $result]);
+    }
+
+    protected function getFormConfig()
+    {
+        $cateId=isset($this->postParams['cate_id']) ? intval($this->postParams['cate_id']) : 0;
+        if (empty($cateId)) {
+            $goodsId=isset($this->postParams['goods_id']) ? intval($this->postParams['goods_id']) : 0;
+            $cateId=db('goods')->where(['goods_id'=>$goodsId,'is_del'=>0])->value('cate_id');
+        }
+        if (empty($cateId)) {
+            $skuId=isset($this->postParams['sku_id']) ? intval($this->postParams['sku_id']) : 0;
+            $cateId=db('goods_sku')
+                ->alias('GS')
+                ->join('goods G','G.goods_id=GS.goods_id')
+                ->where(['GS.is_del'=>0,'G.is_del'=>0,'GS.sku_id'=>$skuId])
+                ->value('G.cate_id');
+        }
+        if (empty($cateId)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请先选择商品类型']);
+        }
+        $type=$skuId=isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
+        $arr=[
+            'work_order_install_add',
+            'installer_confirm',
+            'install_user_confirm',
+            'installer_assess',
+            'repairman_confirm',
+            'repair_user_confirm',
+            'repair_assess',
+        ];
+        if ($type==='' || !key_exists($type,$arr)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择表单的类型']);
+        }
+        $result = ConfigForm::field('name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $this->factory['store_id'],
+            'key'      => $arr[$type] . '_' . $cateId,
+        ])->order('sort_order ASC')->select();
+        $this->_returnMsg(['msg' => 'ok', 'list' => $result]);
     }
     /****************************************************************====================================================================*************************************************************/
     private function _checkGoods($goodsId = 0, $field = FALSE)

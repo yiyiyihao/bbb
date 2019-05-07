@@ -39,11 +39,12 @@
                                 <label>工单类型</label>
                             </div>
                             <div class="field">
-                                <div class="button-group radio">
-                                    <label class="button"><input name="work_type" value="1" type="radio" datatype="*">安装工单</label>
-                                    <label class="button"><input name="work_type" value="2" type="radio" datatype="*">维修工单</label>
+                                <div class="button-group">
+                                    <label class="button {if condition='$work_type eq 1'}active{/if}"><input name="work_type" value="1" type="radio" datatype="*" {if condition='$work_type eq 1'}checked="checked"{/if}>安装工单</label>
+                                    <label class="button {if condition='$work_type eq 2'}active{/if}"><input name="work_type" value="2" type="radio" datatype="*" {if condition='$work_type eq 2'}checked="checked"{/if}>维修工单</label>
+                                    
                                 </div>
-                                <div class="input-note">请选择工单类型</div>
+                                <div class="input-note"></div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -67,6 +68,8 @@
                                 <div class="input-note">请填写预约服务时间</div>
                             </div>
                         </div>
+
+                        {if condition="$work_type==2"}
                         <div class="form-group">
                             <div class="label">
                                 <label>图片</label>
@@ -89,7 +92,59 @@
                                 <div class="input-note">请简要描述备注信息</div>
                             </div>
                         </div>
+                        {/if}
 
+                        {notempty name="postConfig"}
+                        {volist name="postConfig" id="vo"}
+                        <div class="form-group">
+                            <div class="label">
+                                <label>{$vo.name}</label>
+                            </div>
+                            <div class="field {if $vo.type==3}checkgroup{/if}">
+                                {switch $vo.type }
+                                {case 0}<input type="text" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="">{/case}
+                                {case 1}<input type="number" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="">{/case}
+                                {case 2}
+                                <div class="button-group radio">
+                                    {foreach $vo.value as $k=>$v }
+                                    <label class="button"><input name="post_conf[{$vo.id}]" value="{$k}" size="40" type="radio" {if $vo.is_required}datatype="n"{/if}>{$v}</label>
+                                    {/foreach}
+                                </div>
+                                {/case}
+                                {case 3}
+                                    <div class="button-group">
+                                        {foreach $vo.value as $k=>$v}
+                                        <div class="checkbox data-single">
+                                            <input type="checkbox" class="top"  name="post_conf[{$vo.id}][]" value="{$k}" {if $vo.is_required}datatype="*"{/if} >
+                                            <i class="icon-check"></i><span>{$v}</span>
+                                        </div>
+                                        {/foreach}
+                                    </div>
+                                {/case}
+                                {case 4}
+                                    <select class="input cate-select" name="post_conf[{$vo.id}][]" nullmsg="请选择！" {if $vo.is_required}datatype="*"{/if}>
+                                        <option value="">==请选择==</option>
+                                        {foreach $vo.value as $k=>$v}
+                                        <option value="{$k}">{$v}</option>
+                                        {/foreach}
+                                    </select>
+                                {/case}
+                                {case 5}<input type="text" class="input js-time" {if $vo.is_required}datatype="*"{/if} name="post_conf[{$vo.id}]" size="20" value="{:date('Y/m/d H:i')}">{/case}
+                                {case 6}<textarea class="input"  name="post_conf[{$vo.id}]" {if $vo.is_required}datatype="*"{/if} rows="6" cols="60"></textarea>{/case}
+                                {case 7}
+                                    <input type="hidden" class="input" id="post_conf_{$vo.id}" name="post_conf[{$vo.id}]" size="38" value="" {if $vo.is_required}datatype="*"{/if}>
+                                    <div  style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="post_conf_{$vo.id}_thumb_preview" width="120"></div>
+                                    <a class="button bg-main button-small js-img-upload" data="post_conf_{$vo.id}" preview="post_conf_{$vo.id}_thumb_preview" href="javascript:;" >
+                                        <span class="icon-upload">上传</span>
+                                    </a>
+                                {/case}
+                                {default /}
+                                {/switch}
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        {/volist}
+                        {/notempty}
                     </div>
                     <!-- <div class="tab-panel" id="tab-2">
                      <div class="form-group">

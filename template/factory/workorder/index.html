@@ -138,9 +138,12 @@
 </div>
 <script>
     Do.ready('base','layui', function () {
-       $('#table').Table({});
+        $('#table').Table({});
         //表单综合处理
         $('#form').FormPage({});
+        {if condition="isset($add_url)"}
+        $('.tools-function a.icon-plus').attr('href','{$add_url}');
+        {/if}
     });
 
 </script>

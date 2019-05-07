@@ -2,6 +2,7 @@
 namespace app\factory\controller;
 //售后工单管理
 use app\common\model\ConfigForm;
+use app\common\model\ConfigFormLogs;
 use app\common\model\GoodsCate;
 use think\Request;
 
@@ -49,6 +50,9 @@ class Workorder extends FactoryForm
     public function lists()
     {
         $this->indextempfile = 'index';
+        if (in_array($this->adminUser['group_id'],[GROUP_E_CHANGSHANG_KEFU,GROUP_E_COMMERCE_KEFU])) {
+            $this->assign('add_url',url('kefu_order',['type'=>2]));
+        }
         return $this->index();
     }
 
@@ -707,6 +711,8 @@ class Workorder extends FactoryForm
             $this->error('查无该商品信息');
         }
         $data['goods_id']=$sku['goods_id'];
+        $orderType= $request->param('work_type',1,'intval');
+        $config=$this->getPostConf($data['sku_id'],$orderType);
 
         if (IS_POST) {
             $data['user_name'] = $request->param('user_name');
@@ -716,10 +722,9 @@ class Workorder extends FactoryForm
             $data['address'] = $request->param('address');
             $data['appointment'] = $request->param('appointment', '', 'trim,strtotime');
 
-            $data['fault_desc'] = $request->param('fault_desc');
+            $data['fault_desc'] = $request->param('fault_desc','');
             //$data['goods_id'] = $request->param('goods_id', '0', 'intval');
-
-            $data['work_order_type'] = $request->param('work_type',0,'intval');
+            $data['work_order_type'] = $orderType;
             if (!in_array($data['work_order_type'],[1,2])) {
                 $this->error('请选择工单的类型！');
             }
@@ -763,39 +768,88 @@ class Workorder extends FactoryForm
             if (!empty($order) && (time()- strtotime($order['add_time'])<60) ) {
                 $this->error('操作频繁！');
             }
-            //if ($data['goods_id']) {
-            //    $where = [
-            //        'goods_id' => $data['goods_id'],
-            //        'is_del'   => 0,
-            //    ];
-            //    $goods = db('goods')->where($where)->find();
-            //    if (empty($goods)) {
-            //        $this->error('查无该商品信息');
-            //    }
-            //}
-
+            $postConf=$this->request->param('post_conf');
+            if ($config && empty($postConf)) {
+                $this->error('请先完善表单信息');
+            }
+            if ($config) {
+                foreach ($config as $k=>$v) {
+                    if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]==='' || $postConf[$v['id']]===null ) {
+                        $this->error($v['name'].'不能为空');
+                        return false;
+                    }
+                }
+            }
             $data['post_user_id'] = $this->adminUser['user_id'];
             $data['install_price'] = 0;
             $data['user_id'] = $this->adminUser['user_id'];
             $data['factory_id'] = $this->adminUser['factory_id'];
             $data['post_store_id'] = $this->adminUser['store_id'];
             $data['store_id'] = $storeId;
-            if ($data['work_order_type']==1 && $this->adminUser['group_id']==GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
-                $data['install_price']=$sku['install_price'];
+            if ($data['work_order_type'] == 1 && $this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {//电商客服提交的工单有安装费
+                $data['install_price'] = $sku['install_price'];
             }
             $workOrderModel = model('work_order');
             $sn = $workOrderModel->save($data);
             if ($sn) {
-                 $this->success('工单提交成功','index');
+                $workId = db('work_order')->where(['worder_sn' => $sn])->value('worder_id');
+                if ($postConf) {
+                    $postData = [];
+                    foreach ($postConf as $k => $v) {
+                        $postData[] = [
+                            'config_form_id' => $k,
+                            'worder_id'      => $workId,
+                            'store_id'       => $this->adminUser['factory_id'],
+                            'post_store_id'  => $this->adminUser['store_id'],
+                            'post_user_id'   => $this->adminUser['user_id'],
+                            'config_value'   => $v,
+                        ];
+                    }
+                    $model = new ConfigFormLogs;
+                    $result = $model->saveAll($postData);
+                }
+                $this->success('工单提交成功', 'index');
             } else {
-                 $this->error('系统错误,请稍后重试！');
+                $this->error('系统错误,请稍后重试！');
             }
         }else{
             $this->subMenu['menu']=[];
+            $this->assign('work_type', $orderType);
             $sku_id=$request->param('sku_id');
             $this->assign('sku_id', $sku_id);
+            $this->assign('postConfig',$config);
             return $this->fetch('kefu_order');
         }
+    }
+
+    /**
+     * @param $skuId
+     * @param int $type
+     * @return array|bool
+     */
+    private function getPostConf($skuId,$type=1)
+    {
+        $key=$type==1?'work_order_install_add_':'';
+        if (empty($key)) {
+            return false;
+        }
+        $cateId = db('goods_sku')->alias('sku')->join([
+            ['goods G', 'G.goods_id=sku.goods_id'],
+        ])->where([
+            'sku.is_del' => 0,
+            'sku.sku_id' => $skuId,
+            'G.is_del'   => 0,
+        ])->value('cate_id');
+        if (empty($cateId)) {
+            $this->error("商品规格不存在或已被删除");
+        }
+        $key .= $cateId;
+        $config = ConfigForm::where([
+            'store_id' => $this->adminUser['factory_id'],
+            'key'      => $key,
+            'is_del'   => 0,
+        ])->order('sort_order ASC')->select();
+        return $config->toArray();
     }
     
     public function edit()
@@ -959,6 +1013,35 @@ class Workorder extends FactoryForm
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
+
+        $cateId=isset($info['sub']['cate_id'])? $info['sub']['cate_id']:'';
+        if (empty($cateId)) {
+            $cateId = db('goods')->where([
+                'is_del'   => 0,
+                'goods_id' => $info['goods_id'],
+            ])->value('cate_id');
+        }
+        if ($info['work_order_type']==1) {
+            $config=db('config_form')
+                ->alias('p1')
+                ->field('p1.name,p1.type,p1.value,p2.config_value')
+                ->join('config_form_logs p2','p2.config_form_id = p1.id AND p2.is_del=0 AND p2.worder_id='.$info['worder_id'],'LEFT')
+                ->where([
+                    'p1.is_del'    => 0,
+                    'p1.store_id'  => $this->adminUser['factory_id'],
+                    'p1.key'  => 'work_order_install_add_'.$cateId,
+                ])
+                ->order('p1.sort_order ASC')
+                ->select();
+            foreach ($config as $k=>$v) {
+                if (in_array($v['type'], [2, 3, 4])) {
+                    $config[$k]['value']=json_decode($config[$k]['value'],true);
+                    $config[$k]['config_value']=json_decode($config[$k]['config_value'],true);
+                }
+            }
+            //p($config);
+            $this->assign('postConfig',$config);
+        }
         if ($info === FALSE) {
             $this->error($this->model->error);
         }

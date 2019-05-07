@@ -59,6 +59,9 @@
                                 <span class="field-text">{$info['appointment']|date='Y-m-d H:i'}</span>
                             </div>
                         </div>
+
+
+                        {if $info['work_order_type']==2}
                         <div class="form-group fault_desc">
                             <div class="label">
                                 <label>备注信息</label>
@@ -67,6 +70,56 @@
                                 <span class="field-text">{$info['fault_desc'] ?? ''}</span>
                             </div>
                         </div>
+                        {/if}
+
+                        {notempty name="postConfig"}
+                        {volist name="postConfig" id="vo"}
+                        <div class="form-group">
+                            <div class="label">
+                                <label>{$vo.name}</label>
+                            </div>
+                            <div class="field">
+                                {switch $vo.type }
+                                {case 0}<span class="field-text">{$vo.config_value ?? ''}</span>{/case}
+                                {case 1}<span class="field-text">{$vo.config_value ?? ''}</span>{/case}
+                                {case 2}
+                                <div class="button-group  disabled">
+                                    {foreach $vo.value as $k=>$v }
+                                    <label class="button {if $k==$vo.config_value}active{/if}"><input  size="40" type="radio"  {if $k==$vo.config_value}checked="checked"{/if}>{$v}</label>
+                                    {/foreach}
+                                </div>
+                                {/case}
+                                {case 3}
+                                <div class="button-group">
+                                    {foreach $vo.value as $k=>$v}
+                                    <div class="checkbox data-single {if in_array($k,$vo.config_value)}checked{/if}">
+                                        <input type="checkbox" class="top" disabled {if in_array($k,$vo.config_value)}checked="checked"{/if}>
+                                        <i class="icon-check"></i><span>{$v}</span>
+                                    </div>
+                                    {/foreach}
+                                </div>
+                                {/case}
+                                {case 4}
+                                <select class="input cate-select" disabled>
+                                <option value="">==请选择==</option>
+                                {foreach $vo.value as $k=>$v}
+                                <option {if $k==$vo['config_value'][0]}selected="selected"{/if}>{$v}</option>
+                                {/foreach}
+                                </select>
+                                {/case}
+                                {case 5}<span class="field-text">{$vo.config_value??''}</span>{/case}
+                                {case 6}<textarea class="input" rows="6" cols="60" disabled>{$vo.config_value??""}</textarea>{/case}
+                                {case 7}
+                                <div  style="margin-bottom:10px;"><img src="{$vo.config_value??'/static/base/images/default.png'}"  width="120"></div>
+                                {/case}
+                                {default /}
+                                {/switch}
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        {/volist}
+                        {/notempty}
+
                         {if condition='$info && $info.images'}
                         <div class="imagesBox form-group clearfix" id="imgs">
                             {if condition="$info && isset($info['images'])"}
