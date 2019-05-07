@@ -2,6 +2,20 @@
 use think\Facade;
 
 // 应用公共文件
+function get_tpl_type($type = '')
+{
+    $types = [
+        'wechat_notice' => '微信模板通知',
+    ];
+    if ($type === FALSE) {
+        return $types;
+    }
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
+}
 function get_user_orderfrom($user = [])
 {
     if ($user) {
