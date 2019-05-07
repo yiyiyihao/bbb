@@ -672,13 +672,13 @@ class Index extends ApiBase
 //             ['work_order_assess WOA', 'WOA.worder_id = WO.worder_id', 'LEFT'],
             ['user_installer UG', 'UG.installer_id = WO.installer_id', 'LEFT'],
         ];
-        $field = 'WO.installer_id,  WO.worder_id, WO.worder_sn, WO.work_order_type, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.work_order_status';
-        $field.= ', IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
-        $field.= ', IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
-        $field.= ', IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
-        $field.= ', IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
-        $field.= ', IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
-        $field .= ', G.name as sku_name';
+        $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.work_order_status';
+        $field.= ',IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
+        $field.= ',IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
+        $field.= ',IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
+        $field.= ',IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
+        $field.= ',IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
+        $field .= ',G.cate_id,G.name as sku_name';
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
             $field .= ', UG.realname as installer_name, UG.phone as installer_phone';
