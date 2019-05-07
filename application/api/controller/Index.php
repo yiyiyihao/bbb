@@ -2,6 +2,7 @@
 namespace app\api\controller;
 
 use app\common\model\ConfigForm;
+use app\common\model\ConfigFormLogs;
 
 class Index extends ApiBase
 {
@@ -880,8 +881,44 @@ class Index extends ApiBase
         if ($installer && !$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
+
+        //自定义表单
+        //没有事务会很坑
+        $cateId = isset($this->postParams['cate_id']) ? intval($this->postParams['cate_id']) : 0;
+        $postConf = isset($this->postParams['post_conf']) &&  $this->postParams['post_conf'] ? json_decode($this->postParams['post_conf'],true) : [];
+        if ($cateId <= 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择商品类型']);
+        }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
+
+        $config=$this->getWorkOrderConfig($cateId,1);
+        if ($config['code'] != 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $config['msg']]);
+        }
+        $config=$config['data'];
+        if ($config) {
+            foreach ($config as $k=>$v) {
+                if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]==='' || $postConf[$v['id']]===null ) {
+                    $this->_returnMsg(['errCode' => 1, 'errMsg' => $v['name'].'不能为空']);
+                    return false;
+                }
+            }
+            $postData = [];
+            foreach ($postConf as $k => $v) {
+                $postData[] = [
+                    'config_form_id' => $k,
+                    'worder_id'      => $detail['worder_id'],
+                    'store_id'       => $this->factory['store_id'],
+                    'post_store_id'  => $user['store_id'],
+                    'post_user_id'   => $user['user_id'],
+                    'post_udata_id'  => $user['udata_id'],
+                    'config_value'   => $v,
+                ];
+            }
+            $model = new ConfigFormLogs();
+            $result = $model->saveAll($postData);
+        }
         $result = $worderModel->worderFinish($detail, $user);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '服务完成,等待评价']);
@@ -1056,6 +1093,15 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请先选择商品类型']);
         }
         $type=$skuId=isset($this->postParams['type']) ? intval($this->postParams['type']) : '';
+        $result=$this->getWorkOrderConfig($cateId,$type);
+        if ($result['code'] != '0') {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' =>$result['msg']]);
+        }
+        $this->_returnMsg(['msg' => $result['msg'], 'list' => $result['data']]);
+    }
+
+    private function getWorkOrderConfig($cateId,$type)
+    {
         $arr=[
             'work_order_install_add',
             'installer_confirm',
@@ -1066,15 +1112,17 @@ class Index extends ApiBase
             'repair_assess',
         ];
         if ($type==='' || !key_exists($type,$arr)) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '请选择表单的类型']);
+            return dataFormat(1,'请选择表单的类型');
         }
-        $result = ConfigForm::field('name,is_required,type,value')->where([
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
             'is_del'   => 0,
             'store_id' => $this->factory['store_id'],
             'key'      => $arr[$type] . '_' . $cateId,
         ])->order('sort_order ASC')->select();
-        $this->_returnMsg(['msg' => 'ok', 'list' => $result]);
+        return dataFormat(0,'ok',$result);
     }
+    
+    
     /****************************************************************====================================================================*************************************************************/
     private function _checkGoods($goodsId = 0, $field = FALSE)
     {
@@ -1145,7 +1193,7 @@ class Index extends ApiBase
         if (!$openid) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
         }
-        $field = $field ? $field.', UD.user_type' : 'UD.*, U.user_id, U.phone, U.status';
+        $field = $field ? $field.', UD.user_type' : 'UD.*,U.user_id,U.store_id,U.phone,U.status';
         $where = [
             'openid' => $openid, 
             'UD.factory_id' => $this->factory['store_id'],

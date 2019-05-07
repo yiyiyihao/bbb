@@ -915,8 +915,25 @@ class Workorder extends FactoryForm
         if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])) {
             $this->error(lang('NO ACCESS'));
         }
+
+        $name=$type==1?"新增安装工单":"新增维修工单";
+        $this->assign('workOrderName',$name);
         return parent::add();
     }
+
+    function _afterAdd($pkId = 0, $data = [])
+    {
+        $postConf=$this->request->param('post_conf');
+        $ossubId=$this->request->param('ossub_id',0,'intval');
+        $work_type=$this->request->param('work_type',1,'intval');
+        $config=$this->getPostConf($ossub['sku_id'],$work_type);
+        if ($config && empty($postConf)) {
+            $this->error('请先完善表单信息');
+        }
+    }
+
+
+
     //指派售后工程师
     public function dispatch()
     {
@@ -1229,6 +1246,10 @@ class Workorder extends FactoryForm
             }
             $this->assign('ossub', $ossub);
         }
+        //创建工单时自定义的表单字段
+        $config=$this->getPostConf($ossub['sku_id'],$type);
+        $this->assign('postConfig',$config);
+
         if ($type == 1) {
             //判断当前产品对应工单数量
             $exist = $this->model->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 1, 'work_order_status' => ['<>', -1]])->find();

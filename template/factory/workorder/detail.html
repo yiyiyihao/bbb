@@ -83,17 +83,17 @@
                                 {case 0}<span class="field-text">{$vo.config_value ?? ''}</span>{/case}
                                 {case 1}<span class="field-text">{$vo.config_value ?? ''}</span>{/case}
                                 {case 2}
-                                <div class="button-group  disabled">
+                                <div class="button-group">
                                     {foreach $vo.value as $k=>$v }
-                                    <label class="button {if $k==$vo.config_value}active{/if}"><input  size="40" type="radio"  {if $k==$vo.config_value}checked="checked"{/if}>{$v}</label>
+                                    <label data-config-value="{$vo.config_value}" data-key="{$k}" class="button {if  $k===$vo.config_value}active{/if}"><input  size="40" type="radio"  {if $k===$vo.config_value}checked="checked"{/if}>{$v}</label>
                                     {/foreach}
                                 </div>
                                 {/case}
                                 {case 3}
                                 <div class="button-group">
                                     {foreach $vo.value as $k=>$v}
-                                    <div class="checkbox data-single {if in_array($k,$vo.config_value)}checked{/if}">
-                                        <input type="checkbox" class="top" disabled {if in_array($k,$vo.config_value)}checked="checked"{/if}>
+                                    <div class="checkbox data-single {if $vo['config_value'] && in_array($k,$vo['config_value'])}checked{/if}">
+                                        <input type="checkbox" class="top" disabled {if $vo['config_value'] && in_array($k,$vo.config_value)}checked="checked"{/if}>
                                         <i class="icon-check"></i><span>{$v}</span>
                                     </div>
                                     {/foreach}
@@ -103,7 +103,7 @@
                                 <select class="input cate-select" disabled>
                                 <option value="">==请选择==</option>
                                 {foreach $vo.value as $k=>$v}
-                                <option {if $k==$vo['config_value'][0]}selected="selected"{/if}>{$v}</option>
+                                <option {if isset($vo['config_value'][0]) &&  $k==$vo['config_value'][0]}selected="selected"{/if}>{$v}</option>
                                 {/foreach}
                                 </select>
                                 {/case}
