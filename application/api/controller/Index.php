@@ -735,8 +735,8 @@ class Index extends ApiBase
         //$where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
         $where='WO.worder_sn='.$worderSn.' AND WO.is_del=0';
 
-        $field = 'WO.worder_id, WO.worder_sn, WO.installer_id, WO.goods_id,G.name goods_name, WO.work_order_type, WO.order_sn, WO.user_name, WO.phone, WO.region_name, WO.address, WO.appointment, WO.images, WO.fault_desc';
-        $field .= ', WO.work_order_status, WO.add_time, WO.dispatch_time, WO.cancel_time, WO.receive_time, WO.sign_time, WO.finish_time';
+        $field = 'WO.worder_id,WO.worder_sn,WO.installer_id,WO.goods_id,G.name goods_name,G.cate_id,WO.work_order_type,WO.order_sn,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc';
+        $field .= ',WO.work_order_status,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $join = [
             ['goods G','G.goods_id=WO.goods_id','LEFT'],
         ];
@@ -753,6 +753,32 @@ class Index extends ApiBase
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
         }
+        $workAddInfo=[];//工单提交信息
+        $workOrderInfo=[];//安装\维修 详情
+        $assessInfo=[];//用户评价配置
+        $scoreInfo=[];//用户评分配置
+        if ($detail['work_order_type']==1) {//安装工单
+            $workAddInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],0);
+            $workAddInfo=isset($workAddInfo['data'])?$workAddInfo['data']:[];
+            $workOrderInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],1);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],2);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],3);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }else{
+            $workOrderInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],4);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],5);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($detail['worder_id'],$detail['cate_id'],6);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }
+        $detail['work_add_info']=$workAddInfo;
+        $detail['work_info']=$workOrderInfo;
+        $detail['assess_info']=$assessInfo;
+        $detail['score_info']=$scoreInfo;
+
         $detail['add_time'] = time_to_date($detail['add_time']);
         $detail['dispatch_time'] = time_to_date($detail['dispatch_time']);
         $detail['cancel_time'] = time_to_date($detail['cancel_time']);
@@ -1108,6 +1134,22 @@ class Index extends ApiBase
 
     private function getWorkOrderConfig($cateId,$type)
     {
+        $data=$this->getConfigKey($cateId,$type);
+        if ($data['code'] != 0) {
+            $data;
+        }
+        $key=$data['data']['key'];
+
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $this->factory['store_id'],
+            'key'      => $key,
+        ])->order('sort_order ASC')->select();
+        return dataFormat(0,'ok',$result);
+    }
+
+    private function getConfigKey($cateId,$type)
+    {
         $arr=[
             0=>'work_order_install_add',
             1=>'installer_confirm',
@@ -1120,12 +1162,35 @@ class Index extends ApiBase
         if ($type==='' || !key_exists($type,$arr)) {
             return dataFormat(1,'请选择表单的类型');
         }
-        $result = ConfigForm::field('id,name,is_required,type,value')->where([
-            'is_del'   => 0,
-            'store_id' => $this->factory['store_id'],
-            'key'      => $arr[$type] . '_' . $cateId,
-        ])->order('sort_order ASC')->select();
-        return dataFormat(0,'ok',$result);
+        $key=$arr[$type].'_'.$cateId;
+        return dataFormat(0,'ok',['key'=>$key]);
+    }
+
+    private function getWorkOrderConfLogs($workId,$cateId,$type)
+    {
+        $result=$this->getConfigKey($cateId,$type);
+        if ($result['code'] != 0) {
+            return $result;
+        }
+        $key=$result['data']['key'];
+        $config=db('config_form_logs')
+            ->alias('p1')
+            ->field('p2.name,p2.type,p2.value,p1.config_value')
+            ->join('config_form p2','p1.config_form_id=p2.id')
+            ->where([
+                'p2.is_del'    => 0,
+                'p2.store_id'  => $this->factory['store_id'],
+                'p2.key'       => $key,
+                'p1.is_del'    => 0,
+                'p1.worder_id' => $workId,
+            ])
+            ->order('p2.sort_order ASC')
+            ->select();
+        foreach ($config as $k=>$v) {
+            $config[$k]['value']=json_decode($config[$k]['value']);
+            $config[$k]['config_value']=json_decode($config[$k]['config_value']);
+        }
+        return dataFormat(0,'ok',$config);
     }
     
     
