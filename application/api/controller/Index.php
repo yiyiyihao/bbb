@@ -863,7 +863,9 @@ class Index extends ApiBase
         }
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->worderSign($detail, $user, $installer);
+        //签到地址
+        $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
+        $result = $worderModel->worderSign($detail, $user, $installer,$address);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '签到成功,服务开始']);
         }else{
@@ -892,7 +894,11 @@ class Index extends ApiBase
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
 
-        $config=$this->getWorkOrderConfig($cateId,1);
+        $type=1;
+        if ($detail['work_order_type'] == 2) {
+            $type=4;
+        }
+        $config=$this->getWorkOrderConfig($cateId,$type);
         if ($config['code'] != 0) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $config['msg']]);
         }
@@ -1103,13 +1109,13 @@ class Index extends ApiBase
     private function getWorkOrderConfig($cateId,$type)
     {
         $arr=[
-            'work_order_install_add',
-            'installer_confirm',
-            'install_user_confirm',
-            'installer_assess',
-            'repairman_confirm',
-            'repair_user_confirm',
-            'repair_assess',
+            0=>'work_order_install_add',
+            1=>'installer_confirm',
+            2=>'install_user_confirm',
+            3=>'installer_assess',
+            4=>'repairman_confirm',
+            5=>'repair_user_confirm',
+            6=>'repair_assess',
         ];
         if ($type==='' || !key_exists($type,$arr)) {
             return dataFormat(1,'请选择表单的类型');
@@ -1387,11 +1393,14 @@ class Index extends ApiBase
         //去掉最后一个&字符
         $prestr = substr($prestr,0,count($prestr)-2);
         $this->signData = $prestr;
+        //log_msg($prestr,'1、$prestr=====================');
         
         //字符串末端补充signkey签名密钥
         $prestr = $prestr . $signkey;
+        //log_msg($prestr,'2、$signkey=====================');
         //生成MD5为最终的数据签名
         $mySgin = md5($prestr);
+        //log_msg($mySgin,'3、$mySgin=====================');
         return $mySgin;
     }
     /**

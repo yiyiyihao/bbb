@@ -291,7 +291,7 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderSign($worder, $user, $installer)
+    public function worderSign($worder, $user, $installer,$address='')
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -322,7 +322,11 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['work_order_status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save([
+            'work_order_status' => 3,
+            'sign_time'         => time(),
+            'sign_address'      => $address,
+        ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
             $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到,服务开始');
