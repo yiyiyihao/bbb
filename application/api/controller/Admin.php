@@ -1515,7 +1515,10 @@ class Admin extends Index
         if (!$order['openid']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
         }
-        $paymentApi = new \app\common\api\PaymentApi($this->factory['store_id'], 'wechat_js');
+        $paymentApi = new \app\common\api\PaymentApi($order['store_id'], 'wechat_js');
+        if (!$paymentApi->config) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '未配置当前支付方式']);
+        }
         $result = $paymentApi->init($order);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $paymentApi->error]);
