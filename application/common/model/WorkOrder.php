@@ -545,12 +545,23 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
+
+
+    /**
+     * 工单评价 最新版
+     *
+     */
+    public function workAssess()
+    {
+
+    }
     
     /**
      * 工单评价操作
      * @param array $worder
      * @param array $user
      * @param array $assessData 用户提交评价信息
+     * @deprecated 2019/05/08 JINZHOU
      */
     public function worderAssess($worder = [], $user = [], $assessData = []){
         if (!$worder) {

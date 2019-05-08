@@ -3,6 +3,7 @@ namespace app\api\controller;
 
 use app\common\model\ConfigForm;
 use app\common\model\ConfigFormLogs;
+use app\common\model\WorkOrder;
 
 class Index extends ApiBase
 {
@@ -674,11 +675,12 @@ class Index extends ApiBase
             ['user_installer UG', 'UG.installer_id = WO.installer_id', 'LEFT'],
         ];
         $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.work_order_status';
-        $field.= ',IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
-        $field.= ',IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
-        $field.= ',IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
-        $field.= ',IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
-        $field.= ',IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
+        $field.='WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time,finish_confirm_time';
+        //$field.= ',IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
+        //$field.= ',IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
+        //$field.= ',IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
+        //$field.= ',IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
+        //$field.= ',IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
         $field .= ',G.cate_id,G.name as sku_name';
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
@@ -719,10 +721,73 @@ class Index extends ApiBase
                 $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $value['worder_id']])->find();
                 $list[$key]['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
                 $list[$key]['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0  ? 1 : 0;
+                $list[$key]['add_time']=time_to_date($value['add_time']);
+                $list[$key]['cancel_time']=time_to_date($value['cancel_time']);
+                $list[$key]['receive_time']=time_to_date($value['receive_time']);
+                $list[$key]['sign_time']=time_to_date($value['sign_time']);
+                $list[$key]['finish_time']=time_to_date($value['finish_time']);
+                $list[$key]['finish_confirm_time']=time_to_date($value['finish_confirm_time']);
             }
         }
         $this->_returnMsg(['list' => $list]);
     }
+
+    protected function finishConfirm()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        if ($user['installer']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师无评价功能']);
+        }
+        $worderSn = isset($this->postParams['worder_sn']) ? trim($this->postParams['worder_sn']) : 0;
+        if (!$worderSn) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单编号(worder_sn)缺失']);
+        }
+        $workOrderInfo = db('work_order')->where([
+            'is_del'       => 0,
+            'worder_sn'    => $worderSn,
+            'post_user_id' => $user['user_id'],
+        ])->find();
+        if (empty($workOrderInfo)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '该用户工单不存在或已删除']);
+        }
+        switch ($workOrderInfo['work_order_status']) {
+            case -1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单已取消,不允确认']);
+                return false;
+            case 0:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单待分派,不允确认']);
+                return false;
+            case 1:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单待接单,不允确认']);
+                return false;
+            case 2:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单待上门,不允确认']);
+                return false;
+            case 3:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师服务中,不允确认']);
+                return false;
+            default:
+                break;
+        }
+        if (!$workOrderInfo['finish_time']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师未确认收服务完成']);
+        }
+        if (!$workOrderInfo['finish_confirm_time']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '您当前已经确认过了']);
+        }
+        $result = db('work_order')->where([
+            'worder_id' => $workOrderInfo['worder_id'],
+        ])->update([
+            'update_time'         => time(),
+            'finish_confirm_time' => time(),
+        ]);
+        if ($result) {
+            $ret=(new WorkOrder())->worderLog($workOrderInfo,$user,0,'用户确认工单服务完成');
+            $this->_returnMsg(['errCode' => 0, 'errMsg' => '操作成功']);
+        }
+        $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
+    }
+
     //售后工单详情
     protected function getWorkOrderDetail($return = FALSE)
     {
@@ -979,8 +1044,25 @@ class Index extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
         }
     }
-    //工单完成后客户评价
+
     protected function assessWorkOrder()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        if ($user['installer']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工程师无评价功能']);
+        }
+
+
+
+    }
+    
+
+
+    /**
+     * 工单完成后客户评价--不使用了
+     * @deprecated by Joe 2019/05/08
+     */
+    protected function assessWorkOrder2()
     {
         $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
         if ($user['installer']) {
@@ -1187,8 +1269,10 @@ class Index extends ApiBase
             ->order('p2.sort_order ASC')
             ->select();
         foreach ($config as $k=>$v) {
-            $config[$k]['value']=json_decode($config[$k]['value']);
-            $config[$k]['config_value']=json_decode($config[$k]['config_value']);
+            if (in_array($v['type'], [2, 3, 4])) {
+                $config[$k]['value']=json_decode($config[$k]['value'],true);
+                $config[$k]['config_value']=json_decode($config[$k]['config_value'],true);
+            }
         }
         return dataFormat(0,'ok',$config);
     }
