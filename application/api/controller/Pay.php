@@ -11,13 +11,17 @@ class Pay extends ApiBase
         parent::__construct();
         $this->params = $this->request->param();
         $action = strtolower($this->request->action());
-        if ($action != 'order') {
-            $this->_checkPostParams();
-        }
+//         if ($action != 'order') {
+//             $this->_checkPostParams();
+//         }
         $this->payCode = isset($this->params['code']) ? $this->params['code'] : '';
     }
     public function wechat()
     {
+        $this->postParams= [
+            'out_trade_no' => '20190508150050509848884608029',
+            'transaction_id' => '11',
+        ];
         //         $orderSn = '20190117001642974849330125579';
         $orderSn = isset($this->postParams['out_trade_no']) ? $this->postParams['out_trade_no'] : '';
         $openid = isset($this->postParams['openid']) ? $this->postParams['openid'] : '';
@@ -32,7 +36,7 @@ class Pay extends ApiBase
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号为空']);
         }
-        //         $result = 1;
+        $result = 1;
         //获取通知的数据
         $result = $this->_wechatResXml($order['store_id'], $this->payCode, $this->postParams);
         if ($result && $order) {
@@ -53,6 +57,7 @@ class Pay extends ApiBase
                 'remark'        => '支付完成,等待商家发货',
             ];
             $result = $orderModel->orderPay($orderSn, $user, $extra);
+            pre($orderModel->error);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
@@ -264,8 +269,10 @@ class Pay extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $result['return_msg']]);
         }
         $wechatApi = new \app\common\api\WechatPayApi($storeId, $payCode);
+        if (!$wechatApi->config) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信配置错误', 'order_sn' => $result['out_trade_no']]);
+        }
         $sign = $wechatApi->_wechatGetSign($result);
-        
         $error = isset($result['sign']) && ($result['sign'] == $sign) ? 0 : 1;
         if ($error) {
             $this->_returnMsg(['errCode' => $error, 'errMsg' => '签名错误: '.'[sign:'.$sign.'] [notify_sign:'.$result['sign'].']']);

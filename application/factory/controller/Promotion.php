@@ -145,6 +145,45 @@ class Promotion extends FormBase
         $this->assign('page', $page);
         return $this->fetch('joins');
     }
+    public function statistics()
+    {
+        $info = parent::_assignInfo();
+        //活动几天内的总访问次数 总访问用户数 总分享次数 下单次数 下单金额
+        $where = [
+            'store_id' => $this->adminFactory['store_id'],
+            'promot_id' => $info['promot_id'],
+            'is_del' => 0,
+        ];
+        $field = 'sum(share_count) as share_count, sum(click_count) as click_count';
+        $data   = model('promotion_join')->field($field)->where($where)->find();
+        //获取总访问用户数量 总分享用户数
+        $where = [
+            'store_id' => $this->adminFactory['store_id'],
+            'promot_id' => $info['promot_id'],
+        ];
+        $field = 'count(distinct udata_id,if(type=1,true,null)) as click_user_count, count(distinct udata_id,if(type=2,true,null)) as share_user_count';
+        $visitData = model('promotion_join_visit')->field($field)->where($where)->find();
+        $data['click_user_count'] = $visitData ? $visitData['click_user_count'] : 0;
+        $data['share_user_count'] = $visitData ? $visitData['share_user_count'] : 0;
+        
+        //获取总下单数量 支付订单数量 支付订单金额
+        $where = [
+            'store_id' => $this->adminFactory['store_id'],
+            'promot_id' => $info['promot_id'],
+            'promot_type' => 'fenxiao',
+        ];
+        $field = 'count(order_id) as order_count, count(if(order_status=1 AND pay_status = 1,true,null)) as order_pay_count';
+        $field .= ', sum(real_amount) as order_amount, sum(if(order_status=1 AND pay_status = 1,paid_amount,null)) as order_pay_amount';
+        $orderData = model('order')->field($field)->where($where)->find();
+        
+        $data['order_count'] = $orderData ? $orderData['order_count'] : 0;
+        $data['order_pay_count'] = $orderData ? $orderData['order_pay_count'] : 0;
+        $data['order_amount'] = $orderData ? $orderData['order_amount'] : 0;
+        $data['order_pay_amount'] = $orderData ? $orderData['order_pay_amount'] : 0;
+        
+        $this->assign('data', $data);
+        return $this->fetch('statistics');
+    }
     public function commissions()
     {
         $joinId = $this->request->param('join_id');
@@ -473,6 +512,7 @@ class Promotion extends FormBase
         if ($table['actions']['button']) {
             $table['actions']['button'][] = ['text'  => '参与用户','action'=> 'condition', 'icon'  => 'list','bgClass'=> 'bg-yellow','condition'=>['action'=>'joins','rule'=>' $vo["status"]']];
             $table['actions']['button'][] = ['text'  => ' 推广文案配置','action'=> 'condition', 'icon'  => 'setting','bgClass'=> 'bg-main','condition'=>['action'=>'setting','rule'=>' $vo["status"]']];
+            $table['actions']['button'][] = ['text'  => ' 活动数据统计','action'=> 'condition', 'icon'  => 'statistics','bgClass'=> 'bg-green','condition'=>['action'=>'statistics','rule'=>' $vo["status"]']];
             $table['actions']['width']  = '*';
         }
         return $table;
