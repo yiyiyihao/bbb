@@ -547,13 +547,143 @@ class WorkOrder extends Model
     }
 
 
-    /**
-     * 工单评价 最新版
-     *
-     */
-    public function workAssess()
-    {
 
+    /**
+     * @param $worder 工单信息
+     * @param $user   提交的用户
+     * @param $assessConfig 评价配置
+     * @param $scoreConfig  评分配置
+     * @param $assess       评价信息
+     * @param $score        评分信息
+     * @param int $logType 0首次评价，1再次评价
+     * @return bool
+     */
+    public function workAssess($worder,$user,$assessConfig,$scoreConfig,$assess,$score,$logType=0)
+    {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return false;
+        }
+
+        if (empty($assess) || empty($score)) {
+            $this->error = '请先完善全部评价信息再提交';
+        }
+
+        $assessKey='';
+        foreach ($assessConfig as $k=>$v) {
+            if ($v['is_required']  && (!isset($assess[$v['id']])) || $assess[$v['id']]==='' || $assess[$v['id']]===null ) {
+                $this->error = $v['name'].'不能为空';
+                return false;
+            }
+            $assessKey=$v['key'];
+        }
+        $scoreKey='';
+        foreach ($scoreConfig as $k=>$v) {
+            if ($v['is_required']  && (!isset($score[$v['id']])) || $score[$v['id']]==='' || $score[$v['id']]===null ) {
+                $this->error = $v['name'].'不能为空';
+                return false;
+            }
+            if ($score[$v['id']]>5 ||$score[$v['id']]<=0) {
+                $this->error = $v['name'].'得分只能在1~5之间';
+                return false;
+            }
+            $scoreKey=$v['key'];
+        }
+        $status = $worder['work_order_status'];
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($status) {
+            case -1:
+                $this->error = '工单已取消,不允许评价';
+                return false;
+            case 0:
+                $this->error = '工单待分派,不允许评价';
+                return false;
+            case 1:
+                $this->error = '工单待接单,不允许评价';
+                return false;
+            case 2:
+                $this->error = '工单待上门,不允许评价';
+                return false;
+            case 3:
+                $this->error = '工程师服务中,不允许评价';
+                return false;
+            default:
+                break;
+        }
+        //是否已经评价过
+        $exit = db('config_form_logs')
+            ->alias('p1')
+            ->join([
+                ['config_form p2', 'p2.id=p1.config_form_id'],
+            ])->where([
+                ['p1.worder_id', '=', $worder['worder_id']],
+                ['p1.type', '=', $logType],
+                ['p1.post_user_id', '=', $user['user_id']],
+                ['p1.is_del', '=', 0,],
+                ['p2.is_del', '=', 0,],
+                ['p2.key', 'IN', [$assessKey, $scoreKey]],
+            ])->find();
+        if (!empty($exit)) {
+            $this->error = '用户已经评价过';
+            return false;
+        }
+        //写入评价数据
+        $postData = [];
+        foreach ($assess as $k => $v) {
+            $postData[] = [
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+            ];
+        }
+        $sum=0;
+        foreach ($score as $k => $v) {
+            $postData[] = [
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+            ];
+            if ($logType == 0) {//首次评价
+                $sum+=$v;
+                //评份日志，对应表：user_installer_score
+                model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
+            }
+        }
+        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $data = [
+            'worder_id'    => $worder['worder_id'],
+            'worder_sn'    => $worder['worder_sn'],
+            'installer_id' => $worder['installer_id'],
+            'post_user_id' => $user ? $user['user_id'] : 0,
+            'nickname'     => $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
+            'type'         => $logType == 0 ? 1 : 2,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'          => '',
+            'add_time'     => time(),
+        ];
+        $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
+        if (!$assessId) {
+            $this->error = '系统故障，操作失败';
+            return false;
+        }
+        $model = new ConfigFormLogs;
+        $result = $model->saveAll($postData);
+        if ($result->isEmpty()) {
+            $this->error = '操作失败';
+            return false;
+        }
+        $avgScore = round($sum/count($score),1);
+        //安装工单
+        if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0 && $logType==0) {
+            //首次评价,处理安装服务费发放结算
+            $this->serviceSettlement($worder, $assessId, $user, $avgScore);
+        }
+        return true;
     }
     
     /**
