@@ -11,17 +11,13 @@ class Pay extends ApiBase
         parent::__construct();
         $this->params = $this->request->param();
         $action = strtolower($this->request->action());
-//         if ($action != 'order') {
-//             $this->_checkPostParams();
-//         }
+        if ($action != 'order') {
+            $this->_checkPostParams();
+        }
         $this->payCode = isset($this->params['code']) ? $this->params['code'] : '';
     }
     public function wechat()
     {
-        $this->postParams= [
-            'out_trade_no' => '20190508150050509848884608029',
-            'transaction_id' => '11',
-        ];
         //         $orderSn = '20190117001642974849330125579';
         $orderSn = isset($this->postParams['out_trade_no']) ? $this->postParams['out_trade_no'] : '';
         $openid = isset($this->postParams['openid']) ? $this->postParams['openid'] : '';
@@ -36,7 +32,7 @@ class Pay extends ApiBase
         }else{
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单号为空']);
         }
-        $result = 1;
+        //         $result = 1;
         //获取通知的数据
         $result = $this->_wechatResXml($order['store_id'], $this->payCode, $this->postParams);
         if ($result && $order) {
@@ -57,7 +53,6 @@ class Pay extends ApiBase
                 'remark'        => '支付完成,等待商家发货',
             ];
             $result = $orderModel->orderPay($orderSn, $user, $extra);
-            pre($orderModel->error);
             if ($result === FALSE) {
                 $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
             }else{
@@ -146,34 +141,6 @@ class Pay extends ApiBase
             }
             //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
             echo "success";	//请不要修改或删除
-        }
-        if ($result) {
-            if ($order['pay_status'] > 0) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付', 'order_sn' => $orderSn]);
-            }
-            $user = db('user')->where(['user_id' => $order['user_id']])->find();
-            $orderModel = new \app\common\model\Order();
-            $paidAmount = isset($this->postParams['total_fee']) ? intval($this->postParams['total_fee'])/100 : 0;
-            $extra = [
-                'pay_sn'        => $this->postParams['transaction_id'],
-                'paid_amount'   => $paidAmount,
-                'pay_code'      => $this->payCode,
-                'remark'        => '支付完成,等待商家发货',
-            ];
-            $result = $orderModel->orderPay($orderSn, $user, $extra);
-            if ($result === FALSE) {
-                $this->_returnMsg(['errCode' => 1, 'errMsg' => '支付错误:'.$orderModel->error, 'order_sn' => $orderSn]);
-            }else{
-                $push = new \app\common\service\PushBase();
-                $data = [
-                    'type'          => 'order',
-                    'orderSn'       => $orderSn,
-                    'paidAmount'    => $paidAmount,
-                ];
-                //发送给店铺下所有管理用户
-                $push->sendToGroup('store'.$order['store_id'], json_encode($data));
-                $this->_returnMsg(['msg' => '支付成功', 'order_sn' => $orderSn]);
-            }
         }else{
             //验证失败
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '签名验证失败', 'order_sn' => $orderSn]);
@@ -273,6 +240,7 @@ class Pay extends ApiBase
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信配置错误', 'order_sn' => $result['out_trade_no']]);
         }
         $sign = $wechatApi->_wechatGetSign($result);
+        
         $error = isset($result['sign']) && ($result['sign'] == $sign) ? 0 : 1;
         if ($error) {
             $this->_returnMsg(['errCode' => $error, 'errMsg' => '签名错误: '.'[sign:'.$sign.'] [notify_sign:'.$result['sign'].']']);
