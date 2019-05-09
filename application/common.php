@@ -1058,27 +1058,34 @@ function curl_post($url, $post_data){
 
 
 /**
- * 上面两个有异常，兼容性也不好，自已经写一个。BY Joe @2019/05/08
+ * 上面两个有异常BUG，功能也不齐全，故独立写一个,同时支持POST/GET，更多功能可随时扩展
+ * @author  JINZHOU  2019/05/08
  * @param $url 访问的URL
  * @param string $post    表单数据(不填则为GET)
- * @param string $cookie  提交的$cookies
- * @param int $returnCookie  是否返回$cookies
  * @return bool|string
  */
-function curl_request($url,$post='',$cookie='', $returnCookie=0){
+function curl_request($url,$post='',$param=[]){
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)');
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
-    //curl_setopt($curl, CURLOPT_REFERER, 'http://xxx');
+    if (isset($param['CURLOPT_REFERER']) && $param['CURLOPT_REFERER']) {
+        curl_setopt($curl, CURLOPT_REFERER,$param['CURLOPT_REFERER']);
+    }else{
+        curl_setopt($curl, CURLOPT_REFERER, 'http://shop.smarlife.cn');
+    }
     if($post) {
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($post));
     }
-    if($cookie) {
-        curl_setopt($curl, CURLOPT_COOKIE, $cookie);
+    //提交的$cookies
+    if (isset($param['CURLOPT_COOKIE']) && $param['CURLOPT_COOKIE']) {
+        curl_setopt($curl, CURLOPT_COOKIE,$param['CURLOPT_COOKIE']);
     }
+    //是否返回$cookies
+    $returnCookie=isset($param['CURLOPT_HEADER'])? $param['CURLOPT_HEADER']:0;
+
     curl_setopt($curl, CURLOPT_HEADER, $returnCookie);
     curl_setopt($curl, CURLOPT_TIMEOUT, 10);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);

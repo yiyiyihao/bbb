@@ -18,6 +18,7 @@ class Index extends ApiBase
     public $fromSource;
     public $factory;
     public $userTypes;
+    public $mapKey='';
     
     public $signData = [];
     public function __construct(){
@@ -46,6 +47,8 @@ class Index extends ApiBase
             'APPLETS_USER1'     => 'SjeGczso8Ya3',
             'TEST'              => 'ds7p7auqyjj8',
         ];
+        //腾讯地图KEY
+        $this->mapKey='TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX';
         $this->verifySignParam($this->postParams);
         //请求参数验证
         foreach($this->signKeyList as $key => $value) {
@@ -311,6 +314,40 @@ class Index extends ApiBase
         $regions = db('region')->field($field)->where($where)->select();
         $this->_returnMsg(['list' => $regions]);
     }
+
+    //根据经纬度转换为地址
+    protected function getAddress(){
+        //纬度
+        $lat = isset($this->postParams['lat']) && $this->postParams['lat'] ? $this->postParams['lat'] : '';
+        //经度
+        $lng = isset($this->postParams['lng']) && $this->postParams['lng'] ? $this->postParams['lng'] : '';
+        if ($lat > 90 || $lat < -90) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误！']);
+        }
+        if ($lng > 180 || $lng < -180) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误']);
+        }
+        $param = [
+            'location' => $lat.','.$lng,
+            'key'      => $this->mapKey,
+            'get_poi'  => '0',
+        ];
+        $query=http_build_query($param);
+        $url='https://apis.map.qq.com/ws/geocoder/v1/';
+        $url.='?'.$query;
+        $result=curl_request($url);
+        $result=json_decode($result,true);
+        if (empty($result)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '第三方应用异常，请求失败']);
+        }
+        if (isset($result['status']) && $result['status']=='0') {
+            $this->_returnMsg(['address' => $result['result']['address'] ?? "请求失败"]);
+        }
+        $this->_returnMsg(['address' => $result['message'] ?? "第三方应用拒绝访问"]);
+    }
+
+
+
     //获取用户收货地址列表
     protected function getUserAddressList()
     {
