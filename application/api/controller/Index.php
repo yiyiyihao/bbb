@@ -854,7 +854,11 @@ class Index extends ApiBase
         $exist = db('work_order_assess')->field('count(if(type = 1, true, NULL)) as type1, count(if(type = 2, true, NULL)) as type2')->where(['worder_id' => $detail['worder_id']])->find();
         $detail['first_assess'] = $exist && isset($exist['type1']) && $exist['type1'] > 0  ? 1 : 0;
         $detail['append_assess'] = $exist && isset($exist['type2']) && $exist['type2'] > 0  ? 1 : 0;
-        
+        $msg = db('work_order_assess')->where([
+            'worder_id' => $detail['worder_id'],
+            'type'      => 2
+        ])->value('msg');
+        $detail['append_msg'] =$msg? $msg : '';
         if ($return) {
             return $detail;
         }
