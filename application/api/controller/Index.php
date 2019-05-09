@@ -1059,7 +1059,7 @@ class Index extends ApiBase
         }
         $workOrderInfo = db('work_order')
             ->alias('p1')
-            ->field('p1.worder_id,p1.installer_id,p1.order_sn,p1.osku_id,p1.carry_goods,p1.work_order_type,p2.cate_id')
+            ->field('p1.worder_id,p1.installer_id,p1.order_sn,p1.work_order_status,p1.worder_sn,p1.osku_id,p1.carry_goods,p1.work_order_type,p2.cate_id')
             ->join([
                 ['goods p2', 'p1.goods_id=p2.goods_id'],
             ])
@@ -1101,9 +1101,9 @@ class Index extends ApiBase
         $user['factory_id']=$this->factory['store_id'];
         $result=$model->workAssess($workOrderInfo,$user,$assessConfig,$scoreConfig,$assess,$score,$logType);
         if ($result !== FALSE) {
-            $this->_returnMsg(['msg' => '操作成功:评价完成']);
+            $this->_returnMsg(['msg' => '评价完成']);
         }else{
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $worderModel->error]);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $model->error]);
         }
     }
     /**
@@ -1270,7 +1270,7 @@ class Index extends ApiBase
         }
         $key=$data['data']['key'];
 
-        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+        $result = ConfigForm::field('id,name,key,is_required,type,value')->where([
             'is_del'   => 0,
             'store_id' => $this->factory['store_id'],
             'key'      => $key,
@@ -1397,7 +1397,7 @@ class Index extends ApiBase
         if (!$openid) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '登录用户唯一标识(openid)缺失']);
         }
-        $field = $field ? $field.', UD.user_type' : 'UD.*,U.user_id,U.store_id,U.phone,U.status';
+        $field = $field ? $field.', UD.user_type' : 'UD.*,U.user_id,U.username,U.nickname,U.realname,U.store_id,U.phone,U.status';
         $where = [
             'openid' => $openid, 
             'UD.factory_id' => $this->factory['store_id'],
