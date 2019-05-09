@@ -713,25 +713,25 @@ class WorkOrder extends Model
         $postData = [];
         foreach ($assess as $k => $v) {
             $postData[] = [
-                'config_form_id'       => $k,
-                'worder_id'            => $worder['worder_id'],
-                'store_id'             => $user['factory_id'],
-                'post_store_id'        => $user['store_id'],
-                'post_user_id'         => $user['user_id'],
-                'config_value'         => $v,
-                'work_order_assess_id' => $assessId,
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+                'assess_id'      => $assessId,
             ];
         }
         $sum = 0;
         foreach ($score as $k => $v) {
             $postData[] = [
-                'config_form_id'       => $k,
-                'worder_id'            => $worder['worder_id'],
-                'store_id'             => $user['factory_id'],
-                'post_store_id'        => $user['store_id'],
-                'post_user_id'         => $user['user_id'],
-                'config_value'         => $v,
-                'work_order_assess_id' => $assessId,
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+                'assess_id'      => $assessId,
             ];
             $sum += $v;
             //评份日志，对应表：user_installer_score
