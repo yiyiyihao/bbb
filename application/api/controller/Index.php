@@ -1321,7 +1321,7 @@ class Index extends ApiBase
         }
         $key=$data['data']['key'];
 
-        $result = ConfigForm::field('id,name,key,is_required,type,value')->where([
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
             'is_del'   => 0,
             'store_id' => $this->factory['store_id'],
             'key'      => $key,

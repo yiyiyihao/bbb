@@ -640,20 +640,16 @@ class WorkOrder extends Model
         if (empty($assess) || empty($score)) {
             $this->error = '请先完善全部评价信息再提交';
         }
-
-        $assessKey='';
         $msg='';
         foreach ($assessConfig as $k=>$v) {
             if ($v['is_required']  && (!isset($assess[$v['id']])) || $assess[$v['id']]==='' || $assess[$v['id']]===null ) {
                 $this->error = $v['name'].'不能为空';
                 return false;
             }
-            $assessKey=$v['key'];
             if ($v['type']==6) {
                 $msg=isset($assess[$v['id']]) && is_string($assess[$v['id']]) ? $assess[$v['id']]:'';
             }
         }
-        $scoreKey='';
         foreach ($scoreConfig as $k=>$v) {
             if ($v['is_required']  && (!isset($score[$v['id']])) || $score[$v['id']]==='' || $score[$v['id']]===null ) {
                 $this->error = $v['name'].'不能为空';
@@ -663,7 +659,6 @@ class WorkOrder extends Model
                 $this->error = $v['name'].'得分只能在1~5之间';
                 return false;
             }
-            $scoreKey=$v['key'];
         }
         $status = $worder['work_order_status'];
         //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
@@ -687,47 +682,15 @@ class WorkOrder extends Model
                 break;
         }
         //是否已经评价过
-        $exit = db('config_form_logs')
-            ->alias('p1')
-            ->join([
-                ['config_form p2', 'p2.id=p1.config_form_id'],
-            ])->where([
-                ['p1.worder_id', '=', $worder['worder_id']],
-                ['p1.type', '=', 0],
-                ['p1.post_user_id', '=', $user['user_id']],
-                ['p1.is_del', '=', 0,],
-                ['p2.is_del', '=', 0,],
-                ['p2.key', 'IN', [$assessKey, $scoreKey]],
-            ])->find();
+        $exit = db('work_order_assess')->where([
+            'worder_sn' => $worder['worder_sn'],
+            'worder_id' => $worder['worder_id'],
+            'type'      => 1,//1首次评价 2追加评价
+            'is_del'    => 0,
+        ])->find();
         if (!empty($exit)) {
             $this->error = '用户已经评价过';
             return false;
-        }
-        //写入评价数据
-        $postData = [];
-        foreach ($assess as $k => $v) {
-            $postData[] = [
-                'config_form_id' => $k,
-                'worder_id'      => $worder['worder_id'],
-                'store_id'       => $user['factory_id'],
-                'post_store_id'  => $user['store_id'],
-                'post_user_id'   => $user['user_id'],
-                'config_value'   => $v,
-            ];
-        }
-        $sum=0;
-        foreach ($score as $k => $v) {
-            $postData[] = [
-                'config_form_id' => $k,
-                'worder_id'      => $worder['worder_id'],
-                'store_id'       => $user['factory_id'],
-                'post_store_id'  => $user['store_id'],
-                'post_user_id'   => $user['user_id'],
-                'config_value'   => $v,
-            ];
-            $sum+=$v;
-            //评份日志，对应表：user_installer_score
-            model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
         }
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
@@ -745,6 +708,36 @@ class WorkOrder extends Model
             $this->error = '系统故障，操作失败';
             return false;
         }
+
+        //写入评价数据
+        $postData = [];
+        foreach ($assess as $k => $v) {
+            $postData[] = [
+                'config_form_id'       => $k,
+                'worder_id'            => $worder['worder_id'],
+                'store_id'             => $user['factory_id'],
+                'post_store_id'        => $user['store_id'],
+                'post_user_id'         => $user['user_id'],
+                'config_value'         => $v,
+                'work_order_assess_id' => $assessId,
+            ];
+        }
+        $sum = 0;
+        foreach ($score as $k => $v) {
+            $postData[] = [
+                'config_form_id'       => $k,
+                'worder_id'            => $worder['worder_id'],
+                'store_id'             => $user['factory_id'],
+                'post_store_id'        => $user['store_id'],
+                'post_user_id'         => $user['user_id'],
+                'config_value'         => $v,
+                'work_order_assess_id' => $assessId,
+            ];
+            $sum += $v;
+            //评份日志，对应表：user_installer_score
+            model('user_installer')->assessAdd($worder['installer_id'], $k, $v);
+        }
+
         $model = new ConfigFormLogs;
         $result = $model->saveAll($postData);
         if ($result->isEmpty()) {
