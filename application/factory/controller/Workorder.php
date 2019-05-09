@@ -1030,7 +1030,6 @@ class Workorder extends FactoryForm
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $info = $this->model->getWorderDetail($info['worder_sn'], $this->adminUser);
-
         $cateId=isset($info['sub']['cate_id'])? $info['sub']['cate_id']:'';
         if (empty($cateId)) {
             $cateId = db('goods')->where([
@@ -1038,27 +1037,14 @@ class Workorder extends FactoryForm
                 'goods_id' => $info['goods_id'],
             ])->value('cate_id');
         }
-        if ($info['work_order_type']==1) {
-            $config=db('config_form')
-                ->alias('p1')
-                ->field('p1.name,p1.type,p1.value,p2.config_value')
-                ->join('config_form_logs p2','p2.config_form_id = p1.id AND p2.is_del=0 AND p2.worder_id='.$info['worder_id'],'LEFT')
-                ->where([
-                    'p1.is_del'    => 0,
-                    'p1.store_id'  => $this->adminUser['factory_id'],
-                    'p1.key'  => 'work_order_install_add_'.$cateId,
-                ])
-                ->order('p1.sort_order ASC')
-                ->select();
-            foreach ($config as $k=>$v) {
-                if (in_array($v['type'], [2, 3, 4])) {
-                    $config[$k]['value']=json_decode($config[$k]['value'],true);
-                    $config[$k]['config_value']=json_decode($config[$k]['config_value'],true);
-                }
-            }
-            //p($config);
-            $this->assign('postConfig',$config);
-        }
+        $data=$this->model->getConfigLogDetail([
+            'worder_id'=>$info['worder_id'],
+            'cate_id'=>$cateId,
+            'work_order_type'=>$info['work_order_type'],
+            'factory_id'=>$this->adminUser['factory_id'],
+        ]);
+        //p($data);
+        $this->assign('postConfig',$data);
         if ($info === FALSE) {
             $this->error($this->model->error);
         }

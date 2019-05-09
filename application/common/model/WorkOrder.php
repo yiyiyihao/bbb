@@ -906,6 +906,104 @@ class WorkOrder extends Model
         ];
         return $result = db('work_order_log')->insertGetId($data);
     }
+
+
+    public function getConfigKey($cateId,$type)
+    {
+        $arr=[
+            0=>'work_order_install_add',
+            1=>'installer_confirm',
+            2=>'install_user_confirm',//用户评价，之前命名的时候理解有误，命名本意跟实际需求不对应
+            3=>'installer_assess',//用户评分
+            4=>'repairman_confirm',
+            5=>'repair_user_confirm',//用户评价
+            6=>'repair_assess',//用户评分
+        ];
+        if ($type==='' || !key_exists($type,$arr)) {
+            return dataFormat(1,'请选择表单的类型');
+        }
+        $key=$arr[$type].'_'.$cateId;
+        return dataFormat(0,'ok',['key'=>$key]);
+    }
+
+    public function getWorkOrderConfig($cateId,$type,$factoryId)
+    {
+        $data=$this->getConfigKey($cateId,$type);
+        if ($data['code'] != 0) {
+            $data;
+        }
+        $key=$data['data']['key'];
+
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->order('sort_order ASC')->select();
+        return dataFormat(0,'ok',$result->toArray());
+    }
+
+    public function getWorkOrderConfLogs($workId,$cateId,$type,$factoryId=1)
+    {
+        $result=$this->getConfigKey($cateId,$type,$factoryId);
+        if ($result['code'] != 0) {
+            return $result;
+        }
+        $key=$result['data']['key'];
+        $config=db('config_form_logs')
+            ->alias('p1')
+            ->field('p2.name,p2.type,p2.value,p1.config_value')
+            ->join('config_form p2','p1.config_form_id=p2.id')
+            ->where([
+                'p2.is_del'    => 0,
+                'p2.store_id'  => $factoryId,
+                'p2.key'       => $key,
+                'p1.is_del'    => 0,
+                'p1.type'      => 0,//0首次
+                'p1.worder_id' => $workId,
+            ])
+            ->order('p2.sort_order ASC')
+            ->select();
+        foreach ($config as $k=>$v) {
+            if (in_array($v['type'], [2, 3, 4])) {
+                $config[$k]['value']=json_decode($config[$k]['value'],true);
+                $config[$k]['config_value']=json_decode($config[$k]['config_value'],true);
+            }
+        }
+        return dataFormat(0,'ok',$config);
+    }
+
+    public function getConfigLogDetail($param)
+    {
+        $workAddInfo=[];//工单提交信息
+        $workOrderInfo=[];//安装\维修 详情
+        $assessInfo=[];//用户评价配置
+        $scoreInfo=[];//用户评分配置
+        if ($param['work_order_type']==1) {//安装工单
+            $workAddInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],0,$param['factory_id']);
+            $workAddInfo=isset($workAddInfo['data'])?$workAddInfo['data']:[];
+            $workOrderInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],1,$param['factory_id']);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],2,$param['factory_id']);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],3,$param['factory_id']);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }else{
+            $workOrderInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],4,$param['factory_id']);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],5,$param['factory_id']);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],6,$param['factory_id']);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }
+        $result['work_add_info']=$workAddInfo;
+        $result['work_info']=$workOrderInfo;
+        $result['assess_info']=$assessInfo;
+        $result['score_info']=$scoreInfo;
+        return $result;
+    }
+
+
+
     private function _worderInstallerLog($worder, $installerId, $action = "dispatch_other", $status = 1)
     {
         $logModel = db('work_order_installer_record');
