@@ -29,7 +29,7 @@
 <script>
 
     Do.ready('base','dialog', function () {
-
+        var arr=['文本','数字','单选','多选','下拉列表','日期','文本域','图片'];
         //表单综合处理
         $('#form').FormPage();
         $('form').on('click','.pop-close',function () {
@@ -45,10 +45,12 @@
             });
         });
 
-        //创建字段
+        //添加字段
         $('.create-opt').click(function () {
             var item=$(this).attr('data-item');
             var cate_id=$(this).parents('.form-group').prev('.form-group').find('select');
+            var keyType=cate_id.attr('data-type');
+
             if (!cate_id.val()) {
                 cate_id.parents('.form-group').addClass('check-error');
                 cate_id.siblings(".input-note").text("请选择商品分类");
@@ -61,9 +63,15 @@
             table.find('tr.opt-empty').remove();
             var len=tbody.find('tr').length;
             html='<tr><td><input type="hidden" name="config_id'+item+'[]" value=""><input type="text" name="name'+item+'[]" datatype="*" class="input" placeholder="字段名不能为空"></td><td><div class="button-group radio"><label class="button active"><input type="hidden" name="is_required'+item+'[]" value="1"><input  value="1"  checked="checked" type="radio">是</label><label class="button "><input  value="0"  type="radio">否</label></div>' +
-                '</td><td><select class="input" name="type'+item+'[]" id="type" data-v="0" datatype="n" nullmsg="请选择字段类型！">' +
-                '<option value=0>文本</option><option value=1>数字</option><option value=2>单选</option><option value=3>多选</option><option value=4>下拉列表</option><option value=5>日期</option><option value=6>文本域</option><option value=7>图片</option></select></td>' +
-                '<td class="opt-group"><a class="button button-small icon-plus  pop-box-add hidden" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
+                '</td><td><select class="input" name="type'+item+'[]" id="type" data-v="0" datatype="n" nullmsg="请选择字段类型！">';
+            if (keyType!=='' && keyType!==undefined && keyType>=0 && keyType<arr.length) {
+                html+='<option value='+keyType+' selected="selected">'+arr[keyType]+'</option>';
+            }else {
+                for (j=0;j<arr.length;j++) {
+                    html+='<option value="'+j+'">'+arr[j]+'</option>' ;
+                }
+            }
+            html+='</select></td><td class="opt-group"><a class="button button-small icon-plus  pop-box-add hidden" data-i="'+len+'" data-item="'+item+'"></a></td><td><input type="text" name="sort_order'+item+'[]" class="input" value="'+(len+1)+'"></td>' +
                 '<td><a class="button bg-red button-small icon-delete" href="javascript:;"  title="删除"></a></td></tr>';
             tbody.append(html);
         });
@@ -122,6 +130,7 @@
             var tbody=$(this).parents('.form-group').next('.form-group').find('tbody');
             var item=$(this).attr('data-item');
             var key=$(this).attr('data-key');
+            var keyType=$(this).attr('data-type');
             $.post('{:url("getCateConf")}',{cate_id:$(this).val(),item:item,key:key},function (result) {
                 console.log(result);
                 tbody.html('');
@@ -139,15 +148,14 @@
 
                     var optType=parseInt(data[i].type);
                     html+='</div></td><td><select class="input" data-v="'+optType+'" name="type'+item+'[]" id="type" datatype="n" nullmsg="请选择字段类型！">';
-                    html+='<option value=0 '+(optType==0 ? 'selected="selected"':'')+'>文本</option>' +
-                        '<option value=1 '+(optType==1 ? 'selected="selected"':'')+'>数字</option>' +
-                        '<option value=2 '+(optType==2 ? 'selected="selected"':'')+'>单选</option>' +
-                        '<option value=3 '+(optType==3 ? 'selected="selected"':'')+'>多选</option>' +
-                        '<option value=4 '+(optType==4 ? 'selected="selected"':'')+'>下拉列表</option>' +
-                        '<option value=5 '+(optType==5 ? 'selected="selected"':'')+'>日期</option>' +
-                        '<option value=6 '+(optType==6 ? 'selected="selected"':'')+'>文本域</option>' +
-                        '<option value=7 '+(optType==7 ? 'selected="selected"':'')+'>图片</option>' +
-                        '</select></td><td class="opt-group">';
+                    if (keyType!=='' && keyType!==undefined && keyType>=0 && keyType<arr.length) {
+                        html+='<option value='+keyType+' '+(optType==keyType ? 'selected="selected"':'')+'>'+arr[keyType]+'</option>';
+                    }else {
+                        for (j=0;j<arr.length;j++) {
+                            html+='<option value='+j+(optType==j ? ' selected="selected"':'')+'>'+arr[j]+'</option>' ;
+                        }
+                    }
+                    html+='</select></td><td class="opt-group">';
                     if (optType>=2 && optType<=4){
                         $.each(data[i].value,function (index,value) {
                             html+='<span class="pop-box">' +
