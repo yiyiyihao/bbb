@@ -676,11 +676,6 @@ class Index extends ApiBase
         ];
         $field = 'WO.installer_id,WO.worder_id,WO.worder_sn,WO.work_order_type,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.work_order_status';
         $field.=',WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time,finish_confirm_time';
-        //$field.= ',IF(WO.add_time > 0, FROM_UNIXTIME(WO.add_time), "") as add_time';
-        //$field.= ',IF(WO.cancel_time > 0, FROM_UNIXTIME(WO.cancel_time), "") as cancel_time';
-        //$field.= ',IF(WO.receive_time > 0, FROM_UNIXTIME(WO.receive_time), "") as receive_time';
-        //$field.= ',IF(WO.sign_time > 0, FROM_UNIXTIME(WO.sign_time), "") as sign_time';
-        //$field.= ',IF(WO.finish_time > 0, FROM_UNIXTIME(WO.finish_time), "") as finish_time';
         $field .= ',G.cate_id,G.name as sku_name';
         if (!$installer) {
             $where['WO.post_user_id'] = $user['user_id'];
@@ -1074,6 +1069,21 @@ class Index extends ApiBase
         if (empty($workOrderInfo['cate_id'])) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '查无工单中的商品信息']);
         }
+        $model=new WorkOrder();
+        //追加评价
+        if ($logType==1) {
+            $msg = isset($this->postParams['msg']) ? trim($this->postParams['msg']) : '';
+            if (empty($msg)) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '追加评价内容不能为空']);
+            }
+            $result=$model->workAssessAppend($workOrderInfo,$user,compact('msg'));
+            if ($result !== FALSE) {
+                $this->_returnMsg(['msg' => '评价完成']);
+            }else{
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => $model->error]);
+            }
+        }
+        //首次评价
         $assessType=2;
         $scoreType=3;
         if ($workOrderInfo['work_order_type']==2) {
@@ -1097,9 +1107,9 @@ class Index extends ApiBase
         $score = isset($this->postParams['score']) ? trim($this->postParams['score']) : '';
         $assess=json_decode($assess,true);
         $score=json_decode($score,true);
-        $model=new WorkOrder();
+
         $user['factory_id']=$this->factory['store_id'];
-        $result=$model->workAssess($workOrderInfo,$user,$assessConfig,$scoreConfig,$assess,$score,$logType);
+        $result=$model->workAssessFirst($workOrderInfo,$user,$assessConfig,$scoreConfig,$assess,$score);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '评价完成']);
         }else{

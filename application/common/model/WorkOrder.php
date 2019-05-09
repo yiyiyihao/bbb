@@ -547,18 +547,90 @@ class WorkOrder extends Model
     }
 
 
+    /**
+     * 追加评价
+     */
+    public function workAssessAppend($worder,$user,$param)
+    {
+        $status = $worder['work_order_status'];
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($status) {
+            case -1:
+                $this->error = '工单已取消,不允许评价';
+                return false;
+            case 0:
+                $this->error = '工单待分派,不允许评价';
+                return false;
+            case 1:
+                $this->error = '工单待接单,不允许评价';
+                return false;
+            case 2:
+                $this->error = '工单待上门,不允许评价';
+                return false;
+            case 3:
+                $this->error = '工程师服务中,不允许评价';
+                return false;
+            default:
+                break;
+        }
+        $first= db('work_order_assess')->where([
+            'worder_id' => $worder['worder_id'],
+            'worder_sn' => $worder['worder_sn'],
+            'type'      => 1,
+        ])->find();
+        if (empty($first)) {
+            $this->error = '您之前未评价过,不允追加评价';
+            return false;
+        }
+        $append= db('work_order_assess')->where([
+            'worder_id' => $worder['worder_id'],
+            'worder_sn' => $worder['worder_sn'],
+            'type'      => 2,
+        ])->find();
+        if (!empty($append)) {
+            $this->error = '一个工单只能追加一次评价';
+            return false;
+        }
+        if (!isset($param['msg']) && empty($param['msg'])) {
+            $this->error = '追加评价内容不能为空';
+            return false;
+        }
+
+        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $data = [
+            'worder_id'     =>  $worder['worder_id'],
+            'worder_sn'     =>  $worder['worder_sn'],
+            'installer_id'  =>  $worder['installer_id'],
+            'post_user_id'  =>  $user ? $user['user_id'] : 0,
+            'nickname'      =>  $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
+            'type'          =>  2,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'           =>  $param['msg'],
+            'add_time'      =>  time(),
+        ];
+        $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
+        if (!$assessId) {
+            $this->error = '系统故障，操作失败';
+            return false;
+        }
+        $action =  '追加评价';
+        //操作日志记录
+        $this->worderLog($worder, $user, 0, $action, $param['msg']);
+        return true;
+    }
+
+
 
     /**
+     * 首次评价
      * @param $worder 工单信息
      * @param $user   提交的用户
      * @param $assessConfig 评价配置
      * @param $scoreConfig  评分配置
      * @param $assess       评价信息
      * @param $score        评分信息
-     * @param int $logType 0首次评价，1再次评价
      * @return bool
      */
-    public function workAssess($worder,$user,$assessConfig,$scoreConfig,$assess,$score,$logType=0)
+    public function workAssessFirst($worder,$user,$assessConfig,$scoreConfig,$assess,$score)
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -570,12 +642,16 @@ class WorkOrder extends Model
         }
 
         $assessKey='';
+        $msg='';
         foreach ($assessConfig as $k=>$v) {
             if ($v['is_required']  && (!isset($assess[$v['id']])) || $assess[$v['id']]==='' || $assess[$v['id']]===null ) {
                 $this->error = $v['name'].'不能为空';
                 return false;
             }
             $assessKey=$v['key'];
+            if ($v['type']==6) {
+                $msg=isset($assess[$v['id']]) && is_string($assess[$v['id']]) ? $assess[$v['id']]:'';
+            }
         }
         $scoreKey='';
         foreach ($scoreConfig as $k=>$v) {
@@ -617,7 +693,7 @@ class WorkOrder extends Model
                 ['config_form p2', 'p2.id=p1.config_form_id'],
             ])->where([
                 ['p1.worder_id', '=', $worder['worder_id']],
-                ['p1.type', '=', $logType],
+                ['p1.type', '=', 0],
                 ['p1.post_user_id', '=', $user['user_id']],
                 ['p1.is_del', '=', 0,],
                 ['p2.is_del', '=', 0,],
@@ -649,11 +725,9 @@ class WorkOrder extends Model
                 'post_user_id'   => $user['user_id'],
                 'config_value'   => $v,
             ];
-            if ($logType == 0) {//首次评价
-                $sum+=$v;
-                //评份日志，对应表：user_installer_score
-                model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
-            }
+            $sum+=$v;
+            //评份日志，对应表：user_installer_score
+            model('user_installer')->assessAdd($worder['installer_id'],$k,$v);
         }
         $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
         $data = [
@@ -662,8 +736,8 @@ class WorkOrder extends Model
             'installer_id' => $worder['installer_id'],
             'post_user_id' => $user ? $user['user_id'] : 0,
             'nickname'     => $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
-            'type'         => $logType == 0 ? 1 : 2,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
-            'msg'          => '',
+            'type'         => 1,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'          => $msg,
             'add_time'     => time(),
         ];
         $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
@@ -679,10 +753,13 @@ class WorkOrder extends Model
         }
         $avgScore = round($sum/count($score),1);
         //安装工单
-        if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0 && $logType==0) {
+        if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
             //首次评价,处理安装服务费发放结算
             $this->serviceSettlement($worder, $assessId, $user, $avgScore);
         }
+        $action ='首次评价';
+        //操作日志记录
+        $this->worderLog($worder, $user, 0, $action, $msg);
         return true;
     }
     
