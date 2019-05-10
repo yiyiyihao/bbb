@@ -1508,7 +1508,7 @@ class Index extends ApiBase
 //         }
         $ret=json_decode($result,true);
         if ($this->method == 'uploadImageSource') {
-            $request = $this->postParams['image-data'];
+            $request = isset($this->postParams['image-data']) ? trim($this->postParams['image-data']) : '';
         }else{
             $request = $this->postParams ? json_encode($this->postParams) : '';
         }
