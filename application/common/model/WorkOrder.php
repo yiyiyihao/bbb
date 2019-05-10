@@ -329,7 +329,7 @@ class WorkOrder extends Model
         ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到【'.$address.'】,服务开始');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到,服务开始','签到地址：'.$address);
             return TRUE;
         }else{
             $this->error = '系统异常';
