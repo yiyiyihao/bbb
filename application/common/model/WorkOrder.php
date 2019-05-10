@@ -24,10 +24,11 @@ class WorkOrder extends Model
             return false;
         }
         $flag = $this->exists;
+        if (!$flag) {
+            $sn = $data['worder_sn'] = $this->_getWorderSn();
+        }
         $result = $worderId = parent::save($data, $where, $sequence);
         if (!$flag) {
-            $sn = $this->_getWorderSn();
-            $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
             $worder = [
                 'worder_sn' => $sn,
                 'worder_id' => $worderId,

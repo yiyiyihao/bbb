@@ -132,12 +132,9 @@ class FormBase extends CommonBase
         if(IS_POST){
             $data = $this->_getData();
             if (method_exists($this->model, 'save')) {
-                $orderModel = new \app\common\model\Activity();
                 $result = $this->model->save($data);
-                $pkId = $this->model->getKey();
-                if (empty($pkId)) {
-                    $pkId = $this->model->getPk();
-                }
+                $pk = $this->model->getPk();
+                $pkId = $this->model->$pk;
             }else{
                 $result = $pkId = $this->model->insertGetId($data);
             }
