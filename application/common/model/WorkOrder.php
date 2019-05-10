@@ -916,7 +916,7 @@ class WorkOrder extends Model
             2=>'install_user_confirm',//用户评价，之前命名的时候理解有误，命名本意跟实际需求不对应
             3=>'installer_assess',//用户评分
             4=>'repairman_confirm',
-            5=>'repair_user_confirm',//用户评价
+            5=>'repair_user_confirm',//用户评价,之前命名的时候理解有误，命名本意跟实际需求不对应
             6=>'repair_assess',//用户评分
         ];
         if ($type==='' || !key_exists($type,$arr)) {
@@ -924,6 +924,55 @@ class WorkOrder extends Model
         }
         $key=$arr[$type].'_'.$cateId;
         return dataFormat(0,'ok',['key'=>$key]);
+    }
+
+    public function getGoodsCateId($param)
+    {
+        $worderId=isset($param['worder_id']) &&  $param['worder_id'] ? $param['worder_id']: 0;
+        $worderSn=isset($param['worder_sn']) &&  $param['worder_sn'] ? $param['worder_sn']: '';
+        if (empty($worderId) && empty($worderSn)) {
+            return dataFormat(1,'参数错误');
+        }
+        $where=[
+            'p1.is_del'=>0,
+            'p2.is_del'=>0,
+        ];
+        if (!empty($worderId)) {
+            $where['p1.worder_id']=$worderId;
+        }
+        if (!empty($worderSn)) {
+            $where['p1.worder_sn']=$worderSn;
+        }
+        $cateId=db('work_order')
+            ->alias('p1')
+            ->join('goods p2','p1.goods_id=p2.goods_id')
+            ->where($where)
+            ->value('cate_id');
+        return dataFormat(0,'ok',['cate_id'=>$cateId]);
+    }
+
+    public function getWorkerConfig($param)
+    {
+        $worderId=isset($param['worder_id']) &&  $param['worder_id'] ? $param['worder_id']: 0;
+        $worderSn=isset($param['worder_sn']) &&  $param['worder_sn'] ? $param['worder_sn']: '';
+        $type=isset($param['type']) &&  $param['type'] ? $param['type']: 0;
+        $factoryId=isset($param['factory_id']) &&  $param['factory_id'] ? $param['factory_id']: 1;
+        if (empty($worderId) && empty($worderSn)) {
+            return dataFormat(1,'参数错误');
+        }
+        $ret=$this->getGoodsCateId($param);
+        $cateId=$ret['data']['cate_id'];
+        $data=$this->getConfigKey($cateId,$type);
+        if ($data['code'] != 0) {
+            $data;
+        }
+        $key=$data['data']['key'];
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->order('sort_order ASC')->select();
+        return dataFormat(0,'ok',$result->toArray());
     }
 
     public function getWorkOrderConfig($cateId,$type,$factoryId)
@@ -999,6 +1048,12 @@ class WorkOrder extends Model
         $result['work_info']=$workOrderInfo;
         $result['assess_info']=$assessInfo;
         $result['score_info']=$scoreInfo;
+        //追加评价的内容
+        $result['append_msg'] = db('work_order_assess')->where([
+            'is_del'    => 0,
+            'type'      => 2,
+            'worder_id' => $param['worder_id'],
+        ])->value('msg');
         return $result;
     }
 

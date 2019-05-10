@@ -978,41 +978,76 @@ class Workorder extends FactoryForm
         if ($info['work_order_status'] != 4) {
             $this->error(lang('NO ACCESS'));
         }
+        $assessType=$this->request->param('type',1,'intval');//1首次评价，2追加评价
+        $scoreConfig=[];
+        $assessConfig=[];
+        if ($assessType == 1) {
+            $ret = $this->model->getGoodsCateId($info);
+            $cateId = $ret['data']['cate_id'];
+            $type = $info['work_order_type'] == 1 ? 2 : 5;
+            $factoryId = $this->adminUser['factory_id'];
+            $assessConfig = $this->model->getWorkOrderConfig($cateId, $type, $factoryId);
+            $assessConfig = $assessConfig['data'] ?? [];
+            $type = $info['work_order_type'] == 1 ? 3 : 6;
+            $scoreConfig = $this->model->getWorkOrderConfig($cateId, $type, $factoryId);
+            $scoreConfig = $scoreConfig['data'] ?? [];
+            $workTypeMsg=$info['work_order_type']==1?"安装":"维修";
+            if (empty($assessConfig)) {
+                $this->error(lang('厂商未为当前商品类型设置'.$workTypeMsg.'评价信息'));
+            }
+            if (empty($scoreConfig)) {
+                $this->error(lang('厂商未为当前商品类型设置'.$workTypeMsg.'评分信息'));
+            }
+        }
+        //检查工单是否评论过
+        $where = [
+            'worder_id' => $info['worder_id'],
+            'is_del'    => 0,
+            'type'      => $assessType == 1 ? 1 : 2,
+        ];
+        $assessInfo = db('work_order_assess')->where($where)->find();
+        if (!empty($assessInfo)) {
+            $this->error('已经评价过，请查看详情');
+        }
         if (IS_POST) {
-            $params = $this->request->param();
-            $data = [
-                'type'      =>  $params['type'],//1 首次评论 2 追加评论
-                'msg'       =>  $params['msg'],
-            ];
-            if(isset($params['score'])){
-                $data['score'] = $params['score'];
+            $url=$info['work_order_type']==1? url('index'):url('lists');
+            if ($assessType == 2) {//追加评价
+                $params = $this->request->param();
+                $bool=$this->model->workAssessAppend($info,$this->adminUser,$params);
+                if ($bool) {
+                    $this->success('追加评价完成',$url);
+                }
+                $this->error($this->model->error,$url);
+                return ;
             }
-            $assessId = $this->model->worderAssess($info,$this->adminUser,$data);
-            if ($assessId === FALSE) {
-                $this->error($this->model->error);
-            }else{
-                $this->success('工单评价成功', url('index', ['type' => $info['work_order_type']]));
+            //首次评价
+            $assess=$this->request->param('post_conf');
+            $score=$this->request->param('score',[],'intval');
+            if (empty($assess) || empty($score)) {
+                $this->error('请完善表单信息后再提交');
             }
+            $bool=$this->model->workAssessFirst($info,$this->adminUser,$assessConfig,$scoreConfig,$assess,$score);
+            if ($bool) {
+                $this->success('评价完成',$url);
+            }
+            $this->error($this->model->error,$url);
+            //$data = [
+            //    'type'      =>  $params['type'],//1 首次评论 2 追加评论
+            //    'msg'       =>  $params['msg'],
+            //];
+            //if(isset($params['score'])){
+            //    $data['score'] = $params['score'];
+            //}
+            //$assessId = $this->model->worderAssess($info,$this->adminUser,$data);
+            //if ($assessId === FALSE) {
+            //    $this->error($this->model->error);
+            //}else{
+            //    $this->success('工单评价成功', url('index', ['type' => $info['work_order_type']]));
+            //}
         }else{
-            //检查工单是否评论过
-            $where = [
-                'worder_id'     => $info['worder_id'],
-                'is_del'        => 0,
-            ];
-            $assessInfo = db('work_order_assess')->where($where)->find();
-            if($assessInfo){
-                $type = 2;
-            }else{
-                $type = 1;
-                //取得系统配置评价项
-                $where = [
-                    'is_del' => 0,
-                    'config_key'      =>  CONFIG_WORKORDER_ASSESS,
-                ];
-                $configList = db('config')->where($where)->select();
-                $this->assign('config',$configList);
-            }
-            $this->assign('type', $type);
+            $this->assign('postConfig', $assessConfig);
+            $this->assign('score_config', $scoreConfig);
+            $this->assign('access_type', $assessType);
             $this->assign('info', $info);
             return $this->fetch();
         }
@@ -1043,7 +1078,7 @@ class Workorder extends FactoryForm
             'work_order_type'=>$info['work_order_type'],
             'factory_id'=>$this->adminUser['factory_id'],
         ]);
-        //p($data);
+
         $this->assign('postConfig',$data);
         if ($info === FALSE) {
             $this->error($this->model->error);

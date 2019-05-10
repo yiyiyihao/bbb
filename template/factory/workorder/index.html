@@ -110,7 +110,7 @@
                     {/if}
                     {if check_auth('workorder','assess') && $vo.work_order_status==4 && $adminUser.admin_type == $Think.const.ADMIN_FACTORY}
                         {if (!$vo['first_assess'] || !$vo['append_assess'])}
-                        <a href="{:url('assess', ['id' => $vo['worder_id']])}" class="button button-small bg-main icon-message"> {$vo['first_assess'] ? '追加' : '首次'}评价</a>
+                        <a href="{:url('assess', ['id' => $vo['worder_id'],'type'=>$vo['first_assess']?2:1])}" class="button button-small bg-main icon-message"> {$vo['first_assess'] ? '追加' : '首次'}评价</a>
                         {/if}
                         {if  ($vo.work_order_type==1)}
                             {if check_auth('workorder','add') && (!$vo.fix_id)}

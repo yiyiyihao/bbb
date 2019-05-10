@@ -14,18 +14,17 @@
                 </div>
                 <div class="tab-body">
                     <div class="tab-panel active" id="tab-1">
-                        {include file="workorder/form_conf" /}
-                        {notempty name="score_config"}
-                        {volist name="score_config" id="vo"}
+                        {present name="config"}
+                        {volist name="config" id="vo"}
                         <div class="form-group">
                             <div class="label">
                                 <label>{$vo.name}</label>
                             </div>
                             <div class="field">
                                 <div class="field-text">
-                                    <input type="hidden" name="score[{$vo.id}]" datatype="n">
+                                    <input type="hidden" name="score[{$vo.config_id}]" datatype="*">
                                     <span class="starBox">
-                                    {for start="0" end="5"}
+                                    {for start="0" end="$vo.config_value"}
                                     <i class="icon-star"></i>
                                     {/for}
                                     </span>
@@ -34,23 +33,21 @@
                             </div>
                         </div>
                         {/volist}
-                        {/notempty}
-                        {if isset($access_type) && $access_type==2}
+                        {/present}
                         <div class="form-group">
                             <div class="label">
                                 <label>评价内容</label>
                             </div>
                             <div class="field">
-                                <textarea class="input" name="msg" rows="6" cols="60"></textarea>
+                                <textarea class="input" id="msg" name="msg" rows="6" cols="60"></textarea>
                                 <div class="input-note">请客观填写服务评价内容</div>
                             </div>
                         </div>
-                        {/if}
                     </div>
                 </div>
                 <div class="panel-foot">
                     <div class="form-button">
-                        <input type="hidden" name="type" value="{$access_type??1}">
+                        <input type="hidden" name="type" value="{$type}">
                         <button class="button bg-main" type="submit">保存</button>
                         <button class="button bg" type="reset">重置</button>
                         <div id="tips"></div>

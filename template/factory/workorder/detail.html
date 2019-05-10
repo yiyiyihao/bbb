@@ -10,8 +10,8 @@
                         <ul class="tab-nav">
                             <li class="active"><a href="#tab-1">基本信息</a></li>
                             <li><a href="#tab-2">商品信息</a></li>
-                            <li><a href="#tab-3">日志信息</a></li>
                             <li><a href="#tab-4">评价记录</a></li>
+                            <li><a href="#tab-3">日志信息</a></li>
                         </ul>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
                                 <div class="field-text">
                                     <span class="starBox">
                                     {for start="0" end="$vo.config_value"}
-                                    <i class="icon-star"></i>
+                                    <i class="icon-star-full"></i>
                                     {/for}
                                     </span>
                                 </div>
@@ -322,6 +322,21 @@
                         </div>
                         {/volist}
                         {/present}
+
+                        {notempty name="postConfig.append_msg"}
+                        <div class="form-group">
+                            <div class="label">
+                                <label>追加评价</label>
+                            </div>
+                            <div class="field">
+                                <textarea class="input" disabled rows="6" cols="60">{$postConfig.append_msg??""}</textarea>
+                                <div class="input-note"></div>
+                            </div>
+                        </div>
+                        {/notempty}
+
+
+
                     </div>
 
                     {if condition="$info['assess_list']"}
