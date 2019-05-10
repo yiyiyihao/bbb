@@ -24,7 +24,7 @@
                             <label>标题</label>
                         </div>
                         <div class="field">
-                        	<input type="text" class="input" name="title" size="60" placeholder="模板标题" datatype="*" value="{$info['title'] ?? ''}">
+                        	<textarea rows="3" cols="60" class="input" name="title" placeholder="模板标题" datatype="*">{$info['title'] ?? ''}</textarea>
                             <div class="input-note">模板标题(示例：恭喜您，支付成功！)</div>
                         </div>
                     </div>
@@ -35,6 +35,38 @@
                         <div class="field">
                         	<textarea rows="4" cols="60" class="input" name="description" placeholder="模板描述" datatype="*">{$info['description'] ?? ''}</textarea>
                             <div class="input-note">模板描述(示例：感谢您的使用。)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>是否可点击进入网页</label>
+                        </div>
+                        <div class="field">
+                           {notpresent name="info.is_click"}
+                                {assign name="info.is_click" value="10" /}
+                           {/notpresent}
+                            <div class="button-group radio">
+                                {if condition="$info.is_click eq 1"}
+                                <label class="button active"><input name="is_click" value="1" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_click" value="1" type="radio">
+                                {/if}是</label>
+                                {if condition="$info.is_click eq 0"}
+                                <label class="button active"><input name="is_click" value="0" checked="checked" type="radio">
+                                {else /}
+                                <label class="button"><input name="is_click" value="0" type="radio">
+                                {/if}否</label>
+                            </div>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group url {if condition='$info.is_click eq 0'}hide{/if}">
+                        <div class="label">
+                            <label>网页地址</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="url" size="60" placeholder="网页地址" value="{$info['url'] ?? ''}">
+                            <div class="input-note">点击模板消息进入当前网页</div>
                         </div>
                     </div>
                	</div>
@@ -52,5 +84,13 @@
 Do.ready('base', function () {
     //表单综合处理
     $('#form').FormPage({});
+    $('input[name="is_click"]').click(function(){
+    	var is_click = $(this).val();
+    	if(is_click <= 0){
+    		$('.url').hide();
+    	}else{
+    		$('.url').show();
+    	}
+    });
 })
 </script>

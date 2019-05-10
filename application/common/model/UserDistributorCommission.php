@@ -69,13 +69,15 @@ class UserDistributorCommission extends Model
             ['promot_id',   '=', $order['promot_id']],
             ['commission_status', '=', 0],
         ];
-        $logs = $this->where($where)->select();
+        $logs = $this->where($where)->limit(0, 2)->order('comm_type ASC')->select();
         if (!$logs) {
             return FALSE;
         }
         $logIds = [];
         $userLogModel = new \app\common\model\UserLog();
         $userModel = new \app\common\model\User();
+        $informModel = new \app\common\model\LogInform();
+        $subId = 0;
         foreach ($logs as $key => $value) {
             $logId = intval($value['log_id']);
             if (!$logId) {
@@ -95,6 +97,18 @@ class UserDistributorCommission extends Model
                 //减少待结算金额 总金额不变
                 $result = $userModel->where('user_id', $userId)->setDec('pending_amount', $amount);
             }
+            $order['amount'] = $amount;
+            if ($value['comm_type'] == 1) {
+                $subId = $value['distrt_id'];
+                $order['username'] = model('UserData')->where('udata_id', $order['udata_id'])->value('nickname');
+                $templateType = 'sale_income_receipt';
+            }else{
+                if ($subId) {
+                    $order['username'] = model('UserDistributor')->where('distrt_id', $subId)->value('realname');
+                }
+                $templateType = 'manage_income_receipt';
+            }
+            $informModel->sendInform($order['factory_id'], 'wechat', ['user_id' => $value['user_id']], $templateType, $order);
         }
         //收益状态(0待结算 1已结算 2已退还)
         $result = $this->save(['commission_status' => 1], ['log_id' => ['IN', $logIds]]);

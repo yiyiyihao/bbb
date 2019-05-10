@@ -719,8 +719,9 @@ class Index extends ApiBase
             $field .= ', UG.realname as installer_name, UG.phone as installer_phone';
         }else{
             if ($status >= -1 || $status === FALSE) {
-                $sql = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].')';
+                $sql = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status != 2)';
                 $where[] = ['', 'EXP', \think\Db::raw($sql)];
+//                 $where[] = ['', 'EXP', \think\Db::raw('work_order_status != -3')];
             }else{
                 if ($status == -2) {
                     $installStatus = 1;
@@ -1604,7 +1605,7 @@ class Index extends ApiBase
 //             $this->postParams['timestamp'] = $timestamp = substr($timestamp, 0, 10);
         }
         if($timestamp + 180 < time()) {//时间戳已过期(180秒内过期)
-            $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
+//             $this->_returnMsg(array('errCode' => 1, 'errMsg' => '请求已超时'));
         }
         if(!$this->signKey) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥(signkey)参数缺失'));

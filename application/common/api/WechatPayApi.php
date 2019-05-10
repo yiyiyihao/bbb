@@ -68,7 +68,7 @@ class WechatPayApi
         // 数字签名
         $paramsXml = array_to_xml($params);
         $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';//统一下单接口地址
-        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, true);
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
         if ($returnXml === FALSE) {
             return FALSE;
         }
@@ -109,6 +109,51 @@ class WechatPayApi
             return FALSE;
         }
     }
+    
+    /**
+     * 企业支付（向微信发起企业支付到零钱的请求）
+     * @param string $openid 用户openID
+     * @param string $trade_no 单号
+     * @param string $amount 金额(单位分)
+     * @param string $desc 描述
+     **/
+    public function withdrawWallet($openid, $tradeNo, $amount, $desc = '提现到账')
+    {
+        $data = array(
+            'mch_appid' => trim($this->config['app_id']),
+            'mchid'     => trim($this->config['mch_id']),//微信支付商户号
+            'nonce_str' => get_nonce_str(32), //随机字符串
+            'partner_trade_no' => $tradeNo, //商户订单号，需要唯一
+            'openid'    => $openid,
+            'check_name'=> 'NO_CHECK', //OPTION_CHECK不强制校验真实姓名, FORCE_CHECK：强制 NO_CHECK：
+            'amount'    => $amount * 100, //付款金额单位为分
+            'desc'      => $desc,
+            'spbill_create_ip' => $_SERVER['REMOTE_ADDR'],
+        );
+        //生成签名
+        $data['sign'] = $this->_wechatGetSign($data);
+        
+        //构造XML数据（数据包要以xml格式进行发送）
+        $paramsXml = array_to_xml($data);
+        //请求url
+        $url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers';
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'支付请求异常';
+            return FALSE;
+        }
+    }
     /**
      * 订单退款
      * @param array $order 退款订单信息
@@ -133,7 +178,7 @@ class WechatPayApi
         // 数字签名
         $paramsXml = array_to_xml($params);
         $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';//退款接口地址
-        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, TRUE, TRUE);
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
         if ($returnXml === FALSE) {
             return FALSE;
         }
@@ -165,7 +210,7 @@ class WechatPayApi
         // 数字签名
         $paramsXml = array_to_xml($params);
         $url = 'https://api.mch.weixin.qq.com/pay/refundquery';//退款接口地址
-        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, TRUE, TRUE);
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
         if ($returnXml === FALSE) {
             return FALSE;
         }
@@ -182,19 +227,190 @@ class WechatPayApi
             return FALSE;
         }
     }
+    
+    /**
+     * 添加分账接收方
+     * @param array $receiver
+     * @return boolean|mixed
+     */
+    public function sharingAddReceiver($receiver = [])
+    {
+        $params = [
+            'appid'     => trim($this->config['app_id']),
+            'mch_id'    => trim($this->config['mch_id']),
+            'nonce_str' => get_nonce_str(32),
+            'sign_type' => 'HMAC-SHA256',
+            'receiver'  => $receiver ? json_encode($receiver) : '',
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params, $params['sign_type']);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        $url = 'https://api.mch.weixin.qq.com/pay/profitsharingaddreceiver';
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, FALSE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'请求异常';
+            return FALSE;
+        }
+    }
+    /**
+     * 请求分账(微信订单支付成功后，商户发起分账请求，将结算后的钱分到分账接收方)
+     * @param string    $orderSn 商户系统内部的分账单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一分账单号多次请求等同一次。
+     * @param string    $transactionId 微信支付订单号
+     * @param array     $receivers 分账接收方列表，不超过50个数组对象，不能设置分账方作为分账接受方
+     * @param boolean   $isMulti 是否可多次分账(默认为单次分账)
+     *                           单次分账：请求按照传入的分账接收方进行分账后，会将剩余的金额自动结算给商户。故操作成功后，订单不能再进行分账。
+     *                           多次分账：1.请求仅会按照传入的分账接收方进行分账，不会对剩余的金额进行任何操作。故操作成功后，在待分账金额不等于零时，订单依旧能够再次进行分账。
+     *                                 2.可以将本商户作为分账接收方直接传入，实现释放资金给本商户的功能
+     *                                 3.对同一笔订单最多能发起20次多次分账请求
+     * @return boolean|mixed
+     */
+    public function profitSharing($orderSn, $transactionId, $receivers, $isMulti = FALSE)
+    {
+        $params = [
+            'appid'         => trim($this->config['app_id']),
+            'mch_id'        => trim($this->config['mch_id']),
+            'nonce_str'     => get_nonce_str(32),
+            'sign_type'     => 'HMAC-SHA256',
+            'transaction_id'=> $transactionId,
+            'out_order_no'  => $orderSn,
+            'receivers'     => $receivers ? json_encode($receivers) : '',
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params, $params['sign_type']);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        if ($isMulti) {
+            $url = 'https://api.mch.weixin.qq.com/secapi/pay/profitsharing';
+        }else{
+            $url = 'https://api.mch.weixin.qq.com/secapi/pay/multiprofitsharing';
+        }
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'请求异常';
+            return FALSE;
+        }
+    }
+    /**
+     * 分账完成
+     * @param string    $orderSn 商户系统内部的分账单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一分账单号多次请求等同一次。
+     * @param string    $transactionId 微信支付订单号
+     * @param string    $desc   分账完结的原因描述
+     * @return boolean|mixed
+     */
+    public function finishProfitSharing($orderSn, $transactionId, $desc = '分账完成')
+    {
+        $params = [
+            'appid'         => trim($this->config['app_id']),
+            'mch_id'        => trim($this->config['mch_id']),
+            'nonce_str'     => get_nonce_str(32),
+            'sign_type'     => 'HMAC-SHA256',
+            'transaction_id'=> $transactionId,
+            'out_order_no'  => $orderSn,
+            'description'   => $desc,
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params, $params['sign_type']);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        $url = 'https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish';
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'请求异常';
+            return FALSE;
+        }
+    }
+    /**
+     * 查询分账结果
+     * @param string    $orderSn 商户系统内部的分账单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一分账单号多次请求等同一次。
+     * @param string    $transactionId 微信支付订单号
+     * @return boolean|mixed
+     */
+    public function queryProfitSharing($orderSn, $transactionId)
+    {
+        $params = [
+            'mch_id'        => trim($this->config['mch_id']),
+            'nonce_str'     => get_nonce_str(32),
+            'sign_type'     => 'HMAC-SHA256',
+            'transaction_id'=> $transactionId,
+            'out_order_no'  => $orderSn,
+        ];
+        //订单信息
+        $params['sign'] = $this->_wechatGetSign($params, $params['sign_type']);
+        // 数字签名
+        $paramsXml = array_to_xml($params);
+        $url = 'https://api.mch.weixin.qq.com/pay/profitsharingquery';
+        $returnXml = $this->_wechatPostXmlCurl($paramsXml, $url, 1000, TRUE);
+        if ($returnXml === FALSE) {
+            return FALSE;
+        }
+        $result = xml_to_array($returnXml);
+        if ($result) {
+            if (isset($result['return_code']) && $result['return_code'] == 'SUCCESS' && isset($result['result_code']) && $result['result_code'] == 'SUCCESS') {
+                return $result;
+            }else{
+                $this->error = isset($result['err_code_des']) ? $result['err_code_des'] : $result['return_msg'];
+                return FALSE;
+            }
+        }else{
+            $this->error = $this->error ? $this->error :'请求异常';
+            return FALSE;
+        }
+    }
     /**
      * 生成签名
      * @return 签名，本函数不覆盖sign成员变量，如要设置签名需要调用SetSign方法赋值
      */
-    public function _wechatGetSign($data = [])
+    public function _wechatGetSign($data = [], $signType = 'MD5')
     {
+        $key = trim($this->config['mch_key']);
         //签名步骤一：按字典序排序参数
         ksort($data);
         $string = to_url_params($data);
         //签名步骤二：在string后加入KEY
-        $string = $string . "&key=".trim($this->config['mch_key']);
-        //签名步骤三：MD5加密
-        $string = md5($string);
+        $string = $string . "&key=".$key;
+        //签名步骤三：加密
+        switch ($signType) {
+            case 'HMAC-SHA256':
+                $string = hash_hmac('sha256', $data, $key);
+            break;
+            default:
+                $string = md5($string);
+            break;
+        }
         //签名步骤四：所有字符转为大写
         $result = strtoupper($string);
         return $result;

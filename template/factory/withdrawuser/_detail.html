@@ -25,6 +25,14 @@
         </div>
         <div class="form-group">
             <div class="label">
+                <label>到账类型</label>
+            </div>
+            <div class="field">
+            	<span class="field-text">{$info['arrival_type_txt'] ?? '银行卡'}</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="label">
                 <label>提现状态</label>
             </div>
             <div class="field">
@@ -34,6 +42,7 @@
             </div>
         </div>
         {if ($info['withdraw_status'] != 0)}
+        {if ($info['arrival_type'] == 'bank')}
         <div class="form-group allowed">
             <div class="label">
                 <label>转账流水号</label>
@@ -52,6 +61,7 @@
 				     <div class="img_preview" style="margin-bottom:10px;"><img src="{$info['img']|default='/static/base/images/default.png'}" id="img_preview" width="120"></div>
 			</div>
 		</div>
+		{/if}
      	<div class="form-group">
 	         <div class="label">
 	             <label>备注</label>
@@ -64,6 +74,7 @@
      	</div>
      	{/if}
  	</div>
+ 	{if ($info['arrival_type'] == 'bank')}
  	<div class="tab-panel" id="tab-2">
 	 	<div class="form-group">
 	         <div class="label">
@@ -90,3 +101,4 @@
 	         </div>
 	     </div>
 	 </div>
+	 {/if}

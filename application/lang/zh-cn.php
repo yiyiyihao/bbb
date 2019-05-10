@@ -89,6 +89,7 @@ RETURN [
     'APPLY'                 =>  '申请提现',
     'USER_DISTRIBUTOR'      =>  '分销员',
     'PROMOTION'             =>  '分销活动',
+    'TEMPLATE_CONFIG'       =>  '模板通知',
     
     'SUCCESS'               =>  '成功',
     'FAIL'                  =>  '失败',

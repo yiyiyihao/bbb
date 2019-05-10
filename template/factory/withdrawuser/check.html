@@ -5,7 +5,9 @@
                 <div class="tab-head">
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-1">提现审核</a></li>
-                        <li><a href="#tab-2">提现账户信息</a></li>
+                        {if ($info['arrival_type'] == 'bank')}
+                        <li><a href="#tab-2">银行卡账户信息</a></li>
+                        {/if}
                     </ul>
                 </div>
             </div>
@@ -22,6 +24,7 @@
                             </div>
                         </div>
                     </div>
+                    {if ($info['arrival_type'] == 'bank')}
                     <div class="form-group allowed">
                         <div class="label">
                             <label>转账流水号</label>
@@ -46,6 +49,7 @@
 			                <div class="input-note"></div>
 						</div>
 					</div>
+					{/if}
                     <div class="form-group">
                         <div class="label">
                             <label>备注</label>

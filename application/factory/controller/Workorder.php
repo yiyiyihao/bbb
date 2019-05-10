@@ -1281,9 +1281,9 @@ class Workorder extends FactoryForm
         if ($type == 1) {
             //判断当前产品对应工单数量
             $exist = $this->model->where(['ossub_id' => $ossub['ossub_id'], 'work_order_type' => 1, 'work_order_status' => ['<>', -1]])->find();
-            if ($exist) {
-                $this->error('当前产品已申请安装工单', url('workorder/index'));
-            }
+//             if ($exist) {
+//                 $this->error('当前产品已申请安装工单', url('workorder/index'));
+//             }
         }
         if ($type == 2) {
             $wid = isset($params['wid']) ? intval($params['wid']) : 0;
