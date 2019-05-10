@@ -1009,7 +1009,7 @@ class Index extends ApiBase
         $config=$config['data'];
         if ($config) {
             foreach ($config as $k=>$v) {
-                if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]==='' || $postConf[$v['id']]===null ) {
+                if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]=='' || $postConf[$v['id']]==null ) {
                     $this->_returnMsg(['errCode' => 1, 'errMsg' => $v['name'].'不能为空']);
                     return false;
                 }
