@@ -1507,6 +1507,11 @@ class Index extends ApiBase
 //             $this->postParams['timestamp'] = substr($this->postParams['timestamp'], 0, 10);
 //         }
         $ret=json_decode($result,true);
+        if ($this->method == 'uploadImageSource') {
+            $request = $this->postParams['image-data'];
+        }else{
+            $request = $this->postParams ? json_encode($this->postParams) : '';
+        }
         $addData = [
             'module'        => $this->request->module(),
             'controller'    => strtolower($this->request->controller()),
@@ -1515,7 +1520,7 @@ class Index extends ApiBase
             'request_source'=> $this->fromSource ? $this->fromSource : '',
             'return_time'   => time(),
             'method'        => $this->method ? $this->method : '',
-            'request_params'=> $this->postParams ? json_encode($this->postParams) : '',
+            'request_params'=> $request,
             'return_params' => $result,
             'response_time' => $responseTime,
             'error'         => isset($ret['errCode'])  ? intval($ret['errCode']) : 0,
