@@ -899,7 +899,7 @@ class WorkOrder extends Model
             'installer_id' => $installerId,
             'user_id'      => isset($user['user_id']) ? $user['user_id'] : 0,
             'udata_id'     => isset($user['udata_id']) ? $user['udata_id'] : 0,
-            'nickname'     => $user ? $username : '系统',
+            'nickname'     => $user ? ($username? $username:'客户') : '系统',
             'action'       => $action,
             'msg'          => $msg,
             'add_time'     => time(),
