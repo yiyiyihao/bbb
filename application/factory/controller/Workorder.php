@@ -13,6 +13,7 @@ class Workorder extends FactoryForm
     var $statusList;
     var $orderTypes;
     private $orgInfo;
+    private $workAddConf;
     public function __construct()
     {
         $this->modelName = 'work_order';
@@ -915,7 +916,6 @@ class Workorder extends FactoryForm
         if ($type == 2 && !in_array($this->adminUser['admin_type'], [ADMIN_FACTORY])) {
             $this->error(lang('NO ACCESS'));
         }
-
         $name=$type==1?"新增安装工单":"新增维修工单";
         $this->assign('workOrderName',$name);
         return parent::add();
@@ -924,16 +924,25 @@ class Workorder extends FactoryForm
     function _afterAdd($pkId = 0, $data = [])
     {
         $postConf=$this->request->param('post_conf');
-        $ossubId=$this->request->param('ossub_id',0,'intval');
-        $work_type=$this->request->param('work_type',1,'intval');
-        $config=$this->getPostConf($ossub['sku_id'],$work_type);
+        $config=$this->workAddConf;
         if ($config && empty($postConf)) {
-            $this->error('请先完善表单信息');
+            if ($postConf) {
+                $postData = [];
+                foreach ($postConf as $k => $v) {
+                    $postData[] = [
+                        'config_form_id' => $k,
+                        'worder_id'      => $pkId,
+                        'store_id'       => $this->adminUser['factory_id'],
+                        'post_store_id'  => $this->adminUser['store_id'],
+                        'post_user_id'   => $this->adminUser['user_id'],
+                        'config_value'   => $v,
+                    ];
+                }
+                $model = new ConfigFormLogs;
+                $result = $model->saveAll($postData);
+            }
         }
     }
-
-
-
     //指派售后工程师
     public function dispatch()
     {
@@ -1299,6 +1308,23 @@ class Workorder extends FactoryForm
         $info = parent::_assignInfo();
         if (!$info) {
             $ossub = $this->_getSkuSub($info);
+        }
+        if ($ossub) {
+            $postConf= $this->request->param('post_conf',[]);
+            $orderType= $this->request->param('work_type',1,'intval');
+            $config=$this->getPostConf($ossub['sku_id'],$orderType);
+            if ($config && empty($postConf)) {
+                $this->error('请先完善表单信息');
+            }
+            if ($config) {
+                foreach ($config as $k=>$v) {
+                    if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]==='' || $postConf[$v['id']]===null ) {
+                        $this->error($v['name'].'不能为空');
+                        return false;
+                    }
+                }
+                $this->workAddConf=$config;
+            }
         }
         $type = isset($params['type']) ? intval($params['type']) : '';
         $userName = isset($data['user_name']) ? trim($data['user_name']) : '';
