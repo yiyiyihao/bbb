@@ -418,7 +418,7 @@ class WorkOrder extends Model
                 $field		    =>	\Think\Db::raw($field.'+1'),
             ],['installer_id'=>$worder['installer_id']]);
             //操作日志记录
-            $this->worderLog($worder, $user, $worder['installer_id'], '确认完成');
+            $this->worderLog($worder, $user, $worder['installer_id'], '工程师确认服务完成');
             return TRUE;
         }else{
             $this->error = '系统异常';

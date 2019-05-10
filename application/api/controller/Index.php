@@ -814,7 +814,7 @@ class Index extends ApiBase
             'finish_confirm_time' => time(),
         ]);
         if ($result) {
-            $ret=(new WorkOrder())->worderLog($workOrderInfo,$user,0,'用户确认工单服务完成');
+            $ret=(new WorkOrder())->worderLog($workOrderInfo,$user,0,'用户确认服务完成');
             $this->_returnMsg(['errCode' => 0, 'errMsg' => '操作成功']);
         }
         $this->_returnMsg(['errCode' => 1, 'errMsg' => '操作失败']);
