@@ -925,22 +925,20 @@ class Workorder extends FactoryForm
     {
         $postConf=$this->request->param('post_conf');
         $config=$this->workAddConf;
-        if ($config && empty($postConf)) {
-            if ($postConf) {
-                $postData = [];
-                foreach ($postConf as $k => $v) {
-                    $postData[] = [
-                        'config_form_id' => $k,
-                        'worder_id'      => $pkId,
-                        'store_id'       => $this->adminUser['factory_id'],
-                        'post_store_id'  => $this->adminUser['store_id'],
-                        'post_user_id'   => $this->adminUser['user_id'],
-                        'config_value'   => $v,
-                    ];
-                }
-                $model = new ConfigFormLogs;
-                $result = $model->saveAll($postData);
+        if ($config && !empty($postConf)) {
+            $postData = [];
+            foreach ($postConf as $k => $v) {
+                $postData[] = [
+                    'config_form_id' => $k,
+                    'worder_id'      => $pkId,
+                    'store_id'       => $this->adminUser['factory_id'],
+                    'post_store_id'  => $this->adminUser['store_id'],
+                    'post_user_id'   => $this->adminUser['user_id'],
+                    'config_value'   => $v,
+                ];
             }
+            $model = new ConfigFormLogs;
+            $result = $model->saveAll($postData);
         }
     }
     //指派售后工程师
