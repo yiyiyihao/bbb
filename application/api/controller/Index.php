@@ -850,21 +850,10 @@ class Index extends ApiBase
         if (!$detail) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '售后工单不存在或已删除']);
         }
-        $workAddInfo=[];//工单提交信息
-        $workOrderInfo=[];//安装\维修 详情
-        $assessInfo=[];//用户评价配置
-        $scoreInfo=[];//用户评分配置
         $workOrderModel = new \app\common\model\WorkOrder();
         $detail['factory_id']=$this->factory['store_id'];
         $configLogsDetail=$workOrderModel->getConfigLogDetail($detail);
-        unset($detail['factory_id']);
         $detail=array_merge($detail,$configLogsDetail);
-
-        $detail['work_add_info']=$workAddInfo;
-        $detail['work_info']=$workOrderInfo;
-        $detail['assess_info']=$assessInfo;
-        $detail['score_info']=$scoreInfo;
-
         $detail['add_time'] = time_to_date($detail['add_time']);
         $detail['dispatch_time'] = time_to_date($detail['dispatch_time']);
         $detail['cancel_time'] = time_to_date($detail['cancel_time']);
