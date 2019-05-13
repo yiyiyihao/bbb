@@ -39,11 +39,12 @@
                                 <label>工单类型</label>
                             </div>
                             <div class="field">
-                                <div class="button-group radio">
-                                    <label class="button"><input name="work_type" value="1" type="radio" datatype="*">安装工单</label>
-                                    <label class="button"><input name="work_type" value="2" type="radio" datatype="*">维修工单</label>
+                                <div class="button-group">
+                                    <label class="button {if condition='$work_type eq 1'}active{/if}"><input name="work_type" value="1" type="radio" datatype="*" {if condition='$work_type eq 1'}checked="checked"{/if}>安装工单</label>
+                                    <label class="button {if condition='$work_type eq 2'}active{/if}"><input name="work_type" value="2" type="radio" datatype="*" {if condition='$work_type eq 2'}checked="checked"{/if}>维修工单</label>
+                                    
                                 </div>
-                                <div class="input-note">请选择工单类型</div>
+                                <div class="input-note"></div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -67,6 +68,8 @@
                                 <div class="input-note">请填写预约服务时间</div>
                             </div>
                         </div>
+
+                        {if condition="$work_type==2"}
                         <div class="form-group">
                             <div class="label">
                                 <label>图片</label>
@@ -89,7 +92,8 @@
                                 <div class="input-note">请简要描述备注信息</div>
                             </div>
                         </div>
-
+                        {/if}
+                        {include file="workorder/form_conf" /}
                     </div>
                     <!-- <div class="tab-panel" id="tab-2">
                      <div class="form-group">

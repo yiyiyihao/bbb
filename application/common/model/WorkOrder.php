@@ -24,10 +24,11 @@ class WorkOrder extends Model
             return false;
         }
         $flag = $this->exists;
+        if (!$flag) {
+            $sn = $data['worder_sn'] = $this->_getWorderSn();
+        }
         $result = $worderId = parent::save($data, $where, $sequence);
         if (!$flag) {
-            $sn = $this->_getWorderSn();
-            $this->save(['worder_sn' => $sn], ['worder_id' => $worderId]);
             $worder = [
                 'worder_sn' => $sn,
                 'worder_id' => $worderId,
@@ -291,7 +292,7 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderSign($worder, $user, $installer)
+    public function worderSign($worder, $user, $installer,$address='')
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -322,10 +323,14 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['work_order_status' => 3, 'sign_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save([
+            'work_order_status' => 3,
+            'sign_time'         => time(),
+            'sign_address'      => $address,
+        ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到,服务开始');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师签到,服务开始','签到地址：'.$address);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -414,7 +419,7 @@ class WorkOrder extends Model
                 $field		    =>	\Think\Db::raw($field.'+1'),
             ],['installer_id'=>$worder['installer_id']]);
             //操作日志记录
-            $this->worderLog($worder, $user, $worder['installer_id'], '确认完成');
+            $this->worderLog($worder, $user, $worder['installer_id'], '工程师确认服务完成');
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -541,12 +546,223 @@ class WorkOrder extends Model
             return FALSE;
         }
     }
+
+
+    /**
+     * 追加评价
+     */
+    public function workAssessAppend($worder,$user,$param)
+    {
+        $status = $worder['work_order_status'];
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($status) {
+            case -1:
+                $this->error = '工单已取消,不允许评价';
+                return false;
+            case 0:
+                $this->error = '工单待分派,不允许评价';
+                return false;
+            case 1:
+                $this->error = '工单待接单,不允许评价';
+                return false;
+            case 2:
+                $this->error = '工单待上门,不允许评价';
+                return false;
+            case 3:
+                $this->error = '工程师服务中,不允许评价';
+                return false;
+            default:
+                break;
+        }
+        $first= db('work_order_assess')->where([
+            'worder_id' => $worder['worder_id'],
+            'worder_sn' => $worder['worder_sn'],
+            'type'      => 1,
+        ])->find();
+        if (empty($first)) {
+            $this->error = '您之前未评价过,不允追加评价';
+            return false;
+        }
+        $append= db('work_order_assess')->where([
+            'worder_id' => $worder['worder_id'],
+            'worder_sn' => $worder['worder_sn'],
+            'type'      => 2,
+        ])->find();
+        if (!empty($append)) {
+            $this->error = '一个工单只能追加一次评价';
+            return false;
+        }
+        if (!isset($param['msg']) && empty($param['msg'])) {
+            $this->error = '追加评价内容不能为空';
+            return false;
+        }
+
+        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $data = [
+            'worder_id'     =>  $worder['worder_id'],
+            'worder_sn'     =>  $worder['worder_sn'],
+            'installer_id'  =>  $worder['installer_id'],
+            'post_user_id'  =>  $user ? $user['user_id'] : 0,
+            'nickname'      =>  $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
+            'type'          =>  2,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'           =>  $param['msg'],
+            'add_time'      =>  time(),
+        ];
+        $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
+        if (!$assessId) {
+            $this->error = '系统故障，操作失败';
+            return false;
+        }
+        $action =  '追加评价';
+        //操作日志记录
+        $this->worderLog($worder, $user, 0, $action, $param['msg']);
+        return true;
+    }
+
+
+
+    /**
+     * 首次评价
+     * @param $worder 工单信息
+     * @param $user   提交的用户
+     * @param $assessConfig 评价配置
+     * @param $scoreConfig  评分配置
+     * @param $assess       评价信息
+     * @param $score        评分信息
+     * @return bool
+     */
+    public function workAssessFirst($worder,$user,$assessConfig,$scoreConfig,$assess,$score)
+    {
+        if (!$worder) {
+            $this->error = '参数错误';
+            return false;
+        }
+
+        if (empty($assess) || empty($score)) {
+            $this->error = '请先完善全部评价信息再提交';
+        }
+        $msg='';
+        foreach ($assessConfig as $k=>$v) {
+            if ($v['is_required']  && (!isset($assess[$v['id']])) || $assess[$v['id']]==='' || $assess[$v['id']]===null ) {
+                $this->error = $v['name'].'不能为空';
+                return false;
+            }
+            if ($v['type']==6) {
+                $msg=isset($assess[$v['id']]) && is_string($assess[$v['id']]) ? $assess[$v['id']]:'';
+            }
+        }
+        foreach ($scoreConfig as $k=>$v) {
+            if ($v['is_required']  && (!isset($score[$v['id']])) || $score[$v['id']]==='' || $score[$v['id']]===null ) {
+                $this->error = $v['name'].'不能为空';
+                return false;
+            }
+            if ($score[$v['id']]>5 ||$score[$v['id']]<=0) {
+                $this->error = $v['name'].'得分只能在1~5之间';
+                return false;
+            }
+        }
+        $status = $worder['work_order_status'];
+        //状态(-1 已取消 0待分派 1待接单 2待上门 3服务中 4服务完成)
+        switch ($status) {
+            case -1:
+                $this->error = '工单已取消,不允许评价';
+                return false;
+            case 0:
+                $this->error = '工单待分派,不允许评价';
+                return false;
+            case 1:
+                $this->error = '工单待接单,不允许评价';
+                return false;
+            case 2:
+                $this->error = '工单待上门,不允许评价';
+                return false;
+            case 3:
+                $this->error = '工程师服务中,不允许评价';
+                return false;
+            default:
+                break;
+        }
+        //是否已经评价过
+        $exit = db('work_order_assess')->where([
+            'worder_sn' => $worder['worder_sn'],
+            'worder_id' => $worder['worder_id'],
+            'type'      => 1,//1首次评价 2追加评价
+            'is_del'    => 0,
+        ])->find();
+        if (!empty($exit)) {
+            $this->error = '用户已经评价过';
+            return false;
+        }
+        $nickname = isset($user['realname']) && $user['realname'] ? $user['realname'] : (isset($user['nickname']) && $user['nickname'] ? $user['nickname'] : (isset($user['username']) && $user['username'] ? $user['username'] : ''));
+        $data = [
+            'worder_id'    => $worder['worder_id'],
+            'worder_sn'    => $worder['worder_sn'],
+            'installer_id' => $worder['installer_id'],
+            'post_user_id' => $user ? $user['user_id'] : 0,
+            'nickname'     => $user['user_id'] ? ($nickname ? $nickname : '客户') : '系统',
+            'type'         => 1,//1 首次评价 2 追加评价(追加评价只有评价内容,没有评分)
+            'msg'          => $msg,
+            'add_time'     => time(),
+        ];
+        $assessId = db('work_order_assess')->insertGetId($data);//添加评价记录
+        if (!$assessId) {
+            $this->error = '系统故障，操作失败';
+            return false;
+        }
+
+        //写入评价数据
+        $postData = [];
+        foreach ($assess as $k => $v) {
+            $postData[] = [
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+                'assess_id'      => $assessId,
+            ];
+        }
+        $sum = 0;
+        foreach ($score as $k => $v) {
+            $postData[] = [
+                'config_form_id' => $k,
+                'worder_id'      => $worder['worder_id'],
+                'store_id'       => $user['factory_id'],
+                'post_store_id'  => $user['store_id'],
+                'post_user_id'   => $user['user_id'],
+                'config_value'   => $v,
+                'assess_id'      => $assessId,
+            ];
+            $sum += $v;
+            //评份日志，对应表：user_installer_score
+            model('user_installer')->assessAdd($worder['installer_id'], $k, $v);
+        }
+
+        $model = new ConfigFormLogs;
+        $result = $model->saveAll($postData);
+        if ($result->isEmpty()) {
+            $this->error = '操作失败';
+            return false;
+        }
+        $avgScore = round($sum/count($score),1);
+        //安装工单
+        if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
+            //首次评价,处理安装服务费发放结算
+            $this->serviceSettlement($worder, $assessId, $user, $avgScore);
+        }
+        $action ='首次评价';
+        //操作日志记录
+        $this->worderLog($worder, $user, 0, $action, $msg);
+        return true;
+    }
     
     /**
      * 工单评价操作
      * @param array $worder
      * @param array $user
      * @param array $assessData 用户提交评价信息
+     * @deprecated 2019/05/08 JINZHOU
      */
     public function worderAssess($worder = [], $user = [], $assessData = []){
         if (!$worder) {
@@ -684,13 +900,166 @@ class WorkOrder extends Model
             'installer_id' => $installerId,
             'user_id'      => isset($user['user_id']) ? $user['user_id'] : 0,
             'udata_id'     => isset($user['udata_id']) ? $user['udata_id'] : 0,
-            'nickname'     => $user ? $username : '系统',
+            'nickname'     => $user ? ($username? $username:'客户') : '系统',
             'action'       => $action,
             'msg'          => $msg,
             'add_time'     => time(),
         ];
         return $result = db('work_order_log')->insertGetId($data);
     }
+
+
+    public function getConfigKey($cateId,$type)
+    {
+        $arr=[
+            0=>'work_order_install_add',
+            1=>'installer_confirm',
+            2=>'install_user_confirm',//用户评价，之前命名的时候理解有误，命名本意跟实际需求不对应
+            3=>'installer_assess',//用户评分
+            4=>'repairman_confirm',
+            5=>'repair_user_confirm',//用户评价,之前命名的时候理解有误，命名本意跟实际需求不对应
+            6=>'repair_assess',//用户评分
+        ];
+        if ($type==='' || !key_exists($type,$arr)) {
+            return dataFormat(1,'请选择表单的类型');
+        }
+        $key=$arr[$type].'_'.$cateId;
+        return dataFormat(0,'ok',['key'=>$key]);
+    }
+
+    public function getGoodsCateId($param)
+    {
+        $worderId=isset($param['worder_id']) &&  $param['worder_id'] ? $param['worder_id']: 0;
+        $worderSn=isset($param['worder_sn']) &&  $param['worder_sn'] ? $param['worder_sn']: '';
+        if (empty($worderId) && empty($worderSn)) {
+            return dataFormat(1,'参数错误');
+        }
+        $where=[
+            'p1.is_del'=>0,
+            'p2.is_del'=>0,
+        ];
+        if (!empty($worderId)) {
+            $where['p1.worder_id']=$worderId;
+        }
+        if (!empty($worderSn)) {
+            $where['p1.worder_sn']=$worderSn;
+        }
+        $cateId=db('work_order')
+            ->alias('p1')
+            ->join('goods p2','p1.goods_id=p2.goods_id')
+            ->where($where)
+            ->value('cate_id');
+        return dataFormat(0,'ok',['cate_id'=>$cateId]);
+    }
+
+    public function getWorkerConfig($param)
+    {
+        $worderId=isset($param['worder_id']) &&  $param['worder_id'] ? $param['worder_id']: 0;
+        $worderSn=isset($param['worder_sn']) &&  $param['worder_sn'] ? $param['worder_sn']: '';
+        $type=isset($param['type']) &&  $param['type'] ? $param['type']: 0;
+        $factoryId=isset($param['factory_id']) &&  $param['factory_id'] ? $param['factory_id']: 1;
+        if (empty($worderId) && empty($worderSn)) {
+            return dataFormat(1,'参数错误');
+        }
+        $ret=$this->getGoodsCateId($param);
+        $cateId=$ret['data']['cate_id'];
+        $data=$this->getConfigKey($cateId,$type);
+        if ($data['code'] != 0) {
+            $data;
+        }
+        $key=$data['data']['key'];
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->order('sort_order ASC')->select();
+        return dataFormat(0,'ok',$result->toArray());
+    }
+
+    public function getWorkOrderConfig($cateId,$type,$factoryId)
+    {
+        $data=$this->getConfigKey($cateId,$type);
+        if ($data['code'] != 0) {
+            $data;
+        }
+        $key=$data['data']['key'];
+
+        $result = ConfigForm::field('id,name,is_required,type,value')->where([
+            'is_del'   => 0,
+            'store_id' => $factoryId,
+            'key'      => $key,
+        ])->order('sort_order ASC')->select();
+        return dataFormat(0,'ok',$result->toArray());
+    }
+
+    public function getWorkOrderConfLogs($workId,$cateId,$type,$factoryId=1)
+    {
+        $result=$this->getConfigKey($cateId,$type,$factoryId);
+        if ($result['code'] != 0) {
+            return $result;
+        }
+        $key=$result['data']['key'];
+        $config=db('config_form_logs')
+            ->alias('p1')
+            ->field('p2.name,p2.type,p2.value,p1.config_value')
+            ->join('config_form p2','p1.config_form_id=p2.id')
+            ->where([
+                'p2.is_del'    => 0,
+                'p2.store_id'  => $factoryId,
+                'p2.key'       => $key,
+                'p1.is_del'    => 0,
+                'p1.type'      => 0,//0首次
+                'p1.worder_id' => $workId,
+            ])
+            ->order('p2.sort_order ASC')
+            ->select();
+        foreach ($config as $k=>$v) {
+            if (in_array($v['type'], [2, 3, 4])) {
+                $config[$k]['value']=json_decode($config[$k]['value'],true);
+                $config[$k]['config_value']=json_decode($config[$k]['config_value'],true);
+            }
+        }
+        return dataFormat(0,'ok',$config);
+    }
+
+    public function getConfigLogDetail($param)
+    {
+        $workAddInfo=[];//工单提交信息
+        $workOrderInfo=[];//安装\维修 详情
+        $assessInfo=[];//用户评价配置
+        $scoreInfo=[];//用户评分配置
+        if ($param['work_order_type']==1) {//安装工单
+            $workAddInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],0,$param['factory_id']);
+            $workAddInfo=isset($workAddInfo['data'])?$workAddInfo['data']:[];
+            $workOrderInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],1,$param['factory_id']);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],2,$param['factory_id']);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],3,$param['factory_id']);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }else{
+            $workOrderInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],4,$param['factory_id']);
+            $workOrderInfo=isset($workOrderInfo['data'])?$workOrderInfo['data']:[];
+            $assessInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],5,$param['factory_id']);
+            $assessInfo=isset($assessInfo['data'])?$assessInfo['data']:[];
+            $scoreInfo=$this->getWorkOrderConfLogs($param['worder_id'],$param['cate_id'],6,$param['factory_id']);
+            $scoreInfo=isset($scoreInfo['data'])?$scoreInfo['data']:[];
+        }
+        $result['work_add_info']=$workAddInfo;
+        $result['work_info']=$workOrderInfo;
+        $result['assess_info']=$assessInfo;
+        $result['score_info']=$scoreInfo;
+        //追加评价的内容
+        $result['append_msg'] = db('work_order_assess')->where([
+            'is_del'    => 0,
+            'type'      => 2,
+            'worder_id' => $param['worder_id'],
+        ])->value('msg');
+        return $result;
+    }
+
+
+
     private function _worderInstallerLog($worder, $installerId, $action = "dispatch_other", $status = 1)
     {
         $logModel = db('work_order_installer_record');

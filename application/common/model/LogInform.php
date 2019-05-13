@@ -161,52 +161,54 @@ class LogInform extends Model
             $this->error = '微信模板ID不能为空';
             return FALSE;
         }
+        $userId = isset($toUser['user_id']) ? intval($toUser['user_id']) : 0;
         $udataId = isset($toUser['udata_id']) ? intval($toUser['udata_id']) : 0;
-        $openid = '';
-        if (!$udataId) {
-            $userId = isset($toUser['user_id']) ? intval($toUser['user_id']) : 0;
-            if (!$userId) {
+        $openid = isset($toUser['openid']) ? trim($toUser['openid']) : '';
+        if (!$openid) {
+            if (!$udataId && !$userId) {
                 $this->error = '用户openid为空';
                 return FALSE;
-            }
-        }else{
-            $udata = model('UserData')->where('udata_id', $udataId)->find();
-            if (!$udata) {
-                $this->error = '用户不存在';
-                return FALSE;
-            }
-            $userId = $udata['user_id'];
-            if ($udata['third_type'] == 'wechat_h5' && $udata['appid'] == $appid) {
-                $openid = $udata['third_openid'];
-            }elseif (!$userId){
-                $this->error = '用户不存在';
-                return FALSE;
+            }else{
+                if ($udataId){
+                    $where = [
+                        ['udata_id', '=', $udataId],
+                        ['third_type', '=', 'wechat_h5'],
+                        ['is_del', '=', 0],
+                        ['appid', '=', $appid],
+                    ];
+                    $udata = model('UserData')->where($where)->find();
+                    if (!$udata && !$userId) {
+                        $this->error = '用户不存在';
+                        return FALSE;
+                    }
+                    $openid = $udata ? $udata['third_openid'] : '';
+                    if ($udata['user_id']) {
+                        $userId = $udata['user_id'];
+                    }
+                }
+                if (!$openid && $userId){
+                    $where = [
+                        ['user_id', '=', $userId],
+                        ['third_type', '=', 'wechat_h5'],
+                        ['is_del', '=', 0],
+                        ['appid', '=', $appid],
+                    ];
+                    $udata = model('UserData')->where($where)->find();
+                    if (!$udata) {
+                        $this->error = '用户不存在';
+                        return FALSE;
+                    }
+                    $openid = $udata['third_openid'];
+                    $udataId = $udata['udata_id'];
+                }
             }
         }
-        if (!$openid) {
-            $where = [
-                ['user_id', '=', $userId],
-                ['third_type', '=', 'wechat_h5'],
-                ['is_del', '=', 0],
-                ['appid', '=', $appid],
-            ];
-            $udata = model('UserData')->where($where)->find();
-            if (!$udata) {
-                $this->error = '用户不存在';
-                return FALSE;
-            }
-            $openid = $udata['third_openid'];
-        }
-        $url = '';
+        
+        $title = trim($config['title']);
         switch ($templateType) {
-            case 'pay_success':
-                $url = 'http://m.smarlife.cn/everyone#me';
+            case 'order_pay_success':
                 //直接发送会员通知
-                $params = [
-                    'first' => [
-                        'value' => $config['title'],
-                        'color' => '#173177',
-                    ],
+                $keywords = [
                     'keyword1' => [
                         'value' => $extra['order_sn'],
                         'color' => '#173177',
@@ -227,8 +229,202 @@ class LogInform extends Model
                         'value' => $extra['add_time'],
                         'color' => '#173177',
                     ],
-                    'remark' => [
-                        'value' => $config['description'],
+                ];
+                break;
+            case 'order_pay_manager':
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['order_sn'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['goods_name'],
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => $extra['paid_amount'].'元',
+                        'color' => '#173177',
+                    ],
+                    'keyword4' => [
+                        'value' => '在线支付',
+                        'color' => '#173177',
+                    ],
+                    'keyword5' => [
+                        'value' => $extra['address_name'].', '.$extra['address_phone'].', '.$extra['address_detail'],
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'order_delivery_express'://订单发货
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['order_sn'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['goods_name'],
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => $extra['delivery_name'],
+                        'color' => '#173177',
+                    ],
+                    'keyword4' => [
+                        'value' => $extra['delivery_sn'],
+                        'color' => '#173177',
+                    ],
+                    'keyword5' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'order_finish'://订单签收
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['order_sn'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'commission_record'://佣金记录
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['order_sn'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'withdraw_user_apply'://申请提现
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['amount'].'元',
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => $extra['arrival_type'],
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'withdraw_user_success'://提现成功
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['arrival_type_txt'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['amount'].'元',
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => $extra['add_time'],
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'withdraw_user_fail'://提现失败
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['amount'].'元',
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['add_time'],
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => '已退回',
+                        'color' => '#173177',
+                    ],
+                    'keyword4' => [
+                        'value' => $extra['remark'],
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'sale_income_receipt'://收益到账
+            case 'manage_income_receipt'://收益到账
+                $username = isset($extra['username']) && trim($extra['username']) ? trim($extra['username']) : '用户';
+                $goodsname = isset($extra['goods_name']) && trim($extra['goods_name']) ? trim($extra['goods_name']) : '商品';
+                //替换{{username}}{{goodsname}}
+                $title = $username ? str_ireplace('{{username}}', $username, $title) : $title;
+                $title = $goodsname ? str_ireplace('{{goodsname}}', $goodsname, $title): $title;
+                $title = str_ireplace('{{amount}}', $extra['amount'], $title);
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['amount'].'元',
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'withdraw_manager_apply'://提醒管理员审核通知
+                $username = isset($extra['realname']) && trim($extra['realname']) ? trim($extra['realname']) : '用户';
+                //替换{{username}}
+                $title = $username ? str_ireplace('{{username}}', $username, $title) : $title;
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $username,
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => $extra['amount'].'元',
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'user_check_result'://代言人审核结果
+            case 'user_check_parent_result'://代言人审核结果
+                $username = isset($extra['realname']) && trim($extra['realname']) ? trim($extra['realname']) : '用户';
+                //替换{{username}}
+                $title = $username ? str_ireplace('{{username}}', $username, $title) : $title;
+                $keywords = [
+                    'keyword1' => [
+                        'value' => $extra['realname'],
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['check_status_text'],
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => time_to_date(time()),
+                        'color' => '#173177',
+                    ],
+                ];
+                break;
+            case 'user_apply_manager'://提醒管理员审核通知
+                $keywords = [
+                    'keyword1' => [
+                        'value' => '代言人审核',
+                        'color' => '#173177',
+                    ],
+                    'keyword2' => [
+                        'value' => $extra['realname'],
+                        'color' => '#173177',
+                    ],
+                    'keyword3' => [
+                        'value' => time_to_date(time()),
                         'color' => '#173177',
                     ],
                 ];
@@ -238,25 +434,41 @@ class LogInform extends Model
                 return FALSE;
                 break;
         }
+        $title = $title ? $title: $config['title'];
+        $params = $keywords + [
+            'first' => [
+                'value' => $title,
+                'color' => '#173177',
+            ],
+            'remark' => [
+                'value' => $config['description'],
+                'color' => '#173177',
+            ],
+        ];
         $data = [
             'inform_type'   => $informType,
             'store_id'      => $storeId,
             'to_user_id'    => $userId,
+            'to_udata_id'   => $udataId,
             'to_user'       => $openid,
             'template_type' => $templateType,
             'template_code' => $templateCode,
             'content'       => json_encode($params),
             'status'        => 0,
             'result'        => '',
+            'add_time'      => time(),
         ];
-        $informId = $this->save($data);
-        if ($informId) {
+        $informId = $this->insertGetId($data);
+        if ($informId !== FALSE) {
+            $url = $config['is_click'] && $config['url'] ? trim($config['url']) : '';
             $post = [
                 'touser'        => $openid,
                 'template_id'   => $templateCode,
-                'url'           => $url,//模板跳转链接
                 'data'          => $params,
             ];
+            if ($url) {
+                $post['url'] = $url;//模板跳转链接
+            }
             $result = $wechatApi->sendTemplateMessage($post);
             $data = [];
             if ($result && isset($result['errcode']) && !$result['errcode']) {
@@ -266,7 +478,7 @@ class LogInform extends Model
                 $data['status'] = 0;
                 $data['result'] = $this->error = '微信模板消息发送失败('.$wechatApi->error.')';
             }
-            $this->save($data, ['inform_id' => $informId]);
+            $this->where(['inform_id' => $informId])->update($data);
             if ($this->error) {
                 return FALSE;
             }else{
@@ -277,6 +489,22 @@ class LogInform extends Model
             return false;
         }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     function _splitName($fullname, $returnFirst = FALSE){
         $hyphenated = array('欧阳','太史','端木','上官','司马','东方','独孤','南宫','万俟','闻人','夏侯','诸葛','尉迟','公羊','赫连','澹台','皇甫',
             '宗政','濮阳','公冶','太叔','申屠','公孙','慕容','仲孙','钟离','长孙','宇文','城池','司徒','鲜于','司空','汝嫣','闾丘','子车','亓官',
@@ -318,11 +546,9 @@ class LogInform extends Model
         if ($num && mb_strlen($name, 'UTF-8') > $num) {
             return mb_substr($name, 0, 4) . '*';
         }
-        
         if ($num && mb_strlen($name, 'UTF-8') <= $num) {
             return $name;
         }
-        
         $doubleSurname = [
             '欧阳', '太史', '端木', '上官', '司马', '东方', '独孤', '南宫',
             '万俟', '闻人', '夏侯', '诸葛', '尉迟', '公羊', '赫连', '澹台', '皇甫', '宗政', '濮阳',
@@ -333,16 +559,12 @@ class LogInform extends Model
             '西门', '公祖', '第五', '公乘', '贯丘', '公皙', '南荣', '东里', '东宫', '仲长', '子书', '子桑',
             '即墨', '达奚', '褚师', '吴铭'
         ];
-        
         $surname = mb_substr($name, 0, 2);
         if (in_array($surname, $doubleSurname)) {
             $name = mb_substr($name, 0, 2) . str_repeat('*', (mb_strlen($name, 'UTF-8') - 2));
         } else {
             $name = mb_substr($name, 0, 1) . str_repeat('*', (mb_strlen($name, 'UTF-8') - 1));
         }
-        
-        
         return $name;
     }
-    
 }

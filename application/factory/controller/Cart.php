@@ -7,6 +7,7 @@ use think\Request;
 
 class Cart extends FactoryForm
 {
+    private $channelId=0;
     public function __construct()
     {
         $this->modelName = 'cart';
@@ -15,7 +16,26 @@ class Cart extends FactoryForm
         if (!in_array($this->adminUser['admin_type'], [ADMIN_SERVICE_NEW, ADMIN_DEALER,ADMIN_FACTORY])) {
             $this->error(lang('NO ACCESS'));
         }
+        $this->init();
 
+    }
+    public function init()
+    {
+        if ($this->adminStore['store_type'] == STORE_DEALER) {
+            $channelId = db('store_dealer')->alias('SD')
+                ->join('store S', 'SD.ostore_id=S.store_id')
+                ->where([
+                    'SD.store_id'  => $this->adminStore['store_id'],
+                    'S.status'     => 1,
+                    'S.is_del'     => 0,
+                    'S.store_type' => STORE_SERVICE_NEW,
+                ])
+                ->value('ostore_id');
+            if (empty($channelId)) {
+                $this->error('服务商不存在或已被禁用');
+            }
+            $this->channelId = $channelId;
+        }
     }
 
     public function num()
@@ -63,22 +83,7 @@ class Cart extends FactoryForm
             ['goods G', 'C.goods_id=G.goods_id', 'INNER'],
         ];
         if ($this->adminStore['store_type'] == STORE_DEALER) {
-            $where=[
-                ['SD.store_id','=',$this->adminStore['store_id']],
-                ['S.status', '=', 1],
-                ['S.is_del', '=', 0],
-                ['S.store_type', '=', STORE_SERVICE_NEW],
-            ];
-            $channel=db('store_dealer')
-                ->alias('SD')
-                ->field('S.store_id,S.store_type')
-                ->join('store S','S.store_id=SD.ostore_id')
-                ->where($where)
-                ->find();
-            if (empty($channel)) {
-                $this->error('服务商不存或已被禁用');
-            }
-            $join[] = ['goods_sku_service GSS', 'GSS.sku_id=GS.sku_id AND GSS.is_del= 0 AND GSS.store_id='.$channel['store_id'], 'LEFT'];
+            $join[] = ['goods_sku_service GSS', 'GSS.sku_id=GS.sku_id AND GSS.is_del= 0 AND GSS.store_id='.$this->channelId, 'LEFT'];
         }
         return $join;
     }

@@ -2,6 +2,20 @@
 use think\Facade;
 
 // 应用公共文件
+function get_tpl_type($type = '')
+{
+    $types = [
+        'wechat_notice' => '微信模板通知',
+    ];
+    if ($type === FALSE) {
+        return $types;
+    }
+    if (isset($types[$type])) {
+        return $types[$type];
+    }else{
+        return '';
+    }
+}
 function get_user_orderfrom($user = [])
 {
     if ($user) {
@@ -899,6 +913,23 @@ function p($var,$flag=false){
     }
 }
 
+function pr($var,$flag=false){
+    $debugInfo = debug_backtrace();
+    $message= $debugInfo[0]['file']. ':'.$debugInfo[0]['line'];
+    $len=(mb_strlen($message)-6)/2;
+    $len=$len>0 && $len<=100 ? ceil($len):10;
+    echo '<p>[file path]: '.$message.'</p>';
+    echo '<p>[var type]:  '.gettype($var).'</p>';
+    echo '<pre>';
+    print_r($var);
+    echo '</pre>';
+    echo '<p>'.str_pad('',$len,'=').'华丽的分割线'.str_pad('',$len,'=').'</p>';
+    if(!$flag){
+        exit();
+    }
+}
+
+
 //实时写入日志
 function log_msg($message='',$type='debug'){
     $msg=var_export($message,true);
@@ -1023,6 +1054,58 @@ function curl_post($url, $post_data){
     }
     //显示获得的数据
     return $json;
+}
+
+
+/**
+ * 上面两个有异常BUG，功能也不齐全，故独立写一个,同时支持POST/GET，更多功能可随时扩展
+ * @author  JINZHOU  2019/05/08
+ * @param $url 访问的URL
+ * @param string $post    表单数据(不填则为GET)
+ * @return bool|string
+ */
+function curl_request($url,$post='',$param=[]){
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)');
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
+    if (isset($param['CURLOPT_REFERER']) && $param['CURLOPT_REFERER']) {
+        curl_setopt($curl, CURLOPT_REFERER,$param['CURLOPT_REFERER']);
+    }else{
+        curl_setopt($curl, CURLOPT_REFERER, 'http://shop.smarlife.cn');
+    }
+    if($post) {
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($post));
+    }
+    //提交的$cookies
+    if (isset($param['CURLOPT_COOKIE']) && $param['CURLOPT_COOKIE']) {
+        curl_setopt($curl, CURLOPT_COOKIE,$param['CURLOPT_COOKIE']);
+    }
+    //是否返回$cookies
+    $returnCookie=isset($param['CURLOPT_HEADER'])? $param['CURLOPT_HEADER']:0;
+
+    curl_setopt($curl, CURLOPT_HEADER, $returnCookie);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+    $data = curl_exec($curl);
+    if (curl_errno($curl)) {
+        return curl_error($curl);
+    }
+    curl_close($curl);
+    if($returnCookie){
+        list($header, $body) = explode("\r\n\r\n", $data, 2);
+        preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
+        $info['cookie']  = substr($matches[1][0], 1);
+        $info['content'] = $body;
+        return $info;
+    }else{
+        return $data;
+    }
 }
 
 

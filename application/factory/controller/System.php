@@ -1,6 +1,9 @@
 <?php
 namespace app\factory\controller;
 use app\admin\controller\System as adminSystem;
+use app\common\model\ConfigForm;
+use app\common\model\GoodsCate;
+use think\Request;
 
 //系统管理
 class System extends adminSystem
@@ -20,7 +23,18 @@ class System extends adminSystem
         }
         $params = [];
         if (IS_POST) {
-            $params = $this->request->post();
+            //$field = [
+            //    'order_cancel_minute',
+            //    'order_return_day',
+            //    'channel_commission_ratio',
+            //    'servicer_return_ratio',
+            //    'workorder_auto_assess_day',
+            //    'monthly_withdraw_start_date',
+            //    'monthly_withdraw_end_date',
+            //    'consumer_hotline',
+            //];
+            //$params=$this->request->only($field);
+            $params=$this->request->param();
             if (!$params) {
                 $this->error('参数异常');
             }
@@ -176,10 +190,11 @@ class System extends adminSystem
             }
             $this->success('配置成功');
         }else{
-            $config = get_store_config($this->adminStore['store_id'], TRUE);
-            $config['wechat_applet'] = get_store_config($this->adminStore['store_id'], FALSE, 'wechat_applet');
-            $this->assign('config', $config);
+            $storeId = $this->adminStore['store_id'];
+            $config = get_store_config($storeId, TRUE);
+            $config['wechat_applet'] = get_store_config($storeId, FALSE, 'wechat_applet');
             return $this->fetch();
         }
     }
+
 }

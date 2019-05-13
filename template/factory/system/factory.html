@@ -17,9 +17,9 @@
                 </div>
             </div>
             <div class="tab-body">
-            	{if (!isset($config['wechat_applet']))}
-            	<div class="tab-panel active" id="tab-0">
-                	<div class="form-group">
+                {if (!isset($config['wechat_applet']))}
+                <div class="tab-panel active" id="tab-0">
+                    <div class="form-group">
                         <div class="label">
                             <label>APPID(智享家师傅端)</label>
                         </div>
@@ -58,7 +58,7 @@
                 </div>
                 {/if}
                 <div class="tab-panel active" id="tab-1">
-                	<div class="form-group">
+                    <div class="form-group">
                         <div class="label">
                             <label>待支付订单取消时间</label>
                         </div>
@@ -82,24 +82,24 @@
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-2">
-                	<div class="form-group">
+                    <div class="form-group">
                         <div class="label">
                             <label>渠道佣金比例</label>
                         </div>
                         <div class="field">
-                        	<label>其下级零售商销售额的</label>
+                            <label>其下级零售商销售额的</label>
                             <input type="text" class="input" id="channel_commission_ratio" name="channel_commission_ratio" size="5" datatype="n" value="{$config['default']['channel_commission_ratio'] ?? 0}">
                             <label>%</label>
                         </div>
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-3">
-                	<div class="form-group">
+                    <div class="form-group">
                         <div class="label">
                             <label>工程师安装服务费比例</label>
                         </div>
                         <div class="field">
-                        	<label>安装服务费的</label>
+                            <label>安装服务费的</label>
                             <input type="text" class="input" id="servicer_return_ratio" name="servicer_return_ratio" size="5" datatype="n" value="{$config['default']['servicer_return_ratio'] ?? 100}">
                             <label>% 作为售后工程师的绩效考核金</label>
                         </div>
@@ -109,7 +109,7 @@
                             <label>工单自动评价时间</label>
                         </div>
                         <div class="field">
-                        	<label>售后服务完成，如用户未评价，</label>
+                            <label>售后服务完成，如用户未评价，</label>
                             <input type="number" min="1" class="input" id="workorder_auto_assess_day" name="workorder_auto_assess_day" size="5" datatype="n" value="{$config['default']['workorder_auto_assess_day'] ?? ''}">
                             <label>天后，系统自动给好评并完成服务费结算；</label>
                             <div class="input-note">未设置则当前厂商下的售后工单无自动好评和自动服务结算操作</div>
@@ -117,19 +117,19 @@
                     </div>
                 </div>
                 <div class="tab-panel" id="tab-4">
-                	<div class="form-group">
+                    <div class="form-group">
                         <div class="label">
                             <label>售后工程师审核</label>
                         </div>
                         <div class="field">
-                        	<div class="button-group radio">
-                        		{if condition="!isset($config['default']['installer_check'])"}
-                        		{assign name="config.default.installer_check" value="1" /}
-                        		{/if}
-                            	<label class="button {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}active{/if}">
-                            	<input name="installer_check" value="1" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>是</label>
-                            	<label class="button {if (!isset($config['default']['installer_check']) || !$config['default']['installer_check'] == 1)}active{/if}">
-                            	<input name="installer_check" value="0" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>否</label>
+                            <div class="button-group radio">
+                                {if condition="!isset($config['default']['installer_check'])"}
+                                {assign name="config.default.installer_check" value="1" /}
+                                {/if}
+                                <label class="button {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}active{/if}">
+                                <input name="installer_check" value="1" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>是</label>
+                                <label class="button {if (!isset($config['default']['installer_check']) || !$config['default']['installer_check'] == 1)}active{/if}">
+                                <input name="installer_check" value="0" type="radio" {if (isset($config['default']['installer_check']) && $config['default']['installer_check'] == 1)}checked="checked"{/if}>否</label>
                             </div>
                             <div class="input-note">配置售后工程师申请:服务商审核后是否需要厂商审核才能成为售后工程师</div>
                         </div>
@@ -139,26 +139,26 @@
                             <label>渠道商操作审核</label>
                         </div>
                         <div class="field">
-                        	{if condition="!isset($config['default']['channel_operate_check'])"}
-                       		{assign name="config.default.channel_operate_check" value="1" /}
-                       		{/if}
-                        	<div class="button-group radio">
-                            	<label class="button {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}active{/if}">
-                            	<input name="channel_operate_check" value="1" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
-                            	<label class="button {if (!isset($config['default']['channel_operate_check']) || !$config['default']['channel_operate_check'] == 1)}active{/if}">
-                            	<input name="channel_operate_check" value="0" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
+                            {if condition="!isset($config['default']['channel_operate_check'])"}
+                            {assign name="config.default.channel_operate_check" value="1" /}
+                            {/if}
+                            <div class="button-group radio">
+                                <label class="button {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}active{/if}">
+                                <input name="channel_operate_check" value="1" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>需要</label>
+                                <label class="button {if (!isset($config['default']['channel_operate_check']) || !$config['default']['channel_operate_check'] == 1)}active{/if}">
+                                <input name="channel_operate_check" value="0" type="radio" {if (isset($config['default']['channel_operate_check']) && $config['default']['channel_operate_check'] == 1)}checked="checked"{/if}>不需要</label>
                             </div>
                             <div class="input-note">渠道商在新增、删除、编辑零售商时,是否需要厂商审核后操作才能完成</div>
                         </div>
                     </div>-->
                 </div>
-            	<div class="tab-panel" id="tab-5">
-                	<div class="form-group">
+                <div class="tab-panel" id="tab-5">
+                    <div class="form-group">
                         <div class="label">
                             <label>提现日期设置</label>
                         </div>
                         <div class="field">
-                        	<label>每月</label>
+                            <label>每月</label>
                             <input type="number" min="1" max="27" class="input" id="monthly_withdraw_start_date" name="monthly_withdraw_start_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_start_date'] ?? ''}">
                             <label>日 ~ </label>
                             <input type="number" min="2" max="28" class="input" id="monthly_withdraw_end_date" name="monthly_withdraw_end_date" size="5" datatype="n" value="{$config['default']['monthly_withdraw_end_date'] ?? ''}">
@@ -166,9 +166,9 @@
                             <!-- <div class="input-note">未设置则当前厂商下的商户无提现日期限制</div> -->
                         </div>
                     </div>
-               </div>
-               <div class="tab-panel" id="tab-6">
-                	<div class="form-group">
+                </div>
+                <div class="tab-panel" id="tab-6">
+                    <div class="form-group">
                         <div class="label">
                             <label>厂商客服电话</label>
                         </div>
@@ -177,7 +177,7 @@
                             <div class="input-note"></div>
                         </div>
                     </div>
-               </div>
+                </div>
             </div>
             <div class="panel-foot">
                 <div class="form-button">
@@ -190,7 +190,7 @@
     </div>
 </form>
 <script>
-    Do.ready('base', function () {
+    Do.ready('base','dialog', function () {
         //表单综合处理
         $('#form').FormPage();
     }); 

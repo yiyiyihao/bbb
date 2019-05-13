@@ -29,6 +29,15 @@ Do.add('swiper',
     requires : ['swipercss']
 });
 
+Do.add('layuicss',
+    {
+        path : Config.baseDir + '/layui/css/layui.css',
+    });
+Do.add('layui',
+    {
+        path : Config.baseDir + '/layui/layui.all.js',
+        requires : ['layuicss']
+    });
 
 
 

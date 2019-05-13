@@ -31,11 +31,10 @@
         <tr>
           <th width="*">用户名称</th>
           <th width="*">提现金额</th>
-          <th width="*">提现账户</th>
+          <th width="*">到账信息</th>
           <th width="*">提现状态</th>
           <th width="*">申请时间</th>
           <th width="*">处理时间</th>
-          <th width="*">申请留言</th>
           <th width="*">审核备注</th>
           <th width="*">操作</th>
         </tr>
@@ -45,8 +44,12 @@
               <td>{$vo.realname}</td>
               <td>{$vo['amount']}元</td>
               <td>
+              	{if ($vo['arrival_type'] == 'bank')}
               	收款人姓名:{$vo['realname']} <br>
               	银行卡号: {$vo['bank_no']}({$vo['bank_name']})
+              	{else/}
+              	{$arrivalTypes[$vo['arrival_type']]}
+              	{/if}
               </td>
               <td>{:get_withdraw_status($vo['withdraw_status'])}
               	<br>
@@ -61,7 +64,6 @@
               	{else/}-
               	{/if}
               </td>
-              <td>{$vo['apply_msg']}</td>
               <td>{$vo['remark']}</td>
               <td>
               	<span class="button-group">

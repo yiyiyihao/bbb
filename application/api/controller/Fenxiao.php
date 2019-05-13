@@ -8,11 +8,6 @@ class Fenxiao extends Admin
     private $shareType = 2;//分享
     private $visitType = 1;//访问
     public function __construct(){
-        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
-        header('Access-Control-Allow-Origin:'.$origin);
-        header('Access-Control-Allow-Methods:POST');
-        header('Access-Control-Allow-Headers:x-requested-with,content-type');
-        header('Access-Control-Allow-Credentials:true');
         parent::__construct();
         $this->factoryId = $this->factory['store_id'];
     }
@@ -54,6 +49,8 @@ class Fenxiao extends Admin
             ['status', '=', 1],
             ['start_time', '<=', time()],
             ['end_time', '>', time()],
+            #TODO DELETE
+            ['promot_id', '<>', 1],
         ];
         $order = 'add_time ASC';
         $field = 'promot_id, promot_type, name, cover_img, start_time, end_time, status';
@@ -80,7 +77,6 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品ID不能为空']);
         }
         $info = $this->_verifyPromot(false, false, TRUE, FALSE);
-        $info['_status'] = get_promotion_status($info);
         $field = 'goods_id, goods_sn, thumb, name, specs_json, min_price, content';
         $where = [
             ['is_del', '=', 0],
@@ -122,6 +118,7 @@ class Fenxiao extends Admin
                 $detail['sku_id'] = $skus;
             }
         }
+        $detail['promot_status'] = get_promotion_status($info);
         $this->_returnMsg(['detail' => $detail]);
     }
     /**
@@ -134,6 +131,8 @@ class Fenxiao extends Admin
         $where = [
             ['P.store_id', '=', $this->factoryId],
             ['P.is_del', '=', 0],
+            #TODO DELETE
+            ['P.promot_id', '<>', 1],
         ];
         $alias = 'P';
         $join = [
@@ -186,6 +185,9 @@ class Fenxiao extends Admin
         $result = $promotionJoinModel->isUpdate(FALSE)->save($data);
         $this->_returnMsg(['join_id' => $promotionJoinModel->join_id]);
     }
+    /**
+     * 获取我的推广分享数据(分享微信jssdk)
+     */
     protected function getPromotShare()
     {
         $user = $this->_checkUser();
@@ -246,7 +248,9 @@ class Fenxiao extends Admin
         );
         $this->_returnMsg(['detail' => $detail]);
     }
-    
+    /**
+     * 获取页面分享微信jssdk数据
+     */
     protected function getWechatJssdk()
     {
         $url = isset($this->postParams['share_url']) ? $this->postParams['share_url'] : '';
@@ -292,7 +296,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['sign_package' => $sign, 'detail' => $detail]);
     }
-    
     /**
      * 我的推广活动
      */
@@ -302,7 +305,6 @@ class Fenxiao extends Admin
         $this->_checkDistributor();
         $where = [
             ['PJ.store_id', '=', $this->factoryId],
-//             ['PJ.udata_id', '=', $loginUser['udata_id']],
             ['PJ.distrt_id', '=' ,$loginUser['distributor']['distrt_id']],
             ['PJ.is_del',   '=', 0],
             ['P.is_del',   '=', 0],
@@ -325,7 +327,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['list' => $result]);
     }
-    
     /**
      * 关闭分享页面/去往其它页面
      */
@@ -400,7 +401,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['list' => $result]);
     }
-    
     /**
      * 获取分销订单列表
      */
@@ -454,7 +454,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['list' => $result]);
     }
-    
     /**
      * 访客详情(获取当前用户访问当前分销员所有活动的记录)
      */
@@ -653,7 +652,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['list' => $result]);
     }
-    
     /**
      * 创建订单
      */
@@ -745,6 +743,9 @@ class Fenxiao extends Admin
             $exist = $visitModel->where($where)->order('add_time DESC')->find();
             if ($exist) {
                 $visitModel->save(['order_sn' => $result['order_sn'], 'order_status' => 1], ['visit_id' => $exist['visit_id']]);
+                //有客户通过分享下单通知
+                $informModel = new \app\common\model\LogInform();
+                $informModel->sendInform($this->factoryId, 'wechat', ['udata_id' => $loginUser['udata_id']], 'create_order_by_share', $result);
             }
             $this->_returnMsg(['order_sn' => $result['order_sn']]);
         }else{
@@ -760,7 +761,6 @@ class Fenxiao extends Admin
         $loginUser = $this->_checkUser('udata_id, user_id, openid, third_openid');
         $order = $this->_verifyOrder(FALSE, FALSE, $loginUser);
         $order = [
-//             'openid'    => 'oU6IZxGSEUFnZh3Oe2Nu6-IuI17k',
             'openid'    => $loginUser['third_openid'],
             'order_sn'  => $order['order_sn'],
             'real_amount' => $order['real_amount'],
@@ -775,6 +775,9 @@ class Fenxiao extends Admin
             $this->_returnMsg(['predata' => $result]);
         }
     }
+    /**
+     * 分销员个人中心
+     */
     protected function getUserCenter()
     {
         $loginUser = $this->_checkUser();
@@ -790,7 +793,6 @@ class Fenxiao extends Admin
         $order = model('order')->field($field)->where($map)->find();
         $this->_returnMsg(['order_data' => $order]);
     }
-    
     /**
      * 我的订单列表
      */
@@ -877,6 +879,9 @@ class Fenxiao extends Admin
             $this->_returnMsg(['msg' => '订单签收成功']);
         }
     }
+    /**
+     * 获取微信网页授权地址
+     */
     protected function getWechatScope()
     {
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
@@ -887,10 +892,6 @@ class Fenxiao extends Admin
         if (!$appid || !$appsecret) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'Appid/AppSecret配置不能为空']);
         }
-//         $appid = 'wx8389c5dbe29dace0';
-//         $appsecret = 'b3208bf175390203a20fe10262406d87';
-//         $url = 'http://m.smarlife.cn';
-//         $url = 'http://m.imliuchang.cn';
         $url = $url ? $url : 'http://h5.imliuchang.cn/everyone';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
@@ -901,60 +902,20 @@ class Fenxiao extends Admin
      */
     protected function getWechatOpenid()
     {
-        if(isset($this->postParams['test'])){
-            #TODO 删除模拟用户数据
-            $result=[
-               'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
-               'appid' => 'wxa57c32c95d2999e5',
-               'nickname' => 'John',
-               'sex' => 1,
-               'language' => 'zh_CN',
-               'city' => '深圳',
-               'province' => '广东',
-               'country' => '中国',
-               'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/6ntVHaKIrYePQicia4vSnzoCVlnjHDrOg5fwhiciaJmyDC785qC5ibMJdzDq3KF92ZzEaHCrBm2w8QsnPnh2TZbIEkg/132',
-               'privilege' =>[],
-            ];
-//             $result=[
-//                 'openid' => 'oU6IZ111111111111111111111',
-//                 'appid' => 'wxa57c32c95d2999e5',
-//                 'nickname' => '测试',
-//                 'sex' => 1,
-//                 'language' => 'zh_CN',
-//                 'city' => '深圳',
-//                 'province' => '广东',
-//                 'country' => '中国',
-//                 'headimgurl' => '',
-//                 'privilege' =>[],
-//             ];
-//             $result=[
-//                 'openid' => 'oU6IZxGSEUFnZh3Oe2Nu6-IuI17k',
-//                 'appid' => 'wxa57c32c95d2999e5',
-//                 'nickname' => 'つyh',
-//                 'sex' => 1,
-//                 'language' => 'zh_CN',
-//                 'city' => '深圳',
-//                 'province' => '广东',
-//                 'country' => '中国',
-//                 'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/x1n3JkTf1b1VfhQ3AF6PexJnTSaGmLzKoU6QWBZMont06A9j3M0iaWIRPhJSmEcZ0MClfVub49vuZM5vibDW6vZw/132',
-//                 'privilege' =>[],
-//             ];
-        }else{
-            $sessionWechat = session('api_wechat_oauth');
-            $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
-            if (!$sessionWechat) {
-                $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
-                if (!$code) {
-                    $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
-                }
-                $result = $wechatApi->getOauthOpenid($code, TRUE);
-                if ($result === FALSE) {
-                    $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
-                }
-                session('api_wechat_oauth', $result);
-            }else{
-                $result = $sessionWechat;
+        $sessionWechat = session('api_wechat_oauth');
+        $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
+        if (!$sessionWechat) {
+            $code = isset($this->postParams['code']) ? trim($this->postParams['code']) : '';
+            if (!$code) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => 'code不能为空']);
             }
+            $result = $wechatApi->getOauthOpenid($code, TRUE);
+            if ($result === FALSE) {
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => $wechatApi->error]);
+            }
+            session('api_wechat_oauth', $result);
+        }else{
+            $result = $sessionWechat;
         }
         $userModel = new \app\common\model\User();
         $params = [
@@ -977,7 +938,9 @@ class Fenxiao extends Admin
         unset($user['udata_id']);
         $this->_returnMsg(['msg' => '授权登录成功', 'errLogin' => 0, 'loginUser' => $user]);
     }
-    
+    /**
+     * 根据openid更新登录信息
+     */
     protected function refresh()
     {
         $openid = isset($this->postParams['openid']) ? trim($this->postParams['openid']) : '';
@@ -1147,6 +1110,26 @@ class Fenxiao extends Admin
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => -1, 'errMsg' => 'system_error']);
         }
+        //发送给管理员:提醒审核
+        $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+        $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
+        if ($appid) {
+            $informModel = new \app\common\model\LogInform();
+            $where = [
+                ['U.factory_id', '=', $this->factoryId],
+                ['U.is_admin', '=', 1],
+                ['U.group_id', '=', GROUP_FACTORY],
+                ['UD.third_type', '=', 'wechat_h5'],
+                ['UD.appid', '=', $appid],
+            ];
+            $join = [
+                ['user_data UD', 'U.user_id = UD.user_id', 'INNER'],
+            ];
+            $udata = model('User')->field('UD.udata_id, UD.third_openid as openid, UD.user_id')->alias('U')->group('U.group_id')->join($join)->where($where)->find();
+            if ($udata) {
+                $informModel->sendInform($this->factoryId, 'wechat', $udata, 'user_apply_manager', ['realname' => $realname]);
+            }
+        }
         $this->_returnMsg(['msg' => '提交申请成功,请耐心等待商家审核']);
     }
     /**
@@ -1187,7 +1170,6 @@ class Fenxiao extends Admin
      */
     protected function getUserAddressList()
     {
-//         $this->_returnMsg(['list' => session(''),'session_id' => session_id(), 'header' => $this->request->header(), 'server' => $this->request->server()]);
         $loginUser = $this->_checkUser();
         $field = 'address_id, name, phone, region_name, address as detail, isdefault';
         $where = [
@@ -1300,6 +1282,11 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['msg' => '地址删除成功']);
     }
+    /**
+     * 获取银行类型列表
+     * @param array $code
+     * @return string
+     */
     protected function getBankTypeList($code = [])
     {
         $list = [
@@ -1344,7 +1331,6 @@ class Fenxiao extends Admin
         }
         $this->_returnMsg(['list' => $list]);
     }
-    
     /**
      * 银行卡列表
      */
@@ -1493,15 +1479,26 @@ class Fenxiao extends Admin
         if (!$user) {
             $this->_returnMsg(['errCode' => -1, 'errMsg' => 'no data']);
         }
+        $withdrawModel = new \app\common\model\UserWithdraw();
         $amount = isset($this->postParams['amount']) && $this->postParams['amount'] ? floatval($this->postParams['amount']) : 0;
-        $bankId = isset($this->postParams['bank_id']) ? intval($this->postParams['bank_id']) : 0;
-        if ($bankId <= 0) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '银行卡ID不能为空']);
+        $arrivalType = isset($this->postParams['arrival_type'])? trim($this->postParams['arrival_type']) : 'bank';
+        $tradeNo = '';
+        $bank = [];
+        switch ($arrivalType) {
+            case 'bank':
+                $bank = $this->_verifyBank(FALSE, FALSE, $loginUser);
+            break;
+            case 'wechat_wallet':
+                $tradeNo = $withdrawModel->getTradeNo();
+            break;
+            default:
+                $this->_returnMsg(['errCode' => 1, 'errMsg' => '参数错误']);
+            break;
         }
+        
         if ($amount <= 0) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '提现金额有误，请重新输入，确认无误后再提交']);
         }
-        $bank = $this->_verifyBank(FALSE, FALSE, $loginUser);
         if ($user['amount'] <= 0) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '没有可提现额度']);
         }
@@ -1523,16 +1520,17 @@ class Fenxiao extends Admin
             'user_id'   => $user['user_id'],
             'udata_id'  => $loginUser['udata_id'],
             'amount'    => $amount,
+            'arrival_type' => $arrivalType,
+            'trade_no'  => $tradeNo,
             
-            'bank_id'   => $bank['bank_id'],
-            'realname'  => $bank['realname'],
-            'bank_name' => $bank['bank_name'],
-            'bank_no'   => $bank['bank_no'],
-            'bank_detail' => json_encode($bank),
+            'bank_id'   => $bank ? $bank['bank_id'] : 0,
+            'realname'  => $bank ? $bank['realname'] : '',
+            'bank_name' => $bank ? $bank['bank_name'] : '',
+            'bank_no'   => $bank ? $bank['bank_no'] : '',
+            'bank_detail' => $bank ? json_encode($bank) : '',
             
             'withdraw_status'=> 0,
         ];
-        $withdrawModel = model('UserWithdraw');
         $result = $withdrawModel->save($data);
         if ($result !== FALSE) {
             $params = [
@@ -1544,6 +1542,29 @@ class Fenxiao extends Admin
             $result = $userLogModel->record($user['user_id'], 'amount', -$amount, 'withdraw', $params);
             if ($result !== FALSE) {
                 model('User')->where('user_id', $loginUser['user_id'])->setInc('withdraw_amount', $amount);
+            }
+            $informModel = new \app\common\model\LogInform();
+            $data['arrival_type'] = isset($withdrawModel->arrivalTypes[$arrivalType]) ? $withdrawModel->arrivalTypes[$arrivalType] : '银行卡';
+            $informModel->sendInform($this->factoryId, 'wechat', ['udata_id' => $loginUser['udata_id']], 'withdraw_user_apply', $data);
+            
+            //发送给管理员:提醒审核
+            $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+            $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
+            if ($appid) {
+                $where = [
+                    ['U.factory_id', '=', $this->factoryId],
+                    ['U.is_admin', '=', 1],
+                    ['U.group_id', '=', GROUP_FACTORY],
+                    ['UD.third_type', '=', 'wechat_h5'],
+                    ['UD.appid', '=', $appid],
+                ];
+                $join = [
+                    ['user_data UD', 'U.user_id = UD.user_id', 'INNER'],
+                ];
+                $udata = model('User')->field('UD.udata_id, UD.third_openid as openid, UD.user_id')->alias('U')->group('U.group_id')->join($join)->where($where)->find();
+                if ($udata) {
+                    $informModel->sendInform($this->factoryId, 'wechat', $udata, 'withdraw_manager_apply', $data);
+                }
             }
             $this->_returnMsg(['msg' => '提现申请成功,请耐心等待审核']);
         }else{
@@ -1636,7 +1657,6 @@ class Fenxiao extends Admin
             }
             $result = $promotionJoinModel->save($joinData, ['join_id' => $joinId]);
         }
-//         $this->_returnMsg(['errMsg' => 'ok']);
     }
     /**
      * 验证表单信息
@@ -1941,4 +1961,5 @@ class Fenxiao extends Admin
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
         }
-    }}
+    }
+}

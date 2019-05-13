@@ -163,7 +163,22 @@ class Order extends Model
         $this->orderTrack($order, 0, $remark);
         $this->orderLog($order, $user, $action, $remark);
         
-        /* if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+        //分销活动 发送微信模板通知
+        if ($order['promot_type'] == 'fenxiao') {
+            $informModel = new \app\common\model\LogInform();
+            $informModel->sendInform($order['factory_id'], 'wechat', ['udata_id' => $order['udata_id']], 'order_finish', $order);
+        }
+        /* #TODO DELETE
+        if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+            $order = $this->getOrderSkus($order);
+            $skus = $order['skus'];
+            $nameStr = '';
+            $len = count($skus);
+            foreach ($skus as $key => $osku) {
+                $nameStr .= $osku['sku_name'].' '.$osku['sku_spec'].'    ';
+            }
+            $order['goods_name'] = $nameStr;
+            
             $userCommissionModel = new \app\common\model\UserDistributorCommission();
             $userCommissionModel->settlement($order);
         } */
@@ -207,9 +222,13 @@ class Order extends Model
             $this->error = '选择产品已发货';
             return FALSE;
         }
+        $goodsNames = '';
         $ossubIds = [];
         $orderSkuSubModel = db('order_sku_sub');
+        $nameStr = '';
+        $len = count($skus);
         foreach ($skus as $key => $osku) {
+            $nameStr .= $osku['sku_name'].' '.$osku['sku_spec'].' * '.$osku['num'] .($len == ($key+ 1) ? "": "\r\n");
             $subs = $orderSkuSubModel->where(['osku_id' => $osku['osku_id']])->column('ossub_id, ossub_id');
             $ossubIds = $subs ? $subs + $ossubIds : $ossubIds;
         }
@@ -313,6 +332,18 @@ class Order extends Model
         // 订单跟踪
         $msg = $odeliveryId ? ',等待产品揽收' : '';
         $this->orderTrack($order, $odeliveryId, '商家已发货'.$msg);
+        
+        //分销活动 发送微信模板通知
+        if ($order['promot_type'] == 'fenxiao' && $isDelivery) {
+            $informModel = new \app\common\model\LogInform();
+            $extra = [
+                'order_sn'      => $order['order_sn'],
+                'goods_name'    => $nameStr,
+                'delivery_name' => $deliveryName,
+                'delivery_sn'   => $deliverySn,
+            ];
+            $informModel->sendInform($order['factory_id'], 'wechat', ['udata_id' => $order['udata_id']], 'order_delivery_express', $extra);
+        }
         return TRUE;
     }
     /**
@@ -433,9 +464,7 @@ class Order extends Model
             //处理订单产品中 库存计数为支付成功后减少库存的产品库存
             $goodsModel = new \app\common\model\Goods();
             foreach ($skus as $key => $value) {
-                if ($key <= 2) {
-                    $nameStr .= $value['sku_name'].' '.$value['sku_spec'].' * '.$value['num'] .($len == ($key+ 1) ? "": "\r\n");
-                }
+                $nameStr .= $value['sku_name'].' '.$value['sku_spec'].' * '.$value['num'] .($len == ($key+ 1) ? "": "\r\n");
                 if ($value['stock_reduce_time'] == 2) {//支付成功后减少库存
                     $result = $goodsModel->setGoodsStock($value, -$value['num']);
                 }
@@ -471,59 +500,32 @@ class Order extends Model
             $informModel = new \app\common\model\LogInform();
             $order['paid_amount'] = $paidAmount;
             $order['goods_name'] = $nameStr;
-            $informModel->sendInform($order['factory_id'], 'wechat', ['udata_id' => $order['udata_id']], 'pay_success', $order);
+            //发送通知至支付用户
+            $informModel->sendInform($order['factory_id'], 'wechat', ['udata_id' => $order['udata_id']], 'order_pay_success', $order);
+            
+            //发送通知至管理员(厂商管理员/电商管理员)
+            $wechatApi = new \app\common\api\WechatApi(0, 'wechat_h5');
+            $appid = isset($wechatApi->config['appid']) ? trim($wechatApi->config['appid']) : '';
+            if ($appid) {
+                $where = [
+                    ['U.factory_id', '=', $order['factory_id']],
+                    ['U.is_admin', '>', 0],
+                    ['U.group_id', 'IN', [GROUP_FACTORY, GROUP_E_COMMERCE_KEFU]],
+                    ['UD.third_type', '=', 'wechat_h5'],
+                    ['UD.appid', '=', $appid],
+                ];
+                $join = [
+                    ['user_data UD', 'U.user_id = UD.user_id', 'INNER'],
+                ];
+                $list = model('User')->field('UD.udata_id, UD.third_openid as openid, UD.user_id')->alias('U')->group('U.group_id')->join($join)->where($where)->limit(0, 2)->select();
+                if ($list) {
+                    foreach ($list as $key => $value) {
+                        $informModel->sendInform($order['factory_id'], 'wechat', $value, 'order_pay_manager', $order);
+                    }
+                }
+            }
         }
         return true;
-
-        //订单支付成功后,订单入账处理
-        //if ($skus && $order['order_type'] == 1 && $order['user_store_id'] > 0 && $paidAmount > 0) {
-        //    $where = [
-        //        'is_del' => 0,
-        //        'S.store_id' => $order['user_store_id'],
-        //    ];
-        //    $store = db('store')->alias('S')->join([['store_dealer SD', 'S.store_id = SD.store_id', 'INNER']])->where($where)->find();
-        //    if ($store && $store['ostore_id']) {
-        //        //获取厂商信息
-        //        $factory = db('store')->where(['is_del' => 0, 'store_id' => $store['factory_id']])->find();
-        //        if ($factory) {
-        //            $config = $factory['config_json'] ? json_decode($factory['config_json'], 1) : [];
-        //            $config = isset($config['default']) ? $config['default'] : [];
-        //            $ratio = $config && isset($config['channel_commission_ratio']) ? floatval($config['channel_commission_ratio']) : 0;
-        //            if ($ratio > 0) {
-        //                $dataSet = [];
-        //                //计算当前订单总收益
-        //                $totalAmount = round($order['real_amount'] * $ratio/100, 2);
-        //                foreach ($skus as $key => $value) {
-        //                    $incomeAmount = round($value['real_price'] * $ratio/100, 2);//四舍五入保留小数点后两位
-        //                    $dataSet[] = [
-        //                        'store_id'          => $store['ostore_id'],
-        //                        'from_store_id'     => $store['store_id'],
-        //                        'order_id'          => $order['order_id'],
-        //                        'order_sn'          => $order['order_sn'],
-        //                        'osku_id'           => $value['osku_id'],
-        //                        'goods_id'          => $value['goods_id'],
-        //                        'sku_id'            => $value['sku_id'],
-        //                        'order_amount'      => $value['real_price'],
-        //                        'commission_ratio'  => $ratio,
-        //                        'income_amount'     => $incomeAmount,
-        //                        'add_time'          => time(),
-        //                    ];
-        //                }
-        //                $result = db('store_commission')->insertAll($dataSet);
-        //                if ($result) {
-        //                    //修改商户账户收益信息
-        //                    $financeModel = new \app\common\model\StoreFinance();
-        //                    $params = [
-        //                        'pending_amount' => $totalAmount,
-        //                        'total_amount' => $totalAmount,
-        //                    ];
-        //                    $result = $financeModel->financeChange($store['ostore_id'], $params, '订单支付,计算收益', $order['order_sn']);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-        //return TRUE;
     }
     /**
      * 订单取消操作
@@ -877,7 +879,6 @@ class Order extends Model
                 $refundStatus = 2;
             }
             if ($order['close_refund_status'] != $refundStatus) {
-//                 $result = $this->save(['close_refund_status' => $refundStatus], ['order_id' => $order['order_id']]);
                 $result = $this->where('order_id', $order['order_id'])->update(['close_refund_status' => $refundStatus, 'update_time' => time()]);
             }
             //判断当前订单下单商户是否是零售商订单 & 订单关闭退款退货功能后,订单结算处理(部分关闭不结算)
@@ -916,6 +917,12 @@ class Order extends Model
             }
             if ($refundStatus == 2) {
                 if ($order['promot_type'] == 'fenxiao' && $order['promot_id'] > 0 && $order['promot_join_id'] > 0) {
+                    $nameStr = '';
+                    $len = count($skus);
+                    foreach ($skus as $key => $osku) {
+                        $nameStr .= $osku['sku_name'].' '.$osku['sku_spec'].'    ';
+                    }
+                    $order['goods_name'] = $nameStr;
                     $userCommissionModel = new \app\common\model\UserDistributorCommission();
                     $userCommissionModel->settlement($order);
                 }

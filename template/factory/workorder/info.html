@@ -8,7 +8,7 @@
                 <div class="panel-head">
                     <div class="tab-head">
                         <ul class="tab-nav">
-                            <li class="active"><a href="#tab-1">{$name ?? '工单信息'}</a></li>
+                            <li class="active"><a href="#tab-1">{$workOrderName ?? '工单信息'}</a></li>
                             <!-- <li><a href="#tab-2">商品信息</a></li> -->
                         </ul>
                     </div>
@@ -33,6 +33,7 @@
                                 <div class="input-note">请填写联系电话</div>
                             </div>
                         </div>
+                        <input type="hidden" name="work_type" value="{:input('type',1,'intval')}">
                         <div class="form-group">
                             <div class="label">
                                 <label>客户地址</label>
@@ -72,6 +73,8 @@
                                 <div class="input-note">请填写预约服务时间</div>
                             </div>
                         </div>
+
+                        {if isset($_GET.type) && $_GET.type == 2}
                         <div class="form-group fault_desc">
                             <div class="label">
                                 <label>备注信息</label>
@@ -81,6 +84,7 @@
                                 <div class="input-note">请简要描述备注信息</div>
                             </div>
                         </div>
+                        {/if}
                         {if condition='(!$info && $_GET && isset($_GET.type) && $_GET.type == 2) || ($info && $info.work_order_type == 2)'}
                         <div class="form-group">
                             <div class="label">
@@ -104,6 +108,7 @@
                             {/if}
                         </div>
                         {/if}
+                        {include file="workorder/form_conf" /}
                     </div>
                     <!-- <div class="tab-panel" id="tab-2">
                      <div class="form-group">

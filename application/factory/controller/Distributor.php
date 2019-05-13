@@ -36,6 +36,19 @@ class Distributor extends FormBase
             ];
             $result = $this->model->save($data, ['distrt_id' => $info['distrt_id']]);
             if ($result !== FALSE) {
+                $informModel = new \app\common\model\LogInform();
+                $info['check_status_text'] = $checkStatus > 0 ? '已通过': '未通过';
+                $informModel->sendInform($info['factory_id'], 'wechat', ['udata_id' => $info['udata_id']], 'user_check_result', $info);
+                if ($checkStatus > 0 && $info['parent_id']) {
+                    $where = [
+                        ['distrt_id', '=', $info['parent_id']],
+                        ['is_del', '=', 0],
+                    ];
+                    $parentUdataId = $this->model->where($where)->value('udata_id');
+                    if ($parentUdataId) {
+                        $informModel->sendInform($info['factory_id'], 'wechat', ['udata_id' => $parentUdataId], 'user_check_parent_result', $info);
+                    }
+                }
                 $this->success('操作成功', url('index', ['status' => $status]));
             }else{
                 $this->error('操作失败');
@@ -62,6 +75,13 @@ class Distributor extends FormBase
             }
         }
         return $list;
+    }
+    function _afterDel($info = [])
+    {
+        if ($info) {
+            $result = $this->model->save(['parent_id' => 0], ['parent_id' => $info['distrt_id']]);
+        }
+        return TRUE;
     }
     
     function _assignInfo($pkId = 0)

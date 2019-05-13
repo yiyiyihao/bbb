@@ -89,6 +89,7 @@ $.ajaxSetup({
             $(table).find('.js-addWorkOrder').click(function (event) {
                 var goodsId = $(this).data('id');
                 var goodsImg = $(this).data('img');
+                var type = $(this).data('type');
                 var offset = $("#num").offset();
                 if (goodsId) {
                     Do.ready('dialog',function () {
@@ -100,7 +101,7 @@ $.ajaxSetup({
                             btn: ['确定'],
                             maxHeight: '500px',
                             scrollbar: true,
-                            content:'/workorder/kefu_order?step=2&id='+goodsId,
+                            content:'/workorder/kefu_order?step=2&id='+goodsId+'&work_type='+type,
                             yes:function (index,layero) {
                                 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
                                 //检查属性有没有选择
@@ -115,7 +116,7 @@ $.ajaxSetup({
                                     layer.msg("无此规格");
                                     return false;
                                 }
-                                window.location.href='/workorder/kefu_order?step=3&sku_id='+choose.sku_id;
+                                window.location.href='/workorder/kefu_order?step=3&sku_id='+choose.sku_id+'&work_type='+type;
                             }
                         });
                     });
