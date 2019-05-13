@@ -58,12 +58,12 @@ class Timer extends ApiBase
                         $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - $orderReturnDayTime).')';
                     }
                     
-                    //工单自动评价时间(天数),售后服务完成，如超过配饰时间用户未评价仍然未评价，系统自动给好评并完成服务费结算；
+                    /* //工单自动评价时间(天数),售后服务完成，如超过配饰时间用户未评价仍然未评价，系统自动给好评并完成服务费结算；
                     $workOrderAssessDay = $config && isset($config['workorder_auto_assess_day']) ? $config['workorder_auto_assess_day'] : 0;
                     if ($workOrderAssessDay > 0) {
                         $workOrderAssessDayTime = $workOrderAssessDay * 24 * 60 * 60;
                         $assessMap[] = '(factory_id = '.$factoryId.' AND finish_time <= '. ($thisTime - $workOrderAssessDayTime).')';
-                    }
+                    } */
                 }
                 if ($cancelMap) {
                     $cancelSql = 'order_status = 1 AND pay_status = 0';
@@ -102,7 +102,7 @@ class Timer extends ApiBase
                         }
                     }
                 }
-                if ($assessMap) {
+                /* if ($assessMap) {
                     $assessSql = implode(' OR ', $assessMap);
                     //获取未进行首次评价的已完成的工单(安装和维修工单)
                     $assessWhere = [
@@ -127,7 +127,7 @@ class Timer extends ApiBase
                             }
                         }
                     }
-                }
+                } */
             }
             $this->_returnMsg(['time' => $time]);
         } catch (\Exception $e) {
