@@ -845,10 +845,10 @@ class Workorder extends FactoryForm
             $this->error("商品规格不存在或已被删除");
         }
         $key .= $cateId;
-        $config = ConfigForm::where([
-            'store_id' => $this->adminUser['factory_id'],
-            'key'      => $key,
-            'is_del'   => 0,
+        $config = ConfigForm::alias('p1')->field('p1.id,p1.name,p1.is_required,p1.type,p1.value')->where([
+            'p1.store_id' => $this->adminUser['factory_id'],
+            'p1.key'      => $key,
+            'p1.is_del'   => 0,
         ])->order('sort_order ASC')->select();
         return $config->toArray();
     }
@@ -879,6 +879,53 @@ class Workorder extends FactoryForm
 
     public function _afterEdit($id=0,$data=[])
     {
+        $arr=[];
+        $logIds=$this->request->param('log_id');
+        $postConf=$this->request->param('post_conf');
+        $config=$this->workAddConf;
+        if ($postConf && $config) {//记录自定义表单的修改日志
+            $postData = [];
+            foreach ($config as $k => $v) {
+                if ($v['config_value'] != $postConf[$v['id']]) {
+                    $where=[];
+                    $postData= [
+                        'config_form_id' => $v['id'],
+                        'worder_id'      => $id,
+                        'store_id'       => $this->adminUser['factory_id'],
+                        'post_store_id'  => $this->adminUser['store_id'],
+                        'post_user_id'   => $this->adminUser['user_id'],
+                        'config_value'   => $postConf[$v['id']],
+                    ];
+                    if (isset($logIds[$v['id']]) && $logIds[$v['id']] > 0) {
+                        $where['id']=$logIds[$v['id']];
+                    }
+                    $model = new ConfigFormLogs;
+                    $result = $model->save($postData,$where);
+                    $orgVal=$v['config_value'];
+                    $newVal=$postConf[$v['id']];
+                    if ($v['type'] == 2 ) {//单选
+                        $orgVal=isset($v['value'][$orgVal])?$v['value'][$orgVal]:'';
+                        $newVal=isset($v['value'][$newVal])?$v['value'][$newVal]:'';
+                    } elseif ($v['type'] == 3 || $v['type'] == 4) {//多选,或下拉
+                        $tmp1=[];
+                        if (is_array($orgVal) && $orgVal) {
+                            foreach ($orgVal as $item) {
+                                $tmp1[]=isset($v['value'][$item])?$v['value'][$item]:'';
+                            }
+                        }
+                        $tmp2=[];
+                        if (is_array($newVal) && $newVal) {
+                            foreach ($newVal as $item) {
+                                $tmp2[]=isset($v['value'][$item])?$v['value'][$item]:'';
+                            }
+                        }
+                        $orgVal=implode('、',$tmp1);
+                        $newVal=implode('、',$tmp2);
+                    }
+                    $arr[]=$config[$k]['name'].":".$orgVal.' 修改为:'.$newVal;
+                }
+            }
+        }
         $info = $this->orgInfo;
         $map = [
             'user_name'   => '客户名称',
@@ -889,9 +936,9 @@ class Workorder extends FactoryForm
             'fault_desc'  => '备注',
             'images'      => '图片',
         ];
-        $arr=[];
+
         foreach ($map as $k=>$v) {
-            if ($data[$k] != $info[$k]) {
+            if ( isset($data[$k]) && $data[$k] != $info[$k]) {
                 if ($k=='appointment') {
                     $info[$k]=time_to_date($info[$k]);
                     $data[$k]=time_to_date($data[$k]);
@@ -899,7 +946,7 @@ class Workorder extends FactoryForm
                 $arr[]=$v.':'.$info[$k].'，修改为:'.$data[$k];
             }
         }
-        $msg=implode(',',$arr);
+        $msg=implode('；',$arr);
         $this->model->worderLog($info,$this->adminUser,0,'编辑工单',$msg);
     }
     
@@ -1468,6 +1515,30 @@ class Workorder extends FactoryForm
                 $this->assign('services',$services);
             }
         }
+        $config = [];
+
+        $workerType=isset($info['work_order_type'])?$info['work_order_type']:1;
+        $worderId=isset($info['worder_id'])?$info['worder_id']:'';
+        if ($workerType==1) {//自定义表的验证
+            $config = $this->model->getConfigAndLogs([
+                'worder_id' => $worderId,
+                'store_id'  => $this->adminUser['factory_id'],
+                'type'      => 0,
+            ]);
+            $config = isset($config['data']) ? $config['data'] : [];
+            if (!empty($config) && IS_POST) {
+                $postConf=$this->request->param('post_conf');
+                foreach ($config as $k=>$v) {
+                    if ($v['is_required']  && (!isset($postConf[$v['id']])) || $postConf[$v['id']]==='' || $postConf[$v['id']]===null ) {
+                        $this->error($v['name'].'不能为空');
+                        return false;
+                    }
+                }
+                $this->workAddConf=$config;
+            }
+        }
+        //p($config);
+        $this->assign('postConfig',$config);
         return $info;
     }
 }

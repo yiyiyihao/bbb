@@ -2,24 +2,24 @@
 {volist name="postConfig" id="vo"}
 <div class="form-group">
     <div class="label">
-        <label>{$vo.name}</label>
+        <label>{$vo.name}<input type="hidden" name="log_id[{$vo.id}]" value="{$vo.log_id?? ''}"></label>
     </div>
     <div class="field {if $vo.type==3}checkgroup{/if}">
         {switch $vo.type }
-        {case 0}<input type="text" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="">{/case}
-        {case 1}<input type="number" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="">{/case}
+        {case 0}<input type="text" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="{$vo.config_value?? ''}">{/case}
+        {case 1}<input type="number" class="input"  name="post_conf[{$vo.id}]" size="40" {if $vo.is_required}datatype="*"{/if} value="{$vo.config_value?? ''}">{/case}
         {case 2}
         <div class="button-group radio">
             {foreach $vo.value as $k=>$v }
-            <label class="button"><input name="post_conf[{$vo.id}]" value="{$k}" size="40" type="radio" {if $vo.is_required}datatype="n"{/if}>{$v}</label>
+            <label class="button {if isset($vo['config_value']) && $vo['config_value']!=='' && $vo['config_value']!==NULL && $vo['config_value']==$k}active{/if}"><input name="post_conf[{$vo.id}]" value="{$k}" {if isset($vo['config_value']) && $vo['config_value']!=='' && $vo['config_value']!==NULL && $vo['config_value']==$k}checked="checked"{/if} size="40" type="radio" {if $vo.is_required}datatype="n"{/if}>{$v}</label>
             {/foreach}
         </div>
         {/case}
         {case 3}
         <div class="button-group">
             {foreach $vo.value as $k=>$v}
-            <div class="checkbox data-single">
-                <input type="checkbox" class="top"  name="post_conf[{$vo.id}][]" value="{$k}" {if $vo.is_required}datatype="*"{/if} >
+            <div class="checkbox data-single {if isset($vo['config_value']) && $vo['config_value']!=='' && $vo['config_value']!==NULL && in_array($k,$vo['config_value'])}checked{/if}">
+                <input type="checkbox" class="top"  name="post_conf[{$vo.id}][]"  {if isset($vo['config_value']) && $vo['config_value']!=='' && $vo['config_value']!==NULL && in_array($k,$vo['config_value'])}checked="checked"{/if} value="{$k}" {if $vo.is_required}datatype="*"{/if} >
                 <i class="icon-check"></i><span>{$v}</span>
             </div>
             {/foreach}
@@ -29,15 +29,15 @@
         <select class="input cate-select" name="post_conf[{$vo.id}][]" nullmsg="请选择！" {if $vo.is_required}datatype="*"{/if}>
         <option value="">==请选择==</option>
         {foreach $vo.value as $k=>$v}
-        <option value="{$k}">{$v}</option>
+        <option value="{$k}" {if isset($vo['config_value'][0]) && $vo['config_value'][0]!=='' && $vo['config_value'][0]!==NULL && $vo['config_value'][0]==$k}selected="selected"{/if}>{$v}</option>
         {/foreach}
         </select>
         {/case}
-        {case 5}<input type="text" class="input js-time" {if $vo.is_required}datatype="*"{/if} name="post_conf[{$vo.id}]" size="20" value="{:date('Y/m/d H:i')}">{/case}
-        {case 6}<textarea class="input"  name="post_conf[{$vo.id}]" {if $vo.is_required}datatype="*"{/if} rows="6" cols="60"></textarea>{/case}
+        {case 5}<input type="text" class="input js-time" {if $vo.is_required}datatype="*"{/if} name="post_conf[{$vo.id}]" size="20" value="{$vo.config_value?? date('Y/m/d H:i:s')}">{/case}
+        {case 6}<textarea class="input"  name="post_conf[{$vo.id}]" {if $vo.is_required}datatype="*"{/if} rows="6" cols="60">{$vo.config_value?? ''}</textarea>{/case}
         {case 7}
-        <input type="hidden" class="input" id="post_conf_{$vo.id}" name="post_conf[{$vo.id}]" size="38" value="" {if $vo.is_required}datatype="*"{/if}>
-        <div  style="margin-bottom:10px;"><img src="/static/base/images/default.png" id="post_conf_{$vo.id}_thumb_preview" width="120"></div>
+        <input type="hidden" class="input" id="post_conf_{$vo.id}" name="post_conf[{$vo.id}]" size="38" value="{$vo.config_value?? ''}" {if $vo.is_required}datatype="*"{/if}>
+        <div  style="margin-bottom:10px;"><img src="{if isset($vo['config_value']) && $vo['config_value']}{$vo.config_value}{else /}/static/base/images/default.png{/if}" id="post_conf_{$vo.id}_thumb_preview" width="120"></div>
         <a class="button bg-main button-small js-img-upload" data="post_conf_{$vo.id}" preview="post_conf_{$vo.id}_thumb_preview" href="javascript:;" >
             <span class="icon-upload">上传</span>
         </a>

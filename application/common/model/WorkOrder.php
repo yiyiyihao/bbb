@@ -1027,6 +1027,36 @@ class WorkOrder extends Model
         return dataFormat(0,'ok',$config);
     }
 
+    public function getConfigAndLogs($param)
+    {
+        $result=$this->getGoodsCateId($param);
+        if ($result['code'] != 0) {
+            return $result;
+        }
+        $cateId=$result['data']['cate_id'];
+        $type=$param['type'];
+        $result=$this->getConfigKey($cateId,$type);
+        $key=$result['data']['key'];
+        $data = db('config_form')->alias('p1')
+            ->field('p1.id,p1.name,p1.is_required,p1.type,p1.value,p2.id log_id,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.config_form_id=p1.id AND p2.is_del=0 AND p2.worder_id=' . $param['worder_id'],'LEFT']
+            ])
+            ->where([
+                'p1.store_id' => $param['store_id'],
+                'p1.key'      => $key,
+                'p1.is_del'   => 0,
+            ])->order('p1.sort_order ASC')
+            ->select();
+        foreach ($data as $k=>$v) {
+            if (in_array($v['type'], [2, 3, 4])) {
+                $data[$k]['value']=json_decode($data[$k]['value'],true);
+                $data[$k]['config_value']=json_decode($data[$k]['config_value'],true);
+            }
+        }
+        return dataFormat(0,'ok',$data);
+    }
+
     public function getConfigLogDetail($param)
     {
         $workAddInfo=[];//工单提交信息
