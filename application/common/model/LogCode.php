@@ -55,14 +55,10 @@ class LogCode extends Model
         }
         if (in_array($codeType, ['register','bind_phone','change_phone'])) {
             //判断当前手机号是否已经注册
-            //if($source == 'APPLETS_INTALLER'){
-            //    $exist = db('user_installer')->where(['phone' => $phone, 'factory_id' => $storeId, 'is_del' => 0])->find();
-            //}else{
-            //    $exist = db('user')->where(['phone' => $phone, 'factory_id' => $storeId, 'is_del' => 0])->find();
-            //}
-            $exist = db('user')->where(['phone' => $phone, 'factory_id' => $storeId, 'is_del' => 0])->find();
-            if (!empty($exist)) {
-                $this->error = '该号码已经被注册';
+            $userDataModel = new \app\common\model\UserData();
+            $result = $userDataModel->phoneExist($storeId, $phone, $source);
+            if ($result === FALSE) {
+                $this->error = $userDataModel->error;
                 return FALSE;
             }
         }

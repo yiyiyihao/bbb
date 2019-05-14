@@ -1059,6 +1059,10 @@ class Fenxiao extends Admin
         $user = $userModel->where($where)->find();
         if ($user) {
             $userId = $user['user_id'];
+            $data = [
+                'password'  => $userModel->pwdEncryption($password),
+            ];
+            $result = $userModel->save($data, ['user_id' => $userId]);
         }else{
             $data = [
                 'factory_id' => $this->factoryId,
@@ -1072,7 +1076,8 @@ class Fenxiao extends Admin
                 'gender' => $loginUser['gender'],
                 'source' => 'wechat_fenxiao',
             ];
-            $userId = $userModel->save($data);
+            $result = $userModel->save($data);
+            $userId = $userModel->user_id;
         }
         $result = model('UserData')->save(['user_id' => $userId, 'phone' => $phone], ['udata_id' => $loginUser['udata_id']]);
         if ($result === FALSE) {
@@ -1957,6 +1962,7 @@ class Fenxiao extends Admin
             $this->postParams['signkey'] = $signKey;
             $sign = $this->getSign($this->postParams, $signKey);
             $this->postParams['sign'] = $sign;
+//             pre($this->postParams, 1);
         }
         if (!$this->postParams) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请求参数异常']);
