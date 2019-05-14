@@ -13,4 +13,19 @@ class UserData extends Model
     {
         parent::initialize();
     }
+    public function phoneExist($fatoryId, $phone, $userType = 'user')
+    {
+        $map = [
+            ['phone',       '=', $phone],
+            ['factory_id',  '=', $fatoryId],
+            ['user_type',   '=', $userType],
+            ['is_del',      '=', 0],
+        ];
+        $exist = $this->where($map)->find();
+        if ($exist) {
+            $this->error = '当前手机号已注册';
+            return FALSE;
+        }
+        return TRUE;
+    }
 }

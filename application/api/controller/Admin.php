@@ -118,7 +118,6 @@ class Admin extends Index
     protected function getWechatOpenid()
     {
         $sessionWechat = session('api_wechat_oauth');
-        //         session('api_user_data', []);
         session('api_admin_user', []);
         $wechatApi = new \app\common\api\WechatApi(0, $this->thirdType);
         if (!$sessionWechat) {
@@ -134,19 +133,6 @@ class Admin extends Index
         }else{
             $result = $sessionWechat;
         }
-        //#TODO 删除模拟用户数据
-        //$result=[
-        //    'openid' => 'oU6IZxN9SBJqKDLvoCMYqsOfAwkg',
-        //    'appid' => 'wxa57c32c95d2999e5',
-        //    'nickname' => 'John',
-        //    'sex' => 1,
-        //    'language' => 'zh_CN',
-        //    'city' => '深圳',
-        //    'province' => '广东',
-        //    'country' => '中国',
-        //    'headimgurl' => 'http://thirdwx.qlogo.cn/mmopen/vi_32/6ntVHaKIrYePQicia4vSnzoCVlnjHDrOg5fwhiciaJmyDC785qC5ibMJdzDq3KF92ZzEaHCrBm2w8QsnPnh2TZbIEkg/132',
-        //    'privilege' =>[],
-        //];
         $userModel = new \app\common\model\User();
         $params = [
             'user_type'     => 'manager',
@@ -212,8 +198,26 @@ class Admin extends Index
         if(!$user['status']){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('LOGIN_FORBIDDEN')]);
         }
+        $userDataModel = new \app\common\model\UserData();
+        //判断用户是否存在
+        $map = [
+            ['factory_id',  '=', $this->factory['store_id']],
+            ['is_del',      '=', 0],
+            ['user_type',   '=', $this->userType],
+            ['user_id',     '=', $user['user_id']],
+            ['udata_id',    '<>', $udata['udata_id']],
+        ];
+        $exist = $userDataModel->where($map)->find();
+        if ($exist) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('当前账号已在其它微信号登录')]);
+        }
         //微信用户绑定
-        $result = db('user_data')->where(['udata_id' => $udata['udata_id']])->update(['user_id' => $user['user_id'], 'update_time' => time()]);
+        $data = [
+            'user_id' => $userId,
+            'update_time' => time(),
+            'phone' => $phone,
+        ];
+        $result = $userDataModel->where(['udata_id' => $udata['udata_id']])->update($data);
         $this->_setLogin($user['user_id'], $udata['third_openid']);
     }
     //商户入驻-用户注册
@@ -231,6 +235,9 @@ class Admin extends Index
         if (!$password) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '密码不能为空']);
         }
+        if (strlen($password) < 6 && strlen($password) > 16) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '密码格式不正确']);
+        }
         if (!$rePwd) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '确认密码不能为空']);
         }
@@ -241,35 +248,56 @@ class Admin extends Index
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '请同意用户协议']);
         }
         $userModel = new \app\common\model\User();
-        //检查登录用户名/密码格式
-        $extra = [
-            'phone'     => $phone,
-            'password'  => $password,
-        ];
-        $result = $userModel->checkFormat($this->factory['store_id'], $extra, FALSE);
-        if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+        if (check_mobile($phone)  === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号格式错误']);
         }
-        //判断手机号对应用户是否存在
-        $exist = $userModel->where('phone', $phone)->where('is_del', 0)->find();
-        if ($exist) {
+        //判断当前手机号是否已经注册
+        $userDataModel = new \app\common\model\UserData();
+        $result = $userDataModel->phoneExist($this->factory['store_id'], $phone, $source);
+        if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前手机号已注册']);
         }
-        $data = [
-            'phone'     => $phone,
-            'admin_type'=> 0,
-            'factory_id'=> $this->factory['store_id'],
-            'store_id'  => 0,
-            'is_admin'  => 1,
-            'password'  => $userModel->pwdEncryption($password),
-            'group_id'  => 0,
-            'source'    => $source,
+        //判断手机号对应user_id是否存在
+        $map = [
+            ['phone', '=', $phone],
+            ['is_del', '=', 0],
+            ['factory_id', '=', $this->factory['store_id']],
         ];
-        $userId = $userModel->save($data);
-        if ($userId === FALSE) {
+        $user = $userModel->where($map)->find();
+        if ($user) {
+            $userId = $user['user_id'];
+            $data = [
+                'username'  => $phone,
+                'is_admin'  => 1,
+                'password'  => $userModel->pwdEncryption($password),
+                'group_id'  => 0,
+                'source'    => $source,
+            ];
+            $result = $userModel->save($data, ['user_id' => $userId]);
+        }else{
+            $data = [
+                'username'  => $phone,
+                'phone'     => $phone,
+                'admin_type'=> 0,
+                'factory_id'=> $this->factory['store_id'],
+                'store_id'  => 0,
+                'is_admin'  => 1,
+                'password'  => $userModel->pwdEncryption($password),
+                'group_id'  => 0,
+                'source'    => $source,
+            ];
+            $result = $userModel->save($data);
+            $userId = $user->user_id;
+        }
+        if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         } else {
-            $result = db('user_data')->where(['udata_id' => $udata['udata_id']])->update(['user_id' => $userId, 'update_time' => time()]);
+            $data = [
+                'user_id' => $userId,
+                'update_time' => time(),
+                'phone' => $phone,
+            ];
+            $result = $userDataModel->where(['udata_id' => $udata['udata_id']])->update($data);
             $udata['phone'] = $phone;
             $udata['user_id'] = $userId;
             $udata['store_id'] = 0;
