@@ -42,6 +42,7 @@
         <tr>
           <th width="*">订单号</th>
           <th width="120">订单来源</th>
+          <th width="120">来源类型</th>
           <th width="120">商户名称</th>
           <th width="*">第三方交易号</th>
           <th width="100">订单金额</th>
@@ -58,6 +59,7 @@
             <tr>
               <td>{$vo.order_sn}</td>
               <td>{:get_order_from($vo.order_from, $vo.order_source)}</td>
+              <td>{:get_order_from_type($vo.order_from, $vo.order_source)}</td>
               <td>{if isset($vo['sname']) && !empty($vo['sname'])}{$vo.sname}{else /}{$vo.ssname ??''}{/if}</td>
               <td>{$vo['pay_sn']}</td>
               <td>{$vo.real_amount}元</td>

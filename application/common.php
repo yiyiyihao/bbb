@@ -60,6 +60,26 @@ function get_order_from($from = FALSE)
         return '';
     }
 }
+
+function get_order_from_type($from = FALSE)
+{
+    $fromTxts = [
+        1  => '渠道订单',
+        2  => '渠道订单',
+        3  => '电商订单',
+        4  => '电商订单',
+    ];
+    if ($from === FALSE) {
+        return $fromTxts;
+    }
+    if (isset($fromTxts[$from])) {
+        return $fromTxts[$from];
+    }else{
+        return '';
+    }
+}
+
+
 function get_order_source($source = FALSE)
 {
     $fromTxts = [

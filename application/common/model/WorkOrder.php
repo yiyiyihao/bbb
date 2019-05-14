@@ -35,6 +35,11 @@ class WorkOrder extends Model
                 'post_user_id' => $data['post_user_id'],
             ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
+            //保存用户信息，如果有
+            if (!empty($user) && isset($data['phone'])  && $data['phone'] && isset($data['user_name']) && $data['user_name']  && $user['phone'] == $data['phone'] && $user['realname'] != $data['user_name']) {
+                db('user')->where(['user_id'=>$user['user_id']])->update(['realname'=>$data['user_name'],'update_time'=>time()]);
+                $user['realname']=$data['user_name'];
+            }
             if (empty($user)) {
                 $user=db('user_data')->where(['is_del' => 0])->find($udata_id);
             }
