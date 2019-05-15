@@ -412,18 +412,30 @@ $.ajaxSetup({
                             } else {
                                 if (data.url == null || data.url == '') {
                                     //不带连接
-                                    layer.alert(data.msg, 1, function () {
-                                        window.location.reload();
+                                    layer.msg(data.msg,{
+                                        time:1000,
+                                        end:function () {
+                                            window.location.reload();
+                                        }
                                     });
+                                    // layer.alert(data.msg, 1, function () {
+                                    //     window.location.reload();
+                                    // });
                                 } else {
                                     //带连接
-									layer.confirm(data.msg, {
-										btn: ['确定', '关闭'],
-									}, function(){
-									 	window.location.href = data.url;
-									}, function(){
-										window.location.reload();
-									});
+                                    layer.msg(data.msg,{
+                                        time:1000,
+                                        end:function () {
+                                            window.location.href = data.url;
+                                        }
+                                    });
+									// layer.confirm(data.msg, {
+									// 	btn: ['确定', '关闭'],
+									// }, function(){
+									//  	window.location.href = data.url;
+									// }, function(){
+									// 	window.location.reload();
+									// });
                                 }
                             }
                         } else {

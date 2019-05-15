@@ -61,7 +61,7 @@
           {/if}
           <th width="*">售后商品</th>
           {if condition="!in_array($adminUser['admin_type'], [$Think.const.ADMIN_DEALER, $Think.const.ADMIN_channel])"}
-          <th width="80">预安装费</th>
+<!--          <th width="80">预安装费</th>-->
           {/if}
           <th width="*">客户信息</th>
           <th width="*">客户地址</th>
@@ -87,7 +87,7 @@
               {/if}
               <td>{$vo.gname}<br>{$vo.sku_name}</td>
               {if condition="!in_array($adminUser['admin_type'], [$Think.const.ADMIN_DEALER, $Think.const.ADMIN_channel])"}
-              <td>{$vo.install_price}元</td>
+<!--              <td>{$vo.install_price}元</td>-->
               {/if}
               <td>{$vo.user_name}<br>{$vo.phone}</td>
               <td>{$vo.region_name}<br>{$vo.address}</td>
