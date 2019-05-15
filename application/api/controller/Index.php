@@ -18,13 +18,12 @@ class Index extends ApiBase
     public $fromSource;
     public $factory;
     public $userTypes;
+    public $userType;
     public $mapKey='';
     
     public $signData = [];
     public function __construct(){
         parent::__construct();
-        if ($this->request->param('test')) {
-        }
         $this->_checkPostParams();
         $this->method = trim($this->postParams['method']);
         $this->page = isset($this->postParams['page']) && $this->postParams['page'] ? intval($this->postParams['page']) : 0;
@@ -40,29 +39,31 @@ class Index extends ApiBase
         }
         //客户端签名密钥
         $this->signKeyList = [
-            'H5_FENXIAO'        => '0X65M8ixVmwq',
-            'H5_MANAGER'        => 'VO17NvGtExcc',
-            'APPLETS_INTALLER'  => 'SjeGczso8Ya2',
-            'APPLETS_USER'      => 'fYb180XXDddf',
-            'APPLETS_USER1'     => 'SjeGczso8Ya3',
-            'TEST'              => 'ds7p7auqyjj8',
+            'H5_FENXIAO'        => [
+                'code'      => '0X65M8ixVmwq',
+                'user_type' => 'fenxiao',
+            ],
+            'H5_MANAGER'        => [
+                'code'      => 'VO17NvGtExcc',
+                'user_type' => 'manager',
+            ],
+            'APPLETS_INTALLER'  => [
+                'code'      => 'SjeGczso8Ya2',
+                'user_type' => 'intaller',
+            ],
+            'APPLETS_USER'      => [
+                'code'      => 'fYb180XXDddf',
+                'user_type' => 'user',
+            ],
         ];
         //腾讯地图KEY
         $this->mapKey='TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX';
         $this->verifySignParam($this->postParams);
-        //请求参数验证
-        foreach($this->signKeyList as $key => $value) {
-            if($this->signKey == $value) {
-                $this->fromSource = trim($key);
-                break;
-            }else{
-                continue;
-            }
-        }
         $this->userTypes = [
             'manager'   => '管理员客户端',
             'installer' => '师傅端',
             'user'      => '用户端',
+            'fenxiao'   => '人人分销',
         ];
     }
     public function index()
@@ -198,7 +199,7 @@ class Index extends ApiBase
         $phone  = isset($this->postParams['phone']) ? trim($this->postParams['phone']) : '';
         $type   = isset($this->postParams['type']) ? trim($this->postParams['type']) : 'bind_phone';
         $codeModel = new \app\common\model\LogCode();
-        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type, $this->fromSource);
+        $result = $codeModel->sendSmsCode($this->factory['store_id'], $phone, $type, $this->userType);
         if ($result === FALSE){
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $codeModel->error]);
         }else{
@@ -237,15 +238,14 @@ class Index extends ApiBase
 //         }
         $userModel = new \app\common\model\User();
         //仅验证手机号格式
-        $result = $userModel->checkPhone($this->factory['store_id'], $phone, FALSE);
-        if ($result === FALSE) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userModel->error]);
+        if (check_mobile($phone) === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号格式错误']);
         }
-        //判断手机号对应用户是否存在
-        $where = ['U.phone' => $phone, 'U.is_del' => 0, 'UD.user_type' => $user['user_type']];
-        $exist = $userModel->alias('U')->join('user_data UD', 'U.user_id = UD.user_id', 'INNER')->where($where)->find();
-        if ($exist) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '手机号已注册,请使用其它号码']);
+        //判断当前手机号是否已经注册
+        $userDataModel = new \app\common\model\UserData();
+        $result = $userDataModel->phoneExist($this->factory['store_id'], $phone, $this->userType);
+        if ($result === FALSE) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $userDataModel->error]);
         }
         $result = $userModel->bindPhone($user['openid'], $phone);
         if ($result === FALSE) {
@@ -257,7 +257,7 @@ class Index extends ApiBase
     //更换手机号
     protected function changePhone()
     {
-        $user = $this->_checkOpenid(FALSE, 'U.user_id, U.factory_id, U.phone, U.username', FALSE);
+        $user = $this->_checkOpenid(FALSE, 'U.user_id, U.factory_id, U.phone, U.username, UD.user_type', FALSE);
         if (!isset($user['phone']) || !$user['phone']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '您还未绑定手机号，不能更换']);
         }
@@ -345,9 +345,6 @@ class Index extends ApiBase
         }
         $this->_returnMsg(['address' => $result['message'] ?? "第三方应用拒绝访问"]);
     }
-
-
-
     //获取用户收货地址列表
     protected function getUserAddressList()
     {
@@ -721,7 +718,6 @@ class Index extends ApiBase
             if ($status >= -1 || $status === FALSE) {
                 $sql = 'WO.installer_id = '.$installer['installer_id'].' OR (WOIR.worder_id = WO.worder_id AND WOIR.installer_id = '.$installer['installer_id'].' AND WOIR.status != 2)';
                 $where[] = ['', 'EXP', \think\Db::raw($sql)];
-//                 $where[] = ['', 'EXP', \think\Db::raw('work_order_status != -3')];
             }else{
                 if ($status == -2) {
                     $installStatus = 1;
@@ -1610,7 +1606,17 @@ class Index extends ApiBase
         if(!$this->signKey) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥(signkey)参数缺失'));
         }
-        if(!in_array($this->signKey, $this->signKeyList)) {
+        //请求参数验证
+        foreach($this->signKeyList as $key => $value) {
+            if($this->signKey == $value['code']) {
+                $this->fromSource = trim($key);
+                $this->userType = $value['user_type'];
+                break;
+            }else{
+                continue;
+            }
+        }
+        if(!$this->fromSource || !$this->userType) {
             $this->_returnMsg(array('errCode' => 1,'errMsg' => '签名密钥错误'));
         }
         if (strtolower($this->request->controller()) == 'index' && !$this->mchKey) {
@@ -1623,7 +1629,6 @@ class Index extends ApiBase
                 $this->_returnMsg(array('errCode' => 1,'errMsg' => '商户密钥(mchkey)对应商户不存在或已删除'));
             }
         }
-        
         if (isset($data['file'])) {
             unset($data['file']);
         }

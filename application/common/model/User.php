@@ -140,18 +140,16 @@ class User extends Model
             $this->error = lang('原手机号不能为空');
             return FALSE;
         }
-        //验证原手机号格式
-        $result = $this->checkPhone($user['factory_id'], $oldPhone);
-        if ($result === FALSE) {
+        if (check_mobile($oldPhone) === FALSE) {
+            $this->error = '原手机号格式错误';
             return FALSE;
         }
         if (!$phone) {
             $this->error = lang('新手机号不能为空');
             return FALSE;
         }
-        //验证新手机号格式
-        $result = $this->checkPhone($user['factory_id'], $phone);
-        if ($result === FALSE) {
+        if (check_mobile($phone) === FALSE) {
+            $this->error = '新手机号格式错误';
             return FALSE;
         }
         if ($oldPhone == $phone) {
@@ -167,12 +165,19 @@ class User extends Model
             return FALSE;
         }
         //判断新手机号是否已经绑定过账户
-        $exist = $this->where(['factory_id' => $user['factory_id'], 'phone' => $phone, 'is_del' => 0])->find();
-        if ($exist) {
-            $this->error = lang('新手机号已绑定其它账户');
+        $userDataModel = new \app\common\model\UserData();
+        $result = $userDataModel->phoneExist($user['factory_id'], $phone, $user['user_type']);
+        if ($result === FALSE) {
+            $this->error = $userDataModel->error;
             return FALSE;
         }
-        return $this->save(['phone' => $phone], ['user_id' => $user['user_id']]);
+        $result = $this->save(['phone' => $phone], ['user_id' => $user['user_id']]);
+        if ($result === FALSE) {
+            $this->error = $userDataModel->error;
+            return FALSE;
+        }
+        $userDataModel->save(['phone' => $phone], ['user_id' => $user['user_id']]);
+        return TRUE;
     }
     
     /**
