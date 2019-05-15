@@ -121,18 +121,19 @@
 .xdsoft_datetimepicker  .xdsoft_minutepicker .xdsoft_prev,
 .xdsoft_datetimepicker  .xdsoft_minutepicker .xdsoft_next
 {
-	float:none;
-	background-position:-40px -15px;
+	float: none;
+	background-position: -49px -15px;
 	height: 15px;
-	width: 30px;
+	width: 24px;
 	display: block;
-	margin-left:14px;
-	margin-top:7px;
+	margin-left: 14px;
+	margin-top: 7px;
 }
 .xdsoft_datetimepicker  .xdsoft_timepicker .xdsoft_prev,.xdsoft_datetimepicker  .xdsoft_minutepicker .xdsoft_prev{
-	background-position:-40px 0px;
-	margin-bottom:7px;
-	margin-top:0px;
+	background-position: -49px 0px;
+	margin-bottom: 7px;
+	margin-top: 0px;
+	width: 13px;
 }
 .xdsoft_datetimepicker  .xdsoft_timepicker .xdsoft_time_box,.xdsoft_datetimepicker  .xdsoft_minutepicker .xdsoft_minute_box{
 	height:151px;
