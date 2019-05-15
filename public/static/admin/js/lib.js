@@ -99,13 +99,16 @@ $.fn.MultiUpload = function (options) {
 				//console.log(file);
 				index++;
 				//console.log(index);
+				var dataType=swiper.$el.attr('data-type');
 				var plus = "";
-				if(index == 1){
-					preview.attr("src",file.thumb);
-					preview.prev("input[type=hidden]").val(file.thumb);
-					plus = '<span>我是封面</span>';
-				}else{
-					plus = '<span class="uptofirst">设为封面</span>';
+				if (dataType !== 'simple') {
+					if(index == 1){
+						preview.attr("src",file.thumb);
+						preview.prev("input[type=hidden]").val(file.thumb);
+						plus = '<span>我是封面</span>';
+					}else{
+						plus = '<span class="uptofirst">设为封面</span>';
+					}
 				}
                 var html = '<div class="swiper-slide"><div class="media radius clearfix">\
                     <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>'+plus+'<img src="' + file.thumb + '" >\

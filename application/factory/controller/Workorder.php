@@ -948,6 +948,9 @@ class Workorder extends FactoryForm
         }
         $msg=implode('；',$arr);
         $this->model->worderLog($info,$this->adminUser,0,'编辑工单',$msg);
+        if ($info['work_order_type']==2) {//维修工单则返回维修工单列表
+            $this->returnUrl=url('lists');
+        }
     }
     
     public function add()

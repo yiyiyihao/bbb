@@ -73,8 +73,7 @@
                                 <div class="input-note">请填写预约服务时间</div>
                             </div>
                         </div>
-
-                        {if isset($_GET.type) && $_GET.type == 2}
+                        {if (!$info && input("type")== 2) || ($info && $info.work_order_type == 2) }
                         <div class="form-group fault_desc">
                             <div class="label">
                                 <label>备注信息</label>
@@ -85,7 +84,7 @@
                             </div>
                         </div>
                         {/if}
-                        {if condition='(!$info && $_GET && isset($_GET.type) && $_GET.type == 2) || ($info && $info.work_order_type == 2)'}
+                        {if condition='(!$info && input("type")== 2) || ($info && $info.work_order_type == 2)'}
                         <div class="form-group">
                             <div class="label">
                                 <label>上传图片</label>
@@ -94,18 +93,26 @@
                                 <div class="input-note note">请上传不大于2M的图片,支持多图上传</div>
                             </div>
                         </div>
+
                         <div class="imagesBox form-group clearfix" id="imgs">
-                            {if condition="$info && isset($info['images'])"}
-                            {volist name="info.images" id="vo" mod="10"}
-                            <div class="media radius clearfix">
-                                <a class="media-del icon-close" href="javascript:;" title="点击移除本图"></a>
-                                <img src="{$vo ?? ''}" >
-                                <div class="media-body">
-                                    <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
+                            <div class="swiper-container" data-type="simple">
+                                <div class="swiper-wrapper">
+                                    {if condition="$info && isset($info['images'])"}
+                                    {volist name="info.images" id="vo" mod="10"}
+                                    <div class="swiper-slide">
+                                        <div class="media radius clearfix">
+                                            <img src="{$vo ?? ''}" >
+                                            <div class="media-body">
+                                                <input name="imgs[]" type="hidden" class="input" value="{$vo ?? ''}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/volist}
+                                    {/if}
                                 </div>
+                                <div class="swiper-button-next"></div>
+                                <div class="swiper-button-prev"></div>
                             </div>
-                            {/volist}
-                            {/if}
                         </div>
                         {/if}
                         {include file="workorder/form_conf" /}
@@ -152,10 +159,23 @@
 
 
 <script>
-    Do.ready('base', function () {
+    var swiper;
+    Do.ready('swiper','base',function () {
         //表单综合处理
         $('#form').FormPage({
-        	'uploadUrl' : "{:url('Upload/upload', ['prex' => 'workorder_', 'thumb_type' => 'workorder_thumb_'])}",
-        });  
-    }); 
+            'uploadUrl' : "{:url('Upload/upload', ['prex' => 'workorder_', 'thumb_type' => 'workorder_thumb_'])}",
+        });
+        swiper = new Swiper('.swiper-container', {
+            slidesPerView: 5,
+            width: 1065,
+            spaceBetween: 10,
+            slidesPerGroup: 1,
+            //loop: true,
+            //loopFillGroupWithBlank: true,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+    });
 </script>
