@@ -150,16 +150,16 @@ class Promotion extends FormBase
         $info = parent::_assignInfo();
         //活动几天内的总访问次数 总访问用户数 总分享次数 下单次数 下单金额
         $where = [
-            'store_id' => $this->adminFactory['store_id'],
-            'promot_id' => $info['promot_id'],
-            'is_del' => 0,
+            ['store_id', '=', $this->adminFactory['store_id']],
+            ['promot_id', '=', $info['promot_id']],
+            ['is_del', '=', 0],
         ];
         $field = 'sum(share_count) as share_count, sum(click_count) as click_count';
         $data   = model('promotion_join')->field($field)->where($where)->find();
         //获取总访问用户数量 总分享用户数
         $where = [
-            'store_id' => $this->adminFactory['store_id'],
-            'promot_id' => $info['promot_id'],
+            ['store_id', '=', $this->adminFactory['store_id']],
+            ['promot_id', '=', $info['promot_id']],
         ];
         $field = 'count(distinct udata_id,if(type=1,true,null)) as click_user_count, count(distinct udata_id,if(type=2,true,null)) as share_user_count';
         $visitData = model('promotion_join_visit')->field($field)->where($where)->find();
@@ -168,9 +168,9 @@ class Promotion extends FormBase
         
         //获取总下单数量 支付订单数量 支付订单金额
         $where = [
-            'store_id' => $this->adminFactory['store_id'],
-            'promot_id' => $info['promot_id'],
-            'promot_type' => 'fenxiao',
+            ['store_id', '=', $this->adminFactory['store_id']],
+            ['promot_id', '=', $info['promot_id']],
+            ['promot_type', '=', 'fenxiao'],
         ];
         $field = 'count(order_id) as order_count, count(if(order_status=1 AND pay_status = 1,true,null)) as order_pay_count';
         $field .= ', sum(real_amount) as order_amount, sum(if(order_status=1 AND pay_status = 1,paid_amount,null)) as order_pay_amount';
@@ -180,6 +180,22 @@ class Promotion extends FormBase
         $data['order_pay_count'] = $orderData ? $orderData['order_pay_count'] : 0;
         $data['order_amount'] = $orderData ? $orderData['order_amount'] : 0;
         $data['order_pay_amount'] = $orderData ? $orderData['order_pay_amount'] : 0;
+        
+        //获取佣金金额(待结算 已结算 总佣金金额)
+        $where = [
+            ['promot_id', '=', $info['promot_id']],
+        ];
+        $field = 'sum(if(commission_status = 0 AND comm_type = 1,value,0)) as sale_pendding_commission, sum(if(commission_status = 1 AND comm_type = 1,value,0)) as sale_settle_commission';
+        $field .= ', sum(if(commission_status = 0 AND comm_type = 2,value,0)) as manage_pendding_commission, sum(if(commission_status = 1 AND comm_type = 2,value,0)) as manage_settle_commission';
+        $field .= ', sum(if(commission_status = 0,value,0)) as pendding_commission, sum(if(commission_status = 1,value,0)) as settle_commission';
+        $commissionData = model('UserDistributorCommission')->field($field)->where($where)->find();
+        
+        $data['sale_pendding_commission'] = $commissionData ? $commissionData['sale_pendding_commission'] : 0;
+        $data['sale_settle_commission'] = $commissionData ? $commissionData['sale_settle_commission'] : 0;
+        $data['manage_pendding_commission'] = $commissionData ? $commissionData['manage_pendding_commission'] : 0;
+        $data['manage_settle_commission'] = $commissionData ? $commissionData['manage_settle_commission'] : 0;
+        $data['pendding_commission'] = $commissionData ? $commissionData['pendding_commission'] : 0;
+        $data['settle_commission'] = $commissionData ? $commissionData['settle_commission'] : 0;
         
         $this->assign('data', $data);
         return $this->fetch('statistics');
@@ -228,8 +244,6 @@ class Promotion extends FormBase
             ['order_sku OS', 'O.order_id = OS.order_id', 'INNER'],
             ['user_data UD', 'UD.udata_id = UDC.post_udata_id', 'INNER'],
         ];
-//         $result = $this->_getModelList(model('user_distributor_commission'), $where, $field, $order, $alias, $join);
-        
         $model = model('user_distributor_commission');
         $count  = $model->alias($alias)->join($join)->field($field)->where($where)->count();
         $list   = $model->alias($alias)->join($join)->field($field)->where($where)->order($order)->paginate($this->perPage,$count, ['query' => input('param.')]);
@@ -412,10 +426,15 @@ class Promotion extends FormBase
                     if ($i !== FALSE) {
                         $this->error('第'.($key+1).'行商品 与 第'.($i+1).'行商品重复');
                     }
+                    $unlinkPrice = isset($data['unlink_price'][$key]) ? floatval($data['unlink_price'][$key]):'';
+                    if ($unlinkPrice <= 0) {
+                        $this->error('第'.($key+1).'行商品参考价格必须大于0');
+                    }
                     $price = isset($data['price'][$key]) ? floatval($data['price'][$key]):'';
                     if ($price <= 0) {
                         $this->error('第'.($key+1).'行商品活动价格必须大于0');
                     }
+                    
                     $saleType = isset($data['sale_type'][$key]) ? trim($data['sale_type'][$key]):'';
                     if (!$saleType || !isset($this->promTypes[$saleType])) {
                         $this->error('第'.($key+1).'行商品 佣金结算类型错误');
@@ -460,6 +479,7 @@ class Promotion extends FormBase
                         'sku_id' => 0,
                         'store_id' => $this->adminFactory['store_id'],
                         'promot_price' => sprintf("%0.2f", $price),
+                        'unlink_price' => sprintf("%0.2f", $unlinkPrice),
                         'sale_commission' => json_encode([
                             'type' => $saleType,
                             'value' => $saleValue,

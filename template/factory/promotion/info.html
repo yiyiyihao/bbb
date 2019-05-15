@@ -90,7 +90,7 @@
 							          		{/notempty}
 							          	</select>
 							          	<span class="yuanjia">原价:<span class="price">{$goods[$fid]['price']}</span>元</span>
-							          	
+							          	<span class="xianjia">参考价格:<input type="text" size="8" class="input" name="unlink_price[]" datatype="*" value="">元</span>
 							          	<span class="xianjia">活动价格:<input type="text" size="8" class="input" id="price" name="price[]" datatype="*" value="">元</span>
 							          </td>
 							          <td width="100">
@@ -103,7 +103,7 @@
 							          	</select>
 							          </td>
 							          <td width="100">
-							          	<input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value="">%
+							          	<input type="text" size="8" class="input" id="sale_value" name="sale_value[]" datatype="*" value=""><span class="show_text">%</span>
 							          </td>
 							          <td width="100">
 							          	<select class="input" name="manage_type[]">
@@ -115,7 +115,7 @@
 							          	</select>
 							          </td>
 							          <td width="100">
-							          	<input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value="">%
+							          	<input type="text" size="8" class="input" id="manage_value" name="manage_value[]" datatype="*" value=""><span class="show_text">%</span>
 							          </td>
 							          <td width="100">
 							          	<a class="button bg-red button-small icon-delete" href="javascript:;" onclick="item_del(this)" title="删除"></a>
@@ -133,6 +133,7 @@
 							          		{/notempty}
 							          	</select>
 							          	<span class="yuanjia">原价:<span class="price">{$goods[$data.goods_id]['price']}</span>元</span>
+							          	<span class="xianjia">参考价格:<input type="text" size="8" class="input" name="unlink_price[]" datatype="*" value="{$data.unlink_price}">元</span>
 							          	<span class="xianjia">活动价格:<input type="text" size="8" class="input" id="price" name="price[]" datatype="*" value="{$data.promot_price}">元</span>
 							          </td>
 							          <td width="100">
@@ -270,7 +271,7 @@
 				  html += '<option value="'+goods[g].goods_id+'" data-p="'+goods[g].price+'">'+goods[g].name+'</option>';
 			  }  
 		  }
-		  html += '  </select> <span class="yuanjia">原价:<span class="price">'+goods[{$fid}].price+'</span>元</span> <span class="xianjia">活动价格:<input type="text" size="8" class="input" id="price" name="price[]" datatype="*" value="">元</span></td>';
+		  html += '  </select> <span class="yuanjia">原价:<span class="price">'+goods[{$fid}].price+'</span>元</span> <span class="xianjia">参考价格:<input type="text" size="8" class="input" name="unlink_price[]" datatype="*" value="">元</span> <span class="xianjia">活动价格:<input type="text" size="8" class="input" id="price" name="price[]" datatype="*" value="">元</span></td>';
 		  
 		  html += '  <td width="*"><select class="input" name="sale_type[]">';
 		  if(promTypes){

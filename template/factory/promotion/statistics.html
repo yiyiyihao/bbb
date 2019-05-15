@@ -50,6 +50,60 @@
                         <div class="item-num">￥{$data.order_pay_amount?? 0}</div>
                     </div>  
                 </div>
+                
+            </div>
+        </div>
+    </div>
+    <div class="xm12">
+    	<div class="line-big col-space15">
+            <div class="xm12">
+                <div class="panel admin-dashboard boxShadow">
+                    <div class="panel-head"><span>佣金概况</span></div>
+                    <div class="panel-body">
+                       <div class="panel-block flex-container">
+		                	<div class="num-item-box flex-item">
+		                        <h4>待结算销售佣金金额</h4>
+		                        <div class="item-num">￥{$data.sale_pendding_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>已结算销售佣金金额</h4>
+		                        <div class="item-num">￥{$data.sale_settle_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>总销售佣金金额</h4>
+		                        <div class="item-num">￥{$data.sale_pendding_commission + $data.sale_settle_commission}元</div>
+		                    </div>  
+                       </div>
+                       <div class="panel-block flex-container">
+		                	<div class="num-item-box flex-item">
+		                        <h4>待结算管理佣金金额</h4>
+		                        <div class="item-num">￥{$data.manage_pendding_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>已结算管理佣金金额</h4>
+		                        <div class="item-num">￥{$data.manage_settle_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>总管理佣金金额</h4>
+		                        <div class="item-num">￥{$data.manage_pendding_commission + $data.manage_settle_commission}元</div>
+		                    </div>  
+                       </div>
+                       <div class="panel-block flex-container">
+		                	<div class="num-item-box flex-item">
+		                        <h4>待结算佣金金额</h4>
+		                        <div class="item-num">￥{$data.pendding_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>已结算佣金金额</h4>
+		                        <div class="item-num">￥{$data.settle_commission?? 0}元</div>
+		                    </div>  
+		                	<div class="num-item-box flex-item">
+		                        <h4>总佣金金额</h4>
+		                        <div class="item-num">￥{$data.pendding_commission + $data.settle_commission}元</div>
+		                    </div>  
+                       </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

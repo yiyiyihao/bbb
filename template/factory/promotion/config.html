@@ -4,11 +4,23 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-2">代言人申请分享文案配置</a></li>
+                        <li class="active"><a href="#tab-2">名片分享配置</a></li>
+                        <li class=""><a href="#tab-1">名片文案配置</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
+            	<div class="tab-panel" id="tab-1">
+            		<div class="form-group">
+                        <div class="label">
+                            <label>代言人名片文案说明</label>
+                        </div>
+                        <div class="field">
+                        	<textarea rows="3" cols="40" class="input"  name="distributor_card[description]" placeholder="请输入代言人申请分享描述" datatype="*">{$config['distributor_card']['description'] ?? ''}</textarea>
+                            <div class="input-note">代言人名片页面二维码下显示文案说明</div>
+                        </div>
+                    </div>
+            	</div>
                	<div class="tab-panel active" id="tab-2">
                 	<div class="form-group">
                         <div class="label">

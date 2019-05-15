@@ -102,6 +102,7 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '商品不存在或已删除']);
         }
         $detail['min_price'] = $promotSku['promot_price'];
+        $detail['unlink_price'] = $promotSku['unlink_price'];
         $goodsModel = new \app\common\model\Goods();
         $skus = $goodsModel->getGoodsSkus($goodsId);
         $detail['sku_id'] = 0;
@@ -1146,7 +1147,12 @@ class Fenxiao extends Admin
         if (!$loginUser['distributor']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '您还未提交申请']);
         }
-        $this->_returnMsg(['detail' => $loginUser['distributor']]);
+        $detail = $loginUser['distributor'];
+        $config = get_store_config($this->factoryId, TRUE, 'distributor_card');
+        $detail['card'] = $config ? $config : [
+            'description' => ''
+        ];
+        $this->_returnMsg(['detail' => $detail]);
     }
     /**
      * 获取下级分销员列表
