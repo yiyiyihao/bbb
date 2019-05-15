@@ -106,7 +106,11 @@ class Cart extends FactoryForm
 
     public function _afterList($list = [])
     {
-        //p($list);
+        if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
+            $source=get_order_source();
+            unset($source['fenxiao'],$source['every_nine_free'],$source['mall']);
+            $this->assign('source',$source);
+        }
         return $list;
     }
 }

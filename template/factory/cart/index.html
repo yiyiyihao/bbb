@@ -44,6 +44,32 @@
                                 </tbody>
                             </table>
                         </div>
+                        {notempty name="source"}
+                        <div class="admin-main">
+                            <div class="form-group">
+                                <div class="label" style="float: left;text-align: left;">
+                                    <label>订单来源</label>
+                                </div>
+                                <div class="field">
+                                    <select class="input" name="order_source" datatype="*">
+                                        <option value="">==请选择==</option>
+                                        {foreach $source as $key=>$vo }
+                                        <option value="{$key?? ''}">{$vo??""}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="label" style="float: left;text-align: left;">
+                                    <label>订单编号</label>
+                                </div>
+                                <div class="field">
+                                    <input type="text" size="20" name="order_sn" class="input" datatype="*" value="">
+                                </div>
+                            </div>
+                        </div>
+                        {/notempty}
+
                     </div>
                 </div>
                 {notempty name="page"}
@@ -52,12 +78,13 @@
                 {notempty name="list"}
                 <div class="panel-foot">
                     <div class="form-button">
-                        <button class="button bg-main" type="submit">买单</button>
+                        <button class="button bg-main" type="submit">立即下单</button>
                         <div id="tips"></div>
                     </div>
                 </div>
                 {/notempty}
             </div>
+
         </div>
     </form>
 
