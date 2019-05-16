@@ -540,11 +540,38 @@ class Screen extends Timer
             return $sn;
         }
     }
+    
+    /**
+     * 中断并返回数据,后面程序继续执行,避免用户等待(immediate)
+     * 可用于返回值后,继续执行程序,但程序占得所以资源没有释放,一直占用,务必注意,最好给单独脚本执行
+     * @param   string|array      $data 字符串或数组,数组将被转换成json字符串
+     * @param   intval      $set_time_limit 设置后面程序最大执行时间,0不限制,但web页面设置最大执行时间不一定靠谱,可改用脚本或单独开子进程
+     * @return
+     */
+    function returnAndContinue($data = '',$set_time_limit=10)
+    {
+        $str=is_string($data)  ? $data : json_encode($data , JSON_UNESCAPED_UNICODE);
+        header('Content-Type:application/json');
+        echo $str;
+        if(function_exists('fastcgi_finish_request')){			//Nginx使用
+            fastcgi_finish_request();		//后面输出客户端获取不到
+        }else {			//apache 使用
+            $size = ob_get_length();
+            header("Content-length: $size");
+            header('Connection:close');
+            ob_end_flush();
+            //ob_flush();       //加了没效果
+            flush();
+        }
+        ignore_user_abort(true);
+        set_time_limit($set_time_limit);
+        return $str;
+    }
     /**
      * 处理接口返回信息
      */
     protected function _returnMsg($data, $echo = TRUE){
-        $result = parent::_returnMsg($data);
+        $result = self::returnAndContinue($data);
         $responseTime = $this->_getMillisecond() - $this->visitMicroTime;//响应时间(毫秒)
         $addData = [
             'request_time'  => $this->requestTime,
@@ -556,7 +583,10 @@ class Screen extends Timer
             'errmsg'        => $this->errorArray ? json_encode($this->errorArray) : '',
             'show_time'     => date('Y-m-d H:i:s'),
         ];
-        $apiLogId = db('apilog_screen')->insertGetId($addData);
+        $apiLogId = db('apilog_screen',$this->configKey)->insertGetId($addData);
+        sleep(1);//休眠1秒后,再次执行刷数据任务
+        $url = "http://" .$this->request->host() . $this->request->url();
+        curl_request($url);
         exit();
     }
 }
