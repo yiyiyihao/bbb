@@ -342,7 +342,7 @@ class Screen extends Timer
         $timeRand = rand(0, 2*60*60);
         $storeCount = 350;
         if ($timeRand > $storeCount) {
-            $this->errorArray = ['createRand' => $timeRand];
+//             $this->errorArray = ['createRand' => $timeRand];
             return FALSE;
         }
         //获取当前零售商最后一次创建订单时间
@@ -448,6 +448,7 @@ class Screen extends Timer
         if ($count > 0) {
             //维修工单目标总数 = 每日安装工单*5/100
             $num = $count * 5/ 100;
+//             $this->errorArray['createRepairCount'] = $count."==".$num;
             //判断是否已达到当前目标数
             $where = [
                 ['work_order_type', '=', 2],
@@ -460,12 +461,12 @@ class Screen extends Timer
             }else{
                 $dataset = [];
                 //未达到目标数则根据概率判断是否创建维修工单
-                $diffnum = $num - $count;
 //                 $max = $endToday - $this->thisTime;
-                $max = 1*24*60*60;
-                for ($i = 0; $i < $diffnum; $i++) {
+//                 $max = 1*24*60*60;
+                $max = (20-8)*60*60;
+                for ($i = 0; $i <= $num; $i++) {
                     $rand = rand(0, $max);
-                    if ($rand < 1) {
+                    if ($rand <= 1) {
                         $dataset[] = [
                             'worder_sn'         => $this->_getWorderSn(),
                             'work_order_type'   => 2,
@@ -474,10 +475,10 @@ class Screen extends Timer
                             'images'            => '',
                             'fault_desc'        => '',
                         ];
+                    }else{
+//                         $this->errorArray['createRepairRand'][] = $i."==".$rand;
                     }
                 }
-                echo "REPAIR===:<br>";
-                pre($dataset, 1);
                 if ($dataset) {
                     $workOrderModel->insertAll($dataset);
                 }
@@ -543,12 +544,13 @@ class Screen extends Timer
     {
         $pro = rand(80, 90);
         $total = 15*60 - 1*60;
-        //待分派的订单修改成为服务中的订单(新工单 有80-90%的概率 在1-15分钟内分派)
+        $total = 10;
+        //待分派的工单修改成为服务中的工单(新工单 有80-90%的概率 在1-15分钟内分派)
         $this->_signWorkOrder($pro, $total, 1);
         
         $pro = rand(10, 20);
         $total = 24*60*60 - 15*60;
-        //待分派的订单修改成为服务中的订单(新工单 有10-20%的概率 在15分-24小时内分派)
+        //待分派的工单修改成为服务中的工单(新工单 有10-20%的概率 在15分-24小时内分派)
         $this->_signWorkOrder($pro, $total, 2);
         
         $workOrderModel = db('work_order', $this->configKey);
@@ -577,7 +579,6 @@ class Screen extends Timer
     }
     private function _signWorkOrder($pro, $total, $type)
     {
-        $this->errorArray = ['type' => $type];
         $workOrderModel = db('work_order', $this->configKey);
         $max = 100;
         $field = 'worder_id';
@@ -594,14 +595,13 @@ class Screen extends Timer
                     $data = [
                         'work_order_status' => 3,
                         'dispatch_time' => $this->thisTime,
-                        'receive_time' => $this->thisTime,
-                        'sign_time' => $this->thisTime,
-                        'update_time' => $this->thisTime,
+                        'receive_time'  => $this->thisTime,
+                        'sign_time'     => $this->thisTime,
+                        'update_time'   => $this->thisTime,
                     ];
                     $result = $workOrderModel->where(['worder_id' => $value['worder_id']])->update($data);
                 }else{
-//                     $this->errorArray['WorkOrderRand_3'] = $type.'=='.$pro.'=='.$total.'=='.$rand;
-                    return FALSE;
+                    $this->errorArray[$type][$key] = $pro.'=='.$total.'=='.$rand;
                 }
             }
         }
