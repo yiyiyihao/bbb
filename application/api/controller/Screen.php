@@ -544,7 +544,6 @@ class Screen extends Timer
     {
         $pro = rand(80, 90);
         $total = 15*60 - 1*60;
-        $total = 10;
         //待分派的工单修改成为服务中的工单(新工单 有80-90%的概率 在1-15分钟内分派)
         $this->_signWorkOrder($pro, $total, 1);
         
