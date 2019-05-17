@@ -576,7 +576,7 @@ class Screen extends Timer
         }
         return TRUE;
     }
-    private function _signWorkOrder($pro, $total, $type)
+    private function _signWorkOrder($pro, $total, $type)//这里第二个参数就不用了
     {
         $workOrderModel = db('work_order', $this->configKey);
         $max = 100;
@@ -589,7 +589,15 @@ class Screen extends Timer
         if ($worders) {
             $dataset = [];
             foreach ($worders as $key => $value) {
+                $start = time();
+                $end   = $value['add_time'] + 15 * 60;
+                $total = $end - $start;
+                $total = ($total<=0) ? 1 : $total; //到15分钟或超过15分钟 保证数值是正的
                 $rand = rand(0, 100* ($total));
+                //低于1分钟(剩余时间差值大于14分钟)不创建
+                if($total > 14 * 60){
+                    $rand = 100;//随便写的数值 大于80-90 下面算法就不会执行
+                }
                 if ($rand <= ($pro * 1)) {
                     $data = [
                         'work_order_status' => 3,
