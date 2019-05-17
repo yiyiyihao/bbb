@@ -598,7 +598,7 @@ class Screen extends Timer
                         'sign_time'     => $this->thisTime,
                         'update_time'   => $this->thisTime,
                     ];
-                    $result = $workOrderModel->where(['worder_id' => $value['worder_id']])->update($data);
+                    $result = db('work_order', $this->configKey)->where(['worder_id' => $value['worder_id']])->update($data);
                 }else{
                     $this->errorArray[$type][$key] = $pro.'=='.$total.'=='.$rand;
                 }
