@@ -33,6 +33,8 @@ class Screen extends Timer
     }
     public function index()
     {
+        $lastOrderId = $this->request->param('last_order_id');
+        
         $return = [];
         $orderModel = db('order', $this->configKey);
         $workOrderModel = db('work_order', $this->configKey);
@@ -107,12 +109,18 @@ class Screen extends Timer
         $where = [
             ['O.factory_id', '=', $this->factoryId],
         ];
-        $orders = db('order', $this->configKey)->field('sku_name, real_amount, FROM_UNIXTIME(O.add_time, "%Y年%m月%d日 %H:%i:%s") as add_time')->alias('O')->join($join)->where($where)->limit(0, 7)->order('O.add_time DESC')->select();
+        $orders = db('order', $this->configKey)->field('O.order_id, sku_name, real_amount, FROM_UNIXTIME(O.add_time, "%H:%i:%s") as add_time, 1 as is_new')->alias('O')->join($join)->where($where)->limit(0, 7)->order('O.add_time DESC')->select();
+        if ($orders && $lastOrderId > 0) {
+            foreach ($orders as $key => $value) {
+                unset($orders[$key['order_id']]);
+                $orders[$key]['is_new'] = $value['order_id'] > $lastOrderId ? 1: 0;
+            }
+        }
         $return['orders'] = $orders ? $orders : [];
         $where = [
             ['store_id', '=', $this->factoryId],
         ];
-        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 8)->select();
+        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 100)->select();
         
         //获取近七日工单
         $workOrders = [];
