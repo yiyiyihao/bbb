@@ -97,6 +97,9 @@
 <!--                        <a href="{:url('detail', ['order_sn' => $vo['order_sn'],'tab'=>2])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>-->
                         {/if}
 	              	{/if}
+                    {if condition="check_auth('order','delivery') && $vo['pay_status'] == 1 AND $vo['delivery_status'] !=2 "}
+	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
+	              	{/if}
               	</span>
               </td>
             </tr>

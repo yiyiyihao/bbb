@@ -17,7 +17,7 @@ class Order extends Model
         $this->orderSkuModel = db('order_sku');
         $this->orderSkuSubModel = db('order_sku_sub');
     }
-    public function getOrderList($list, $getother = FALSE)
+    public function getOrderList($list, $getother = FALSE,$flag=false)
     {
         if ($list) {
             foreach ($list as $key => $value) {
@@ -25,7 +25,7 @@ class Order extends Model
                 $list[$key]['_service'] = [
                     'ossub_id' => $ossubId,//可申请安装/售后的订单商品ID
                 ];;
-                $list[$key]['_status'] = get_order_status($value);
+                $list[$key]['_status'] = get_order_status($value,$flag);
                 //判断订单申请安装状态
                 $applyStatus = 0;
                 $worderCount = db('work_order')->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
@@ -137,15 +137,19 @@ class Order extends Model
             $this->error = '订单已完成, 不能执行当前操作';
             return FALSE;
         }
-        $data = [
-            'finish_status' => 2,
-            'finish_time' => time(),
-            'update_time' => time(),
-        ];
-        $result = $this->where(array('order_id' => $order['order_id']))->update($data);
-        if (!$result) {
-            $this->error = $this->getError();
-            return FALSE;
+        //20190520需求：厂商可对服务商采购订单进行标记发货并可录入物流单号，故厂商收款确认后不能直接完成订单。
+        //MODIFIED BY JINZHOU 2019/5/20
+        if ($user['admin_type'] == ADMIN_SERVICE) {
+            $data = [
+                'finish_status' => 2,
+                'finish_time' => time(),
+                'update_time' => time(),
+            ];
+            $result = $this->where(array('order_id' => $order['order_id']))->update($data);
+            if (!$result) {
+                $this->error = $this->getError();
+                return FALSE;
+            }
         }
         if (!in_array($order['order_type'], [1])) {
             //修改订单产品表 已发货状态改为已收货
@@ -294,7 +298,7 @@ class Order extends Model
             'delivery_time'     => time(),
             'update_time'       => time(),
         ];
-        $result = $this->orderSkuSubModel->where(['ossub_id' => ['IN', $ossubIds]])->update($data);
+        $result = db('order_sku_sub')->where(['ossub_id' => ['IN', $ossubIds]])->update($data);
         if ($result === FALSE) {
             $this->error = '操作异常';
             return FALSE;
@@ -303,14 +307,16 @@ class Order extends Model
             'update_time'   => time(),
         ];
         //获取订单产品总数
-        $orderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
+        $orderCounts = db('order_sku')->where(['order_id' => $order['order_id']])->sum('num');
         //获取订单发货产品总数
-        $deliveryCounts = $this->orderSkuSubModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
+        $deliveryCounts = db('order_sku_sub')->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
+
         if ($orderCounts > $deliveryCounts) {
             $orderData['delivery_status'] = 1;
         }else{
             $orderData['delivery_status'] = 2;
         }
+
         $result = $this->where(array('order_id' => $order['order_id']))->update($orderData);
         if (!$result) {
             $this->error = $this->error();

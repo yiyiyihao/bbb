@@ -139,15 +139,16 @@ class Order extends FormBase
                 $this->success('订单发货成功', url('detail', ['order_sn' => $orderSn]));
             }
         }else{
+            $this->subMenu['menu']=[];
             $this->assign('deliverys', get_delivery());
             $this->subMenu['menu'][] = [
-                'name' => '订单查看',
-                'url' => url('detail', ['order_sn' => $orderSn]),
+                'name' => '查看订单',
+                'url'  => url('detail', ['order_sn' => $orderSn]),
             ];
-            $this->subMenu['menu'][] = [
-                'name' => '订单产品发货',
-                'url' => url('delivery', $routes),
-            ];
+            //$this->subMenu['menu'][] = [
+            //    'name' => '订单产品发货',
+            //    'url' => url('delivery', $routes),
+            //];
             $order = $this->model->checkOrder($orderSn, $this->adminUser);
             if ($order === FALSE) {
                 $this->error($this->model->error);

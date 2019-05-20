@@ -494,7 +494,7 @@ function get_service_status($status = FALSE)
  * @param  $order    : 订单信息
  * @return [string]
  */
-function get_order_status($order = array()) {
+function get_order_status($order = array(),$flag=false) {
     $arr = array();
     switch ($order['order_status']) {
         case 2: // 已取消
@@ -517,7 +517,7 @@ function get_order_status($order = array()) {
             if (!isset($order['pay_type'])) {
                 $order['pay_type'] = 1;
             }
-            if (in_array($order['order_type'], [1])) {
+            if ($order['order_type']==1 && $flag==FALSE) {//批发
                 if (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 0) {
                    $arr['now'] = 'create'; // 创建订单
                    $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay_confirm';
@@ -527,17 +527,18 @@ function get_order_status($order = array()) {
                    $arr['wait'] = 'all_finish';
                    $arr['status'] = 2;
                }
-            }else{
-               if ($order['pay_type'] == 1 && $order['pay_status'] == 0) {
+            }else{//零售
+               if ($order['pay_status'] == 0) {
                    $arr['now'] = 'create'; // 创建订单
                    $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_delivery';
                    $arr['status'] = 1;
-               }elseif ($order['pay_type'] == 1 && $order['pay_status'] == 1 && $order['delivery_status'] == 0) {
+               }elseif ($order['pay_status'] == 1 && $order['delivery_status'] == 0) {
                    $arr['now'] = 'pay';    // 已支付
                    $arr['wait'] = 'load_delivery';
                    $arr['status'] = 2;
                }elseif ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
                    $arr['now'] = 'part_delivery';   // 部分发货
+                   $arr['wait'] = 'part_delivery';
                    $arr['status'] = 30;
                }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
                    $arr['now'] = 'all_delivery';   // 已发货
