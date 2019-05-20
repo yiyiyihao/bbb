@@ -13,6 +13,7 @@ class Screen extends Timer
     
     private $thisTime;
     private $beginToday;
+    private $endTodayTime;
     
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
@@ -31,6 +32,7 @@ class Screen extends Timer
         $this->configKey = 'db_config';
         
         $this->beginToday = mktime(0,0,0,date('m', $this->thisTime),date('d', $this->thisTime),date('Y', $this->thisTime));
+        $this->endTodayTime = mktime(0,0,0,date('m', $this->thisTime),date('d', $this->thisTime)+1,date('Y', $this->thisTime))-1 - (4*60*60);
     }
     public function index()
     {
@@ -546,7 +548,6 @@ class Screen extends Timer
                     return FALSE;
                 }
                 $max = (20-8)*60*60 - $time;
-                $max = (20-8)*60*60 - $time;
                 for ($i = 0; $i <= $num; $i++) {
                     $rand = rand(0, $max);
                     if ($rand <= 1) {
@@ -623,7 +624,7 @@ class Screen extends Timer
             $orderIds = [];
             foreach ($orders as $key => $value) {
                 $deliveryTime = $value['delivery_time'];
-                $end = $deliveryTime + (7-3) * 24*60*60;
+                $end = $deliveryTime + (7-3) * (24-8-4)*60*60;
                 if ($this->thisTime > $end) {
                     $orderIds[] = $value['order_id'];
 //                     break;
@@ -653,7 +654,7 @@ class Screen extends Timer
         $this->_signWorkOrder($pro, $max);
         
         $pro = rand(10, 20);
-        $max = 24*60*60;
+        $max = (24-8-4)*60*60;
         //待分派的工单修改成为服务中的工单(新工单 有10-20%的概率 在15分-24小时内分派)
         $this->_signWorkOrder($pro, $max);
         
