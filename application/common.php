@@ -80,12 +80,18 @@ function get_order_from_type($from = FALSE)
 }
 
 
+
+
 function get_order_source($source = FALSE)
 {
     $fromTxts = [
-        'fenxiao'  => '分销活动',
-        'every_nine_free'  => '逢九免单',
-        'mall'  => '自有商城',
+        'fenxiao'         => '分销活动',
+        'every_nine_free' => '逢九免单',
+        'mall'            => '自有商城',
+        'tmall'           => '天猫商城',
+        'jd'              => '京东商城',
+        'suning'          => '苏宁易购',
+        'pinduoduo'       => '拼多多',
     ];
     if ($source === FALSE) {
         return $fromTxts;

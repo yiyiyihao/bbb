@@ -8,6 +8,12 @@ class Fenxiao extends Admin
     private $shareType = 2;//分享
     private $visitType = 1;//访问
     public function __construct(){
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
+        header('Access-Control-Allow-Origin:'.$origin);
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        header('Access-Control-Allow-Credentials:true');
+        $this->mchKey = '1458745225';
         parent::__construct();
         $this->factoryId = $this->factory['store_id'];
     }

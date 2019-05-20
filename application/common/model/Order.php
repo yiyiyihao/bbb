@@ -645,6 +645,14 @@ class Order extends Model
             $addrRegion = isset($param['region_name']) && $param['region_name'] ? trim($param['region_name']) : '';
             $addrDetail = isset($param['address']) && $param['address'] ? trim($param['address']) : '';
             $payCertificate = isset($param['pay_certificate']) && $param['pay_certificate'] ? trim($param['pay_certificate']) : '';
+            $orderSn = isset($param['order_sn']) && $param['order_sn'] ? trim($param['order_sn']) : '';
+            if ($orderSn) {
+                $exit=db('order')->where(['order_sn'=>$orderSn])->find();
+                if ($exit) {
+                    $this->error = '电商订单号号已经存在';
+                    return FALSE;
+                }
+            }
             if (!in_array($orderType,[1,3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
@@ -660,7 +668,7 @@ class Order extends Model
                 return FALSE;
             }
             //创建订单
-            $orderSn = $this->_getOrderSn();
+            $orderSn =$orderSn? $orderSn: $this->_getOrderSn();
             $orderData = [
                 'order_type' => $orderType,   //1商户订单:支付成功后自动完成
                 'order_sn'   => $orderSn,
@@ -1365,14 +1373,14 @@ class Order extends Model
         }
         $payAmount = $allAmount = $skuAmount + $installAmount + $deliveryAmount;
         $return = [
-            'skus'      => isset($skus) ? $skus : [],                  //产品列表
-            'sku_total' => intval($skuTotal),       //产品总数量
-            'sku_count' => intval($skuCount),       //产品种类数量(不重复)
-            'all_amount'        => sprintf("%.2f",$allAmount),      //订单总金额
-            'delivery_amount'   => sprintf("%.2f",$deliveryAmount), //物流费用
-            'install_amount'    => sprintf("%.2f",$installAmount),  //安装费用
-            'sku_amount'        => sprintf("%.2f",$skuAmount),      //产品总金额
-            'pay_amount'        => sprintf("%.2f",$payAmount),      //需支付金额
+            'skus'            => isset($skus) ? $skus : [],                  //产品列表
+            'sku_total'       => intval($skuTotal),       //产品总数量
+            'sku_count'       => intval($skuCount),       //产品种类数量(不重复)
+            'all_amount'      => sprintf("%.2f", $allAmount),      //订单总金额
+            'delivery_amount' => sprintf("%.2f", $deliveryAmount), //物流费用
+            'install_amount'  => sprintf("%.2f", $installAmount),  //安装费用
+            'sku_amount'      => sprintf("%.2f", $skuAmount),      //产品总金额
+            'pay_amount'      => sprintf("%.2f", $payAmount),      //需支付金额
         ];
         return $return;
     }

@@ -948,6 +948,9 @@ class Workorder extends FactoryForm
         }
         $msg=implode('；',$arr);
         $this->model->worderLog($info,$this->adminUser,0,'编辑工单',$msg);
+        if ($info['work_order_type']==2) {//维修工单则返回维修工单列表
+            $this->returnUrl=url('lists');
+        }
     }
     
     public function add()
@@ -1519,7 +1522,7 @@ class Workorder extends FactoryForm
 
         $workerType=isset($info['work_order_type'])?$info['work_order_type']:1;
         $worderId=isset($info['worder_id'])?$info['worder_id']:'';
-        if ($workerType==1) {//自定义表的验证
+        if ($workerType==1 && in_array($this->request->action(),['info','edit']) ) {//自定义表的验证
             $config = $this->model->getConfigAndLogs([
                 'worder_id' => $worderId,
                 'store_id'  => $this->adminUser['factory_id'],

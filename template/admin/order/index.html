@@ -58,8 +58,8 @@
           {volist name="list" id="vo" key="key"}
             <tr>
               <td>{$vo.order_sn}</td>
-              <td>{:get_order_from($vo.order_from, $vo.order_source)}</td>
-              <td>{:get_order_from_type($vo.order_from, $vo.order_source)}</td>
+                <td>{:get_order_source($vo.order_source)}</td>
+                <td>{:get_order_from($vo.order_from, $vo.order_source)}</td>
               <td>{if isset($vo['sname']) && !empty($vo['sname'])}{$vo.sname}{else /}{$vo.ssname ??''}{/if}</td>
               <td>{$vo['pay_sn']}</td>
               <td>{$vo.real_amount}元</td>

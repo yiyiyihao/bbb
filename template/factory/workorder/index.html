@@ -115,7 +115,7 @@
                         {if  ($vo.work_order_type==1)}
                             {if check_auth('workorder','add') && (!$vo.fix_id)}
                                 <a href="{:url('add', ['ossub_id' => $vo['ossub_id'], 'type' => 2, 'wid' => $vo['worder_id']])}" class="button button-small bg-blue">申请维修</a>
-                            {elseif check_auth('workorder','detail') /}
+                            {elseif check_auth('workorder','detail') && !empty($vo.fix_id) /}
                                 <a href="{:url('detail', ['id' => $vo['fix_id']])}" class="button button-small bg-gray icon-edit">查看维修详情</a>
                             {/if}
                         {/if}
