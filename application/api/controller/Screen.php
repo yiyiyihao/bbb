@@ -21,9 +21,10 @@ class Screen extends Timer
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
         parent::__construct();
+        date_default_timezone_set('PRC');
 //         $this->thisTime = time() - 5*24*60*60;//5天前
 //         $this->thisTime = time() - 4*24*60*60;//4天前
-        $this->thisTime = time() - 3*24*60*60;//3天前
+//         $this->thisTime = time() - 3*24*60*60;//3天前
 //         $this->thisTime = time() - 2*24*60*60;//2天前
 //         $this->thisTime = time() - 1*24*60*60;//1天前
         $this->thisTime = time();
@@ -71,7 +72,7 @@ class Screen extends Timer
         $field .= ', count(IF(add_time >= '.$this->beginToday.', true, null)) as today_count';
         $field .= ', count(*) as total_count';
         $field .= ', count(IF(delivery_status = 0, true, null)) as pendding_count';
-        $field .= ', count(IF(delivery_status = 2, true, null)) as delivery_count';
+        $field .= ', count(IF(delivery_status = 2 AND finish_status = 0, true, null)) as delivery_count';
         $field .= ', count(IF(finish_status = 2, true, null)) as finish_count';
         
         $todayStartTime = $this->thisTime - 24*60*60;
@@ -120,7 +121,7 @@ class Screen extends Timer
         $where = [
             ['store_id', '=', $this->factoryId],
         ];
-        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 100)->select();
+        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price as price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 100)->select();
         
         //获取近七日工单
         $workOrders = [];
@@ -175,10 +176,46 @@ class Screen extends Timer
         ];
         $installers = db('user_installer', $this->configKey)->field('installer_id, latitude, longitude')->alias('UI')->join($join)->where($where)->select();
         $return['map']['installers'] = $installers;
+        $return['this_time'] = $this->msectime();
         if ($this->request->param('test')) {
             pre($return);
         }
         $this->_returnMsg(['return' => $return]);
+    }
+    private function msectime() {
+        list($msec, $sec) = explode(' ', microtime());
+        return $msectime = (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
+    }
+    public function order()
+    {
+        $join = [
+            ['order_sku OS', 'OS.order_id = O.order_id', 'INNER'],
+            ['goods G', 'OS.goods_id = G.goods_id', 'INNER'],
+        ];
+        $where= [
+        ];
+        $orders = db('order', $this->configKey)->field('O.order_id, OS.osku_id, O.real_amount,G.name, G.min_price, OS.num, (G.min_price * OS.num) as total_price')->alias('O')->join($join)->where($where)->select();
+        foreach ($orders as $key => $value) {
+            if ($value['real_amount'] == $value['total_price']) {
+                continue;
+            }
+            $amount = $value['num'];
+            $price = $value['min_price'] * $amount;
+            $data = [
+                'goods_amount' => $price,
+                'real_amount' => $price,
+                'paid_amount' => $price,
+            ];
+            db('order', $this->configKey)->where('order_id', $value['order_id'])->update($data);
+            $data = [
+                'sku_name' => $value['name'],
+                'sku_price' => $value['min_price'],
+                'price' => $value['min_price'],
+                'real_price' => $price,
+            ];
+            db('order_sku', $this->configKey)->where('osku_id', $value['osku_id'])->update($data);
+        }
+        pre($orders);
     }
     public function timer()
     {
@@ -208,6 +245,7 @@ class Screen extends Timer
     }
     public function store()
     {
+        die();
         //60-80个服务商 每个服务商生成1-10个零售商 5-10个工程师 （按城市地区生成服务商 再按服务区域生成零售商和工程师 零售商下的订单 自动转到服务商这里 服务商分配给下面的工程师 ）
         $regionModel = db('region', $this->configKey);
         $storeModel = db('store', $this->configKey);
@@ -297,45 +335,46 @@ class Screen extends Timer
     }
     public function goods()
     {
+        die();
         $this->goodslist = [
             [
-                'name'      => '商品名称',
-                'amount'    => '23.56',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '测试商品',
-                'amount'    => '19.99',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '苹果',
-                'amount'    => '19.99',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '雪梨',
-                'amount'    => '9.54',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '葡萄',
-                'amount'    => '40',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '荔枝',
-                'amount'    => '30',
+                'name'      => '万佳安监控器摄像头',
+                'amount'    => '99.00',
                 'is_install'=> 0,//是否可安装
             ],
             [
-                'name'      => '油桃',
-                'amount'    => '20',
+                'name'      => '万佳安儿童看护摄像机',
+                'amount'    => '199.00',
                 'is_install'=> 0,//是否可安装
             ],
             [
-                'name'      => '香蕉',
-                'amount'    => '10',
+                'name'      => '万佳安室内智能摄像头',
+                'amount'    => '99.00',
+                'is_install'=> 0,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智能锁i9青春版',
+                'amount'    => '2680.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安室内智能摄像头',
+                'amount'    => '99',
+                'is_install'=> 0,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智慧门锁i9Max',
+                'amount'    => '3980.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智慧门锁i9Pro旗舰版',
+                'amount'    => '2980.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安指纹锁家用防盗门智能锁密码锁',
+                'amount'    => '1199',
                 'is_install'=> 0,//是否可安装
             ],
         ];
@@ -371,6 +410,7 @@ class Screen extends Timer
         $where = [
             ['factory_id', '=', $this->factoryId],
             ['user_store_id', '=', $store['store_id']],
+            ['add_time', '>=', $this->beginToday],
         ];
         $orderCount = $orderModel->where($where)->count();
         if ($orderCount >= 5) {
@@ -379,18 +419,21 @@ class Screen extends Timer
         $timeRand = rand(0, 2*60*60);
         $storeCount = 350;
         if ($timeRand > $storeCount) {
-//             $this->errorArray = ['createRand' => $timeRand];
+            $this->errorArray['createRand'] = $timeRand;
             return FALSE;
         }
+        $this->errorArray['store_id'] = $store['store_id'];
         //获取当前零售商最后一次创建订单时间
         $where = [
             ['factory_id', '=', $this->factoryId],
             ['user_store_id', '=', $store['store_id']],
+            ['add_time', '>=', $this->beginToday],
         ];
-        $lastOrder = $orderModel->where($where)->order('add_time DESC')->find();
+        $lastOrder = db('order', $this->configKey)->where($where)->order('add_time DESC')->find();
         
         $timeRand = rand(30* 60, 2*60*60);
-        if ($lastOrder && ($lastOrder['add_time'] - $this->thisTime) <= $timeRand) {
+//         if ($lastOrder && ($lastOrder['add_time'] - $this->thisTime) <= $timeRand) {
+        if ($lastOrder && ($this->thisTime - $lastOrder['add_time']) <= $timeRand) {
             return FALSE;
         }
         $goods = db('goods', $this->configKey)->orderRaw('rand()')->find();
@@ -400,6 +443,7 @@ class Screen extends Timer
         $orderSkuModel = db('order_sku', $this->configKey);
         $orderSkuSubModel = db('order_sku_sub', $this->configKey);
         $num = rand(1, 4);
+        $num = 1;
         $orderSn = $this->_getOrderSn();
         $data = [
             'order_type'    => 0,
@@ -502,6 +546,7 @@ class Screen extends Timer
                     return FALSE;
                 }
                 $max = (20-8)*60*60 - $time;
+                $max = (20-8)*60*60 - $time;
                 for ($i = 0; $i <= $num; $i++) {
                     $rand = rand(0, $max);
                     if ($rand <= 1) {
@@ -540,7 +585,6 @@ class Screen extends Timer
                 $orderIds = [];
                 foreach ($orders as $key => $value) {
                     $timeRand = rand(0, (60-30)*60);
-                    
                     $end = $value['add_time'] + (60-30)*60;
                     if ($this->thisTime > $end) {
                         $orderIds[] = $value['order_id'];
