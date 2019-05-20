@@ -23,7 +23,7 @@ class Screen extends Timer
         parent::__construct();
 //         $this->thisTime = time() - 5*24*60*60;//5天前
 //         $this->thisTime = time() - 4*24*60*60;//4天前
-//         $this->thisTime = time() - 3*24*60*60;//3天前
+        $this->thisTime = time() - 3*24*60*60;//3天前
 //         $this->thisTime = time() - 2*24*60*60;//2天前
 //         $this->thisTime = time() - 1*24*60*60;//1天前
         $this->thisTime = time();
@@ -186,8 +186,8 @@ class Screen extends Timer
         //         try {
         //定时器在每日8点到20点 每秒执行
         $hour = date('H', $this->thisTime);
-        if ($hour < 8 || $hour > 20) {
-            return FALSE;
+        if ($hour < 8 || $hour >= 20) {
+            $this->_returnScreenMsg(['time' => $time, 'errCode' => 1, 'errMsg' => 'time error']);
         }
         //生成订单
         $this->_createOrder();
@@ -479,6 +479,7 @@ class Screen extends Timer
             ['work_order_type', '=', 1],
             ['factory_id', '=', $this->factoryId],
             ['add_time', '>=', $this->beginToday],
+            ['add_time', '<=', $endToday],
         ];
         $count = $workOrderModel->where($where)->count();
         if ($count > 0) {
@@ -542,13 +543,14 @@ class Screen extends Timer
                     
                     $end = $value['add_time'] + (60-30)*60;
                     if ($this->thisTime > $end) {
-//                         $orderIds[] = $value['order_id'];
-                        break;
-                    }
-                    $max = $end - $this->thisTime;
-                    $timeRand = rand(0, $max);
-                    if ($timeRand <= 1) {
                         $orderIds[] = $value['order_id'];
+//                         break;
+                    }else{
+                        $max = $end - $this->thisTime;
+                        $timeRand = rand(0, $max);
+                        if ($timeRand <= 1) {
+                            $orderIds[] = $value['order_id'];
+                        }
                     }
                 }
                 if ($orderIds) {
@@ -579,13 +581,14 @@ class Screen extends Timer
                 $deliveryTime = $value['delivery_time'];
                 $end = $deliveryTime + (7-3) * 24*60*60;
                 if ($this->thisTime > $end) {
-//                     $orderIds[] = $value['order_id'];
-                    break;
-                }
-                $max = $end - $this->thisTime;
-                $timeRand = rand(0, $max);
-                if ($timeRand <= 1) {
                     $orderIds[] = $value['order_id'];
+//                     break;
+                }else{
+                    $max = $end - $this->thisTime;
+                    $timeRand = rand(0, $max);
+                    if ($timeRand <= 1) {
+                        $orderIds[] = $value['order_id'];
+                    }
                 }
             }
             if ($orderIds) {
@@ -637,7 +640,7 @@ class Screen extends Timer
     private function _signWorkOrder($pro, $max)
     {
         $workOrderModel = db('work_order', $this->configKey);
-        $max = 100;
+        $max = 1;
         $field = 'worder_id, add_time';
         $where = [
             ['factory_id', '=', $this->factoryId],
@@ -646,24 +649,32 @@ class Screen extends Timer
         ];
         $worders = $workOrderModel->field($field)->where($where)->limit(0, $max)->select();
         if ($worders) {
-            $dataset = [];
+            $dataset  = $worderIds = [];
             foreach ($worders as $key => $value) {
                 $end = $value['add_time'] + $max;
                 if ($end < $this->thisTime) {
-                    continue;
+                    if ($key <= 1) {
+                        $worderIds[] = $value['worder_id'];
+                    }else{
+                        continue;
+                    }
+                }else{
+                    $total = $end - $this->thisTime;
+                    $rand = rand(0, 100* ($total));
+                    if ($rand <= ($pro * 1)) {
+                        $worderIds[] = $value['worder_id'];
+                    }
                 }
-                $total = $end - $this->thisTime;
-                $rand = rand(0, 100* ($total));
-                if ($rand <= ($pro * 1)) {
-                    $data = [
-                        'work_order_status' => 3,
-                        'dispatch_time' => $this->thisTime,
-                        'receive_time'  => $this->thisTime,
-                        'sign_time'     => $this->thisTime,
-                        'update_time'   => $this->thisTime,
-                    ];
-                    $result = db('work_order', $this->configKey)->where(['worder_id' => $value['worder_id']])->update($data);
-                }
+            }
+            if ($worderIds) {
+                $data = [
+                    'work_order_status' => 3,
+                    'dispatch_time' => $this->thisTime,
+                    'receive_time'  => $this->thisTime,
+                    'sign_time'     => $this->thisTime,
+                    'update_time'   => $this->thisTime,
+                ];
+                $result = db('work_order', $this->configKey)->where('worder_id', 'IN', $worderIds)->update($data);
             }
         }
         return true;
