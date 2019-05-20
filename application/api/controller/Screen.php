@@ -535,9 +535,9 @@ class Screen extends Timer
             $where = [
                 ['work_order_type', '=', 2],
                 ['factory_id', '=', $this->factoryId],
-                ['add_time', '>', $this->beginToday],
+                ['add_time', '>=', $this->beginToday],
             ];
-            $count = $workOrderModel->where($where)->count();
+            $count = db('work_order', $this->configKey)->where($where)->count();
             if ($count >= $num) { //已达到目标数则不创建维修工单
                 return FALSE;
             }else{
@@ -558,13 +558,14 @@ class Screen extends Timer
                             'add_time'          => $this->thisTime,
                             'images'            => '',
                             'fault_desc'        => '',
+                            'appointment'        => $this->_getAppointment(),
                         ];
                     }else{
                         $this->errorArray['repair_rand'][] = $rand.'<'.$max;
                     }
                 }
                 if ($dataset) {
-                    $workOrderModel->insertAll($dataset);
+                    db('work_order', $this->configKey)->insertAll($dataset);
                 }
             }
         }
