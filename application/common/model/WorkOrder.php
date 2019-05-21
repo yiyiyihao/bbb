@@ -53,6 +53,23 @@ class WorkOrder extends Model
             //发送给服务商在线管理员
             $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
             $this->worderLog($worder, $user, 0, '创建工单');
+            if (empty($where)) {//创建工单时短信通知服务商
+                $store = db('store')->alias('p1')
+                    ->field('p2.user_id,p1.mobile')
+                    ->join('user p2', 'p1.store_id=p2.store_id')
+                    ->where(['p2.store_id' => $data['store_id']])
+                    ->find();
+                if (!empty($store)) {
+                    $param = [
+                        'phone'         => $store['mobile'],
+                        'user_id'       => $store['user_id'],
+                        'workOrderType' => $data['work_order_type'],
+                        'worderSn'      => $data['worder_sn'],
+                    ];
+                    $informModel = new \app\common\model\LogInform();
+                    $informModel->sendInform($data['factory_id'], 'sms', $param, 'service_work_order_add');
+                }
+            }
             return $sn;
         }
         return $result;
