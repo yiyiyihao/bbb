@@ -132,6 +132,42 @@ class Store extends FactoryForm
 
     }
 
+    //获得网点分布及订单数据
+    public function getDistribute()
+    {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, STORE_SERVICE_NEW])) {
+            return dataFormat(1, "非法访问");
+        }
+        //p($this->adminUser);
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {//厂商，获取话旗下服务商表列表
+            $data = db('store')->field('store_id,name,region_name,address')->where([
+                'is_del'       => 0,
+                'status'       => 1,
+                'check_status' => 1,
+                'store_type'   => STORE_SERVICE_NEW,
+                'factory_id'   => $this->adminUser['factory_id'],
+            ])->select();
+        } else {//服务商
+            $data = db('store')->alias('p1')
+                ->field('p1.store_id,p1.name,p1.region_name,p1.address')
+                ->join('store_dealer p2', 'p2.store_id=p1.store_id')
+                ->where([
+                    'p1.is_del'       => 0,
+                    'p1.status'       => 1,
+                    'p1.check_status' => 1,
+                    'p2.ostore_id'    => $this->adminUser['store_id'],
+                ])->select();;
+        }
+        foreach ($data as $k => $v) {
+            $data[$k]['order_count']=db('order')->where([
+                'order_status'=>1,
+                'user_store_id'=>$v['store_id'],
+            ])->count();
+            unset($data[$k]['store_id']);
+        }
+        return dataFormat(0,'ok',$data);
+    }
+
     function _getAlias()
     {
         return 'S';
