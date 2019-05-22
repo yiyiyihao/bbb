@@ -1144,8 +1144,9 @@ class WorkOrder extends Model
             'factory_id'      => $worder->factory_id,
             'store_id'        => $worder->store_id,
         ];
+        $installerId=$worder->installer_id;
         if ($worder->save()) {
-            $this->worderLog($work,[],0,"撤回已分派工单",'工程师超时未接单，重新分派');
+            $this->worderLog($work,[],$installerId,"撤回已分派工单",'工程师超时未接单，重新分派');
             //通知服务商
             $this->notify($work,$work);
         }
