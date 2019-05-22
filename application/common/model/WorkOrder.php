@@ -7,6 +7,9 @@ class WorkOrder extends Model
 	public $error;
 	protected $fields;
 	protected $pk = 'worder_id';
+    protected $createTime = 'add_time';
+    protected $updateTime = 'update_time';
+    protected $autoWriteTimestamp = 'int';
 
 	//自定义初始化
     protected function initialize()
@@ -43,37 +46,46 @@ class WorkOrder extends Model
             if (empty($user)) {
                 $user=db('user_data')->where(['is_del' => 0])->find($udata_id);
             }
-            //发送工单通知给服务商
-            $push = new \app\common\service\PushBase();
-            $sendData = [
-                'type'  => 'worker',
-                'worder_sn'    => $worder['worder_sn'],
-                'worder_id'    => $worder['worder_id'],
-            ];
-            //发送给服务商在线管理员
-            $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
+            //工单日志
             $this->worderLog($worder, $user, 0, '创建工单');
-            if (empty($where)) {//创建工单时短信通知服务商
-                $store = db('store')->alias('p1')
-                    ->field('p2.user_id,p1.mobile')
-                    ->join('user p2', 'p1.store_id=p2.store_id')
-                    ->where(['p2.store_id' => $data['store_id']])
-                    ->find();
-                if (!empty($store)) {
-                    $param = [
-                        'phone'         => $store['mobile'],
-                        'user_id'       => $store['user_id'],
-                        'workOrderType' => $data['work_order_type'],
-                        'worderSn'      => $data['worder_sn'],
-                    ];
-                    $informModel = new \app\common\model\LogInform();
-                    $informModel->sendInform($data['factory_id'], 'sms', $param, 'service_work_order_add');
-                }
-            }
+            //发送工单通知给服务商
+            $this->notify($worder,$data,$where,$user);
             return $sn;
         }
         return $result;
     }
+
+    public function notify($worder, $data, $flag=false)
+    {
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $sendData = [
+            'type'  => 'worker',
+            'worder_sn'    => $worder['worder_sn'],
+            'worder_id'    => $worder['worder_id'],
+        ];
+        //发送给服务商在线管理员
+        $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
+        if (!$flag) {//创建工单时短信通知服务商
+            $store = db('store')->alias('p1')
+                ->field('p2.user_id,p1.mobile')
+                ->join('user p2', 'p1.store_id=p2.store_id')
+                ->where(['p2.store_id' => $data['store_id']])
+                ->find();
+            if (!empty($store) && !empty($store['mobile']) && check_mobile($store['mobile'])) {
+                $param = [
+                    'phone'         => $store['mobile'],
+                    'user_id'       => $store['user_id'],
+                    'workOrderType' => $data['work_order_type'],
+                    'worderSn'      => $worder['worder_sn'],
+                ];
+                $informModel = new \app\common\model\LogInform();
+                $informModel->sendInform($data['factory_id'], 'sms', $param, 'service_work_order_add');
+            }
+        }
+        
+    }
+    
     /**
      * 根据工单号获取售后工单信息
      * @param string $worderSn
@@ -1110,7 +1122,35 @@ class WorkOrder extends Model
         return $result;
     }
 
-
+    //回收分派工单，重新分派
+    public function dispatch_recycle(WorkOrder $worder)
+    {
+        if ($worder['is_del'] == 1) {
+            return dataFormat(1,'工单已经删除');
+        }
+        if ($worder['work_order_status'] != 1) {
+            return dataFormat(2,'工单状态'.get_work_order_status($worder['work_order_status']).',不能回收重新分派');
+        }
+        $worder->work_order_status=0;
+        $worder->dispatch_time=0;
+        $worder->installer_id=0;
+        $worder->cancel_time=0;
+        $worder->receive_time=0;
+        $worder->sign_time=0;
+        $work = [
+            'worder_id'       => $worder->worder_id,
+            'worder_sn'       => $worder->worder_sn,
+            'work_order_type' => $worder->work_order_type,
+            'factory_id'      => $worder->factory_id,
+            'store_id'        => $worder->store_id,
+        ];
+        if ($worder->save()) {
+            $this->worderLog($work,[],0,"撤回已分派工单",'工程师超时未接单，重新分派');
+            //通知服务商
+            $this->notify($work,$work);
+        }
+        return dataFormat(0,'ok');
+    }
 
     private function _worderInstallerLog($worder, $installerId, $action = "dispatch_other", $status = 1)
     {

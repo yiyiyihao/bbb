@@ -33,7 +33,7 @@ class Timer extends ApiBase
             $lists = $storeModel->where($where)->field('store_id, config_json')->select();
             $factorys = [];
             if ($lists) {
-                $cancelMap = $finishMap = $assessMap = [];
+                $cancelMap = $finishMap = $assessMap =$factoryIds= [];
                 foreach ($lists as $key => $value) {
                     $factoryId = $value['store_id'];
                     $config = $value['config_json'] ? json_decode($value['config_json'], 1) : [];
@@ -57,13 +57,17 @@ class Timer extends ApiBase
                         $orderReturnDayTime = $orderReturnDay * 24 * 60 * 60;
                         $finishMap[] = '(store_id = '.$factoryId.' AND pay_time <= '. ($thisTime - $orderReturnDayTime).')';
                     }
-                    
+
                     /* //工单自动评价时间(天数),售后服务完成，如超过配饰时间用户未评价仍然未评价，系统自动给好评并完成服务费结算；
                     $workOrderAssessDay = $config && isset($config['workorder_auto_assess_day']) ? $config['workorder_auto_assess_day'] : 0;
                     if ($workOrderAssessDay > 0) {
                         $workOrderAssessDayTime = $workOrderAssessDay * 24 * 60 * 60;
                         $assessMap[] = '(factory_id = '.$factoryId.' AND finish_time <= '. ($thisTime - $workOrderAssessDayTime).')';
                     } */
+
+                    $factoryIds[]=$factoryId;
+
+
                 }
                 if ($cancelMap) {
                     $cancelSql = 'order_status = 1 AND pay_status = 0';
@@ -128,6 +132,26 @@ class Timer extends ApiBase
                         }
                     }
                 } */
+                //工单分派1小时后工程师未接单，工单将自动返回至服务商
+                if (!empty($factoryIds)) {
+                    $where = [
+                        'work_order_status' => 1,
+                        'is_del'            => 0,
+                        'dispatch_time'     => ['<=', $thisTime - 3600],
+                        'factory_id'        => ['in', $factoryIds],
+                    ];
+                    $workOrders=$workOrderModel->where($where)->cursor();
+                    foreach ($workOrders as $value) {
+                        $result = $workOrderModel->dispatch_recycle($value);
+                        if ($result['code'] !== '0') {
+                            $this->errorArray['dispatch_recycle'][] = [
+                                'action'    => '撤回已分派工单，重新分派',
+                                'worder_sn' => $value['worder_sn'],
+                                'error'     => $result['msg'],
+                            ];
+                        }
+                    }
+                }
             }
             $this->_returnMsg(['time' => $time]);
         } catch (\Exception $e) {
