@@ -139,16 +139,26 @@ class Store extends FactoryForm
             return json(dataFormat(1, "非法访问"));
         }
         //p($this->adminUser);
+        $data['service'] = [];
+        $data['dealer'] = [];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {//厂商，获取话旗下服务商表列表
-            $data = db('store')->field('store_id,name,region_name,address')->where([
+            $data['service'] = db('store')->field('store_id,name,region_name,address')->where([
                 'is_del'       => 0,
                 'status'       => 1,
                 'check_status' => 1,
-                'store_type'   => STORE_SERVICE_NEW,
+                'store_type'   => [STORE_SERVICE_NEW, STORE_SERVICE],
                 'factory_id'   => $this->adminUser['factory_id'],
             ])->select();
+            $data['dealer'] = db('store')->field('store_id,name,region_name,address')->where([
+                'is_del'       => 0,
+                'status'       => 1,
+                'check_status' => 1,
+                'store_type'   => STORE_DEALER,
+                'factory_id'   => $this->adminUser['factory_id'],
+            ])->select();
+
         } else {//服务商
-            $data = db('store')->alias('p1')
+            $data['dealer'] = db('store')->alias('p1')
                 ->field('p1.store_id,p1.name,p1.region_name,p1.address')
                 ->join('store_dealer p2', 'p2.store_id=p1.store_id')
                 ->where([
@@ -158,14 +168,16 @@ class Store extends FactoryForm
                     'p2.ostore_id'    => $this->adminUser['store_id'],
                 ])->select();;
         }
-        foreach ($data as $k => $v) {
-            $data[$k]['order_count']=db('order')->where([
-                'order_status'=>1,
-                'user_store_id'=>$v['store_id'],
-            ])->count();
-            unset($data[$k]['store_id']);
+        foreach ($data as $key => $value) {
+            foreach ($value as $k => $v) {
+                $data[$key][$k]['order_count'] = db('order')->where([
+                    'order_status'  => 1,
+                    'user_store_id' => $v['store_id'],
+                ])->count();
+                unset($data[$key][$k]['store_id']);
+            }
         }
-        return json(dataFormat(0,'ok',$data));
+        return json(dataFormat(0, 'ok', $data));
     }
 
     function _getAlias()
