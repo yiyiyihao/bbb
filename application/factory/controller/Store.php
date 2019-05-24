@@ -148,14 +148,14 @@ class Store extends FactoryForm
                 'check_status' => 1,
                 'store_type'   => [STORE_SERVICE_NEW, STORE_SERVICE],
                 'factory_id'   => $this->adminUser['factory_id'],
-            ])->select();
+            ])->cursor();
             $data['dealer'] = db('store')->field('store_id,name,region_name,address')->where([
                 'is_del'       => 0,
                 'status'       => 1,
                 'check_status' => 1,
                 'store_type'   => STORE_DEALER,
                 'factory_id'   => $this->adminUser['factory_id'],
-            ])->select();
+            ])->cursor();
 
         } else {//服务商
             $data['dealer'] = db('store')->alias('p1')
@@ -166,7 +166,7 @@ class Store extends FactoryForm
                     'p1.status'       => 1,
                     'p1.check_status' => 1,
                     'p2.ostore_id'    => $this->adminUser['store_id'],
-                ])->select();;
+                ])->cursor();;
         }
         foreach ($data as $key => $value) {
             foreach ($value as $k => $v) {
