@@ -533,6 +533,51 @@ class Order extends Model
         }
         return true;
     }
+
+    public function notify($user,$data)
+    {
+        if ($data['pay_type'] != 2 || in_array($user['group_id'], [GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
+            return false;
+        }
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $user = db('user')->field('group_id,username')->where('user_id', $data['user_id'])->find();
+        $todoData=[
+            'type'         => 3,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'     => $data['store_id'],//推送目标商户ID
+            'post_store_id'=> $data['user_store_id'],//发起事件的商户ID
+            'post_user_id' => $data['user_id'],
+            'url'          => url('order/pay', ['order_sn' => $data['order_sn']]),
+            'title'        => '【确认收款】' . get_group_name($user['group_id']) .$user['username']. '线下支付采购订单，请确认收款',
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $addTime = isset($data['add_time']) ? $data['add_time'] : time();
+        $sendData = [
+            'type'      => 'order',
+            'title'     => $todoData['title'],
+            'url'       => $todoData['url'],
+            'todo_id'   => $todoId,
+            'todo_type' => $todoData['type'],
+            'add_time'  => getTime($addTime),
+            //'order_sn'  => $data['order_sn'],
+            //'order_id'  => $data['order_id'],
+        ];
+        $result=db('order')->where(['order_id'=>$data['order_id']])->update(['todo_id'=>$todoId]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
+        //发送给服务商在线管理员
+        $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
+        return true;
+    }
+
     /**
      * 订单取消操作
      * @param string $orderSn   订单号
@@ -771,7 +816,7 @@ class Order extends Model
                                 'good_sku_code' => $this->_getGoodsSkuCode('auto', $value['sku_sn']),
                                 'order_id'      => $orderId,
                                 'order_sn'      => $orderSn,
-                                'store_id'      => $storeId,
+                                'store_id'      => $storeId,//厂商
                                 'osku_id'       => $oskuId,
                                 
                                 'user_id'       => $userId,
@@ -825,6 +870,8 @@ class Order extends Model
                     ];
                     $result =  model('Cart')->where($where)->delete();
                 }
+
+                $this->notify($user,$orderData);
                 return $orderData;
             //}catch(\Exception $e){
             //    $error = $e->getMessage();

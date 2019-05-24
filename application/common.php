@@ -376,6 +376,50 @@ function get_group_type($type = FALSE){
     }
 }
 
+function get_group_name($group_id){
+    $name='';
+    switch ($group_id) {
+        case GROUP_FACTORY:
+            $name='厂商';
+            break;
+        case GROUP_CHANNEL:
+            $name='渠道商';
+            break;
+        case GROUP_DEALER:
+            $name = '零售商';
+            break;
+        case GROUP_SERVICE:
+            $name = '服务商';
+            break;
+        case GROUP_SERVICE_NEW:
+            $name = '服务商';
+            break;
+        case GROUP_E_COMMERCE_KEFU:
+            $name = '电商客服';
+            break;
+        case GROUP_E_CHANGSHANG_KEFU:
+            $name = '厂商客服';
+            break;
+        default:
+            $name = '用户';
+            break;
+    }
+    return $name;
+}
+
+function getTime($time=0){
+    $time = $time ? $time : time();
+    $todayStart=strtotime(date('Y-m-d'));
+    if ($time >= $todayStart) {
+        return '今天'.date('H:i',$time);
+    }
+    if ($time >= $todayStart-86400) {
+        return '昨天'.date('H:i',$time);
+    }
+    return date('Y-m-d',$time);
+
+}
+
 /**
  * 开启/关闭状态文字格式化
  */

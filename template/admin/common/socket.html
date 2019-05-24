@@ -1,102 +1,170 @@
 <script>
 $(function(){
-	Do.ready('dialog'); 
-	//建立WebSocket通讯
-	var socket = new WebSocket("ws://{$Think.config.websocket_ip}:8282");
-	//连接成功时触发
-	socket.onopen = function(){
-		var login_data = '{$loginData|raw|default=""}';
-		socket.send(login_data);
-	};
-	//监听收到的消息
-	socket.onmessage = function(res){
-		if(typeof res.data=='object'){
-			var data = res.data;
-		}else{
-			var data = eval("("+res.data+")");
-		}
-		
-		//未读提示框处理
-		function badgeNum(type){
-			var badgeObj = $(".badge-dot");
-			var badgeLen = badgeObj.length;
-			var num = 0;
-			if(badgeLen > 0) num = parseInt(badgeObj.text());
-			switch(type){
-				case 1://增一
-				num += 1;
-				break;
-				case 0://清空
-				num = 0;
-				break;
-				case -1://减一
-				num -= 1;
-				break;
-			}
-			if(num > 0){
-				if(badgeLen > 0){
-					badgeObj.text(num);
-				}else{
-					var html = '<i class="badge-dot">'+num+'</i>';
-					$("#sysmsg").append(html);
-				}
-			}else{
-				if(badgeLen > 0){
-					badgeObj.remove();
-				}
-			}
-		}
-		
-		//处理收到通知消息
-		function noticeMsg(){
-			if($("#sysnotice").length > 0){
-				//如果有公告权限,则提示通知
-				//是否使用浏览器通知提示
-				
-				//更新消息数+1
-				badgeNum(1);
-				//加入公告列表	
-				var html = '<a target="admin-iframe" href="/bulletin/detail/id\\/'+data.id+'"><li class="noticeBox">'
-                    	 + '<span class="text-red">[未读]</span> '+data.title
-                         + '</li></a>';
-				if($("#sysnotice .noticeBox").length == 0){
-					$("#sysnotice").html(html);
-				}else{
-					$("#sysnotice").append(html);
-				}
-			}
-		}
-		//处理收到推送消息
-		function messageMsg(){
-		
-		}
-		//处理收到工单消息
-		function workerMsg(){
-		
-		}
-		//处理收到订单消息
-		function orderMsg(){
-			
-		}
-		switch (data.type){
-			case 'login':
-			//console.log(data);
-			break;
-			case 'notice':
-			//console.log(data);
-			noticeMsg();
-			break;
-			case 'message':
-			messageMsg();
-			break;
-			case 'worker':
-			break;
-			case 'order':
-			break;
-		}
-	};
-	socket.onerror = function(e) {
-		  console.log(e);
+    String.prototype.subCHString =function(len, hasDot) {
+        var newLength = 0;
+        var newStr = "";
+        var chineseRegex = /[^\x00-\xff]/g;
+        var singleChar = "";
+        var strLength = this.replace(chineseRegex, "**").length;
+        for (var i = 0; i < strLength; i++) {
+            singleChar = this.charAt(i).toString();
+            if (singleChar.match(chineseRegex) != null) {
+                newLength += 2;
+            } else {
+                newLength++;
+            }
+            if (newLength > len) {
+                break;
+            }
+            newStr += singleChar;
+        }
+
+        if (hasDot && strLength > len) {
+            newStr += "...";
+        }
+        return newStr;
     };
+
+	Do.ready('dialog','tips',function () {
+        //toastr.info('收到有新增', '安装工单',{timeOut:0});
+        //处理收到通知消息
+
+
+        function noticeMsg(data){
+            var id='sysnotice';
+            obj=$("#"+id);
+            if(obj.length > 0){
+                //如果有公告权限,则提示通知
+                //是否使用浏览器通知提示
+
+                //更新消息数+1
+                badgeNum(1,obj);
+                //加入公告列表
+                var html = '<a target="admin-iframe" href="/bulletin/detail/id\\/'+data.id+'"><li class="noticeBox">'
+                    + '<span class="text-red">[未读]</span> '+data.title
+                    + '</li></a>';
+                if($("#"+id+" .noticeBox").length === 0){
+                    $("#"+id).html(html);
+                }else{
+                    $("#"+id).append(html);
+                }
+            }
+        }
+        //未读提示框处理
+        function badgeNum(type,obj){
+            var id=obj.attr('data-info');
+            var badgeObj=$('#'+id+' .badge-dot');
+
+            var badgeLen = badgeObj.length;
+            var num = 0;
+            if(badgeLen > 0) num = parseInt(badgeObj.text());
+            switch(type){
+                case 1://增一
+                    num += 1;
+                    break;
+                case 0://清空
+                    num = 0;
+                    break;
+                case -1://减一
+                    num -= 1;
+                    break;
+            }
+            if(num > 0){
+                if(badgeLen > 0){
+                    badgeObj.text(num);
+                }else{
+                    var html = '<i class="badge-dot">'+num+'</i>';
+                    $("#"+id).append(html);
+                }
+            }else{
+                if(badgeLen > 0){
+                    badgeObj.remove();
+                }
+            }
+        }
+        function appendTodo(data) {
+            var id='todo_list';
+            obj=$("#"+id);
+            if(obj.length > 0){
+                //加入列表
+                var html = '<a target="admin-iframe" href="'+data.url+'" title="'+data.title+'" id="todo-id-'+data.todo_id+'">' +
+                    '<li class="noticeBox">'+data.title.subCHString(30,true)+ '<span class="nav-time">'+data.add_time+'</span></li>' +
+                    '</a>';
+                if($("#"+id+" .noticeBox").length === 0){
+                    $("#"+id).html(html);
+                }else{
+                    $("#"+id).append(html);
+                }
+            }
+        }
+        
+        //处理收到工单消息
+        function workerMsg(data){
+            var id='todo_list';
+            obj=$("#"+id);
+            badgeNum(1,obj);
+            appendTodo(data);
+            toastr.info('<a href="'+data.url+'" target="admin-iframe"><span>'+data.title+'</span><span>【'+data.add_time+'】</span></a>','');
+        }
+        //处理收到推送消息
+        function messageMsg(data){
+        }
+        //处理收到订单消息
+        function orderMsg(data){
+            var id='todo_list';
+            obj=$("#"+id);
+            badgeNum(1,obj);
+            appendTodo(data);
+            toastr.info('<a href="'+data.url+'" target="admin-iframe"><span>'+data.title+'</span><span>【'+data.add_time+'】</span></a>','');
+        }
+
+        //处理收到商户审核消息
+        function storeMsg(data){
+            var id='todo_list';
+            obj=$("#"+id);
+            badgeNum(1,obj);
+            appendTodo(data);
+            toastr.info('<a href="'+data.url+'" target="admin-iframe"><span>'+data.title+'</span><span>【'+data.add_time+'】</span></a>','');
+        }
+
+        //建立WebSocket通讯
+        var socket = new WebSocket("ws://{$Think.config.websocket_ip}:8282");
+        //连接成功时触发
+        socket.onopen = function(){
+            var login_data = '{$loginData|raw|default=""}';
+            socket.send(login_data);
+        };
+        //监听收到的消息
+        socket.onmessage = function(res){
+            if(typeof res.data=='object'){
+                var data = res.data;
+            }else{
+                var data = eval("("+res.data+")");
+            }
+            console.log(data);
+            switch (data.type){
+                case 'login':
+                    break;
+                case 'notice':
+                    noticeMsg(data);
+                    break;
+                case 'message':
+                    messageMsg(data);
+                    break;
+                case 'worker':
+                    workerMsg(data);
+                    break;
+                case 'order':
+                    orderMsg(data);
+                    break;
+                case 'store':
+                    storeMsg(data);
+            }
+        };
+        socket.onerror = function(e) {
+            console.log(e);
+        };
+    });
+
 })
 </script>

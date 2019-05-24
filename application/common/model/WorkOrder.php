@@ -59,11 +59,39 @@ class WorkOrder extends Model
     {
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
-        $sendData = [
-            'type'  => 'worker',
-            'worder_sn'    => $worder['worder_sn'],
-            'worder_id'    => $worder['worder_id'],
+        $groupId = db('user')->where('user_id', $data['post_user_id'])->value('group_id');
+        $todoData = [
+            'type'          => 1,//待分配工单
+            'store_id'      => $data['store_id'],
+            'post_store_id' => $data['post_store_id'],
+            'post_user_id'  => $data['post_user_id'],
+            'url'           => url('workorder/dispatch', ['id' => $worder['worder_id']]),
+            'title'         => '【工单分派】' . get_group_name($groupId) . '提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
         ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $addTime = isset($worder['add_time']) ? $worder['add_time'] : time();
+        $sendData = [
+            'type'            => 'worker',
+            'title'           => $todoData['title'],
+            'url'             => $todoData['url'],
+            'todo_id'         => $todoId,
+            'todo_type'       => $todoData['type'],
+            'add_time'        => getTime($addTime),
+            //'worder_sn'       => $worder['worder_sn'],
+            //'worder_id'       => $worder['worder_id'],
+            //'work_order_type' => $data['work_order_type'],
+        ];
+        $result=db('work_order')->where(['worder_id'=>$worder['worder_id']])->update(['todo_id'=>$todoId]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
         //发送给服务商在线管理员
         $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
         if (!$flag) {//创建工单时短信通知服务商
@@ -83,7 +111,61 @@ class WorkOrder extends Model
                 $informModel->sendInform($data['factory_id'], 'sms', $param, 'service_work_order_add');
             }
         }
-        
+    }
+
+    public function refuseNotify($worder,$installer)
+    {
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $todoData = [
+            'type'          => 2,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'      => $worder['store_id'],
+            'post_store_id' => $worder['store_id'],
+            'post_user_id'  => $installer['user_id'],
+            'url'           => url('workorder/dispatch', ['id' => $worder['worder_id']]),
+            'title'         => '【工单分派】' . $installer['realname'] . '拒绝了' . get_work_order_type($worder['work_order_type']) . '，请尽快重新分派！',
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $addTime = $worder['add_time'] ?? time();
+        $addTime = is_numeric($addTime) ? $addTime : (strtotime($addTime)>0? strtotime($addTime):time());
+        $sendData = [
+            'type'            => 'worker',
+            'title'           => $todoData['title'],
+            'url'             => $todoData['url'],
+            'todo_id'         => $todoId,
+            'todo_type'       => $todoData['type'],
+            'add_time'        => getTime($addTime),
+        ];
+        $result=db('work_order')->where(['worder_id'=>$worder['worder_id']])->update(['todo_id'=>$todoId]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
+        //在线推送
+        $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
+        //短信通知
+        $store = db('store')->alias('p1')
+            ->field('p2.user_id,p1.mobile')
+            ->join('user p2', 'p1.store_id=p2.store_id')
+            ->where(['p2.store_id' => $worder['store_id']])
+            ->find();
+        if (!empty($store) && !empty($store['mobile']) && check_mobile($store['mobile'])) {
+            $param = [
+                'phone'         => $store['mobile'],
+                'user_id'       => $store['user_id'],
+                'workOrderType' => $worder['work_order_type'],
+                'worderSn'      => $worder['worder_sn'],
+                'installerName' => $installer['realname'],
+            ];
+            $informModel = new \app\common\model\LogInform();
+            $informModel->sendInform($worder['factory_id'], 'sms', $param, 'service_work_order_refuse');
+        }
     }
     
     /**
@@ -265,6 +347,7 @@ class WorkOrder extends Model
             //操作日志记录
             $this->worderLog($worder, $user, $installer['installer_id'], '工程师拒绝接单', $remark);
             $this->_worderInstallerLog($worder, $installer['installer_id'], 'refuse', 1);
+            $this->refuseNotify($worder,$installer);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -1143,6 +1226,9 @@ class WorkOrder extends Model
             'work_order_type' => $worder->work_order_type,
             'factory_id'      => $worder->factory_id,
             'store_id'        => $worder->store_id,
+            'post_store_id'   => $worder->post_store_id,
+            'post_user_id'    => $worder->post_user_id,
+            'add_time'        => $worder->add_time,
         ];
         $installerId=$worder->installer_id;
         if ($worder->save()) {

@@ -1,6 +1,7 @@
 <?php
 namespace app\factory\controller;
 use app\common\controller\Index as CommonIndex;
+use app\common\model\Todo;
 use think\response\Redirect;
 
 class Index extends CommonIndex
@@ -43,6 +44,17 @@ class Index extends CommonIndex
             } */
             $this->assign('bulletins', $bulletins);
             $this->assign('specialBulletins', $specialBulletins);
+            //获取待办事件
+            $query = db('todo')->where([
+                'store_id' => $this->adminUser['store_id'],
+                'is_del'   => 0,
+                'status'   => 0
+            ])->order('id desc')->paginate(5,false, ['query' => input('param.')]);
+            $todo=$query->items();
+            $todoNum=$query->total();
+            $this->assign('todo', $todo);
+            $this->assign('todoNum', $todoNum);
+
         }
         //取得系统消息 #TODO
         if(in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER, ADMIN_SERVICE, ADMIN_FACTORY])) {

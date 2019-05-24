@@ -423,6 +423,8 @@ class Admin extends Index
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
+        $params['store_id']=$storeId;
+        $storeModel->notify($params,$user);
         $source=session('api_source');
         $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
     }

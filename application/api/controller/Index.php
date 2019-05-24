@@ -829,7 +829,7 @@ class Index extends ApiBase
         //$where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
         $where='WO.worder_sn='.$worderSn.' AND WO.is_del=0';
 
-        $field = 'WO.worder_id,WO.worder_sn,WO.installer_id,WO.goods_id,G.name goods_name,G.cate_id,WO.work_order_type,WO.order_sn,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc';
+        $field = 'WO.worder_id,WO.store_id,WO.factory_id,WO.worder_sn,WO.installer_id,WO.goods_id,G.name goods_name,G.cate_id,WO.work_order_type,WO.order_sn,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc';
         $field .= ',WO.work_order_status,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $join = [
             ['goods G','G.goods_id=WO.goods_id','LEFT'],
@@ -1316,7 +1316,7 @@ class Index extends ApiBase
             ['store S', 'S.store_id = UI.store_id'],
             ['store F', 'F.store_id = UI.factory_id'],
         ];
-        $field = $field ? $field: 'UI.installer_id, UI.job_no, UI.realname, UI.phone, S.name as store_name, F.name as factory_name, UI.check_status, UI.status';
+        $field = $field ? $field: 'UI.installer_id,UI.user_id, UI.job_no, UI.realname, UI.phone, S.name as store_name, F.name as factory_name, UI.check_status, UI.status';
         $where = [
             'UI.user_id' => $userId, 
             'UI.is_del' => 0,
