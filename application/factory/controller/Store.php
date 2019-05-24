@@ -146,7 +146,7 @@ class Store extends FactoryForm
                 'is_del'       => 0,
                 'status'       => 1,
                 'check_status' => 1,
-                'store_type'   => [STORE_SERVICE_NEW, STORE_SERVICE],
+                'store_type'   => ['IN',STORE_SERVICE_NEW, STORE_SERVICE],
                 'factory_id'   => $this->adminUser['factory_id'],
             ])->cursor();
             $data['dealer'] = db('store')->field('store_id,name,region_name,address')->where([
@@ -168,16 +168,18 @@ class Store extends FactoryForm
                     'p2.ostore_id'    => $this->adminUser['store_id'],
                 ])->cursor();;
         }
+        $arr=[];
         foreach ($data as $key => $value) {
             foreach ($value as $k => $v) {
-                $data[$key][$k]['order_count'] = db('order')->where([
+                $arr[$key][$k]=$v;
+                $arr[$key][$k]['order_count'] = db('order')->where([
                     'order_status'  => 1,
                     'user_store_id' => $v['store_id'],
                 ])->count();
-                unset($data[$key][$k]['store_id']);
+                unset($arr[$key][$k]['store_id']);
             }
         }
-        return json(dataFormat(0, 'ok', $data));
+        return json(dataFormat(0, 'ok', $arr));
     }
 
     function _getAlias()
