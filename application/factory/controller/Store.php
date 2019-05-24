@@ -133,10 +133,10 @@ class Store extends FactoryForm
     }
 
     //获得网点分布及订单数据
-    public function getDistribute()
+    public function distribute()
     {
         if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, STORE_SERVICE_NEW])) {
-            return dataFormat(1, "非法访问");
+            return json(dataFormat(1, "非法访问"));
         }
         //p($this->adminUser);
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {//厂商，获取话旗下服务商表列表
@@ -165,7 +165,7 @@ class Store extends FactoryForm
             ])->count();
             unset($data[$k]['store_id']);
         }
-        return dataFormat(0,'ok',$data);
+        return json(dataFormat(0,'ok',$data));
     }
 
     function _getAlias()
