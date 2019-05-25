@@ -464,6 +464,16 @@ class Order extends Model
             $this->error = '订单操作异常';
             return FALSE;
         }
+        //删除待办事件中为已完成
+        if ($order['todo_id']) {
+            Todo::where([
+                'type' => 3,
+                'id'   => $order['todo_id'],
+            ])->update([
+                'status'      => 1,
+                'update_time' => time(),
+            ]);
+        }
         $nameStr = '';
         if ($skus) {
             $len = count($skus);
@@ -537,7 +547,8 @@ class Order extends Model
     public function notify($user,$data)
     {
         if ($data['pay_type'] != 2 || in_array($user['group_id'], [GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
-            return false;
+            return dataFormat(1,'商户类无推送信息');
+
         }
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
@@ -554,25 +565,24 @@ class Order extends Model
         $todoModel->save();
         $todoId = $todoModel->id;
         if (!$todoId) {
-            $this->error='系统故障';
-            return false;
+            return dataFormat(2,'系统故障');
+        }
+        $result=db('order')->where(['order_id' => $data['order_id']])->update([
+            'todo_id'     => $todoId,
+            'update_time' => time(),
+        ]);
+        if ($result===false) {
+            return dataFormat(3,'系统故障');
         }
         $addTime = isset($data['add_time']) ? $data['add_time'] : time();
         $sendData = [
-            'type'      => 'order',
+            'type'      => 'todo',
             'title'     => $todoData['title'],
             'url'       => $todoData['url'],
             'todo_id'   => $todoId,
             'todo_type' => $todoData['type'],
             'add_time'  => getTime($addTime),
-            //'order_sn'  => $data['order_sn'],
-            //'order_id'  => $data['order_id'],
         ];
-        $result=db('order')->where(['order_id'=>$data['order_id']])->update(['todo_id'=>$todoId]);
-        if ($result === false) {
-            $this->error='系统故障';
-            return false;
-        }
         //发送给服务商在线管理员
         $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
         return true;

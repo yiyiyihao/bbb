@@ -1,5 +1,6 @@
 <?php
 namespace app\factory\controller;
+use app\common\model\Todo;
 use think\Db;
 
 class Store extends FactoryForm
@@ -62,6 +63,10 @@ class Store extends FactoryForm
             ];
             $result = $this->model->save($data, ['store_id' => $info['store_id']]);
             if ($result !== FALSE) {
+                Todo::where([
+                    'id'   => $info['todo_id'],
+                    'type' => 4,
+                ])->update(['status' => 1, 'update_time' => time()]);
                 $this->success('操作成功', url('index', ['status' => $status]));
             }else{
                 $this->error('操作失败');

@@ -9,7 +9,7 @@
         <ul class="nav-inline nav-right">
         	{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_SYSTEM"}
             {if condition="check_auth('help','index') && check_auth('help','detail')"}<li class="nav-item"><a title="帮助中心" href="{:url('help/index')}" target="admin-iframe"><i class="layui-icon">&#xe607;</i></a></li>{/if}
-            <li class="nav-item" id="sysmsg"><a href="{:url('bulletin/index')}" title="系统消息" target="admin-iframe"><span class="layui-icon">&#xe611;</span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
+            {if condition="check_auth('bulletin','index') && check_auth('bulletin','detail')"}<li class="nav-item" id="sysmsg"><a href="{:url('bulletin/index')}" title="系统消息" target="admin-iframe"><span class="layui-icon">&#xe611;</span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}{/if}
             {if condition="check_auth('store','distribute')"}<li class="nav-item"><a title="网点分布" href="/panelData" target="_blank" class="layui-icon">&#xe715;</a></li>{/if}
             <div class="nav-tab-list animate">
             	<!-- <ul class="nav-tab-title">

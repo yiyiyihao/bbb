@@ -1,51 +1,75 @@
-<form method="post" class="form-x admin-form form-auto" id="form">
-    <div class="tab admin-tab">
-        <div class="panel admin-box active">
-            <div class="panel-head">
-                <div class="tab-head">
-                    <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">商户申请审核</a></li>
-                        <li><a href="#tab-2">管理员信息</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="tab-body">
-               	{include file="store/_detail" /}
-				<div class="form-group">
-                    <div class="label">
-                        <label>审核结果</label>
+<div class="admin-detail panel">
+    <div class="panel-head">
+        <a href="{:url('index')}"><span class="bg-main icon button icon-left">返回</span></a>
+    </div>
+    <form method="post" class="form-x admin-form form-auto" id="form">
+        <div class="tab admin-tab">
+            <div class="panel admin-box active">
+                <div class="panel-head" >
+                    <div class="tab-head">
+                        <ul class="tab-nav">
+                            <li class="active"><a href="#tab-1">商户申请审核</a></li>
+                            <li><a href="#tab-2">管理员信息</a></li>
+                        </ul>
                     </div>
-                    <div class="field">
-                        <div class="button-group radio">
-                            <label class="button active"><input name="check_status" value="1" checked="checked" type="radio">通过</label>
-                            <label class="button"><input name="check_status" value="0" type="radio">不通过</label>
+                </div>
+                <div class="tab-body">
+                    <input type="hidden" value="{$info.todo_id?? ''}"  id="todo_id">
+                    {include file="store/_detail" /}
+                    <div class="form-group">
+                        <div class="label">
+                            <label>审核结果</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <label class="button active"><input name="check_status" value="1" checked="checked" type="radio">通过</label>
+                                <label class="button"><input name="check_status" value="0" type="radio">不通过</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>备注</label>
+                        </div>
+                        <div class="field">
+                            <div class="button-group radio">
+                                <textarea class="input" name="remark" cols="40" rows="6"></textarea>
+                                <div class="input-note">请输入操作备注</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="label">
-                        <label>备注</label>
+                <div class="panel-foot">
+                    <div class="form-button">
+                        <button class="button bg-main" type="submit">保存</button>
+                        <button class="button bg" type="reset">重置</button>
+                        <div id="tips"></div>
                     </div>
-                    <div class="field">
-                        <div class="button-group radio">
-                            <textarea class="input" name="remark" cols="40" rows="6"></textarea>
-                            <div class="input-note">请输入操作备注</div>
-                        </div>
-                    </div>
-                </div>
-            <div class="panel-foot">
-                <div class="form-button">
-                    <button class="button bg-main" type="submit">保存</button>
-                    <button class="button bg" type="reset">重置</button>
-                    <div id="tips"></div>
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
 <script>
-    Do.ready('base', function () {
+    Do.ready('base', 'dialog', function () {
         //表单综合处理
-        $('#form').FormPage();
-    }); 
+        $('#form').FormPage({
+            returnFun: function (data) {
+                var todoId = $('#todo_id').val();
+                if (data.code && todoId) {
+                    window.parent.removeTodo('todo-id-' + todoId);
+                }
+                layer.msg(data.msg, {
+                    time:1000,
+                    end: function () {
+                        if (data.url == null || data.url == '') {
+                            window.location.reload();
+                        } else {
+                            window.location.href = data.url;
+                        }
+                    }
+                });
+            }
+        });
+    });
 </script>

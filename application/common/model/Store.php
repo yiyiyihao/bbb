@@ -71,7 +71,10 @@ class Store extends Model
             'todo_type'       => $todoData['type'],
             'add_time'        => getTime($addTime),
         ];
-        $result=db('store')->where(['store_id'=>$todoData['store_id']])->update(['todo_id'=>$todoId]);
+        $result = db('store')->where(['store_id' => $data['store_id']])->update([
+            'todo_id'     => $todoId,
+            'update_time' => time(),
+        ]);
         if ($result === false) {
             $this->error='系统故障';
             return false;
