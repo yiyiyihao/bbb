@@ -139,8 +139,9 @@ class Store extends FactoryForm
             return json(dataFormat(1, "非法访问"));
         }
         //p($this->adminUser);
-        $data['service'] = [];
-        $data['dealer'] = [];
+        $data=[];
+        $arr['service'] = [];
+        $arr['dealer'] = [];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {//厂商，获取话旗下服务商表列表
             $data['service'] = db('store')->field('store_id,name,region_name,address')->where([
                 'is_del'       => 0,
@@ -168,7 +169,6 @@ class Store extends FactoryForm
                     'p2.ostore_id'    => $this->adminUser['store_id'],
                 ])->cursor();;
         }
-        $arr=[];
         foreach ($data as $key => $value) {
             foreach ($value as $k => $v) {
                 $arr[$key][$k]=$v;
