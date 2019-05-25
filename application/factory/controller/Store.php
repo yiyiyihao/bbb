@@ -179,6 +179,7 @@ class Store extends FactoryForm
                 unset($arr[$key][$k]['store_id']);
             }
         }
+        $arr['store_type']=$this->adminStore['store_type'];
         return json(dataFormat(0, 'ok', $arr));
     }
 
