@@ -272,9 +272,9 @@ class CommonBase extends Base
     //获取页面的面包屑
     protected function bread(){
         //获取当前controller
-        $module             = strtolower($this->request->module());
-        $controller         = strtolower($this->request->controller());
-        $action             = strtolower($this->request->action());
+        $module             = camp2snake($this->request->module());
+        $controller         = camp2snake($this->request->controller());
+        $action             = camp2snake($this->request->action());
         $authRule           = AuthRule::getALLRule($this->domain);
 //         pre($authRule);
         //检查是否有上级操作节点

@@ -4,6 +4,8 @@
  */
 namespace app\admin\service;
 
+use think\Request;
+
 class Auth{
 
     //默认配置
@@ -30,13 +32,13 @@ class Auth{
     /**
      * 验证操作权限
      */
-    public function check($request,$groupPurview = []){
+    public function check(Request $request,$groupPurview = []){
         //获取用户需要验证的所有有效规则列表
         $commonPurview      = $this->_common;//获取默认权限
         $authList           = array_merge($groupPurview,$commonPurview);
-        $module             = strtolower($request->module());
-        $controller         = strtolower($request->controller());
-        $action             = strtolower($request->action());
+        $module             = camp2snake($request->module());
+        $controller         = camp2snake($request->controller());
+        $action             = camp2snake($request->action());
         foreach ($authList as $k=>$v){
             $key = $v['module'];
             if($v['controller']) $key .= '_'.$v['controller'];

@@ -150,7 +150,7 @@ function get_promotion_status($info = [])
 }
 function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
 {
-    if (!$time) {
+    if ($time<=0) {
         return '';
     }
     $time = $time ? $time : time();
@@ -1346,4 +1346,35 @@ function recursion($arr = [])
         }
     }
     return $arr;
+}
+
+/**
+ * 驼峰字符转下划线
+ * @param string $str
+ * @return string
+ */
+function camp2snake($str='')
+{
+    $pattern='/(?<=[a-z])([A-Z])/';
+    $result=strtolower(preg_replace($pattern, '_$1', $str));
+    return $result;
+}
+
+function get_user_type($userType = null)
+{
+    $arr = [
+        0 => '意向用户',
+        1 => '成交用户',
+    ];
+    if (isset($arr[$userType])) {
+        return $arr[$userType];
+    }
+    return $arr;
+}
+
+function filter_request(){
+    $param=array_filter(input('param.'), function ($item) {
+        return $item!=='' && $item!==null;
+    });
+    return $param;
 }

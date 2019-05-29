@@ -244,9 +244,9 @@ class FormBase extends CommonBase
             $last = end($tableList);
             if(isset($last['button'])){
                 $list = $last['button'];
-                $module             = strtolower($this->request->module());
-                $controller         = strtolower($this->request->controller());
-                $action             = strtolower($this->request->action());
+                $module             = camp2snake($this->request->module());
+                $controller         = camp2snake($this->request->controller());
+                $action             = camp2snake($this->request->action());
                 foreach ($list as $k=>$btn){
                     $flag = false;
                     if($btn['action'] == 'condition') $btn['action'] = $btn['condition']['action'];

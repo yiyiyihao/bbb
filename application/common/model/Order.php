@@ -72,6 +72,44 @@ class Order extends Model
         }
         return $list;
     }
+
+    //获取订单的安装状态
+    public function getInstallStatus($order)
+    {
+        $applyStatus = 0;
+        $ossubId = 0;
+        $worderCount = db('work_order')->where(['order_sn' => $order['order_sn'], 'work_order_status' => ['<>', -1]])->count();
+        $orderCount = db('order_sku')->where(['order_id' => $order['order_id']])->sum('num');
+        if ($worderCount > 0) {
+            if ($orderCount > $worderCount) {
+                $applyStatus = 1;//部分商品已安装
+            } else {
+                $applyStatus = 2;//所下单的商品已经全部安装
+            }
+        }
+        if ($order['pay_status'] == 1 && $applyStatus != 2) {//已付款，部分安装，则获取可安装的商品ossub_id
+            //获取可申请安装的订单商品
+            $join = [
+                ['order_sku_service OSSE', 'OSSE.ossub_id = OSSUB.ossub_id', 'LEFT'],
+                ['work_order WO', 'WO.ossub_id = OSSUB.ossub_id', 'LEFT'],
+            ];
+            $ossubId = db('order_sku_sub')
+                ->alias('OSSUB')
+                ->join($join)
+                ->whereRaw('service_status = -2 OR service_status is NULL')
+                ->whereRaw('work_order_status = -1 OR work_order_status is NULL')
+                ->where('OSSUB.order_id', $order['order_id'])
+                ->value('OSSUB.ossub_id');
+        }
+        $installStatus = [
+            'ossub_id'    => intval($ossubId),
+            'status'      => $applyStatus,
+            'status_text' => get_order_apply_status($applyStatus),
+            'count'       => $worderCount,
+        ];
+        return dataFormat(0,'ok',$installStatus);
+    }
+
     /**
      * 获取订单详情信息
      * @param string $orderSn   订单号

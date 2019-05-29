@@ -189,6 +189,20 @@ $(function(){
 		$(this).closest('form').find('.form-group').removeClass("check-error");
 		$(this).closest('form').find('.form-group').removeClass("check-success");
 	});
+	var tabV=Config.tab;
+	$('.tab .tab-nav li').each(function () {
+		var e=$(this);
+		if (tabV === '') {
+			return false;
+		}
+		var href=e.find('a').attr('href');
+		if (href==='#tab-'+tabV) {
+			e.addClass('active');
+			$(href).addClass('active').siblings().removeClass('active');
+		}else {
+			e.removeClass('active');
+		}
+	});
 	$('.tab .tab-nav li').each(function(){
 		var e=$(this);
 		var trigger=e.closest('.tab').attr("data-toggle");
