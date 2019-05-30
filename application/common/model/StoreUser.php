@@ -14,7 +14,6 @@ class StoreUser extends Model
     protected $autoWriteTimestamp = 'int';
     private $perPage = 10;
 
-
     public function getStoreUser($id, $user)
     {
         $mobile = $this->where(['id' => $id, 'is_del' => 0])->value('mobile');
@@ -38,10 +37,11 @@ class StoreUser extends Model
             ['payment p3', 'p3.pay_code = p1.pay_code', 'LEFT']
         ];
         $where = [
-            'p2.is_del'       => 0,
-            'p1.user_id'      => $user['user_id'],
-            'p2.phone'        => $mobile,
-            'p1.order_status' => ['<', 4],
+            'p2.is_del'        => 0,
+            'p2.post_store_id' => $user['store_id'],
+            'p1.user_id'       => $user['user_id'],
+            'p2.phone'         => $mobile,
+            'p1.order_status'  => ['<', 4],
         ];
         $subQuery = db('order')->alias('p1')
             ->field($field)
@@ -75,8 +75,9 @@ class StoreUser extends Model
             ['goods p3', 'p3.goods_id = p1.goods_id AND p3.is_del = 0', 'LEFT'],
         ];
         $workOrder = db('work_order')->alias('p1')->field($field)->where([
-            'p1.phone'  => $mobile,
-            'p1.is_del' => 0,
+            'p1.phone'         => $mobile,
+            'p1.post_store_id' => $user['store_id'],
+            'p1.is_del'        => 0,
         ])->join($join)->paginate($this->perPage, false, [
             'query'    => $param,
             'var_page' => 'p',

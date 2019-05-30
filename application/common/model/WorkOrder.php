@@ -33,9 +33,10 @@ class WorkOrder extends Model
         $result = $worderId = parent::save($data, $where, $sequence);
         if (!$flag) {
             $worder = [
-                'worder_sn' => $sn,
-                'worder_id' => $worderId,
+                'worder_sn'    => $sn,
+                'worder_id'    => $worderId,
                 'post_user_id' => $data['post_user_id'],
+                'phone'        => $data['phone'],
             ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
             //保存用户信息，如果有
@@ -50,11 +51,29 @@ class WorkOrder extends Model
             $this->worderLog($worder, $user, 0, '创建工单');
             //发送工单通知给服务商
             $this->notify($worder,$data,$where,$user);
+            //更新客户信息
+            $this->UpdateStoreUser($user,$worder);
+
             return $sn;
         }
         return $result;
     }
 
+    //更新客户信息
+    public function UpdateStoreUser($postUser, $workOrder)
+    {
+        if ($postUser['admin_type'] == ADMIN_DEALER) {
+            $storeUser = StoreUser::where([
+                'store_id' => $postUser['store_id'],
+                'mobile'   => $workOrder['phone'],
+                'is_del'   => 0,
+            ])->find();
+            if ($storeUser && $storeUser['user_type'] == 0) {//成交客户
+                $storeUser->user_type = 1;
+                $storeUser->save();
+            }
+        }
+    }
     public function notify($worder, $data, $flag=false)
     {
         //发送工单通知给服务商

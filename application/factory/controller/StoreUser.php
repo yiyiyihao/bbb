@@ -26,24 +26,24 @@ class StoreUser extends FactoryForm
 
     function _getWhere()
     {
-        $realname=$this->request->param('realname','','trim');
-        $mobile=$this->request->param('mobile','','trim');
-        $userType=$this->request->param('user_type','-1','intval');
-        $where=[
-            'SU.store_id'=>$this->adminUser['store_id']
+        $realname = $this->request->param('realname', '', 'trim');
+        $mobile = $this->request->param('mobile', '', 'trim');
+        $userType = $this->request->param('user_type', '-1', 'intval');
+        $where = [
+            'SU.store_id' => $this->adminUser['store_id']
         ];
-        if (''===$realname) {
-            $where['SU.realname']=['LIKE','%'.$realname.'%'];
+        if ('' === $realname) {
+            $where['SU.realname'] = ['LIKE', '%' . $realname . '%'];
         }
-        if (''!==$mobile) {
+        if ('' !== $mobile) {
             if (check_mobile($mobile)) {
-                $where['SU.mobile']=$mobile;
-            }else{
-                $where['SU.mobile']=['LIKE','%'.$mobile.'%'];
+                $where['SU.mobile'] = $mobile;
+            } else {
+                $where['SU.mobile'] = ['LIKE', '%' . $mobile . '%'];
             }
         }
-        if ($userType != -1 && in_array($userType,array_keys(get_user_type()))) {
-            $where['SU.user_type']=$userType;
+        if ($userType != -1 && in_array($userType, array_keys(get_user_type()))) {
+            $where['SU.user_type'] = $userType;
         }
         return $where;
     }
@@ -60,7 +60,7 @@ class StoreUser extends FactoryForm
 
     function _getJoin()
     {
-        $where=[
+        $where = [
             ['goods G', 'SU.goods_id=G.goods_id AND G.is_del=0', 'LEFT']
         ];
         return $where;
@@ -75,10 +75,10 @@ class StoreUser extends FactoryForm
                 $this->error('预计成交时间不能早当前时间');
             }
             if ($dealCloseTime) {
-                $data['deal_close_time']=$dealCloseTime;
+                $data['deal_close_time'] = $dealCloseTime;
             }
-            $mobile=$this->request->param('mobile','','trim');
-            $realname=$this->request->param('realname','','trim');
+            $mobile = $this->request->param('mobile', '', 'trim');
+            $realname = $this->request->param('realname', '', 'trim');
             if (!$realname) {
                 $this->error('用户名不能为空');
             }
@@ -89,13 +89,23 @@ class StoreUser extends FactoryForm
                 $this->error('用户手机号码格式不正确');
             }
             if ($this->request->action() == 'add') {
-                $exist=$this->model->where([
-                    'is_del'=>0,
-                    'mobile'=>$mobile,
+                $exist = $this->model->where([
+                    'is_del' => 0,
+                    'mobile' => $mobile,
                 ])->find();
                 if (!empty($exist)) {
                     $this->error('用户手机号码已经存在');
                 }
+            }
+            //是否成交客户
+            $exist = db('work_order')->where([
+                'is_del'        => 0,
+                'phone'         => $mobile,
+                'post_store_id' => $this->adminUser['store_id'],
+            ])->find();
+            $data['user_type'] = 0;
+            if ($exist) {
+                $data['user_type'] = 1;
             }
         }
         $data['store_id'] = $this->adminUser['store_id'];
@@ -105,20 +115,20 @@ class StoreUser extends FactoryForm
     function _afterList($list)
     {
         foreach ($list as $k => $v) {
-            $list[$k]['address']=$v['region_name'].$v['address'];
+            $list[$k]['address'] = $v['region_name'] . $v['address'];
         }
         return $list;
     }
 
     public function detail(Request $request)
     {
-        $id=$request->param('id');
-        $result=$this->model->getStoreUser($id,$this->adminUser);
+        $id = $request->param('id');
+        $result = $this->model->getStoreUser($id, $this->adminUser);
         if ($result['code'] !== '0') {
             $this->error($result);
         }
         //p($result);
-        $this->assign('detail',$result['data']);
+        $this->assign('detail', $result['data']);
         return $this->fetch();
     }
 
