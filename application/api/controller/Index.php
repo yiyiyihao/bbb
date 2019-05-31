@@ -1210,6 +1210,40 @@ class Index extends ApiBase
         }
         $this->_returnMsg(['config' => $result]);
     }
+
+    protected function installerMyCenter()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if (!$installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
+        }
+
+        if ($installer && !$installer['status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
+        }
+        $data = db('work_order')->fieldRaw('work_order_type,COUNT(work_order_type) num')->where([
+            'is_del'            => 0,
+            'factory_id'        => $this->factory['store_id'],
+            'installer_id'      => $installer['installer_id'],
+            'work_order_status' => 4,
+        ])->group('installer_id,work_order_type')->select();
+        $result['finish_all'] = 0;
+        $result['finish_install'] = 0;
+        $result['finish_repair'] = 0;
+        $result['score'] = $installer['score'];
+        foreach ($data as $value) {
+            if ($value['work_order_type'] == 1) {
+                $result['finish_install'] += $value['num'];
+            } else {
+                $result['finish_repair'] += $value['num'];
+            }
+            $result['finish_all'] += $value['num'];
+        }
+        $this->_returnMsg(['data'=>$result]);
+    }
+
+
     //上传图片接口
     protected function uploadImage($verifyUser = TRUE)
     {
@@ -1316,7 +1350,7 @@ class Index extends ApiBase
             ['store S', 'S.store_id = UI.store_id'],
             ['store F', 'F.store_id = UI.factory_id'],
         ];
-        $field = $field ? $field: 'UI.installer_id,UI.user_id, UI.job_no, UI.realname, UI.phone, S.name as store_name, F.name as factory_name, UI.check_status, UI.status';
+        $field = $field ? $field: 'UI.installer_id,UI.user_id,UI.job_no,UI.realname,UI.phone,UI.score,S.name as store_name,F.name as factory_name,UI.check_status,UI.status';
         $where = [
             'UI.user_id' => $userId, 
             'UI.is_del' => 0,
