@@ -1,5 +1,6 @@
 <?php
 namespace app\common\model;
+use think\Db;
 use think\Model;
 
 class WorkOrder extends Model
@@ -885,12 +886,15 @@ class WorkOrder extends Model
         $avgScore = round($sum/count($score),1);
         //安装工单
         if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
-            //首次评价,处理安装服务费发放结算
+            //首次-综合评价,处理安装服务费发放结算
             $this->serviceSettlement($worder, $assessId, $user, $avgScore);
+
         }
+        $this->getStatics($worder['installer_id'],$user['factory_id'],true);
         $action ='首次评价';
         //操作日志记录
         $this->worderLog($worder, $user, 0, $action, $msg);
+
         return true;
     }
     
@@ -1291,5 +1295,106 @@ class WorkOrder extends Model
         }else{
             return $sn;
         }
+    }
+
+    /**
+     * @param int $installId  工程师ID
+     * @param int $factoryId 厂商ID
+     * @param bool $flag   true直接更新工程师数据，fase获取不到数据时候才更新
+     * @return array
+     */
+    public function getStatics($installId = 0,$factoryId=1,$flag=false)
+    {
+        if (!$flag) {
+            $result=db('user_installer')->field('score_overall,score_detail')->where([
+                'installer_id'=>$installId,
+                'is_del'=>0,
+            ])->find();
+            if (!empty($result['score_detail'])) {
+                $result['score_detail']=json_decode($result['score_detail'],true);
+                return dataFormat(0,'ok',$result);
+            }
+        }
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where([
+                'p1.is_del'       => 0,
+                'p2.is_del'       => 0,
+                'p3.is_del'       => 0,
+                'p1.installer_id' => $installId,
+                'p3.key'          => $repairAssessKey,
+            ])->buildSql();
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where([
+                'p4.is_del'       => 0,
+                'p5.is_del'       => 0,
+                'p6.is_del'       => 0,
+                'p4.installer_id' => $installId,
+                'p6.key'          => $installAssessKey,
+            ])->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+
+        //该工程师所有工单
+        $countAll = db('work_order')->where([
+            'installer_id' => $installId,
+            'factory_id'   => $factoryId,
+            'is_del'       => 0,
+        ])->count();
+        $countFinish = db('work_order')->where([
+            'installer_id'      => $installId,
+            'factory_id'        => $factoryId,
+            'is_del'            => 0,
+            'work_order_status' => 4,
+        ])->count();
+        $rate=round($countFinish/$countAll,2)*5;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        $bool = db('user_installer')->where([
+            'installer_id' => $installId,
+            'is_del'       => 0,
+        ])->update([
+            'score_overall' => $scoreOverall,
+            'score_detail'  => json_encode($data),
+            'update_time'   => time(),
+        ]);
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
     }
 }

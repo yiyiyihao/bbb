@@ -220,7 +220,7 @@ class Index extends CommonBase
         $storeModel = new \app\common\model\Store();
         $workOrderModel = new \app\common\model\WorkOrder();
         $userInstallerModel = new \app\common\model\UserInstaller();
-        $today = $total = $orderOverview = $orderStatistics = $worderOverview = $worderStatistics = [];
+        $today = $total = $orderOverview = $orderStatistics = $worderOverview = $worderStatistics =$worderAssess= [];
         $beginToday = mktime(0,0,0,date('m'),date('d'),date('Y')); //今日开始时间戳
         
         switch ($adminType) {
@@ -589,14 +589,17 @@ class Index extends CommonBase
                 $worderStatistics = $this->workOrderIncome($from, $to, $storeId,$isRaw);
             }
         }
+        $worderAssess=$this->work_order_assess($from, $to, $storeId,$isRaw);
         return [
-            'tpl'   => $tpl,
-            'today' => $today, 
-            'total' => $total, 
-            'order_overview'    => $orderOverview, 
-            'order_statistics'  => $orderStatistics, 
-            'worder_overview'   => $worderOverview, 
-            'worder_statistics' => $worderStatistics
+            'tpl'               => $tpl,
+            'today'             => $today,
+            'total'             => $total,
+            'order_overview'    => $orderOverview,
+            'order_statistics'  => $orderStatistics,
+            'worder_overview'   => $worderOverview,
+            'worder_statistics' => $worderStatistics,
+            'worder_assess'     => json_encode($worderAssess['assess']),
+            'worder_score'     => json_encode($worderAssess['assess_score']),
         ];
     }
     
@@ -1056,6 +1059,98 @@ class Index extends CommonBase
             return $this->ajaxJsonReturn($result);
         }else{
             return json_encode($result);
+        }
+    }
+
+    //工单评价统计
+    public function work_order_assess($from,$to,$storeId,$isRaw=false)
+    {
+        $from=strtotime($from);
+        $to=strtotime($to);
+        $where=[
+            ['p1.is_del','=',0],
+            ['p1.work_order_status','>=',0],
+            ['p1.add_time','>=',$from],
+            ['p1.add_time','<=',$to],
+        ];
+        if (in_array($this->adminUser['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $where[]=['p1.store_id','=',$storeId];
+        } elseif ($this->adminUser['admin_type']==ADMIN_FACTORY) {
+            $where[]=['p1.factory_id','=',$this->adminUser['store_id']];
+        }
+        $data=db('work_order')
+            ->alias('p1')
+            ->fieldRaw('COUNT(*) worder_total, COUNT(p2.assess_id) worder_assess')
+            ->join('work_order_assess p2','p1.worder_id = p2.worder_id AND p2.is_del = 0 AND p2.type = 1','LEFT')
+            ->where($where)
+            ->find();
+        if ($isRaw) {
+            return $this->rawSimple($data);
+        }
+        $chartData=[
+            ['name'=>'已评价工单','value'=>$data['worder_assess']],
+            ['name'=>'未评价工单','value'=>$data['worder_total']-$data['worder_assess']],
+        ];
+        $color=['#009688','#2db2ea'];
+        $label='工单评价';
+        $chart=new\app\common\service\Chart('pie',[''],$label,$chartData,$color,false);
+        $result['assess']=$chart->getOption();
+        //补充参数
+        $result['assess']['title']=[
+            'text'=>'已评价工单75%(75/100)',
+            'subtext'=>'',
+            'left'=>'left',
+        ];
+        //说明
+        $result['assess']['legend']=[
+            'orient'=>'vertical',
+            'left'=>'left',
+            'padding'=>[50,0,0,0],
+            'data'=>['已评价工单','未评价工单'],
+        ];
+        //中心圈
+        //$result['assess']['series']['label']['emphasis'] = [
+        //    'show'      => true,
+        //    'textStyle' => [
+        //        'fontSize'   => 30,
+        //        'fontWeight' => 'bold',
+        //    ],
+        //];
+
+        //评分统计
+        $legend=[];//大标题
+        $label='';
+        $chartData=[];
+        //大标题样式
+        $chartData['radar']['name']['textStyle']=[
+            'color'=>'#fff',
+            'backgroundColor'=>'#999',
+            'borderRadius'=>3,
+            'padding'=> [3, 5],
+        ];
+        //小标题
+        $chartData['radar']['indicator']=[
+            ['name'=>'销售','max'=>6500],
+            ['name'=>'管理','max'=>16000],
+            ['name'=>'信息技术','max'=>30000],
+            ['name'=>'客服','max'=>38000],
+        ];
+        //雷达数据
+        $chartData['series']=[
+            ['name'=>'预算分配','value'=>[4300, 10000, 28000, 35000]],
+        ];
+        $chart2=new\app\common\service\Chart('radar',$legend,$label,$chartData,$color,false);
+        $result['assess_score']=$chart2->getOption();
+        //补充参数-大标题
+        $result['assess_score']['title']=[
+            'text'=>"综合评分3.8 排名2/50",
+            'subtext'=>'',
+            'left'=>'left',
+        ];
+        if(IS_AJAX){
+            return $this->ajaxJsonReturn($result);
+        }else{
+            return $result;
         }
     }
 }

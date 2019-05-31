@@ -131,16 +131,23 @@ class Chart
                 self::setOption('tooltip', [
                     'formatter' => '{a} <br/>{b} : {c} ({d}%)',
                 ]);
-                /*self::setOption('legend',[
-                    'orient'        =>  'vertical',
-				    'left'          =>  'left',
-				    'data'          =>  $legend,
-                ]);*/
+                if ($legend) {
+                    self::setOption('legend',[
+                        'orient'        =>  'vertical',
+                        'left'          =>  'left',
+                        'data'          =>  $legend,
+                    ]);
+                }
                 self::series($type, $chartName, $chartData, false);
                 break;
             case 'line':
                 break;
             case 'radar':
+                self::setOption('tooltip',(new \ArrayObject()));//鼠标悬停提示
+                self::setOption('legend', ['data'=>$legend]);
+                self::setOption('radar',$chartData['radar']);
+                self::setOption('title',['text'=>$chartName]);
+                self::series($type, '', $chartData['series'], false);
                 break;
             case 'group':
                 self::setOption('color', $color);

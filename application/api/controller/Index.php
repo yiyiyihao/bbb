@@ -1222,6 +1222,80 @@ class Index extends ApiBase
         if ($installer && !$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
+        $result=$this->installCenter($installer);
+        $this->_returnMsg(['data'=>$result]);
+    }
+
+    //工程师数据统计
+    protected function installerStatics()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if (!$installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
+        }
+        if ($installer && !$installer['status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
+        }
+        $result=$this->installCenter($installer);
+
+        $result['unfinish_all']=0;//未接单总数
+        $result['wait_accept']=0;//待接单
+        $result['wait_visit']=0;//待上门
+        $result['in_service']=0;//服务中
+        $result['cancel']=0;//已取消
+        $data=db('work_order')
+            ->fieldRaw('work_order_status,COUNT(*) num')
+            ->where([
+                ['is_del' ,'=', 0],
+                ['factory_id' ,'=', $this->factory['store_id']],
+                ['installer_id' ,'=', $installer['installer_id']],
+                ['work_order_status' ,'<', 4],
+                ['work_order_status' ,'<>', 0],
+            ])->group('work_order_status')->select();
+        foreach ($data as $value) {
+            switch ($value['work_order_status']) {
+                case -1://已取消
+                    $result['cancel']+=$value['num'];
+                    break;
+                case 1://待接单
+                    $result['wait_accept']+=$value['num'];
+                    break;
+                case 2://待上门
+                    $result['wait_visit']+=$value['num'];
+                    break;
+                case 3://服务中
+                    $result['in_service']+=$value['num'];
+                    break;
+            }
+            $result['unfinish_all']+=$value['num'];
+        }
+        $workOrder = new WorkOrder;
+        $data = $workOrder->getStatics($installer['installer_id'], $this->factory['store_id']);
+        if ($data['code'] != '0') {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $data['msg']]);
+        }
+        $data = $data['data'];
+        $result['count_all'] = db('user_installer')->where([
+            'is_del'     => 0,
+            'factory_id' => $this->factory['store_id'],
+        ])->count();
+        $result['count_rank'] = db('user_installer')->where([
+            'is_del'        => 0,
+            'factory_id'    => $this->factory['store_id'],
+            'score_overall' => ['>', $data['score_overall']],
+        ])->count();
+        $result['count_rank'] += 1;
+        $result = array_merge($result, $data);
+        $result['assess_count'] = db('work_order_assess')->where([
+            'installer_id' => $installer['installer_id'],
+            'is_del'       => 0,
+        ])->count();
+        $this->_returnMsg(['data'=>$result]);
+    }
+
+    private function installCenter($installer)
+    {
         $data = db('work_order')->fieldRaw('work_order_type,COUNT(work_order_type) num')->where([
             'is_del'            => 0,
             'factory_id'        => $this->factory['store_id'],
@@ -1240,7 +1314,7 @@ class Index extends ApiBase
             }
             $result['finish_all'] += $value['num'];
         }
-        $this->_returnMsg(['data'=>$result]);
+        return $result;
     }
 
 
