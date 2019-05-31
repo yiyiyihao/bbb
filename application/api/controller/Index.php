@@ -1293,6 +1293,92 @@ class Index extends ApiBase
         ])->count();
         $this->_returnMsg(['data'=>$result]);
     }
+    //工单趋势图
+    protected function workOrderChartLine()
+    {
+        $user = $this->_checkOpenid(FALSE, FALSE, TRUE);
+        $installer = $user['installer'];
+        if (!$installer) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '当前用户不是服务工程师']);
+        }
+        if ($installer && !$installer['status']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
+        }
+        $workOrderType = isset($this->postParams['work_order_type']) ? intval($this->postParams['work_order_type']) : 1;
+        if (!in_array($workOrderType,[1,2])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单类型不正确']);
+        }
+        $dateType = isset($this->postParams['date_type']) ? intval($this->postParams['date_type']) : 1;//1本周，2本月,3本周一
+        $data=[];
+        switch ($dateType) {
+            case 1://本周
+                $startTime=strtotime('this week Monday');
+                $endTime=strtotime('next week Monday');
+                $weekArray=array("日","一","二","三","四","五","六");
+                while ($startTime<$endTime) {
+                    $temp = $startTime + 86400;
+                    $count = db('work_order')->where([
+                        ['is_del', '=', 0],
+                        ['work_order_type', '=', $workOrderType],
+                        ['work_order_status', '=', 4],
+                        ['installer_id', '=', $installer['installer_id']],
+                        ['add_time', '>=', $startTime],
+                        ['add_time', '<', $temp],
+                    ])->count();
+                    $data[]=[
+                        'name'=>"星期".$weekArray[date("w",$startTime)],
+                        'value'=>$count,
+                    ];
+                    $startTime=$temp;
+                }
+                break;
+            case 2://本月
+                $startTime=strtotime(date('Y-m'));
+                $endTime=strtotime(date('Y-m').' +1 month');
+                while ($startTime<$endTime) {
+                    $temp = $startTime + 86400;
+                    $count = db('work_order')->where([
+                        ['is_del', '=', 0],
+                        ['work_order_type', '=', $workOrderType],
+                        ['work_order_status', '=', 4],
+                        ['installer_id', '=', $installer['installer_id']],
+                        ['add_time', '>=', $startTime],
+                        ['add_time', '<', $temp],
+                    ])->count();
+                    $data[]=[
+                        'name'=>date('j',$startTime),
+                        'value'=>$count,
+                    ];
+                    $startTime=$temp;
+                }
+                break;
+            case 3://本年度
+                $startTime=strtotime(date('Y-01-01 00:00:00'));
+                $endTime=strtotime(date('Y-m-d',$startTime).' +1 year');
+                $monthArray=array('',"一","二","三","四","五","六","七","八",'九','十','十一','十二');
+                while ($startTime<$endTime) {
+                    $temp = strtotime(date('Y-m-d',$startTime).' +1 month');
+                    $count = db('work_order')->where([
+                        ['is_del', '=', 0],
+                        ['work_order_type', '=', $workOrderType],
+                        ['work_order_status', '=', 4],
+                        ['installer_id', '=', $installer['installer_id']],
+                        ['add_time', '>=', $startTime],
+                        ['add_time', '<', $temp],
+                    ])->count();
+                    $data[]=[
+                        'name'=>$monthArray[date('n',$startTime)].'月',
+                        'value'=>$count,
+                    ];
+                    $startTime=$temp;
+                }
+                break;
+
+        }
+        $this->_returnMsg(['data'=>$data]);
+
+    }
+
 
     private function installCenter($installer)
     {
