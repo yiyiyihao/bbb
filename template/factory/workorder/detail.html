@@ -194,7 +194,7 @@
                                 <tr>
                                     <td>{$vo.nickname}</td>
                                     <td>{$vo.action}</td>
-                                    <td title="{$vo.msg|raw}" {if condition="strpos($vo.msg,'签到地址')!==false"} data-positon="{$info['sign_address'] ?? ''}" class="position"{/if}>{:sub_str($vo.msg,80)}</td>
+                                    <td  {if condition="strpos($vo.msg,'签到')!==false"} data-lng="{$info['sign_lng'] ?? ''}" data-lat="{$info['sign_lat'] ?? ''}" class="position" title="点击查看地图" {else /}title="{$vo.msg|raw}"{/if}>{:sub_str($vo.msg,80)}</td>
                                     <td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
                                 </tr>
                                 {/volist}
@@ -376,7 +376,7 @@
                     </div>
                     {/if}
                 </div>
-                <div id="test" style="height: 500px"></div>
+
                 <!--<div class="panel-foot">-->
                     <!--<div class="form-button">-->
                         <!--<a href="{:url('index', ['type' => $info['work_order_type']])}" class="button bg-main">返回列表</a>-->
@@ -387,49 +387,55 @@
         </div>
     </form>
 </div>
-<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp"></script>
+<div id="container" style="height: 500px;display: none;"></div>
+<script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX"></script>
 <script>
-    Do.ready('base', function () {
-        //表单综合处理
-        $('#form').FormPage();
-    });
-
-    window.onload=function () {
-        var geo = new qq.maps.Geocoder();
-        geo.getLocation('中国,广州,沙太路268号');//地址
-        geo.setComplete(function (res) {
-            console.log(res,res.detail.location);//得到经纬度
-            var map = new qq.maps.Map(document.getElementById('test'),{
-                center: res.detail.location,//将经纬度加到center属性上
-                zoom: 16,//缩放
-                draggable: true,//是否可拖拽
-                scrollwheel: true,//是否可滚动缩放
-                disableDoubleClickZoom: false
+    $.fn.extend({
+        showMap:function (lat,lng) {
+            var latLng = new qq.maps.LatLng(lat,lng);
+            //调用信息窗口
+            map = new qq.maps.Map(document.getElementById('container'),{
+                center: latLng,
+                zoom: 20000
             });
-            var marker = new qq.maps.Marker({ position: res.detail.location,//标记的经纬度
-                animation: qq.maps.MarkerAnimation.BOUNCE,//标记的动画 map: map//标记的地图
-            });
-            var citylocation = new qq.maps.CityService({
-                //设置地图
-                map : map,
-                complete : function(results){
-                    console.log(9999,results);
+            var info = new qq.maps.InfoWindow({map: map});
+            geocoder = new qq.maps.Geocoder({
+                complete : function(result){
+                    map.setCenter(result.detail.location);
+                    var marker = new qq.maps.Marker({
+                        map:map,
+                        position: result.detail.location
+                    });
+                    //添加监听事件 当标记被点击了  设置图层
+                    qq.maps.event.addListener(marker, 'click', function() {
+                        info.open();
+                        info.setContent('<div style="width:280px;height:100px;">'+
+                            result.detail.address+'</div>');
+                        info.setPosition(result.detail.location);
+                    });
                 }
             });
+            //调用获取位置方法
+            geocoder.getAddress(latLng);
+        }
+    });
+    Do.ready('base','dialog', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        var index=0;
+        $('.position').click(function () {
+            var lat=$(this).data('lat');
+            var lng=$(this).data('lng');
+            $(this).showMap(lat,lng);
+            index=layer.open({
+                type: 1,
+                shade: false,
+                title: false, //不显示标题
+                area: '500px', //宽高
+                content: $('#container')
+            });
+        }).mouseout(function () {
+
         });
-    };
-
-
-
-
-
+    });
 </script>
-<style>
-.position{cursor: pointer;}
-.position:hover{text-decoration: underline;color: #009688;}
-</style>
-
-
-
-
-

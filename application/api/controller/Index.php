@@ -966,7 +966,9 @@ class Index extends ApiBase
         $worderModel = new \app\common\model\WorkOrder();
         //签到地址
         $address = isset($this->postParams['address']) ? trim($this->postParams['address']) : '';
-        $result = $worderModel->worderSign($detail, $user, $installer,$address);
+        $lng = isset($this->postParams['lng']) ? floatval($this->postParams['lng']) : 0;
+        $lat = isset($this->postParams['lat']) ? floatval($this->postParams['lat']) : 0;
+        $result = $worderModel->worderSign($detail, $user, $installer,$address,$lng,$lat);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '签到成功,服务开始']);
         }else{

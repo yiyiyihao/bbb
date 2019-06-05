@@ -2,6 +2,7 @@
 namespace app\factory\controller;
 use app\common\model\Todo;
 use think\Db;
+use think\Request;
 
 class Store extends FactoryForm
 {
@@ -133,8 +134,21 @@ class Store extends FactoryForm
         } else {
             return $this->fetch('unbind_wechat');
         }
+    }
 
-
+    /**
+     * 获得地区经纬度
+     */
+    public function getcoder(Request $request)
+    {
+        $address=$request->param('address','','trim');
+        $model=new \app\common\model\WorkOrder;
+        $result=$model->getCoder(compact('address'));
+        if ($result['status'] == 0) {
+            $result=$result['result'];
+            return json(dataFormat(0,'ok',$result['location']));
+        }
+        return json(dataFormat(1,$result['message']));
     }
 
     //获得网点分布及订单数据

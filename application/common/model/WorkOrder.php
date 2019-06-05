@@ -12,6 +12,9 @@ class WorkOrder extends Model
     protected $updateTime = 'update_time';
     protected $autoWriteTimestamp = 'int';
 
+    //腾讯地图KEY
+    private $mapKey='TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX';
+
 	//自定义初始化
     protected function initialize()
     {
@@ -217,6 +220,42 @@ class WorkOrder extends Model
         //获取工单评价记录
         $info['assess_list'] = $this->getWorderAssess($info);
         $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        $info=$this->updateSignLocation($info);
+        return $info;
+    }
+
+    //地址解析(地址转坐标)
+    public function getCoder($params)
+    {
+        $param = [
+            'address' => $params['address'],
+            'key'      => $this->mapKey,
+        ];
+        $query=http_build_query($param);
+        $url='https://apis.map.qq.com/ws/geocoder/v1/';
+        $url.='?'.$query;
+        $result=curl_request($url);
+        $result=json_decode($result,true);
+        return $result;
+    }
+
+
+    public function updateSignLocation($info)
+    {
+        if ($info['sign_address'] && !$info['sign_lng'] && !$info['sign_lat']) {
+            $result=$this->getCoder([
+                'address'=>$info['sign_address']
+            ]);
+            if (isset($result['status']) && $result['status'] == 0 && isset($result['result']['location']['lng']) && isset($result['result']['location']['lat'])) {
+                $info['sign_lng'] = $result['result']['location']['lng'];
+                $info['sign_lat'] = $result['result']['location']['lat'];
+                db('work_order')->where(['worder_id' => $info['worder_id']])->update([
+                    'sign_lng'    => $info['sign_lng'],
+                    'sign_lat'    => $info['sign_lat'],
+                    'update_time' => time(),
+                ]);
+            }
+        }
         return $info;
     }
     
@@ -430,7 +469,7 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderSign($worder, $user, $installer,$address='')
+    public function worderSign($worder, $user, $installer,$address='',$lng=0,$lat=0)
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -465,6 +504,8 @@ class WorkOrder extends Model
             'work_order_status' => 3,
             'sign_time'         => time(),
             'sign_address'      => $address,
+            'sign_lng'          => $lng,
+            'sign_lat'          => $lat,
         ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录

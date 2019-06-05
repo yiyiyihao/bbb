@@ -50,6 +50,14 @@
         	<span class="field-text">{$info['region_name'] ?? ''}</span>
         </div>
     </div>
+    <div class="form-group">
+        <div class="label">
+            <label>联系地址：</label>
+        </div>
+        <div class="field">
+            <span class="field-text position" title="点击查看地图">{$info['region_name'] ?? ''}{$info['address'] ?? ''}</span>
+        </div>
+    </div>
     {elseif ($info['store_type'] == $Think.const.STORE_DEALER)}
     <!--<div class="form-group">-->
         <!--<div class="label">-->
@@ -236,3 +244,60 @@
            </div>
        </div>
 </div>
+
+<div id="container" style="height: 500px;display: none;"></div>
+<script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX"></script>
+<script>
+    $.fn.extend({
+        showMap:function (lat,lng) {
+            var latLng = new qq.maps.LatLng(lat,lng);
+            //调用信息窗口
+            map = new qq.maps.Map(document.getElementById('container'),{
+                center: latLng,
+                zoom: 20000
+            });
+            var info = new qq.maps.InfoWindow({map: map});
+            geocoder = new qq.maps.Geocoder({
+                complete : function(result){
+                    map.setCenter(result.detail.location);
+                    var marker = new qq.maps.Marker({
+                        map:map,
+                        position: result.detail.location
+                    });
+                    //添加监听事件 当标记被点击了  设置图层
+                    qq.maps.event.addListener(marker, 'click', function() {
+                        info.open();
+                        info.setContent('<div style="width:280px;height:100px;">'+
+                            result.detail.address+'</div>');
+                        info.setPosition(result.detail.location);
+                    });
+                }
+            });
+            //调用获取位置方法
+            geocoder.getAddress(latLng);
+        }
+    });
+    Do.ready('base','dialog', function () {
+        $('.position').click(function (e) {
+            var address=$(this).text();
+            obj=$(this);
+            $.post('/store/getcoder',{address:address},function (data) {
+                data=data.data;
+                var lat=data.lat;
+                var lng=data.lng;
+                obj.showMap(lat,lng);
+                index=layer.open({
+                    type: 1,
+                    shade: false,
+                    title: false, //不显示标题
+                    area: '500px', //宽高
+                    content: $('#container')
+                });
+            });
+        }).mouseout(function () {
+
+        });
+    });
+
+</script>
+
