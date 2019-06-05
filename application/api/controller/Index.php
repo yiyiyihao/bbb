@@ -4,6 +4,7 @@ namespace app\api\controller;
 use app\common\model\ConfigForm;
 use app\common\model\ConfigFormLogs;
 use app\common\model\WorkOrder;
+use think\Db;
 
 class Index extends ApiBase
 {
@@ -712,7 +713,9 @@ class Index extends ApiBase
         $field.=',WO.add_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time,finish_confirm_time';
         $field .= ',G.cate_id,G.name as sku_name';
         if (!$installer) {
-            $where['WO.post_user_id'] = $user['user_id'];
+            //$where['WO.post_user_id'] = $user['user_id'];
+            //@update 2019/6/5 Jinzhou
+            $where[] =['','EXP',Db::raw('WO.post_user_id='.$user['user_id'].' OR WO.phone='.$user['phone'])];
             $field .= ', UG.realname as installer_name, UG.phone as installer_phone';
         }else{
             if ($status >= -1 || $status === FALSE) {
@@ -829,7 +832,7 @@ class Index extends ApiBase
         //$where = ['WO.worder_sn' => $worderSn, 'WO.is_del' => 0];
         $where='WO.worder_sn='.$worderSn.' AND WO.is_del=0';
 
-        $field = 'WO.worder_id,WO.store_id,WO.factory_id,WO.worder_sn,WO.installer_id,WO.goods_id,G.name goods_name,G.cate_id,WO.work_order_type,WO.order_sn,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.images,WO.fault_desc';
+        $field = 'WO.worder_id,WO.store_id,WO.factory_id,WO.worder_sn,WO.installer_id,WO.goods_id,G.name goods_name,G.cate_id,WO.work_order_type,WO.order_sn,WO.user_name,WO.phone,WO.region_name,WO.address,WO.appointment,WO.appointment_confirm,WO.images,WO.fault_desc';
         $field .= ',WO.work_order_status,WO.add_time,WO.dispatch_time,WO.cancel_time,WO.receive_time,WO.sign_time,WO.finish_time';
         $join = [
             ['goods G','G.goods_id=WO.goods_id','LEFT'],
@@ -860,6 +863,7 @@ class Index extends ApiBase
         
         $detail['images'] = $detail['images']? explode(',', $detail['images']) : [];
         $detail['appointment'] = $detail['appointment'] ? date('Y-m-d H:i', $detail['appointment']) : '';
+        $detail['appointment_confirm'] = $detail['appointment_confirm'] ? date('Y-m-d H:i', $detail['appointment_confirm']) : '';
         $detail['work_order_type_txt'] = get_work_order_type($detail['work_order_type']);
         $detail['status_txt'] = get_work_order_installer_status($detail['work_order_status']);
         
@@ -942,9 +946,14 @@ class Index extends ApiBase
         if (!$installer['status']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务工程师已禁用,请联系服务商']);
         }
+        $appointmentConfirm = isset($this->postParams['appointment_confirm'])  ? strtotime($this->postParams['appointment_confirm']) : 0;
+        if ($appointmentConfirm <= 0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '预约确认时间无效']);
+        }
+
         $detail = $this->getWorkOrderDetail(TRUE);
         $worderModel = new \app\common\model\WorkOrder();
-        $result = $worderModel->worderReceive($detail, $user, $installer);
+        $result = $worderModel->worderReceive($detail, $user, $installer,$appointmentConfirm);
         if ($result !== FALSE) {
             $this->_returnMsg(['msg' => '接单成功,请联系客户上门服务']);
         }else{

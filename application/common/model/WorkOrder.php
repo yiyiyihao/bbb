@@ -421,12 +421,19 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderReceive($worder, $user, $installer)
+    public function worderReceive($worder, $user, $installer,$appointmentConfirm)
     {
+
         if (!$worder) {
             $this->error = '参数错误';
             return FALSE;
         }
+
+        if ($appointmentConfirm <= 0) {
+            $this->error = '服务确认时间不正确';
+            return FALSE;
+        }
+
         if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
             $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
@@ -452,10 +459,14 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['work_order_status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save([
+            'work_order_status'   => 2,
+            'appointment_confirm' => $appointmentConfirm,
+            'receive_time'        => time()
+        ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, $installer['installer_id'], '工程师接单');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师接单','确认上门服务时间:'.date('Y-m-d H:i',$appointmentConfirm));
             return TRUE;
         }else{
             $this->error = '系统异常';
