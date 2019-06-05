@@ -188,6 +188,9 @@ $.fn.MultiUpload = function (options) {
 $.fn.EChart = function (options) {
 	var chartId = this.attr("id");
 	var chartData = $("#"+chartId).data("chart");
+	if (!chartData) {
+		return false;
+	}
     var defaults = {
 		title : {},
 		tooltip : {
@@ -196,7 +199,7 @@ $.fn.EChart = function (options) {
 		//legend: {},
 		series : [],
 		chartObj: {},
-    }
+    };
 	if(chartData.type == 'bar'){
 		var typeOptions = {
 			color: ['rgba(225,85,85,0.8)'],
@@ -331,19 +334,35 @@ $.fn.EChart = function (options) {
 		}
     });
 };
+
+
+function isEmpty(obj){
+	if(!obj && obj !== 0 && obj !== '') {
+		return true;
+	}
+	if(Array.prototype.isPrototypeOf(obj) && obj.length === 0) { return true;}
+	if(Object.prototype.isPrototypeOf(obj) && Object.keys(obj).length === 0) {
+		return true;
+	}
+	return false;
+}
+
 //图表插件
 $.fn.EChartNew = function (options) {
 	var chartId = this.attr("id");
 	var chartData = $("#"+chartId).data("chart");
     var options = chartData;
-	//console.log(options);
 	var chartObj = this;
     Do.ready('eChart', function () {
 		var id = chartObj.attr("id");
 		var obj = document.getElementById(id);
 		var myChart = echarts.init(document.getElementById(chartObj.attr("id")));
         // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(options,true);
+		if (!isEmpty(options)) {
+			myChart.setOption(options,true);
+		}else {
+			myChart.setOption({},true);
+		}
 		if(window.addEventListener)
 		{
 			window.addEventListener("resize",myChart.resize,false);

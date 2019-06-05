@@ -67,7 +67,7 @@
               <td>{$vo.address_phone}</td>
               <td>{$vo.address_detail}</td> -->
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
-              <td>{$vo['_status']['status_text']}</td>
+              <td>{if condition="$vo.pay_status==0 && $vo.pay_type==2"}待收款确认{else /}{$vo['_status']['status_text']}{/if}</td>
               <td>
               	{if ($vo['pay_status'])}
               	{$vo['_apply_status']['status_text']|raw}
@@ -97,8 +97,8 @@
 <!--                        <a href="{:url('detail', ['order_sn' => $vo['order_sn'],'tab'=>2])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>-->
                         {/if}
 	              	{/if}
-                    {if condition="check_auth('order','delivery') && $vo['pay_status'] == 1 AND $vo['delivery_status'] !=2 "}
-	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
+                    {if condition="check_auth('order','delivery') && $vo['pay_status'] == 1 &&  $vo['delivery_status'] !=2 "}
+	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}" data-a="{:check_auth('order','delivery')}"  data-b="{$vo['pay_status'] == 1}" data-c="{$vo['delivery_status'] !=2}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
 	              	{/if}
               	</span>
               </td>

@@ -159,6 +159,48 @@
             </div>
         </div>
     </div>
+
+    <div class="xm12">
+        <div class="panel admin-dashboard boxShadow clear">
+            <div class="panel-head"><span>服务统计</span>
+                <div class="float-right button-group" data-type="2">
+                    <span class="button-small">
+                        <select class="input" id="service_id"  style="height: 30px;padding: 0px;">
+                            <option value="0">全部</option>
+                            {notempty name="service"}
+                            {volist name="service" id="vo" key="key"}
+                            <option value="{$vo.store_id?? ''}">{$vo.name?? ''}</option>
+                            {/volist}
+                            {/notempty}
+                        </select>
+                    </span>
+                    <span class="button button-small bg-main no-select" data-type="7">7天</span>
+                    <span class="button button-small no-select" data-type="30">30天</span>
+                    <span class="button button-small no-select" data-type="365">近1年</span>
+                </div>
+            </div>
+            <div class="panel-body clearfix">
+                <div class="xm6">
+                    <div class="num-item-box">
+                        <h4></h4>
+                        <div class="item-num">
+
+                            <div class="js-chart" id="worker-assess" data-chart='{$worder_assess|raw|default=""}' style="width: 600px;height:400px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="xm6">
+                    <div class="num-item-box clear">
+                        <h4><span class="float-right"  id="score-rule">综合评分规则</span></h4>
+                        <div class="item-num">
+                            <div class="js-chart" id="assess-score" data-chart='{$worder_score|raw|default=""}' style="width: 600px;height:400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 {php}
 $today = date('Y-m-d');
@@ -168,17 +210,49 @@ $day_start = $today;
 $week_start= date('Y-m-d',strtotime($today.' -6 day'));
 //1个月
 $month_start=date('Y-m-d',strtotime($today.' -29 day'));
+//近1年
+$year_start=date('Y-m-d',strtotime($today.' -365 day'));
 {/php}
+
+<div class="score-rule">
+    <h3>综合评分规则</h3>
+    <p>综合评分由消费者填写的对于服务工程师的（安装/维修）工单服务评价统计而来，具体规则如下：</p>
+    <p>1、解决率=(已解决工单数 &divide; 总工单数）&times;5;</p>
+    <p>2、综合评分=业务能力平均分&times;25%+处理速度平均分&times;25%+服务态度平均分&times;25%+解决率&times;25%</p>
+</div>
 
 <script>
 $(function(){
+    Do.ready('dialog', function () {
+        $('#score-rule').click(function () {
+            layer.open({
+                type: 1,
+                shade: false,
+                title: false, //不显示标题
+                content: $('.score-rule'), //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+            });
+        });
+        $('#service_id').change(function (e) {
+            var btns=$(this).parent('.button-small').siblings('.button-small');
+            btns.each(function () {
+                if ($(this).hasClass('bg-main')) {
+                    $(this).trigger("click");
+                    $(this).click();
+                    return true;
+                }
+            });
+        });
+    });
+    
+
+    
 	$(".panel-head .button-group .button").click(function(){
 		var group = $(this).parent();
 		var chartType = group.data("type");
-		group.find(".bg-main").removeClass("bg-main");
-		$(this).addClass("bg-main");
-		var days = $(this).data("type");
-		getChartData(chartType,days);
+        group.find(".bg-main").removeClass("bg-main");
+        $(this).addClass("bg-main");
+        var days = $(this).data("type");
+        getChartData(chartType,days);
 	})
 	//异步取得图表数据
 	function getChartData(chartType,days){
@@ -197,8 +271,14 @@ $(function(){
 			case 30://获取一月数据
 			start = '{$month_start}';
 			break;
+            case 365:
+                start = '{$year_start}';
+                break;
 		}
 		var data = {start:start,end:end,type:chartType};
+        if (chartType == 2) {
+            data.store_id=$('#service_id').val();
+        }
 		//1个月数据，type:1 订单概况，0订单金额，非当天数据有缓存
 		$.post(url , data ,function(e){
 			var id = '';
@@ -209,6 +289,16 @@ $(function(){
 				case 1:
 				id = 'orderChart';
 				break;
+                case 2:
+                    var assess=$('#worker-assess');
+                    assess.data("chart",e.assess);
+                    assess.EChartNew();
+                    if (e.assess_score) {
+                        var score=$('#assess-score');
+                        score.data("chart",e.assess_score);
+                        score.EChartNew();
+                    }
+                    return true;
 			}
 			$("#"+id).data("chart",e);
 			$("#"+id).EChartNew();

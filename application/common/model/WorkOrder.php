@@ -890,11 +890,14 @@ class WorkOrder extends Model
             $this->serviceSettlement($worder, $assessId, $user, $avgScore);
 
         }
+        //更新工程师评价数据
         $this->getStatics($worder['installer_id'],$user['factory_id'],true);
+        //更新服务商评价数据
+        $this->getServiceStatics($worder['store_id'],$user['factory_id'],true);
+        //工单记录
         $action ='首次评价';
         //操作日志记录
         $this->worderLog($worder, $user, 0, $action, $msg);
-
         return true;
     }
     
@@ -1295,6 +1298,247 @@ class WorkOrder extends Model
         }else{
             return $sn;
         }
+    }
+
+    public function getAccessTitle($factoryId)
+    {
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $arr = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'IN', [$installAssessKey, $repairAssessKey]],
+        ])->group('name')->column('name');
+        return dataFormat(0, 'ok', $arr);
+    }
+
+
+    public function getServiceStaticsDuring($storeId,$factoryId,$startTime,$endTime)
+    {
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $where=[
+            ['p1.add_time','>=',$startTime],
+            ['p1.add_time','<',$endTime],
+            ['p1.is_del','=',0],
+            ['p2.is_del','=',0],
+            ['p3.is_del','=',0],
+            ['p3.key','=',$repairAssessKey],
+            ['p1.factory_id','=',$factoryId],
+            //['p1.store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where[]=['p1.store_id','=',$storeId];
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where($where)->buildSql();
+        $where=[
+            ['p4.add_time','>=',$startTime],
+            ['p4.add_time','<',$endTime],
+            ['p4.is_del','=',0],
+            ['p5.is_del','=',0],
+            ['p6.is_del','=',0],
+            ['p6.key','=',$installAssessKey],
+            ['p4.factory_id','=',$factoryId],
+            //['p4.store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where[]=['p4.store_id','=',$storeId];
+        }
+
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where($where)->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+        if (empty($data)) {
+            return dataFormat(1,'暂无数据');
+        }
+        //该服务商所有工单
+        $where3=[
+            ['add_time','>=',$startTime],
+            ['add_time','<',$endTime],
+            ['factory_id','=',$factoryId],
+            ['is_del','=',0],
+            //['store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where3[]=['store_id','=',$storeId];
+        }
+        $countAll = db('work_order')->where($where3)->count();
+        $where4=[
+            ['add_time','>=',$startTime],
+            ['add_time','<',$endTime],
+            ['factory_id','=',$factoryId],
+            ['work_order_status','=',4],
+            ['is_del','=',0],
+        ];
+        if ($storeId > 0) {
+            $where4[]=['store_id','=',$storeId];
+        }
+        $countFinish = db('work_order')->where($where4)->count();
+        $rate=$countAll>0? round($countFinish/$countAll,2)*5:0;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
+    }
+
+    /**
+     * 获取服务商的评价数据
+     * @param $storeId  服务商ID
+     * @param $factoryId 厂商ID
+     * @param bool $flag true直接更新服务商数据，fase获取不到数据时候才更新
+     * @return array
+     */
+    public function getServiceStatics($storeId,$factoryId=1,$flag=false)
+    {
+        if (!$flag) {
+            $result = db('store')->field('score_overall,score_detail')->where([
+                'store_id'   => $storeId,
+                'store_type' => STORE_SERVICE,
+                'factory_id' => $factoryId,
+                'is_del'     => 0,
+            ])->find();
+            if (!empty($result['score_detail'])) {
+                $result['score_detail'] = json_decode($result['score_detail'], true);
+                return dataFormat(0, 'ok', $result);
+            }
+        }
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where([
+                'p1.is_del'   => 0,
+                'p2.is_del'   => 0,
+                'p3.is_del'   => 0,
+                'p1.store_id' => $storeId,
+                'p3.key'      => $repairAssessKey,
+            ])->buildSql();
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where([
+                'p4.is_del'   => 0,
+                'p5.is_del'   => 0,
+                'p6.is_del'   => 0,
+                'p4.store_id' => $storeId,
+                'p6.key'      => $installAssessKey,
+            ])->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+        //该服务商所有工单
+        $countAll = db('work_order')->where([
+            'store_id'   => $storeId,
+            'factory_id' => $factoryId,
+            'is_del'     => 0,
+        ])->count();
+        $countFinish = db('work_order')->where([
+            'store_id'          => $storeId,
+            'factory_id'        => $factoryId,
+            'is_del'            => 0,
+            'work_order_status' => 4,
+        ])->count();
+        $rate=round($countFinish/$countAll,2)*5;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        $bool = db('store')->where([
+            'store_id' => $storeId,
+            'is_del'   => 0,
+        ])->update([
+            'score_overall' => $scoreOverall,
+            'score_detail'  => json_encode($data),
+            'update_time'   => time(),
+        ]);
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
     }
 
     /**

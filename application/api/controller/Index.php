@@ -1070,7 +1070,7 @@ class Index extends ApiBase
         }
         $workOrderInfo = db('work_order')
             ->alias('p1')
-            ->field('p1.worder_id,p1.installer_id,p1.order_sn,p1.work_order_status,p1.worder_sn,p1.osku_id,p1.carry_goods,p1.work_order_type,p2.cate_id')
+            ->field('p1.worder_id,p1.store_id,p1.installer_id,p1.order_sn,p1.work_order_status,p1.worder_sn,p1.osku_id,p1.carry_goods,p1.work_order_type,p2.cate_id')
             ->join([
                 ['goods p2', 'p1.goods_id=p2.goods_id'],
             ])

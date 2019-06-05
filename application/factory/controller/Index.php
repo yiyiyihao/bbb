@@ -411,7 +411,7 @@ class Index extends CommonIndex
     {
         $from=$this->request->param("start",null,'trim');//开始时间，如2018-02-01
         $to=$this->request->param("end",null,'trim');//结束时间，如 2018-02-10
-        $chart_type=$this->request->param("type",0,'intval');//1 数据概况，0金额统计,工单统计
+        $chart_type=$this->request->param("type",0,'intval');//0金额统计,1 数据概况/工单统计,2工单评价
         $adminType = $this->adminUser['admin_type'];
         $storeId = $this->adminUser['store_id'];
         if (!$adminType) {
@@ -419,10 +419,13 @@ class Index extends CommonIndex
         }
         switch ($adminType){
             case ADMIN_FACTORY://厂商
-                if ($chart_type) {//订单概况
+                if ($chart_type==1) {//订单概况
                     $data=$this->orderOverView($from,$to,$storeId);
-                }else{//订单金额统计
+                }else if ($chart_type==0){//订单金额统计
                     $data=$this->orderAmount($from,$to,$storeId);
+                }else if ($chart_type==2){
+                    $channelId=$this->request->param('store_id',0,'intval');
+                    $data=$this->work_order_assess($from,$to,$channelId);
                 }
                 break;
             case ADMIN_CHANNEL://渠道商

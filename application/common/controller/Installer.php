@@ -2,6 +2,8 @@
 namespace app\common\controller;
 
 //售后工程师管理
+use app\common\model\WorkOrder;
+
 class Installer extends FormBase
 {
     var $adminType;
@@ -142,13 +144,29 @@ class Installer extends FormBase
     
     public function _afterList($list){
         foreach ($list as $key => $value) {
+            if ($value['score_detail'] && $scoreDetail=json_decode($value['score_detail'],true)) {
+                foreach ($scoreDetail as $k=>$v) {
+                    $val=round($v['value'],2);
+                    if ($v['name']=='解决率') {
+                        $val=round($v['value']/5,2)*100;
+                        $val.='%';
+                    }
+                    $list[$key]['config_'.crc32($v['name'])] = $val;
+                }
+            }
             $list[$key]['is_working'] = 0;
             //判断工程师是否有工单
-            $exist = db('work_order')->where(['installer_id' => $value['installer_id']])->find();
-            $list[$key]['is_working'] = $exist ? 1: 0;
+            $count = db('work_order')->where([
+                'installer_id' => $value['installer_id'],
+                'is_del'       => 0
+            ])->count();
+            $list[$key]['is_working'] = $count>0 ? 1: 0;
+            $list[$key]['worker_num'] = $count;
         }
         return $list;
     }
+
+
     function _assignInfo($pkId = 0)
     {
         $info = parent::_assignInfo();
@@ -271,6 +289,7 @@ class Installer extends FormBase
      */
     function _tableData(){
         $table = parent::_tableData();
+        //p($table);
         unset($table['actions']['button'][1]);
         $btnArray = [];
         $btnArray = [
@@ -281,6 +300,53 @@ class Installer extends FormBase
         ];
         $table['actions']['button'] = array_merge($table['actions']['button'],$btnArray);
         $table['actions']['width']  = '260';
+
+        $action=$table['actions'];
+        unset($table['actions']);
+        $table[] = [
+            'title'   => '所属服务商',
+            'width'   => '*',
+            'type'    => 'text',
+            'value'   => 'sname',
+            'is_sort' => '0',
+            'sort'    => 100,
+        ];
+        $table[] = [
+            'title'   => '工单数量',
+            'width'   => '*',
+            'type'    => 'text',
+            'value'   => 'worker_num',
+            'is_sort' => '0',
+            'sort'    => 100,
+        ];
+        $workOrder=new WorkOrder;
+        $arr=$workOrder->getAccessTitle($this->adminUser['factory_id']);
+        if ($arr['code'] !== '0') {
+            $this->error($arr);
+        }
+        $arr = $arr['data'];
+        foreach ($arr as $key => $value) {
+            $table[] = [
+                'title'   => $value,
+                'width'   => '*',
+                'type'    => 'text',
+                'is_sort' => '0',
+                'sort'    => 100,
+                'value'   => 'config_' . crc32($value),
+            ];
+        }
+        $rate='解决率';
+        $table[] = [
+            'title'   => $rate,
+            'width'   => '*',
+            'type'    => 'text',
+            'is_sort' => '0',
+            'sort'    => 100,
+            'value'   => 'config_' . crc32($rate),
+        ];
+
+
+        $table['actions']=$action;
         return $table;
     }
     /**
