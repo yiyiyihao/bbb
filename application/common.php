@@ -1314,16 +1314,19 @@ function dataFormat($code = 0, $msg = '', $data = [])
         $msg = (string)array_shift($args);
         $data = array_shift($args);
     }
-    if (!empty($data)) {
-        $data = recursion(json_decode(json_encode($data), true));
-    }
     $result = [
         'code' => (string)$code,
-        'msg' => (string)$msg,
+        'msg'  => (string)$msg,
     ];
     if (empty($data)) {
         return $result;
     }
+    if (is_array($data) || is_object($data)) {
+        $data = recursion(json_decode(json_encode($data), true));
+    } else {
+        $data=strval($data);
+    }
+    //数据中如果有一层data,则不再添加一层级data
     if (is_array($data) && count($data) == 1 && key_exists('data', $data)) {
         return array_merge($result, $data);
     } else {
