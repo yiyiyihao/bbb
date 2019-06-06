@@ -87,6 +87,8 @@
 $(function () {
     Do.ready('dialog', 'tips', function () {
         //toastr.info('收到有新增', '安装工单',{timeOut:0});
+        toastr.options.timeOut = 0;
+        toastr.options.extendedTimeOut = 0;
         function noticeMsg(data) {
             var id = 'sysnotice';
             obj = $("#" + id);
