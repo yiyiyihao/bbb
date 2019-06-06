@@ -2,6 +2,8 @@
 namespace app\common\controller;
 
 //商户管理
+use app\common\model\WorkOrder;
+
 class Store extends FormBase
 {
     var $storeType;
@@ -386,6 +388,26 @@ class Store extends FormBase
     {
         $data = parent::_getData();
         $params = $this->request->param();
+        //商户联系地址验证
+        if (in_array($this->request->action(),['add','edit'])) {
+            $location=$this->request->param('location','');
+            $regionName=$this->request->param('region_name','');
+            if ($location && $regionName) {
+                list($lat,$lng)=explode(',',$location);
+                if ($lat>90 || $lat<-90) {
+                    $this->error('商户联系地址不正确');
+                }
+                if ($lng>180 || $lat<-180) {
+                    $this->error('商户联系地址不正确！');
+                }
+                $result=(new WorkOrder())->getAddress(compact('lat','lng'));
+                if ($result['code'] === '0') {
+                    if ($regionName !== $result['data']['province'] . ' '.$result['data']['city']) {
+                        $this->error('当前所选的位置与服务区域不匹配！');
+                    }
+                }
+            }
+        }
         $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
         $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         $address = $data && isset($data['address']) ? trim($data['address']) : '';

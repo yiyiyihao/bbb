@@ -1326,7 +1326,7 @@ function dataFormat($code = 0, $msg = '', $data = [])
     } else {
         $data=strval($data);
     }
-    //数据中如果有一层data,则不再添加一层级data
+    //数据中如果有一层data,则不再添加一层data
     if (is_array($data) && count($data) == 1 && key_exists('data', $data)) {
         return array_merge($result, $data);
     } else {

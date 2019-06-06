@@ -239,6 +239,42 @@ class WorkOrder extends Model
         return $result;
     }
 
+    public function getAddress($param)
+    {
+        $lat = $param['lat'];//纬度
+        $lng = $param['lng'];//经度
+        if ($lat > 90 || $lat < -90) {
+            return dataFormat(1, '参数错误[LAT]');
+        }
+        if ($lng > 180 || $lng < -180) {
+            return dataFormat(1, '参数错误[LNG]');
+        }
+        $params = [
+            'location' => $lat . ',' . $lng,
+            'key'      => $this->mapKey,
+            'get_poi'  => '0',
+        ];
+        $query = http_build_query($params);
+        $url = 'https://apis.map.qq.com/ws/geocoder/v1/';
+        $url .= '?' . $query;
+        $result = curl_request($url);
+        $result = json_decode($result, true);
+        if (empty($result)) {
+            return dataFormat(1, '第三方应用异常，请求失败');
+        }
+        if (isset($result['status']) && $result['status'] == '0') {
+            $result = $result['result'];
+            $data = [
+                'address'   => $result['address'],
+                'recommend' => $result['formatted_addresses']['recommend'],
+                'province'  => $result['ad_info']['province'],
+                'city'      => $result['ad_info']['city'],
+            ];
+            return dataFormat(0, 'ok',$data);
+        }
+        return dataFormat($result['status'], $result['message']);
+    }
+
 
     public function updateSignLocation($info)
     {
