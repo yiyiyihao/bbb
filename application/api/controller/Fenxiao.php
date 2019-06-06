@@ -290,9 +290,9 @@ class Fenxiao extends Admin
             "signature" => $signature,
             "rawString" => $rawString
         );
-        if ($shareType && $shareType == 'distributor_apply') {
+        if ($shareType) {
             $config = get_store_config($this->factoryId, TRUE, 'invite_share');
-            $distributorPromot = isset($config['distributor_apply']) ? $config['distributor_apply'] : [];
+            $distributorPromot = isset($config[$shareType]) ? $config[$shareType] : [];
             $detail = [
                 "title"     => $distributorPromot && isset($distributorPromot['title']) ? $distributorPromot['title'] : '',
                 "description"=> $distributorPromot&& isset($distributorPromot['description']) ? $distributorPromot['description'] :'',
@@ -1178,9 +1178,77 @@ class Fenxiao extends Admin
             ['user_data UD', 'UDR.udata_id = UD.udata_id', 'LEFT'],
         ];
         $order = 'UDR.add_time DESC';
-        $field = 'UDR.realname, UDR.phone, UD.nickname, UD.avatar, UDR.add_time, UDR.status';
+        $field = 'UDR.distrt_id, UDR.realname, distrt_code, UDR.phone, UD.nickname, UD.avatar, UDR.add_time, UDR.status';
         $result = $this->_getModelList(model('UserDistributor'), $where, $field, $order, $alias, $join);
+        if ($result) {
+            foreach ($result as $key => $value) {
+                //获取分销员最新一次代言活动
+                $where = [
+                    ['PJ.store_id', '=', $this->factoryId],
+                    ['PJ.promot_type', '=', 'fenxiao'],
+                    ['PJ.distrt_id', '=', $value['distrt_id']],
+                    ['P.is_del', '=', 0],
+                    ['P.status', '=', 1],
+                ];
+                $field = 'PJ.join_id, PJ.promot_id, share_count, click_count, order_pay_count as order_count';
+                $field .= ', name, cover_img, start_time, end_time, P.status';
+                $promot = model('promotion_join')->field($field)->alias('PJ')->join('promotion P', 'P.promot_id = PJ.promot_id', 'INNER')->order('PJ.add_time DESC')->where($where)->find();
+                if ($promot) {
+                    $promot['_status'] = get_promotion_status($promot);
+                    $promot['start_time'] = $promot['start_time'] ? date('Y-m-d H:i:s', $promot['start_time']) : '';
+                    $promot['end_time'] = $promot['end_time'] ? date('Y-m-d H:i:s', $promot['end_time']) : '';
+                }
+                $result[$key]['promotion'] = $promot ? $promot : [];
+            }
+        }
         $this->_returnMsg(['list' => $result]);
+    }
+    protected function getSubDistributorDetail()
+    {
+        $loginUser = $this->_checkUser();
+        $this->_checkDistributor();
+        $distrtId = isset($this->postParams['distrt_id']) ? intval($this->postParams['distrt_id']) : '';
+        if (!$distrtId) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => 'distrt_id不能为空']);
+        }
+        $where = [
+            ['UDR.distrt_id',   '=', $distrtId],
+            ['UDR.parent_id',   '=', $loginUser['distributor']['distrt_id']],
+            ['UDR.is_del',      '=', 0],
+            ['UDR.check_status','=', 1],
+            ['UDR.factory_id',  '=', $this->factoryId],
+        ];
+        $alias = 'UDR';
+        $join = [
+            ['user_data UD', 'UDR.udata_id = UD.udata_id', 'LEFT'],
+        ];
+        $order = 'UDR.add_time DESC';
+        $field = 'UDR.distrt_id, UDR.realname, distrt_code, UDR.phone, UD.nickname, UD.avatar, UDR.add_time';
+        $info = model('UserDistributor')->field($field)->alias($alias)->join($join)->where($where)->find();
+        if (!$info) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '代言人不存在']);
+        }
+        
+        //获取分销员最新一次代言活动
+        $where = [
+            ['PJ.store_id', '=', $this->factoryId],
+            ['PJ.promot_type', '=', 'fenxiao'],
+            ['PJ.distrt_id', '=', $distrtId],
+            ['P.is_del', '=', 0],
+            ['P.status', '=', 1],
+        ];
+        $field = 'PJ.join_id, PJ.promot_id, share_count, click_count, order_pay_count as order_count';
+        $field .= ', name, cover_img, start_time, end_time, P.status';
+        $promots = model('promotion_join')->field($field)->alias('PJ')->join('promotion P', 'P.promot_id = PJ.promot_id', 'INNER')->order('PJ.add_time DESC')->where($where)->select();
+        if ($promots) {
+            foreach ($promots as $key => $promot) {
+                $promots[$key]['_status'] = get_promotion_status($promot);
+                $promots[$key]['start_time'] = $promot['start_time'] ? date('Y-m-d H:i:s', $promot['start_time']) : '';
+                $promots[$key]['end_time'] = $promot['end_time'] ? date('Y-m-d H:i:s', $promot['end_time']) : '';
+            }
+        }
+        
+        $this->_returnMsg(['detail' => $info, 'promots' => $promots]);
     }
     /**
      * 获取地址列表
@@ -1480,6 +1548,13 @@ class Fenxiao extends Admin
         $joins = model('PromotionJoin')->where($where)->field('sum(click_count) as click_count, sum(order_pay_count) as order_count')->find();
         $return['my_promotion']['click_count'] = $joins ? intval($joins['click_count']) : 0;
         $return['my_promotion']['order_count'] = $joins ? intval($joins['order_count']) : 0;
+        //计算下级分销员数量
+        $where = [
+            ['is_del', '=', 0],
+            ['parent_id', '=', $loginUser['distributor']['distrt_id']],
+        ];
+        $count = model('UserDistributor')->where($where)->count();
+        $return['sub_distributor'] = $count;
         $this->_returnMsg(['account' => $return]);
     }
     /**
