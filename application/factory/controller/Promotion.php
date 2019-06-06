@@ -147,6 +147,8 @@ class Promotion extends FormBase
     }
     public function statistics()
     {
+        $count = 3;
+        $this->assign('count', $count);
         $info = parent::_assignInfo();
         //活动几天内的总访问次数 总访问用户数 总分享次数 下单次数 下单金额
         $where = [
@@ -326,6 +328,8 @@ class Promotion extends FormBase
         $where = parent::_getWhere();
         $params = $this->request->param();
         $where[] = ['store_id', '=', $this->adminFactory['store_id']];
+        #TODO DELETE
+        $where[] = ['promot_id', '<>', 1];
         if ($params) {
             $name = isset($params['name']) ? trim($params['name']) : '';
             if($name){

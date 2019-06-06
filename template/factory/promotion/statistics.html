@@ -5,49 +5,49 @@
             	<div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>总访问次数</h4>
-                        <div class="item-num">{$data.click_count ?? 0}</div>
+                        <div class="item-num">{$data.click_count ? $data.click_count * $count : 0}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>总访问用户数</h4>
-                        <div class="item-num">{$data.click_user_count?? 0}</div>
+                        <div class="item-num">{$data.click_user_count? $data.click_user_count * $count : 0}</div>
                     </div>
                 </div>
                 <div class="xm3">
                     <div class="num-item-box col-box">
                         <h4>总分享次数</h4>
-                        <div class="item-num">{$data.share_count?? 0}</div>
+                        <div class="item-num">{$data.share_count? $data.share_count * $count : 0}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>总分享用户数</h4>
-                        <div class="item-num">{$data.share_user_count?? 0}</div>
+                        <div class="item-num">{$data.share_user_count? $data.share_user_count * $count : 0}</div>
                     </div>
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>下单数量</h4>
-                        <div class="item-num">{$data.order_count?? 0}</div>
+                        <div class="item-num">{$data.order_count? $data.order_count * $count : 0}</div>
                     </div>  
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>总下单金额</h4>
-                        <div class="item-num">￥{$data.order_amount?? 0}</div>
+                        <div class="item-num">￥{$data.order_amount? $data.order_amount * $count : 0}</div>
                     </div>  
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>支付订单数量</h4>
-                        <div class="item-num">{$data.order_pay_count?? 0}</div>
+                        <div class="item-num">{$data.order_pay_count? $data.order_pay_count * $count : 0}</div>
                     </div>  
                 </div>
                 <div class="xm3">
                 	<div class="num-item-box col-box">
                         <h4>总支付订单金额</h4>
-                        <div class="item-num">￥{$data.order_pay_amount?? 0}</div>
+                        <div class="item-num">￥{$data.order_pay_amount? $data.order_pay_amount * $count : 0}</div>
                     </div>  
                 </div>
                 
@@ -63,43 +63,44 @@
                        <div class="panel-block flex-container">
 		                	<div class="num-item-box flex-item">
 		                        <h4>待结算销售佣金金额</h4>
-		                        <div class="item-num">￥{$data.sale_pendding_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.sale_pendding_commission? $data.sale_pendding_commission * $count : 0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>已结算销售佣金金额</h4>
-		                        <div class="item-num">￥{$data.sale_settle_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.sale_settle_commission? $data.sale_settle_commission * $count : 0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>总销售佣金金额</h4>
-		                        <div class="item-num">￥{$data.sale_pendding_commission + $data.sale_settle_commission}元</div>
+		                        <div class="item-num">￥{php}echo  (($data['sale_pendding_commission'] + $data['sale_settle_commission']) * $count){/php}元
+		                        </div>
 		                    </div>  
                        </div>
                        <div class="panel-block flex-container">
 		                	<div class="num-item-box flex-item">
 		                        <h4>待结算管理佣金金额</h4>
-		                        <div class="item-num">￥{$data.manage_pendding_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.manage_pendding_commission? $data.manage_pendding_commission * $count : 0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>已结算管理佣金金额</h4>
-		                        <div class="item-num">￥{$data.manage_settle_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.manage_settle_commission? $data.manage_settle_commission * $count : 0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>总管理佣金金额</h4>
-		                        <div class="item-num">￥{$data.manage_pendding_commission + $data.manage_settle_commission}元</div>
+		                        <div class="item-num">￥{php}echo  (($data['manage_pendding_commission'] + $data['manage_settle_commission']) * $count){/php}元</div>
 		                    </div>  
                        </div>
                        <div class="panel-block flex-container">
 		                	<div class="num-item-box flex-item">
 		                        <h4>待结算佣金金额</h4>
-		                        <div class="item-num">￥{$data.pendding_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.pendding_commission?$data.pendding_commission * $count :  0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>已结算佣金金额</h4>
-		                        <div class="item-num">￥{$data.settle_commission?? 0}元</div>
+		                        <div class="item-num">￥{$data.settle_commission?$data.settle_commission * $count :  0}元</div>
 		                    </div>  
 		                	<div class="num-item-box flex-item">
 		                        <h4>总佣金金额</h4>
-		                        <div class="item-num">￥{$data.pendding_commission + $data.settle_commission}元</div>
+		                        <div class="item-num">￥{php}echo  (($data['pendding_commission'] + $data['settle_commission']) * $count){/php}元</div>
 		                    </div>  
                        </div>
                     </div>

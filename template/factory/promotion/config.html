@@ -6,6 +6,7 @@
                     <ul class="tab-nav">
                         <li class="active"><a href="#tab-2">名片分享配置</a></li>
                         <li class=""><a href="#tab-1">名片文案配置</a></li>
+                        <li class=""><a href="#tab-3">首页分享配置</a></li>
                     </ul>
                 </div>
             </div>
@@ -50,6 +51,42 @@
 								<input type="hidden" class="input" id="img_url_distributor_apply" name="invite_share[distributor_apply][img_url]" size="38" value="{$config['invite_share']['distributor_apply']['img_url']|default=''}" >
 				                <div class="img_url_distributor_apply_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['distributor_apply']['img_url']|default='/static/base/images/default.png'}" id="img_url_distributor_apply_preview" width="120"></div>
 				                <a class="button bg-main button-small js-img-upload" data="img_url_distributor_apply" preview="img_url_distributor_apply_preview" href="javascript:;" >
+				                	<span class="icon-upload"> 上传</span>
+				                </a>
+				                <div class="input-note"></div>
+							</div>
+                        </div>
+                    </div>
+               	</div>
+               	<div class="tab-panel" id="tab-3">
+                	<div class="form-group">
+                        <div class="label">
+                            <label>首页分享标题</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input" name="invite_share[fenxiao_home][title]" size="40" placeholder="请输入首页分享标题" datatype="*" value="{$config['invite_share']['fenxiao_home']['title'] ?? ''}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>首页分享描述</label>
+                        </div>
+                        <div class="field">
+                        	<textarea rows="3" cols="40" class="input"  name="invite_share[fenxiao_home][description]" placeholder="请输入首页分享描述" datatype="*">{$config['invite_share']['fenxiao_home']['description'] ?? ''}</textarea>
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>首页分享图片</label>
+                        </div>
+                        <div class="field">
+                            <div class="input-note"></div>
+                            <div class="form-group">
+								<input type="hidden" class="input" id="img_url_fenxiao_home" name="invite_share[fenxiao_home][img_url]" size="38" value="{$config['invite_share']['fenxiao_home']['img_url']|default=''}" >
+				                <div class="img_url_fenxiao_home_preview" style="margin-bottom:10px;"><img src="{$config['invite_share']['fenxiao_home']['img_url']|default='/static/base/images/default.png'}" id="img_url_fenxiao_home_preview" width="120"></div>
+				                <a class="button bg-main button-small js-img-upload" data="img_url_fenxiao_home" preview="img_url_fenxiao_home_preview" href="javascript:;" >
 				                	<span class="icon-upload"> 上传</span>
 				                </a>
 				                <div class="input-note"></div>

@@ -13,6 +13,7 @@ class Screen extends Timer
     
     private $thisTime;
     private $beginToday;
+    private $endTodayTime;
     
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
@@ -21,6 +22,7 @@ class Screen extends Timer
         header('Access-Control-Allow-Headers:x-requested-with,content-type');
         header('Access-Control-Allow-Credentials:true');
         parent::__construct();
+        date_default_timezone_set('PRC');
 //         $this->thisTime = time() - 5*24*60*60;//5天前
 //         $this->thisTime = time() - 4*24*60*60;//4天前
 //         $this->thisTime = time() - 3*24*60*60;//3天前
@@ -30,9 +32,11 @@ class Screen extends Timer
         $this->configKey = 'db_config';
         
         $this->beginToday = mktime(0,0,0,date('m', $this->thisTime),date('d', $this->thisTime),date('Y', $this->thisTime));
+        $this->endTodayTime = mktime(0,0,0,date('m', $this->thisTime),date('d', $this->thisTime)+1,date('Y', $this->thisTime))-1 - (4*60*60);
     }
     public function index()
     {
+        $this->configKey = '';
         $lastOrderId = $this->request->param('last_order_id');
         
         $return = [];
@@ -44,9 +48,9 @@ class Screen extends Timer
         ];
         $field = 'count(IF(add_time >= '.$this->beginToday.' AND work_order_status > 0 , true, null)) as today_count';
         $field .= ', count(*) as total_count';
-        $field .= ', count(IF(work_order_status = 0, true, null)) as pendding_count';
-        $field .= ', count(IF(work_order_status = 3, true, null)) as service_count';
-        $field .= ', count(IF(work_order_status = 4, true, null)) as finish_count';
+        $field .= ', count(IF(add_time >= '.$this->beginToday.' AND work_order_status = 0, true, null)) as pendding_count';
+        $field .= ', count(IF(add_time >= '.$this->beginToday.' AND work_order_status = 3, true, null)) as service_count';
+        $field .= ', count(IF(add_time >= '.$this->beginToday.' AND work_order_status = 4, true, null)) as finish_count';
         $todayStartTime = $this->thisTime - 24*60*60;
         $todayEndTime = $this->thisTime;
         $field .= ', count(IF(add_time >= '.$todayStartTime.' AND add_time <= '.$todayEndTime.' AND work_order_status > 0, true, null)) as 24_count';
@@ -54,14 +58,17 @@ class Screen extends Timer
         $todayEndTime = $this->thisTime - 24*60*60;
         $field .= ', count(IF(add_time >= '.$todayStartTime.' AND add_time <= '.$todayEndTime. ' AND work_order_status > 0, true, null)) as 48_count';
         $workOrder = $workOrderModel->where($where)->field($field)->find();
-        $countPercent = $workOrder['48_count'] > 0 ? $workOrder['24_count']/$workOrder['48_count'] : 0;
-        $workOrder['today_count_percent']= sprintf("%01.2f", $countPercent*100).'%';
+        $countPercent = $workOrder['48_count'] > 0 ? ($workOrder['24_count'] - $workOrder['48_count'])/$workOrder['48_count'] : 0;
+        $countPercent = sprintf("%01.2f", $countPercent*100).'%';
+        $workOrder['today_count_percent']= $countPercent >= 0 ? '+'.$countPercent : $countPercent;
+        
         unset($workOrder['48_count'], $workOrder['24_count']);
         //工单完成率
         $countPercent = $workOrder['total_count'] > 0 ? $workOrder['finish_count']/$workOrder['total_count'] : 0;
         $workOrder['finish_percent']= sprintf("%01.2f", $countPercent*100).'%';
         
-        $return['work_order'] = $workOrder;
+        $workOrder['allserv_count']= $workOrder['today_count'];
+        
         //今日交易额 总交易额 今日交易笔数 总交易笔数
         $where = [
             ['factory_id', '=', $this->factoryId],
@@ -71,7 +78,7 @@ class Screen extends Timer
         $field .= ', count(IF(add_time >= '.$this->beginToday.', true, null)) as today_count';
         $field .= ', count(*) as total_count';
         $field .= ', count(IF(delivery_status = 0, true, null)) as pendding_count';
-        $field .= ', count(IF(delivery_status = 2, true, null)) as delivery_count';
+        $field .= ', count(IF(delivery_status = 2 AND finish_status = 0, true, null)) as delivery_count';
         $field .= ', count(IF(finish_status = 2, true, null)) as finish_count';
         
         $todayStartTime = $this->thisTime - 24*60*60;
@@ -82,21 +89,23 @@ class Screen extends Timer
         $todayEndTime = $this->thisTime - 24*60*60;
         $field .= ', sum(IF(add_time >= '.$todayStartTime.' AND add_time <= '.$todayEndTime.', real_amount, 0)) as 48_amount';
         $field .= ', count(IF(add_time >= '.$todayStartTime.' AND add_time <= '.$todayEndTime.', true, null)) as 48_count';
+        
         $order = $orderModel->where($where)->field($field)->find();
         
         //交易金额计算同比 = 当前时间24小时内的交易金额/当前时间48-24小时的交易金额
-        $amountPercent = $order['48_amount'] > 0 ? $order['24_amount']/$order['48_amount'] : 0;
-        $order['today_amount_percent']= sprintf("%01.2f", $amountPercent*100).'%';
+        $amountPercent = $order['48_amount'] > 0 ? ($order['24_amount'] - $order['48_amount'])/$order['48_amount'] : 0;
+        $amountPercent = sprintf("%01.2f", $amountPercent*100).'%';
+        $order['today_amount_percent']= $amountPercent >= 0 ? '+'.$amountPercent : $amountPercent;
         
-        $countPercent = $order['48_count'] > 0 ? $order['24_count']/$order['48_count'] : 0;
-        $order['today_count_percent']= sprintf("%01.2f", $countPercent*100).'%';
+        $countPercent = $order['48_count'] > 0 ? ($order['24_count'] - $order['48_count'])/$order['48_count'] : 0;
+        $countPercent = sprintf("%01.2f", $countPercent*100).'%';
+        $order['today_count_percent']= $countPercent >= 0 ? '+'.$countPercent : $countPercent;
         
         $amountPercent = $order['total_amount'] > 0 ? $order['today_amount']/$order['total_amount'] : 0;
         $order['total_amount_percent']= sprintf("%01.2f", $amountPercent*100).'%';
         
         $countPercent = $order['total_count'] > 0 ? $order['today_count']/$order['total_count'] : 0;
         $order['total_count_percent']= sprintf("%01.2f", $countPercent*100).'%';
-        unset($order['48_count'], $order['24_count'], $order['48_amount'], $order['24_amount']);
         
         //订单完成率
         $countPercent = $order['total_count'] > 0 ? $order['finish_count']/$order['total_count'] : 0;
@@ -120,10 +129,11 @@ class Screen extends Timer
         $where = [
             ['store_id', '=', $this->factoryId],
         ];
-        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 100)->select();
+        $return['goods'] = db('goods', $this->configKey)->where($where)->field('name, min_price as price, sales, (min_price * sales) as total_price')->order('sales DESC')->limit(0, 100)->select();
         
         //获取近七日工单
         $workOrders = [];
+        $total = 0;
         for ($i = 6; $i >=0; $i--) {
             //php获取昨日起始时间戳和结束时间戳
             $beginTime = mktime(0,0,0,date('m'),date('d')-$i,date('Y'));
@@ -136,9 +146,21 @@ class Screen extends Timer
             $field = 'count(IF(work_order_type = 1, true, null)) as install_count, count(IF(work_order_type = 2, true, null)) as repair_count';
             $info = db('work_order', $this->configKey)->field($field)->where($where)->find();
             $workOrders['day'][] = $day;
-            $workOrders['install_count'][] = $info['install_count'];
-            $workOrders['repair_count'][] = $info['repair_count'];
+            if ($info['install_count'] == 0) {
+                $day = date('Y-m-d', $beginTime);
+                $installCount = 0;
+                $repairCount = 0;
+            }else{
+                $installCount = $info['install_count'];
+                $repairCount = $info['repair_count'];
+            }
+            $total += ($installCount + $repairCount);
+            
+            $workOrders['install_count'][] = $installCount;
+            $workOrders['repair_count'][] = $repairCount;
         }
+        $workOrder['total_count'] = $total;
+        $return['work_order'] = $workOrder;
         $return['work_order_lines'] = $workOrders;
         
         //商户统计(服务商 零售商 售后工程师)
@@ -175,10 +197,15 @@ class Screen extends Timer
         ];
         $installers = db('user_installer', $this->configKey)->field('installer_id, latitude, longitude')->alias('UI')->join($join)->where($where)->select();
         $return['map']['installers'] = $installers;
+        $return['this_time'] = $this->msectime();
         if ($this->request->param('test')) {
             pre($return);
         }
         $this->_returnMsg(['return' => $return]);
+    }
+    private function msectime() {
+        list($msec, $sec) = explode(' ', microtime());
+        return $msectime = (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
     }
     public function timer()
     {
@@ -186,8 +213,8 @@ class Screen extends Timer
         //         try {
         //定时器在每日8点到20点 每秒执行
         $hour = date('H', $this->thisTime);
-        if ($hour < 8 || $hour > 20) {
-            return FALSE;
+        if ($hour < 8 || $hour >= 20) {
+            $this->_returnScreenMsg(['time' => $time, 'errCode' => 1, 'errMsg' => 'time error']);
         }
         //生成订单
         $this->_createOrder();
@@ -208,6 +235,7 @@ class Screen extends Timer
     }
     public function store()
     {
+        die();
         //60-80个服务商 每个服务商生成1-10个零售商 5-10个工程师 （按城市地区生成服务商 再按服务区域生成零售商和工程师 零售商下的订单 自动转到服务商这里 服务商分配给下面的工程师 ）
         $regionModel = db('region', $this->configKey);
         $storeModel = db('store', $this->configKey);
@@ -297,45 +325,46 @@ class Screen extends Timer
     }
     public function goods()
     {
+        die();
         $this->goodslist = [
             [
-                'name'      => '商品名称',
-                'amount'    => '23.56',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '测试商品',
-                'amount'    => '19.99',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '苹果',
-                'amount'    => '19.99',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '雪梨',
-                'amount'    => '9.54',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '葡萄',
-                'amount'    => '40',
-                'is_install'=> 1,//是否可安装
-            ],
-            [
-                'name'      => '荔枝',
-                'amount'    => '30',
+                'name'      => '万佳安监控器摄像头',
+                'amount'    => '99.00',
                 'is_install'=> 0,//是否可安装
             ],
             [
-                'name'      => '油桃',
-                'amount'    => '20',
+                'name'      => '万佳安儿童看护摄像机',
+                'amount'    => '199.00',
                 'is_install'=> 0,//是否可安装
             ],
             [
-                'name'      => '香蕉',
-                'amount'    => '10',
+                'name'      => '万佳安室内智能摄像头',
+                'amount'    => '99.00',
+                'is_install'=> 0,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智能锁i9青春版',
+                'amount'    => '2680.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安室内智能摄像头',
+                'amount'    => '99',
+                'is_install'=> 0,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智慧门锁i9Max',
+                'amount'    => '3980.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安腾讯云智慧门锁i9Pro旗舰版',
+                'amount'    => '2980.00',
+                'is_install'=> 1,//是否可安装
+            ],
+            [
+                'name'      => '万佳安指纹锁家用防盗门智能锁密码锁',
+                'amount'    => '1199',
                 'is_install'=> 0,//是否可安装
             ],
         ];
@@ -354,6 +383,82 @@ class Screen extends Timer
         db('goods', $this->configKey)->insertAll($dataset);
         pre($dataset);
     }
+    public function order()
+    {
+        $join = [
+            ['order_sku OS', 'OS.order_id = O.order_id', 'INNER'],
+            ['goods G', 'OS.goods_id = G.goods_id', 'INNER'],
+        ];
+        $where= [
+        ];
+        $orders = db('order', $this->configKey)->field('O.order_id, OS.osku_id, O.real_amount,G.name, G.min_price, OS.num, (G.min_price * OS.num) as total_price')->alias('O')->join($join)->where($where)->select();
+        foreach ($orders as $key => $value) {
+            if ($value['real_amount'] == $value['total_price']) {
+                continue;
+            }
+            $amount = $value['num'];
+            $price = $value['min_price'] * $amount;
+            $data = [
+                'goods_amount' => $price,
+                'real_amount' => $price,
+                'paid_amount' => $price,
+            ];
+            db('order', $this->configKey)->where('order_id', $value['order_id'])->update($data);
+            $data = [
+                'sku_name' => $value['name'],
+                'sku_price' => $value['min_price'],
+                'price' => $value['min_price'],
+                'real_price' => $price,
+            ];
+            db('order_sku', $this->configKey)->where('osku_id', $value['osku_id'])->update($data);
+        }
+        pre($orders);
+    }
+    public function init()
+    {
+        for ($i = 0; $i < 7; $i++) {
+            echo time_to_date($this->thisTime - $i*24*60*60)."<br>";
+        }
+        die();
+        
+        $orders = db('order', $this->configKey)->select();
+        if ($orders) {
+            $dataset = [];
+            foreach ($orders as $key => $value) {
+                $value['order_id'] = 0;
+                $dataset[] = $value;
+            }
+            $result = db('order', $this->configKey)->insertAll($dataset);
+        }
+        $skus = db('order_sku', $this->configKey)->select();
+        if ($skus) {
+            $dataset = [];
+            foreach ($skus as $key => $value) {
+                $value['osku_id'] = 0;
+                $dataset[] = $value;
+            }
+            $result = db('order_sku', $this->configKey)->insertAll($dataset);
+        }
+        $subs = db('order_sku_sub', $this->configKey)->select();
+        if ($subs) {
+            $dataset = [];
+            foreach ($subs as $key => $value) {
+                $value['ossub_id'] = 0;
+                $dataset[] = $value;
+            }
+            $result = db('order_sku_sub', $this->configKey)->insertAll($dataset);
+        }
+        
+        $worders = db('work_order', $this->configKey)->select();
+        if ($worders) {
+            $dataset = [];
+            foreach ($worders as $key => $value) {
+                $value['worder_id'] = 0;
+                $dataset[] = $value;
+            }
+            $result = db('work_order', $this->configKey)->insertAll($dataset);
+        }
+    }
     private function _createOrder()
     {
         $orderModel = db('order', $this->configKey);
@@ -371,6 +476,7 @@ class Screen extends Timer
         $where = [
             ['factory_id', '=', $this->factoryId],
             ['user_store_id', '=', $store['store_id']],
+            ['add_time', '>=', $this->beginToday],
         ];
         $orderCount = $orderModel->where($where)->count();
         if ($orderCount >= 5) {
@@ -379,18 +485,21 @@ class Screen extends Timer
         $timeRand = rand(0, 2*60*60);
         $storeCount = 350;
         if ($timeRand > $storeCount) {
-//             $this->errorArray = ['createRand' => $timeRand];
+            $this->errorArray['createRand'] = $timeRand;
             return FALSE;
         }
+        $this->errorArray['store_id'] = $store['store_id'];
         //获取当前零售商最后一次创建订单时间
         $where = [
             ['factory_id', '=', $this->factoryId],
             ['user_store_id', '=', $store['store_id']],
+            ['add_time', '>=', $this->beginToday],
         ];
-        $lastOrder = $orderModel->where($where)->order('add_time DESC')->find();
+        $lastOrder = db('order', $this->configKey)->where($where)->order('add_time DESC')->find();
         
         $timeRand = rand(30* 60, 2*60*60);
-        if ($lastOrder && ($lastOrder['add_time'] - $this->thisTime) <= $timeRand) {
+//         if ($lastOrder && ($lastOrder['add_time'] - $this->thisTime) <= $timeRand) {
+        if ($lastOrder && ($this->thisTime - $lastOrder['add_time']) <= $timeRand) {
             return FALSE;
         }
         $goods = db('goods', $this->configKey)->orderRaw('rand()')->find();
@@ -400,6 +509,7 @@ class Screen extends Timer
         $orderSkuModel = db('order_sku', $this->configKey);
         $orderSkuSubModel = db('order_sku_sub', $this->configKey);
         $num = rand(1, 4);
+        $num = 1;
         $orderSn = $this->_getOrderSn();
         $data = [
             'order_type'    => 0,
@@ -479,6 +589,7 @@ class Screen extends Timer
             ['work_order_type', '=', 1],
             ['factory_id', '=', $this->factoryId],
             ['add_time', '>=', $this->beginToday],
+            ['add_time', '<=', $endToday],
         ];
         $count = $workOrderModel->where($where)->count();
         if ($count > 0) {
@@ -488,9 +599,9 @@ class Screen extends Timer
             $where = [
                 ['work_order_type', '=', 2],
                 ['factory_id', '=', $this->factoryId],
-                ['add_time', '>', $this->beginToday],
+                ['add_time', '>=', $this->beginToday],
             ];
-            $count = $workOrderModel->where($where)->count();
+            $count = db('work_order', $this->configKey)->where($where)->count();
             if ($count >= $num) { //已达到目标数则不创建维修工单
                 return FALSE;
             }else{
@@ -511,13 +622,14 @@ class Screen extends Timer
                             'add_time'          => $this->thisTime,
                             'images'            => '',
                             'fault_desc'        => '',
+                            'appointment'        => $this->_getAppointment(),
                         ];
                     }else{
                         $this->errorArray['repair_rand'][] = $rand.'<'.$max;
                     }
                 }
                 if ($dataset) {
-                    $workOrderModel->insertAll($dataset);
+                    db('work_order', $this->configKey)->insertAll($dataset);
                 }
             }
         }
@@ -539,16 +651,16 @@ class Screen extends Timer
                 $orderIds = [];
                 foreach ($orders as $key => $value) {
                     $timeRand = rand(0, (60-30)*60);
-                    
                     $end = $value['add_time'] + (60-30)*60;
                     if ($this->thisTime > $end) {
-//                         $orderIds[] = $value['order_id'];
-                        break;
-                    }
-                    $max = $end - $this->thisTime;
-                    $timeRand = rand(0, $max);
-                    if ($timeRand <= 1) {
                         $orderIds[] = $value['order_id'];
+//                         break;
+                    }else{
+                        $max = $end - $this->thisTime;
+                        $timeRand = rand(0, $max);
+                        if ($timeRand <= 1) {
+                            $orderIds[] = $value['order_id'];
+                        }
                     }
                 }
                 if ($orderIds) {
@@ -577,15 +689,16 @@ class Screen extends Timer
             $orderIds = [];
             foreach ($orders as $key => $value) {
                 $deliveryTime = $value['delivery_time'];
-                $end = $deliveryTime + (7-3) * 24*60*60;
+                $end = $deliveryTime + (7-3) * (24-8-4)*60*60;
                 if ($this->thisTime > $end) {
-//                     $orderIds[] = $value['order_id'];
-                    break;
-                }
-                $max = $end - $this->thisTime;
-                $timeRand = rand(0, $max);
-                if ($timeRand <= 1) {
                     $orderIds[] = $value['order_id'];
+//                     break;
+                }else{
+                    $max = $end - $this->thisTime;
+                    $timeRand = rand(0, $max);
+                    if ($timeRand <= 1) {
+                        $orderIds[] = $value['order_id'];
+                    }
                 }
             }
             if ($orderIds) {
@@ -606,7 +719,7 @@ class Screen extends Timer
         $this->_signWorkOrder($pro, $max);
         
         $pro = rand(10, 20);
-        $max = 24*60*60;
+        $max = (24-8-4)*60*60;
         //待分派的工单修改成为服务中的工单(新工单 有10-20%的概率 在15分-24小时内分派)
         $this->_signWorkOrder($pro, $max);
         
@@ -637,7 +750,7 @@ class Screen extends Timer
     private function _signWorkOrder($pro, $max)
     {
         $workOrderModel = db('work_order', $this->configKey);
-        $max = 100;
+        $max = 1;
         $field = 'worder_id, add_time';
         $where = [
             ['factory_id', '=', $this->factoryId],
@@ -646,24 +759,32 @@ class Screen extends Timer
         ];
         $worders = $workOrderModel->field($field)->where($where)->limit(0, $max)->select();
         if ($worders) {
-            $dataset = [];
+            $dataset  = $worderIds = [];
             foreach ($worders as $key => $value) {
                 $end = $value['add_time'] + $max;
                 if ($end < $this->thisTime) {
-                    continue;
+                    if ($key <= 1) {
+                        $worderIds[] = $value['worder_id'];
+                    }else{
+                        continue;
+                    }
+                }else{
+                    $total = $end - $this->thisTime;
+                    $rand = rand(0, 100* ($total));
+                    if ($rand <= ($pro * 1)) {
+                        $worderIds[] = $value['worder_id'];
+                    }
                 }
-                $total = $end - $this->thisTime;
-                $rand = rand(0, 100* ($total));
-                if ($rand <= ($pro * 1)) {
-                    $data = [
-                        'work_order_status' => 3,
-                        'dispatch_time' => $this->thisTime,
-                        'receive_time'  => $this->thisTime,
-                        'sign_time'     => $this->thisTime,
-                        'update_time'   => $this->thisTime,
-                    ];
-                    $result = db('work_order', $this->configKey)->where(['worder_id' => $value['worder_id']])->update($data);
-                }
+            }
+            if ($worderIds) {
+                $data = [
+                    'work_order_status' => 3,
+                    'dispatch_time' => $this->thisTime,
+                    'receive_time'  => $this->thisTime,
+                    'sign_time'     => $this->thisTime,
+                    'update_time'   => $this->thisTime,
+                ];
+                $result = db('work_order', $this->configKey)->where('worder_id', 'IN', $worderIds)->update($data);
             }
         }
         return true;
@@ -687,6 +808,9 @@ class Screen extends Timer
                 //预约时间:0-3天内的10-18点 且大于当前时间2小时以上
                 $appointment = $this->_getAppointment();
                 $servicerId = $value['ostore_id'];
+                if (!$servicerId) {
+                    continue;
+                }
                 //获取当前服务商下的随机工程师ID
                 $where = [
                     ['factory_id', '=', $this->factoryId],
