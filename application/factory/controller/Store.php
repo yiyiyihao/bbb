@@ -35,6 +35,17 @@ class Store extends FactoryForm
         $info = $this->_assignInfo();
         return $this->fetch();
     }
+
+    //服务商审核
+    public function service_check()
+    {
+        //只有厂商才有权限
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY])) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        return $this->check();
+    }
+
     public function check()
     {
         $info = $this->_assignInfo();
@@ -281,7 +292,8 @@ class Store extends FactoryForm
         if ($table['actions']['button']) {
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
-                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["check_status"] == 0']],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["check_status"] == 0 && $vo["store_type"]== '.STORE_DEALER]],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'service_check','rule'=>'$vo["check_status"] == 0 &&  in_array($vo["store_type"],['.STORE_SERVICE.','.STORE_SERVICE_NEW.'])']],
             ];
             $table['actions']['width']  = '*';
         }
