@@ -10,6 +10,9 @@ class Admin extends Index
     protected $version;
     protected $returnLogin = TRUE;
     protected $debug = FALSE;
+    protected $paginate=true;
+    use Dealer;
+
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
