@@ -55,7 +55,7 @@
             <label>联系地址：</label>
         </div>
         <div class="field">
-            <span class="field-text position" title="点击查看地图">{$info['region_name'] ?? ''}{$info['address'] ?? ''}</span>
+            <span class="field-text position" title="点击查看地图" data-location="{$info.location?? ''}">{$info['region_name'] ?? ''}{$info['address'] ?? ''}</span>
         </div>
     </div>
     {elseif ($info['store_type'] == $Think.const.STORE_DEALER)}
@@ -281,23 +281,34 @@
         $('.position').click(function (e) {
             var address=$(this).text();
             obj=$(this);
-            $.post('/store/getcoder',{address:address},function (data) {
-                data=data.data;
-                var lat=data.lat;
-                var lng=data.lng;
-                obj.showMap(lat,lng);
-                index=layer.open({
-                    type: 1,
-                    shade: false,
-                    title: false, //不显示标题
-                    area: '500px', //宽高
-                    content: $('#container')
+            var lat=0,lng=0;
+            var location=$(this).data('location');
+            if (location) {
+                location=location.split(',');
+                lat=location[0];
+                lng=location[1];
+            }else {
+                $.post('/store/getcoder',{address:address},function (data) {
+                    data=data.data;
+                    var lat=data.lat;
+                    var lng=data.lng;
                 });
+            }
+            if (lat === '0' || lng === '') {
+                layer.msg('查无相关信息');
+                return false;
+            }
+            obj.showMap(lat,lng);
+            index=layer.open({
+                type: 1,
+                shade: false,
+                title: false, //不显示标题
+                area: '500px', //宽高
+                content: $('#container')
             });
-        }).mouseout(function () {
-
         });
     });
+
 
 </script>
 
