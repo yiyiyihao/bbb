@@ -233,7 +233,10 @@ trait Dealer
     public function getDealerWorkOrderList()
     {
         $status = isset($this->postParams['status'])  ? $this->postParams['status'] : '';
-        $where=[];
+        $where=[
+            'p1.is_del'=>0,
+            'p1.status'=>1,
+        ];
         if ($status !== '' && in_array($status, [-1, 0, 1, 2, 3, 4])) {
             $where['p1.work_order_status']=$status;
         }
