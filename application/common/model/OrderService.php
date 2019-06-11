@@ -356,7 +356,7 @@ class OrderService extends Model
             //退货退款完成时,库存还原
             if ($service['service_type'] == 1) {
                 $goodsModel = new \app\common\model\Goods();
-                $goodsModel->setGoodsStock($osub, $service['num']);
+                $goodsModel->setGoodsStock($osub, $service['num'],$user);
             }
             
             $commissionModel = db('store_commission');

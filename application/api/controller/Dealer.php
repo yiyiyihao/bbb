@@ -9,16 +9,19 @@ namespace app\api\controller;
 trait Dealer
 {
 
+    private $service;
+    private $user;
 
-    public function getService()
+    private function init()
     {
         $user = $this->_checkUser();
         if ($user['store_type'] !== STORE_DEALER) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
+        $this->user = $user;
         $service = db('store')
             ->alias('p1')
-            ->field('p1.store_id,p1.name,p1.status,p1.check_status')
+            ->field('p1.store_id,p1.`name`,p1.status,p1.check_status')
             ->join('store_dealer p2', 'p2.ostore_id=p1.store_id')
             ->where([
                 'p2.store_id' => $user['store_id'],
@@ -33,12 +36,14 @@ trait Dealer
         if ($service['check_status'] !== 1) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '服务商审核未通过']);
         }
+        $this->service = $service;
         return $service;
     }
 
     protected function _getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
     {
         if ($alias) $model->alias($alias);
+        if ($field) $model->field($field);
         if ($join) $model->join($join);
         if ($where) $model->where($where);
         if ($having) $model->having($having);
@@ -46,7 +51,7 @@ trait Dealer
         if ($group) $model->group($group);
         $data = [];
         if ($this->paginate && $this->pageSize > 0 && $this->page > 0) {
-            $query = $model->where($where)->field($field)->paginate($this->pageSize, false, ['page' => $this->page]);
+            $query = $model->paginate($this->pageSize, false, ['page' => $this->page]);
             $data = [
                 'total'      => $query->total(),
                 'page'       => $query->currentPage(),
@@ -55,7 +60,7 @@ trait Dealer
                 'list'       => $query->items(),
             ];
         } else {
-            $data = $model->field($field)->select();
+            $data = $model->select();
         }
         return $data;
     }
@@ -64,12 +69,10 @@ trait Dealer
     //商品列表
     public function getDealerGoodsList()
     {
-        $user = $this->_checkUser();
-        if ($user['store_type'] !== STORE_DEALER) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
-        }
-        $service = $this->getService();
-        $field = 'p2.goods_id,p2.name,p4.name cate_name,p2.goods_sn,p2.thumb,p3.stock_dealer,p3.sales_dealer,p3.status';
+        $this->init();
+        $user = $this->user;
+        $service = $this->service;
+        $field = 'p2.goods_id,p2.`name`,p4.`name` cate_name,p2.goods_sn,p2.thumb,p3.stock_dealer,p3.sales_dealer,p3.status';
         $join = [
             ['goods p2', 'p1.goods_id = p2.goods_id'],
             ['goods_dealer p3', 'p3.goods_id = p2.goods_id', 'LEFT'],
@@ -89,8 +92,8 @@ trait Dealer
         $result['stock_sum'] = db('goods_sku_dealer')->where([
             'store_id' => $user['store_id'],
             'is_del'   => 0,
-        ])->sum('stock');
-        $field = 'p3.sku_sn,p3.spec_value,p2.sales,p2.stock';
+        ])->sum('stock_dealer');
+        $field = 'p3.sku_sn,p3.spec_value,p2.sales_dealer,p2.stock_dealer';
         $join = [
             ['goods_sku_dealer p2', 'p1.sku_id = p2.sku_id AND p2.is_del = 0 AND p2.service_id = p1.store_id AND p2.store_id=' . $user['store_id']],
             ['goods_sku p3', 'p3.sku_id = p1.sku_id', 'LEFT'],
@@ -120,7 +123,8 @@ trait Dealer
     //采购列表
     public function getPurchaseList()
     {
-        $user = $this->_checkUser();
+        $this->init();
+        $user = $this->user;
         if ($user['store_type'] !== STORE_DEALER) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
         }
@@ -145,8 +149,8 @@ trait Dealer
         } elseif ($sort == 2 && $order == 1) {
             $orderBy = 'p1.max_price_service DESC';
         }
-        $service = $this->getService();
-        $field = 'p2.goods_id,p2.goods_sn,p2.name,p3.name AS cate_name,p2.thumb,p2.sales,p2.goods_stock stock,p4.status,p1.specs_json_service specs_json';
+        $service = $this->init();
+        $field = 'p2.goods_id,p2.goods_sn,p2.`name`,p3.`name` AS cate_name,p2.thumb,p1.sales_service,p1.stock_service,p4.status,p1.specs_json_service specs_json';
         $join = [
             ['goods p2', 'p1.goods_id=p2.goods_id'],
             ['goods_cate p3', 'p2.cate_id=p3.cate_id'],
@@ -170,6 +174,84 @@ trait Dealer
         }
         foreach ($result['list'] as $key => $value) {
             $result['list'][$key]['specs_json'] = json_decode($value['specs_json'], true);
+        }
+        $this->_returnMsg(recursion($result));
+    }
+
+    public function getSpecDetail()
+    {
+        $this->init();
+        $user = $this->user;
+        $service = $this->service;
+        $specs = isset($this->postParams['specs']) && $this->postParams['specs'] ? trim($this->postParams['specs']) : '';
+        $id = isset($this->postParams['goods_id']) && $this->postParams['goods_id'] ? trim($this->postParams['goods_id']) : '';
+        //0：客户下单，1:门店进货
+        $type = isset($this->postParams['type']) && $this->postParams['type'] ? intval($this->postParams['type']) : 0;
+        $result = [
+            'stock' => 0,
+            'sales' => 0,
+        ];
+        $skuId = db('goods_sku')->where([
+            'goods_id'  => $id,
+            'is_del'    => 0,
+            'status'    => 1,
+            'store_id'  => $user['factory_id'],
+            'spec_json' => $specs,
+        ])->value('sku_id');
+        if (empty($skuId)) {
+            $this->_returnMsg(recursion($result));
+        }
+        switch ($type) {
+            case 0://客户下单
+                $data = db('goods_sku_dealer')
+                    ->field('stock_dealer stock,sales_dealer sales')
+                    ->where([
+                        'sku_id'     => $skuId,
+                        'is_del'     => 0,
+                        'status'     => 1,
+                        'service_id' => $service['store_id'],
+                        'store_id'   => $user['store_id'],
+                    ])->find();
+                break;
+            case 1://门店进货
+                $data = db('goods_sku_service')
+                    ->field('stock_service stock,sales_service sales')
+                    ->where([
+                        'sku_id'   => $skuId,
+                        'is_del'   => 0,
+                        'status'   => 1,
+                        'store_id' => $service['store_id'],
+                    ])->find();
+                break;
+        }
+        $result = $data ? $data : $result;
+        $result['stock'] = $result['stock'] > 0 ? $result['stock'] : 0;
+        $this->_returnMsg(recursion($result));
+    }
+
+    //工单列表
+    public function getDealerWorkOrderList()
+    {
+        $status = isset($this->postParams['status'])  ? $this->postParams['status'] : '';
+        $where=[];
+        if ($status !== '' && in_array($status, [-1, 0, 1, 2, 3, 4])) {
+            $where['p1.work_order_status']=$status;
+        }
+        $field = 'p1.worder_sn,p1.work_order_status,p2.thumb,p3.`name` cate_name,p2.`name` goods_name,p2.goods_sn,p1.user_name';
+        $field .= ',p1.phone,p1.region_name,p1.address,p1.appointment,p1.appointment_confirm,p4.mobile store_phone';
+        $join=[
+            ['goods p2','p1.goods_id = p2.goods_id'],
+            ['goods_cate p3','p3.cate_id = p2.cate_id'],
+            ['store p4','p4.store_id = p1.store_id'],
+        ];
+        $order = 'p1.add_time ASC';
+        $result = $this->_getModelList(db('work_order'), $where, $field, $order, 'p1', $join);
+        foreach ($result['list'] as $k=>$v) {
+            $appointment=$v['appointment_confirm']?$v['appointment_confirm']:$v['appointment'];
+            $result['list'][$k]['appointment']=time_to_date($appointment);
+            $result['list'][$k]['address']=str_replace(' ','',$v['region_name']).$v['address'];
+            $result['list'][$k]['status']=get_work_order_status($v['work_order_status']);
+            unset($result['list'][$k]['appointment_confirm'],$result['list'][$k]['region_name'],$result['list'][$k]['work_order_status']);
         }
         $this->_returnMsg(recursion($result));
     }

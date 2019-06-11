@@ -21,20 +21,108 @@ class Goods extends Model
      * @param int $num 修改产品库存数量(大于0为增加,小于0为减少)
      * @return boolean
      */
-    public function setGoodsStock($sku, $num)
+    public function setGoodsStock($sku, $num,$user=[])
     {
         if (!$sku || !$num) {
             return FALSE;
         }
+        //更新厂商库存
         $stockType = $num > 0 ? 'inc' : 'dec';
         $saleType = $num > 0 ? 'dec' : 'inc';
         $step = abs($num);
         $result = db('goods_sku')->where(['sku_id' => $sku['sku_id']])->update(['sku_stock' => [$stockType, $step], 'sales' => [$saleType, $step]]);
         if ($result !== FALSE){
             $result = db('goods')->where(['goods_id' => $sku['goods_id']])->update(['goods_stock' => [$stockType, $step], 'sales' => [$saleType, $step]]);
-            if ($result !== FALSE) {
-                return TRUE;
+            if ($result === FALSE) {
+                return FALSE;
             }
+        }
+        //更新服务商库存及销量
+        if (isset($user['admin_type']) && isset($user['store_id']) && $user['store_id'] && $user['admin_type'] == ADMIN_DEALER) {
+            $channelId = db('store')
+                ->alias('p1')
+                ->join('store_dealer p2', 'p1.store_id=p2.ostore_id')
+                ->where([
+                    'p2.store_id'   => $user['store_id'],
+                    'p1.is_del'     => 0,
+                    'p1.status'     => 1,
+                    'p1.store_type' => ['IN', [ADMIN_SERVICE, ADMIN_SERVICE_NEW]],
+                ])->value('p1.store_id');
+            if ($channelId <= 0) {
+                return false;
+            }
+            $saleGoodsSum = db('order')
+                ->alias('p1')
+                ->join('order_sku p2', 'p1.order_id = p2.order_id')
+                ->where([
+                    ['p1.order_status', '<>', 2],
+                    ['p2.store_id', '=', $channelId],
+                    ['p2.goods_id', '=', $sku['goods_id']],
+                ])->sum('p2.num');
+            db('goods_service')->where([
+                'store_id' => $channelId,
+                'is_del'   => 0,
+                'goods_id' => $sku['goods_id'],
+            ])->update([
+                'sales_service' => $saleGoodsSum,
+                'stock_service' => [$stockType, $step],
+                'update_time'   => time(),
+            ]);
+            $saleSkuSum = db('order')
+                ->alias('p1')
+                ->join('order_sku p2', 'p1.order_id = p2.order_id')
+                ->where([
+                    ['p1.order_status', '<>', 2],
+                    ['p2.store_id', '=', $channelId],
+                    ['p2.goods_id', '=', $sku['goods_id']],
+                    ['p2.sku_id', '=', $sku['sku_id']],
+                ])->sum('p2.num');
+            db('goods_sku_service')->where([
+                'store_id' => $channelId,
+                'is_del'   => 0,
+                'goods_id' => $sku['goods_id'],
+                'sku_id'   => $sku['sku_id'],
+            ])->update([
+                'sales_service' => $saleSkuSum,
+                'stock_service' => [$stockType, $step],
+                'update_time'   => time(),
+            ]);
+            //更新门店的库存及销量
+            $storeSaleGoodsSum = db('order')
+                ->alias('p1')
+                ->join('order_sku p2', 'p1.order_id = p2.order_id')
+                ->where([
+                    ['p1.order_status', '<>', 2],
+                    ['p2.user_store_id', '=', $user['store_id']],
+                    ['p2.goods_id', '=', $sku['goods_id']],
+                ])->sum('p2.num');
+            db('goods_dealer')->where([
+                'store_id' => $user['store_id'],
+                'is_del'   => 0,
+                'goods_id' => $sku['goods_id'],
+            ])->update([
+                'sales_dealer' => $storeSaleGoodsSum,
+                'stock_dealer' => [$stockType, $step],
+                'update_time'  => time(),
+            ]);
+            $storeSaleSkuSum = db('order')
+                ->alias('p1')
+                ->join('order_sku p2', 'p1.order_id = p2.order_id')
+                ->where([
+                    ['p1.order_status', '<>', 2],
+                    ['p2.user_store_id', '=', $user['store_id']],
+                    ['p2.goods_id', '=', $sku['goods_id']],
+                    ['p2.sku_id', '=', $sku['sku_id']],
+                ])->sum('p2.num');
+            db('goods_sku_dealer')->where([
+                'store_id' => $user['store_id'],
+                'is_del'   => 0,
+                'goods_id' => $sku['goods_id'],
+            ])->update([
+                'sales_dealer' => $storeSaleSkuSum,
+                'stock_dealer' => [$stockType, $step],
+                'update_time'  => time(),
+            ]);
         }
         return FALSE;
     }

@@ -82,8 +82,8 @@ class Index extends CommonIndex
         $this->assign('today', $result['today']);
         $this->assign('total', $result['total']);
         $hometpl = 'home_'.$result['tpl'];
-        $this->assign('worder_assess',$result['worder_assess']);
-        $this->assign('worder_score',$result['worder_score']);
+        $this->assign('worder_assess',$result['worder_assess']?? []);
+        $this->assign('worder_score',$result['worder_score']?? []);
 
         //$hometpl = 'home';
         return $this->fetch($hometpl);

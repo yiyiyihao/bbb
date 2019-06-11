@@ -520,7 +520,7 @@ class Order extends Model
             foreach ($skus as $key => $value) {
                 $nameStr .= $value['sku_name'].' '.$value['sku_spec'].' * '.$value['num'] .($len == ($key+ 1) ? "": "\r\n");
                 if ($value['stock_reduce_time'] == 2) {//支付成功后减少库存
-                    $result = $goodsModel->setGoodsStock($value, -$value['num']);
+                    $result = $goodsModel->setGoodsStock($value, -$value['num'],$user);
                 }
             }
         }
@@ -667,7 +667,7 @@ class Order extends Model
             $goodsModel = new \app\common\model\Goods();
             foreach ($skus as $key => $value) {
                 if ($value['stock_reduce_time'] == 1) {
-                    $goodsModel->setGoodsStock($value, $value['num']);
+                    $goodsModel->setGoodsStock($value, $value['num'],$user);
                 }
             }
         }
@@ -907,7 +907,7 @@ class Order extends Model
                 if ($skus) {
                     //减少商品库存
                     foreach ($skus as $key => $value) {
-                        $result = $goodsModel->setGoodsStock($value, -$value['num']);
+                        $result = $goodsModel->setGoodsStock($value, -$value['num'],$user);
                     }
                 }
                 // 清理购物车产品
