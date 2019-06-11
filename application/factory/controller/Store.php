@@ -121,7 +121,10 @@ class Store extends FactoryForm
                 $this->error('该手机号未绑定');
             }
             Db::startTrans();
-            $result=db('user_data')->whereIn('user_id',$userIds)->update(['user_id'=>0]);
+            $result=db('user_data')->whereIn('user_id',$userIds)->update([
+                'user_id' => 0,
+                'phone'   => '',
+            ]);
             if ($result===false) {
                 Db::rollback();
                 $this->error('解绑失败');

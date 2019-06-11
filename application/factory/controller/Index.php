@@ -425,7 +425,7 @@ class Index extends CommonIndex
                     $data=$this->orderAmount($from,$to,$storeId);
                 }else if ($chart_type==2){
                     $channelId=$this->request->param('store_id',0,'intval');
-                    $data=$this->work_order_assess($from,$to,$channelId);
+                    $data=$this->work_order_assess($from,$to,$this->adminUser,$channelId);
                 }
                 break;
             case ADMIN_CHANNEL://渠道商
@@ -451,7 +451,7 @@ class Index extends CommonIndex
                     //0工单佣金统计
                     $data=$this->workOrderIncome($from,$to,$storeId);
                 }else{//2 工单评价
-                    $data=$this->work_order_assess($from,$to,$storeId);
+                    $data=$this->work_order_assess($from,$to,$this->adminUser,$storeId);
                 }
                 break;
             default:
