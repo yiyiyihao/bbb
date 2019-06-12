@@ -576,6 +576,13 @@ function get_order_status($order=[]){
         $arr['status'] = 4;
         return $arr;
     }
+    //电商订单不需要发货
+    if ($order['pay_status']==1 && $order['order_status']==1 && $order['user_store_type']==STORE_FACTORY) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+
 
     //零售店内提货，不发货
     if ($order['order_type'] == 2 && $order['delivery_type'] == 1) {
