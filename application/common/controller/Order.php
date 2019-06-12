@@ -284,13 +284,15 @@ class Order extends FormBase
                 $map['O.delivery_status'] = 2;
             }else{
                 $map['O.delivery_status'] = ['IN', [1,0]];
+                $map['O.user_store_type'] = ['<>',STORE_FACTORY];
             }
             $map['O.pay_status'] = 1;
             $map['O.finish_status'] = 0;
             $map['O.order_status'] = 1;
         }elseif(isset($param['finish_status'])){
-            $map['O.finish_status'] = 2;
             $map['O.order_status'] = 1;
+            $map['O.pay_status'] = 1;//确认收款
+            $map[]=['','EXP',Db::raw('O.finish_status=2 OR O.delivery_type=1 OR O.user_store_type='.STORE_FACTORY)];//确认收货或店内自提,电商订单
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }

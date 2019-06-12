@@ -246,6 +246,7 @@ class Myorder extends commonOrder
                 $map['O.delivery_status'] = 2;
             }else{
                 $map['O.delivery_status'] = ['IN', [1,0]];
+                $map['O.user_store_type'] = ['<>',STORE_FACTORY];
             }
             $map['O.pay_status'] = 1;
             $map['O.finish_status'] = 0;
