@@ -1503,7 +1503,8 @@ class Admin extends Index
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         $orderModel = new \app\common\model\Order();
         $submit = isset($this->postParams['submit']) && $this->postParams['submit'] ? TRUE : FALSE;
-        $result = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, [], $remark);
+        $orderType = 2;
+        $result = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, [], $remark,$orderType);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }

@@ -1,6 +1,8 @@
 <?php
 namespace app\factory\controller;
 use app\common\controller\Order as commonOrder;
+use think\Db;
+
 //买家订单管理
 class Myorder extends commonOrder
 {
@@ -249,8 +251,11 @@ class Myorder extends commonOrder
             $map['O.finish_status'] = 0;
             $map['O.order_status'] = 1;
         }elseif(isset($param['finish_status'])){
-            $map['O.finish_status'] = 2;
             $map['O.order_status'] = 1;
+            $map['O.pay_status'] = 1;//确认收款
+            $map[]=['','EXP',Db::raw('O.finish_status=2 OR O.delivery_type=1')];//确认收货或店内自提
+
+            //$map[]=['','EXP',Db::raw(' O.order_status=1 AND (O.finish_status=2 OR (O.order_type=1 AND O.pay_status=1 AND O.user_store_type<>'.ADMIN_DEALER.' ) OR (O.order_type=2 AND O.delivery_type=1))')];
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }

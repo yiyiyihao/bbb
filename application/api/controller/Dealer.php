@@ -40,7 +40,7 @@ trait Dealer
         return $service;
     }
 
-    protected function getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
+    private function getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
     {
         if ($alias) $model->alias($alias);
         if ($field) $model->field($field);

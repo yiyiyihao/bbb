@@ -204,10 +204,10 @@ class Purchase extends FactoryForm
             $strorName = $this->adminStore['store_type'] == STORE_DEALER ? '服务商' : '厂商';
             $this->error($strorName . '未配置支付信息');
         }
-        $orderType = 1;
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $params['pay_code'] = 'offline_pay';
         }
+        $orderType = in_array($this->adminStore['store_type'], [STORE_DEALER, STORE_SERVICE_NEW]) ? 2 : 1;
         if (IS_POST) {
             $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
             if (!$payCode) {

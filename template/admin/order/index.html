@@ -67,7 +67,7 @@
               <td>{$vo.address_phone}</td>
               <td>{$vo.address_detail}</td> -->
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
-              <td>{if condition="$vo.pay_status==0 && $vo.pay_type==2"}待收款确认{else /}{$vo['_status']['status_text']}{/if}</td>
+              <td>{:get_order_status($vo)['status_text']}</td>
               <td>
               	{if ($vo['pay_status'])}
               	{$vo['_apply_status']['status_text']|raw}

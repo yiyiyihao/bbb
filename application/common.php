@@ -533,12 +533,91 @@ function get_service_status($status = FALSE)
     }
 }
 
+
+function get_order_status($order=[]){
+    $arr=[
+        'status_text'=>'',
+        'status'=>'',
+    ];
+    if (!isset($order['pay_type'])) {
+        $order['pay_type'] = 1;
+    }
+
+    if ($order['order_status']==2) {
+        $arr['status_text'] = '已取消';
+        $arr['status'] = 5;
+        return $arr;
+    }
+    if ($order['order_status']==3) {
+        $arr['status_text'] = '已关闭';
+        $arr['status'] = 6;
+        return $arr;
+    }
+    if ($order['order_status']==4) {
+        $arr['status_text'] = '已删除';
+        $arr['status'] = 7;
+        return $arr;
+    }
+    //历史数据-零售商下单
+    if ($order['order_type'] == 1 && in_array($order['user_store_type'],[STORE_DEALER,STORE_SERVICE,STORE_SERVICE_NEW]) ) {
+        $order['order_type']=2;
+    }
+    /*******未付款*******************************************************/
+    if ($order['pay_status'] == 0) {
+        //货到付款以后再处理【pay_type=3】
+        $arr['status_text'] = $order['pay_type'] == 1?  '待付款':'待确认收款';
+        $arr['status'] = 1;
+        return $arr;
+    }
+    /*******已付款***********************************************************/
+    //批发订单，不用发货
+    if ($order['delivery_status']==2 && $order['finish_status']==2) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+
+    //零售店内提货，不发货
+    if ($order['order_type'] == 2 && $order['delivery_type'] == 1) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 0) {
+        $arr['status_text'] = '待发货';
+        $arr['status'] = 2;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
+        $arr['status_text'] = '部分发货';
+        $arr['status'] = 30;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
+        $arr['status_text'] = '待收货';
+        $arr['status'] = 3;
+        return $arr;
+    }
+    if ($order['delivery_status'] != 0 && $order['finish_status'] == 1) {
+        $arr['status_text'] = '部分完成';
+        $arr['status'] = 40;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 2 && $order['finish_status'] == 2) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+    return $arr;
+}
+
+
 /**
  * 获取订单状态
  * @param  $order    : 订单信息
  * @return [string]
  */
-function get_order_status($order = array(),$flag=false) {
+function get_order_status2($order = array(),$flag=false) {
     $arr = array();
     switch ($order['order_status']) {
         case 2: // 已取消
