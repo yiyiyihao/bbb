@@ -98,7 +98,7 @@
                         {/if}
 	              	{/if}
                     {if condition="check_auth('order','delivery') && $vo['pay_status'] == 1 &&  $vo['delivery_status'] !=2 && $vo['user_store_type'] !=$Think.const.STORE_FACTORY"}
-	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}" data-a="{:check_auth('order','delivery')}"  data-b="{$vo['pay_status'] == 1}" data-c="{$vo['delivery_status'] !=2}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
+	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
 	              	{/if}
               	</span>
               </td>
