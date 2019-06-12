@@ -40,7 +40,7 @@ trait Dealer
         return $service;
     }
 
-    protected function _getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
+    protected function getModelList($model, $where = [], $field = '*', $order = false, $alias = false, $join = [], $group = false, $having = false)
     {
         if ($alias) $model->alias($alias);
         if ($field) $model->field($field);
@@ -84,7 +84,7 @@ trait Dealer
             'p1.status'   => 1,
         ];
         $order = 'p1.sort_order ASC';
-        $result = $this->_getModelList(db('goods_service'), $where, $field, $order, 'p1', $join);
+        $result = $this->getModelList(db('goods_service'), $where, $field, $order, 'p1', $join);
 
         if (empty($result['list'])) {
             $this->_returnMsg($result);
@@ -168,7 +168,7 @@ trait Dealer
             $where['p2.name'] = ['like', '%' . $keyword . '%'];
         }
         $order = 'p1.sort_order ASC';
-        $result = $this->_getModelList(db('goods_service'), $where, $field, $order, 'p1', $join);
+        $result = $this->getModelList(db('goods_service'), $where, $field, $order, 'p1', $join);
         if (empty($result['list'])) {
             $this->_returnMsg(recursion($result));
         }
@@ -248,7 +248,7 @@ trait Dealer
             ['store p4','p4.store_id = p1.store_id'],
         ];
         $order = 'p1.add_time ASC';
-        $result = $this->_getModelList(db('work_order'), $where, $field, $order, 'p1', $join);
+        $result = $this->getModelList(db('work_order'), $where, $field, $order, 'p1', $join);
         foreach ($result['list'] as $k=>$v) {
             $appointment=$v['appointment_confirm']?$v['appointment_confirm']:$v['appointment'];
             $result['list'][$k]['appointment']=time_to_date($appointment);
