@@ -54,22 +54,22 @@
     Do.ready('base', 'dialog', function () {
         //表单综合处理
         $('#form').FormPage({
-            returnFun: function (data) {
-                var todoId = $('#todo_id').val();
-                if (data.code && todoId) {
-                    window.parent.removeTodo('todo-id-' + todoId);
-                }
-                layer.msg(data.msg, {
-                    time:1000,
-                    end: function () {
-                        if (data.url == null || data.url == '') {
-                            window.location.reload();
-                        } else {
-                            window.location.href = data.url;
-                        }
-                    }
-                });
-            }
+            // returnFun: function (data) {
+            //     var todoId = $('#todo_id').val();
+            //     if (data.code && todoId) {
+            //         window.parent.removeTodo('todo-id-' + todoId);
+            //     }
+            //     layer.msg(data.msg, {
+            //         time:1000,
+            //         end: function () {
+            //             if (data.url == null || data.url == '') {
+            //                 window.location.reload();
+            //             } else {
+            //                 window.location.href = data.url;
+            //             }
+            //         }
+            //     });
+            // }
         });
     });
 </script>

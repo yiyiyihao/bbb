@@ -504,13 +504,8 @@ class Order extends Model
         }
         //删除待办事件中为已完成
         if ($order['todo_id']) {
-            Todo::where([
-                'type' => 3,
-                'id'   => $order['todo_id'],
-            ])->update([
-                'status'      => 1,
-                'update_time' => time(),
-            ]);
+            $todo=new Todo;
+            $todo->finish($order['todo_id']);
         }
         $nameStr = '';
         if ($skus) {
@@ -596,7 +591,6 @@ class Order extends Model
             'store_id'     => $data['store_id'],//推送目标商户ID
             'post_store_id'=> $data['user_store_id'],//发起事件的商户ID
             'post_user_id' => $data['user_id'],
-            'url'          => url('order/pay', ['order_sn' => $data['order_sn']]),
             'title'        => '【确认收款】' . get_group_name($user['group_id']) .$user['username']. '线下支付采购订单，请确认收款',
         ];
         $todoModel = new Todo($todoData);
@@ -605,6 +599,9 @@ class Order extends Model
         if (!$todoId) {
             return dataFormat(2,'系统故障');
         }
+        $todoModel->url=url('order/pay', ['order_sn' => $data['order_sn'],'todo_id'=>$todoId]);
+        $todoModel->save();
+
         $result=db('order')->where(['order_id' => $data['order_id']])->update([
             'todo_id'     => $todoId,
             'update_time' => time(),
@@ -616,7 +613,7 @@ class Order extends Model
         $sendData = [
             'type'      => 'todo',
             'title'     => $todoData['title'],
-            'url'       => $todoData['url'],
+            'url'       => $todoModel->url,
             'todo_id'   => $todoId,
             'todo_type' => $todoData['type'],
             'add_time'  => getTime($addTime),

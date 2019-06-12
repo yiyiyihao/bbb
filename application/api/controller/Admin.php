@@ -429,7 +429,7 @@ class Admin extends Index
         $params['store_id']=$storeId;
         $storeModel->notify($params,$user);
         $source=session('api_source');
-        $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
+        $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待'.($storeType==STORE_DEALER? "服务商":"厂商").'审核', 'errLogin' => 4,'source'=>$source]);
     }
     
     protected function getStoreApplyInfo()

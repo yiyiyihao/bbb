@@ -49,13 +49,20 @@ class Store extends FactoryForm
     public function check()
     {
         $info = $this->_assignInfo();
+        $todo=new Todo;
+        if ($info === false) {
+            $todo->finish($this->request->param('todo_id'));
+            $this->error('商户不存在或已被删除');
+        }
         //只有厂商,新服务商才有权限
         if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $checkStatus = $info['check_status'];
         //已拒绝不允许审核
+
         if (in_array($checkStatus, [1, 2])) {
+            $todo->finish($info['todo_id']);
             $this->error('操作已审核');
         }
         if ($info['factory_id'] != $this->adminUser['factory_id']) {
@@ -75,10 +82,7 @@ class Store extends FactoryForm
             ];
             $result = $this->model->save($data, ['store_id' => $info['store_id']]);
             if ($result !== FALSE) {
-                Todo::where([
-                    'id'   => $info['todo_id'],
-                    'type' => 4,
-                ])->update(['status' => 1, 'update_time' => time()]);
+                $todo->finish($info['todo_id']);
                 $this->success('操作成功', url('index', ['status' => $status]));
             }else{
                 $this->error('操作失败');

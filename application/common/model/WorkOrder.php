@@ -88,7 +88,6 @@ class WorkOrder extends Model
             'store_id'      => $data['store_id'],
             'post_store_id' => $data['post_store_id'],
             'post_user_id'  => $data['post_user_id'],
-            'url'           => url('workorder/dispatch', ['id' => $worder['worder_id']]),
             'title'         => '【工单分派】' . get_group_name($groupId) . '提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
         ];
         $todoModel = new Todo($todoData);
@@ -98,11 +97,14 @@ class WorkOrder extends Model
             $this->error='系统故障';
             return false;
         }
+        $todoModel->url=url('workorder/dispatch', ['id' => $worder['worder_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
+
         $addTime = isset($worder['add_time']) ? $worder['add_time'] : time();
         $sendData = [
             'type'            => 'todo',
             'title'           => $todoData['title'],
-            'url'             => $todoData['url'],
+            'url'             => $todoModel->url,
             'todo_id'         => $todoId,
             'todo_type'       => $todoData['type'],
             'add_time'        => getTime($addTime),
@@ -142,7 +144,6 @@ class WorkOrder extends Model
             'store_id'      => $worder['store_id'],
             'post_store_id' => $worder['store_id'],
             'post_user_id'  => $installer['user_id'],
-            'url'           => url('workorder/dispatch', ['id' => $worder['worder_id']]),
             'title'         => '【工单分派】' . $installer['realname'] . '拒绝了' . get_work_order_type($worder['work_order_type']) . '，请尽快重新分派！',
         ];
         $todoModel = new Todo($todoData);
@@ -152,12 +153,14 @@ class WorkOrder extends Model
             $this->error='系统故障';
             return false;
         }
+        $todoModel->url=url('workorder/dispatch', ['id' => $worder['worder_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
         $addTime = $worder['add_time'] ?? time();
         $addTime = is_numeric($addTime) ? $addTime : (strtotime($addTime)>0? strtotime($addTime):time());
         $sendData = [
             'type'            => 'todo',
             'title'           => $todoData['title'],
-            'url'             => $todoData['url'],
+            'url'             => $todoModel->url,
             'todo_id'         => $todoId,
             'todo_type'       => $todoData['type'],
             'add_time'        => getTime($addTime),
@@ -390,10 +393,24 @@ class WorkOrder extends Model
             //分派工程师后通知工程师
             $informModel = new \app\common\model\LogInform();
             $result = $informModel->sendInform($user['factory_id'], 'sms', $installer, 'worder_dispatch_installer');
-            //标记待办事件已完成
             if ($worder['todo_id']) {
-                Todo::where(['id'=>$worder['todo_id'],'type'=>['IN',[1,2]]])->update(['status'=>1,'update_time'=>time()]);
+                //完成待办事项
+                $todo=new Todo;
+                $ret=$todo->finish($worder['todo_id']);
+                if ($ret['code'] !== '0') {
+                    log_msg($ret);
+                }
             }
+            //发送派单通知给工程师
+            $push = new \app\common\service\PushBase();
+            $sendData = [
+                'type'         => 'worker',
+                'worder_sn'    => $worder['worder_sn'],
+                'worder_id'    => $worder['worder_id'],
+            ];
+            //发送给服务商在线管理员
+            $push->sendToUid(md5($installerId), json_encode($sendData));
+
             return TRUE;
         }else{
             $this->error = '系统异常';

@@ -115,6 +115,12 @@ $(function () {
             appendTodo(data);
             toastr.info('<a href="' + data.url + '" target="admin-iframe"><span>' + data.title + '</span><span>【' + data.add_time + '】</span></a>', '');
         }
+
+        function todoDone(data) {
+            removeTodo('todo-id-'+data.todo_id);
+        }
+
+
         //处理收到推送消息
         function infoMsg(data) {
             if (data.code == 0) {
@@ -137,7 +143,7 @@ $(function () {
             } else {
                 var data = eval("(" + res.data + ")");
             }
-            //console.log(data);
+            console.log(data);
             switch (data.type) {
                 case 'login':
                     break;
@@ -153,6 +159,8 @@ $(function () {
                 case 'todo':
                     todoMsg(data);
                     break;
+                case 'todo_done':
+                    todoDone(data);
                 default:
                     break;
             }

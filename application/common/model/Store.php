@@ -48,12 +48,11 @@ class Store extends Model
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
         $todoData = [
-            'type'          => 2,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
-            'store_id'      => in_array($data['store_type'],[STORE_DEALER])? $data['ostore_id']:$data['factory_id'],
+            'type'          => 4,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'      => in_array($data['store_type'], [STORE_DEALER]) ? $data['ostore_id'] : $data['factory_id'],
             'post_store_id' => $data['store_id'],
             'post_user_id'  => $user['user_id'],
-            'url'           => url('store/check', ['id' => $data['store_id']]),
-            'title'         => '【审核】'.$data['user_name'].'提交了'.get_store_type($data['store_type']).'申请，请予以审核',
+            'title'         => '【审核】' . $data['user_name'] . '提交了' . get_store_type($data['store_type']) . '申请，请予以审核',
         ];
         $todoModel = new Todo($todoData);
         $todoModel->save();
@@ -62,11 +61,13 @@ class Store extends Model
             $this->error='系统故障';
             return false;
         }
+        $todoModel->url=url($data['store_type'] == STORE_DEALER ? 'store/check' : 'store/service_check', ['id' => $data['store_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
         $addTime = time();
         $sendData = [
             'type'            => 'store',
             'title'           => $todoData['title'],
-            'url'             => $todoData['url'],
+            'url'             => $todoModel->url,
             'todo_id'         => $todoId,
             'todo_type'       => $todoData['type'],
             'add_time'        => getTime($addTime),
