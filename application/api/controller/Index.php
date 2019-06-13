@@ -1087,7 +1087,7 @@ class Index extends ApiBase
             ->where([
                 'p1.is_del'       => 0,
                 'p1.worder_sn'    => $worderSn,
-                'p1.post_user_id' => $user['user_id'],
+                //'p1.post_user_id' => $user['user_id'],
             ])->find();
         if (empty($workOrderInfo)) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '该用户工单不存在或已删除']);
