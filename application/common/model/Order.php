@@ -177,7 +177,7 @@ class Order extends Model
         }
         //20190520需求：厂商可对服务商采购订单进行标记发货并可录入物流单号，故厂商收款确认后不能直接完成订单。
         //MODIFIED BY JINZHOU 2019/5/20
-        if (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+        if (in_array($user['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
             $data = [
                 'finish_status' => 2,
                 'finish_time' => time(),
