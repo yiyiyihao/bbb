@@ -283,19 +283,27 @@
             obj=$(this);
             var lat=0,lng=0;
             var location=$(this).data('location');
-            if (location) {
+            if (location !=='') {
                 location=location.split(',');
                 lat=location[0];
                 lng=location[1];
             }else {
-                $.post('/store/getcoder',{address:address},function (data) {
-                    data=data.data;
-                    var lat=data.lat;
-                    var lng=data.lng;
+                $.ajax({
+                    type: "post",
+                    url: "/store/getcoder",
+                    cache:false,
+                    async:false,
+                    data:{address:address},
+                    dataType: "json",
+                    success: function(data){
+                        data=data.data;
+                        lat=data.lat;
+                        lng=data.lng;
+                    }
                 });
             }
-            if (lat === '0' || lng === '') {
-                layer.msg('查无相关信息');
+            if (lat == '' || lng == '') {
+                layer.msg('查无相关坐标信息');
                 return false;
             }
             obj.showMap(lat,lng);
