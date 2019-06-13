@@ -52,10 +52,18 @@
                         </div>
                         <div class="form-group">
                             <div class="label">
-                                <label>预约服务时间</label>
+                                <label>原预约时间</label>
                             </div>
                             <div class="field">
-                                <span class="field-text">{$info['appointment']|date='Y-m-d H:i'}</span>
+                                <span class="field-text">{:time_to_date($info['appointment'],'Y-m-d H:i')}</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="label">
+                                <label>确认预约时间</label>
+                            </div>
+                            <div class="field">
+                                <span class="field-text">{:time_to_date($info['appointment_confirm'],'Y-m-d H:i')}</span>
                             </div>
                         </div>
 
