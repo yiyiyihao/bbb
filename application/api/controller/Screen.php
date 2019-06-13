@@ -36,7 +36,6 @@ class Screen extends Timer
     }
     public function index()
     {
-        $this->configKey = '';
         $lastOrderId = $this->request->param('last_order_id');
         
         $return = [];
