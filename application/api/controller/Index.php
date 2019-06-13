@@ -843,7 +843,7 @@ class Index extends ApiBase
             $field .= ', (case when WOIR.status = 1 then -2 when WOIR.status = 2 then -3 else WO.work_order_status END) as work_order_status';
         }else{
             //$where['WO.post_user_id'] = $user['user_id'];
-            $where.=' AND WO.post_user_id='.$user['user_id'];
+            //$where.=' AND WO.post_user_id='.$user['user_id'];
         }
         $detail = db('work_order')->alias('WO')->join($join)->field($field)->where($where)->find();
         if (!$detail) {
