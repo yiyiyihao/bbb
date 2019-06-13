@@ -60,7 +60,7 @@ class UploadBase extends Base
                 $result['message'] = $result['info'];
             }
             if (isset($result['thumb']) && $result['thumb']) {
-                $result['url'] = $result['thumb'];
+                $result['url'] = $result['thumb'].'?imageView2/2/w/640/q/75|imageslim';
             }
             return json($result);
         }else{
