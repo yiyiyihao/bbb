@@ -18,10 +18,12 @@ class Order extends FormBase
             'name' => '待付款',
             'url' => url('index', ['pay_status' => 0]),
         ];
-        $this->subMenu['menu'][] = [
-            'name' => '待发货',
-            'url' => url('index', ['delivery_status' => 0]),
-        ];
+        if ($this->adminUser['store_type']!=STORE_DEALER) {
+            $this->subMenu['menu'][] = [
+                'name' => '待发货',
+                'url' => url('index', ['delivery_status' => 0]),
+            ];
+        }
         $this->subMenu['menu'][] = [
             'name' => '已完成',
             'url' => url('index', ['finish_status' => 1]),
