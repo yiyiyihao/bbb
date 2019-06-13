@@ -28,7 +28,7 @@
 				              	{if condition="$vo['delivery_status'] != 2"}
 				              	<input type="checkbox" name="osku_id[]" value="{$vo['osku_id']}" {if condition="isset($params['osku_id']) && $params['osku_id']== $vo['osku_id']"} checked="checked"{/if}>
 				              	{else/}
-                                  <input type="checkbox" name="osku_id[]" value="{$vo['osku_id']}" disabled="disabled" title="已发货">
+<!--                                  <input type="checkbox" name="osku_id[]" value="{$vo['osku_id']}" disabled="disabled" title="已发货"><span style="color: gray;font-size: 12px;"></span>-->已发货
 				              	{/if}
 				              </td>
 				              <td>{$vo.sku_name} {$vo.sku_spec}</td>
