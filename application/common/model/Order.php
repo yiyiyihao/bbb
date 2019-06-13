@@ -136,7 +136,7 @@ class Order extends Model
         $detail['order'] = $order;
         if ($getlog) {
             $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
-//             $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
+            //$detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
             $detail['store'] = db('store')->field('store_id, name')->where(['store_id' => $order['user_store_id']])->find();;
         }
         //根据条件关闭订单退换货

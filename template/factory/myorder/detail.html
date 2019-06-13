@@ -4,113 +4,150 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                        <li class="active"><a href="#tab-1">订单信息信息</a></li>
+                        <li class="active"><a href="#tab-1">订单详情</a></li>
+                        <li><a href="#tab-2">商品详情</a></li>
+                        <li><a href="#tab-3">订单日志</a></li>
                     </ul>
                 </div>
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
-                	<div class="table-responsive">
-					    <table id="table" class="table table-hover ">
-					      <tbody>
-					        <tr>
-					        	<th width="80">编号</th>
-					        	<th width="100">商品类型</th>
-					          <th width="*">商品名称</th>
-					          <th width="100">商品图片</th>
-					          <th width="80">单价</th>
-					          <th width="80">购买数量</th>
-					          <th width="80">支付金额</th>
-					          {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
-					          <th width="120">安装状态</th>
-					          {/if}
-					          <!-- <th width="120">退货退款状态</th> -->
-					          <!-- <th width="*">物流信息</th> -->
-					          <th width="*">操作</th>
-					        </tr>
-					        {notempty name="info.order.skus"}
-					          {volist name="info.order.skus" id="vo"}
-					            <tr>
-					             <td>{$i}</td>
-					             <td>{:goodstype($vo.goods_type)}</td>
-					              <td>{$vo.sku_name} {$vo.sku_spec}</td>
-					              <td><img src="{$vo.sku_thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
-					              <td>{$vo.price}元</td>
-					              <td>{$vo['num']}</td>
-					              <td>{$vo.real_price}元</td>
-					              {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
-					              <td>-</td>
-					              {/if}
-					              <!-- <td>-</td> -->
-					              <!-- <td>-</td> -->
-					              <td>
+                    {include file="order/_detail" /}
+                </div>
+				<div class="tab-panel" id="tab-2">
+					<div class="table-responsive">
+						<table id="table" class="table table-hover ">
+							<tbody>
+							<tr>
+								<th width="80">编号</th>
+								<th width="100">商品类型</th>
+								<th width="*">商品名称</th>
+								<th width="100">商品图片</th>
+								<th width="80">单价</th>
+								<th width="80">购买数量</th>
+								<th width="80">支付金额</th>
+								{if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
+								<th width="120">安装状态</th>
+								{/if}
+								<!-- <th width="120">退货退款状态</th> -->
+								 <th width="*">物流信息</th>
+								<th width="*">操作</th>
+							</tr>
+							{notempty name="info.order.skus"}
+							{volist name="info.order.skus" id="vo"}
+							<tr>
+								<td>{$i}</td>
+								<td>{:goodstype($vo.goods_type)}</td>
+								<td>{$vo.sku_name} {$vo.sku_spec}</td>
+								<td><img src="{$vo.sku_thumb|default='/static/base/images/default.png'}" id="preview_imgs" width="100"></td>
+								<td>{$vo.price}元</td>
+								<td>{$vo['num']}</td>
+								<td>{$vo.real_price}元</td>
+								{if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
+								<td>-</td>
+								{/if}
+								<!-- <td>-</td> -->
+								<td>-</td>
+								<td>
 					              	<span class='button-group'>
 					              	{if condition="$info['order']['order_type'] != 1"}
-						              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_id'] != 0"}
-						                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_id']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>
+						              	{if condition="$vo['delivery_status'] != 0 AND $vo['odelivery_ids']"}
+<!--						                <a href="{:url('deliveryLogs', ['odelivery_id' => $vo['odelivery_ids']])}" class="button button-small bg-red js-open" title="查看物流">查看物流</a>-->
 						                {/if}
 					                {/if}
 					              	</span>
-					              </td>
-					            </tr>
-					            {if ($vo['subs'])}
-						          {volist name="vo.subs" id="v" key='k'}
-						            <tr>
-						              <td>|-{$k}</td>
-						              <td colspan="3"></td>
-						              <td>{$v.price}元</td>
-						              <td>1</td>
-						              <td>{$v.real_price}元</td>
-						              {if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
-						              <td>
-						              	{if condition="$vo.goods_type != 2"}
-						              	{if ($info['order']['pay_status'] == 1 && $v.work_order)}
-						              		{:get_work_order_status($v.work_order.work_order_status)}
-						              	{else/}	未申请
-						              	{/if}
-						              	{else/}
-						              		样品不安装
-						              	{/if}
-						              </td>
-						              {/if}
-						              <!-- <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td> -->
-						              <!-- <td>{$v.delivery_name}<br>{$v.delivery_sn}</td> -->
-						              <td>
-						              	{if ($info['order']['user_store_type']!=$Think.const.STORE_SERVICE_NEW && $info['order']['order_status'] == 1)}
-							              	{if condition="$vo.goods_type != 2"}
-							              		{if condition="(!$v.service || $v.service.service_status == -2)  && $info['order']['pay_status'] == 1 && (!$v.work_order || $v.work_order.work_order_status == -1)"}
-								              		<a href="{:url('workorder/add', ['ossub_id' => $v['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
-								              	{elseif ($v.work_order)/}
-								              		<a href="{:url('workorder/detail', ['id' => $v.work_order.worder_id])}" class="button button-small bg-red js-open" title="查看安装工单">查看安装工单</a>
-								              	{/if}
-							              	{/if}
-							            {/if}
-							            <!-- 
-							            {if ($info['order']['order_status'] != 2)}
-							              	{if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
+								</td>
+							</tr>
+							{if ($vo['subs'])}
+							{volist name="vo.subs" id="v" key='k'}
+							<tr>
+								<td>➤</td>
+								<td colspan="3">
+									{if ($v.odelivery_id || !$v.odelivery_id && $v['delivery_status'] != 0 )}
+										<!--已发货-->
+									{else/}
+										<!--未发货-->
+									{/if}
+								</td>
+								<td>{$v.price}元</td>
+								<td>1</td>
+								<td>{$v.real_price}元</td>
+								{if ($adminUser['admin_type'] != $Think.const.ADMIN_SERVICE_NEW)}
+								<td>
+									{if condition="$vo.goods_type != 2"}
+									{if ($info['order']['pay_status'] == 1 && $v.work_order)}
+									{:get_work_order_status($v.work_order.work_order_status)}
+									{else/}	未申请
+									{/if}
+									{else/}
+									样品不安装
+									{/if}
+								</td>
+								{/if}
+								<!-- <td>{if ($v.service)}{:get_service_status($v.service.service_status)}{/if}</td> -->
+								<td>{$v.delivery_name}<br>{$v.delivery_sn}</td>
+								<td>
+									{if ($info['order']['user_store_type']!=$Think.const.STORE_SERVICE_NEW && $info['order']['order_status'] == 1)}
+									{if condition="$vo.goods_type != 2"}
+									{if condition="(!$v.service || $v.service.service_status == -2)  && $info['order']['pay_status'] == 1 && (!$v.work_order || $v.work_order.work_order_status == -1)"}
+									<a href="{:url('workorder/add', ['ossub_id' => $v['ossub_id'], 'type' => 1])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>
+									{elseif ($v.work_order)/}
+									<a href="{:url('workorder/detail', ['id' => $v.work_order.worder_id])}" class="button button-small bg-red js-open" title="查看安装工单">查看安装工单</a>
+									{/if}
+									{/if}
+									{/if}
+									<!--
+                                    {if ($info['order']['order_status'] != 2)}
+                                          {if condition="(!$v.work_order || $v.work_order['work_order_status'] == -1) && $info['order']['close_refund_status'] == 0 && $info['order']['pay_status'] == 1 && (!$v.service || $v.service.service_status == -2)"}
 <!--							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id']])}" class="button button-small bg-yellow js-open" title="申请退货退款">申请退货退款</a>
-							              	{elseif ($v.service)/}
-							              		{if ($v.service.service_status == -2 || $v.service.service_status == -1)}
-							              		<a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id'], 'sid' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="重新申请退货退款">重新申请退货退款</a>
-							              		{elseif ($v.service.service_status == 1)/}
-							              		<a href="{:url('service/delivery', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="填写退货信息">填写退货信息</a>
-							              		{else/}
-							              		<a href="{:url('service/detail', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="查看退货退款">查看退货退款</a>
-							              		{/if}
-							              	{/if}
-						              	{/if}
-						              	-->
-						              </td>
-						            </tr>
-						          {/volist}
-						        {/if}
-					          {/volist}
-					        {/notempty}
-					      </tbody>
-					    </table>
-					  </div>
-                    {include file="order/_detail" /}
-                </div>
+                                          {elseif ($v.service)/}
+                                              {if ($v.service.service_status == -2 || $v.service.service_status == -1)}
+                                              <a href="{:url('return', ['order_sn' => $vo['order_sn'], 'ossub_id' => $v['ossub_id'], 'sid' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="重新申请退货退款">重新申请退货退款</a>
+                                              {elseif ($v.service.service_status == 1)/}
+                                              <a href="{:url('service/delivery', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="填写退货信息">填写退货信息</a>
+                                              {else/}
+                                              <a href="{:url('service/detail', ['id' => $v.service.service_id])}" class="button button-small bg-yellow js-open" title="查看退货退款">查看退货退款</a>
+                                              {/if}
+                                          {/if}
+                                      {/if}
+                                      -->
+								</td>
+							</tr>
+							{/volist}
+							{/if}
+							{/volist}
+							{/notempty}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="tab-panel" id="tab-3">
+					<div class="table-responsive">
+						<table  class="table table-hover ">
+							<tbody>
+							<tr>
+								<th width="80">编号</th>
+								<th width="*">操作用户</th>
+								<th width="*">操作</th>
+								<th width="*">操作备注</th>
+								<th width="*">操作时间</th>
+							</tr>
+							{notempty name="info.logs"}
+							{volist name="info.logs" id="vo"}
+							<tr>
+								<td>{$i}</td>
+								<td>{$vo.nickname}</td>
+								<td>{$vo.action}</td>
+								<td>{$vo.msg|raw}</td>
+								<td>{$vo['add_time']|date='Y-m-d H:i:s'}</td>
+							</tr>
+							{/volist}
+							{/notempty}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
             </div>
             <div class="panel-foot">
                 <div class="form-button">

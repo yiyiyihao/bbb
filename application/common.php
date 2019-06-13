@@ -569,7 +569,9 @@ function get_order_status($order=[]){
         return $arr;
     }
     /*******已付款***********************************************************/
-    //批发订单，不用发货
+    //批发订单，不用发货-新需求没有这个要求
+
+    //正常完成
     if ($order['delivery_status']==2 && $order['finish_status']==2) {
         $arr['status_text'] = '已完成';
         $arr['status'] = 4;
