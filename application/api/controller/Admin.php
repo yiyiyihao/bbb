@@ -216,9 +216,9 @@ class Admin extends Index
         }
         //微信用户绑定
         $data = [
-            'user_id' => $userId,
+            'user_id' => $user['user_id'],
             'update_time' => time(),
-            'phone' => $phone,
+            'phone' => $user['phone'],
         ];
         $result = $userDataModel->where(['udata_id' => $udata['udata_id']])->update($data);
         $this->_setLogin($user['user_id'], $udata['third_openid']);
