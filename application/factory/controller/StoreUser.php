@@ -127,7 +127,7 @@ class StoreUser extends FactoryForm
         if ($result['code'] !== '0') {
             $this->error($result);
         }
-        //p($result);
+
         $this->assign('detail', $result['data']);
         return $this->fetch();
     }

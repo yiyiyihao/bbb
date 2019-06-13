@@ -678,7 +678,7 @@ class Order extends Model
             $this->error = lang('param_error');
             return FALSE;
         }
-        if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
+        if (($orderType == 1 && (!isset($user['user_id']) || $user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']) && !isset($user['user_id'])  )) {
             $this->error = lang('param_error');
             return FALSE;
         }
@@ -749,11 +749,11 @@ class Order extends Model
                     return FALSE;
                 }
             }
-            if (!in_array($orderType,[1,3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
+            //货到付款 收货人姓名/电话/地址 不能为空
+            if (in_array($orderType,[3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
             }
-            $userModel = new \app\common\model\User();
             //验证手机号格式
             if (!empty($addrPhone) && !check_mobile($addrPhone)) {
                 $this->error = '手机号格式错误';

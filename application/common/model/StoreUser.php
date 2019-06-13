@@ -31,7 +31,7 @@ class StoreUser extends Model
             'p1.is_del'   => 0,
         ])/*->fetchSql(true)*/ ->find();
         //订单记录
-        $field = 'p1.order_id,p1.order_sn,p1.pay_type,p3.name pay_name,p1.order_type,p1.pay_status,p1.pay_sn,p1.paid_amount,p1.add_time,p1.order_status';
+        $field = 'p1.order_id,p1.order_sn,p1.pay_type,p3.name pay_name,p1.order_type,p1.pay_status,p1.pay_sn,p1.paid_amount,p1.add_time,p1.order_status,p1.delivery_status,p1.user_store_type,p1.delivery_type';
         $join = [
             ['work_order p2', 'p1.order_sn = p2.order_sn'],
             ['payment p3', 'p3.pay_code = p1.pay_code', 'LEFT']
