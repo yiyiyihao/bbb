@@ -102,7 +102,7 @@ class WorkOrder extends Model
         $todoData = [
             'type'          => 1,//待分配工单
             'store_id'      => $data['store_id'],
-            'post_store_id' => $data['post_store_id'],
+            'post_store_id' => $data['post_store_id']?? 0,
             'post_user_id'  => $data['post_user_id'],
             'title'         => '【工单分派】' . get_group_name($groupId) . '提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
         ];
