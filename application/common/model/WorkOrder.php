@@ -56,7 +56,7 @@ class WorkOrder extends Model
             //发送工单通知给服务商
             $this->notify($worder,$data,$where,$user);
             //更新客户信息
-            $this->UpdateStoreUser($user,$worder);
+            $this->UpdateStoreUser($user,array_merge($data,$worder));
 
             return $sn;
         }
@@ -74,6 +74,22 @@ class WorkOrder extends Model
             ])->find();
             if ($storeUser && $storeUser['user_type'] == 0) {//成交客户
                 $storeUser->user_type = 1;
+                $storeUser->realname = $workOrder['user_name'];
+                $storeUser->region_id = $workOrder['region_id'];
+                $storeUser->address = $workOrder['address'];
+                $storeUser->deal_close_time = time();
+                $storeUser->save();
+            } elseif (empty($storeUser)) {//保存客户信
+                $storeUser=new StoreUser;
+                $storeUser->user_type = 1;
+                $storeUser->store_id = $postUser['store_id'];
+                $storeUser->realname = $workOrder['user_name'];
+                $storeUser->mobile = $workOrder['phone'];
+                $storeUser->goods_id = $workOrder['goods_id'];
+                $storeUser->region_id = $workOrder['region_id'];
+                $storeUser->region_name = $workOrder['region_name'];
+                $storeUser->address = $workOrder['address'];
+                $storeUser->deal_close_time = time();
                 $storeUser->save();
             }
         }

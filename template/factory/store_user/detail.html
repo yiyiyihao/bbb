@@ -9,8 +9,12 @@
                     <div class="tab-head">
                         <ul class="tab-nav">
                             <li class="active"><a href="#tab-1">客户信息</a></li>
+                            {notempty name="detail.order.list"}
                             <li><a href="#tab-2">订单记录</a></li>
+                            {/notempty}
+                            {notempty name="detail.work_order.list"}
                             <li><a href="#tab-3">工单记录</a></li>
+                            {/notempty}
                         </ul>
                     </div>
                 </div>
@@ -77,6 +81,7 @@
                             </div>
                         </div>
                     </div>
+                    {notempty name="detail.order.list"}
                     <div class="tab-panel" id="tab-2">
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -98,7 +103,6 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {notempty name="detail.order.list"}
                                 {volist name="detail.order.list" id="vo" key="key"}
                                 <tr>
                                     <td>{$vo.order_sn?? ""}</td>
@@ -116,12 +120,14 @@
                                     </td>
                                 </tr>
                                 {/volist}
-                                {/notempty}
+
                                 </tbody>
                             </table>
                         </div>
                         <div class="panel-foot table-foot clearfix">{$detail.orders.page|raw|default=''}</div>
                     </div>
+                    {/notempty}
+                    {notempty name="detail.work_order.list"}
                     <div class="tab-panel" id="tab-3">
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -156,7 +162,6 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {notempty name="detail.work_order.list"}
                                 {volist name="detail.work_order.list" id="vo" key="key"}
                                 <tr>
                                     <td>{$vo.worder_sn?? ""}</td>
@@ -173,12 +178,13 @@
                                     <td>{if condition="check_auth('workorder','detail')"}<a href="{:url('workorder/detail', ['id' => $vo.worder_id])}" class="button button-small bg-green icon-edit">详情</a>{/if}</td>
                                 </tr>
                                 {/volist}
-                                {/notempty}
+
                                 </tbody>
                             </table>
                         </div>
                         <div class="panel-foot table-foot clearfix">{$detail.work_order.page|raw|default=''}</div>
                     </div>
+                    {/notempty}
                 </div>
 <!--                <div class="panel-foot">-->
 <!--                    <div class="form-button">-->
