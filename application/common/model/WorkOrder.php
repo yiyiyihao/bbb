@@ -98,13 +98,18 @@ class WorkOrder extends Model
     {
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
-        $groupId = db('user')->where('user_id', $data['post_user_id'])->value('group_id');
+        $postUser = db('user')
+            ->alias('p1')
+            ->field('p1.group_id,p1.store_id,p1.username,p2.name store_name')
+            ->join('store p2','p1.store_id=p2.store_id AND p2.is_del=0','LEFT')
+            ->where('p1.user_id', $data['post_user_id'])
+            ->find();
         $todoData = [
             'type'          => 1,//待分配工单
             'store_id'      => $data['store_id'],
             'post_store_id' => $data['post_store_id']?? 0,
             'post_user_id'  => $data['post_user_id'],
-            'title'         => '【工单分派】' . get_group_name($groupId) . '提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
+            'title'         => '【工单分派】' . ($postUser['store_name']? $postUser['store_name']:$postUser['username']). ' ('.get_group_name($postUser['group_id']).')提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
         ];
         $todoModel = new Todo($todoData);
         $todoModel->save();

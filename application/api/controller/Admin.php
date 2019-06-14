@@ -1353,7 +1353,7 @@ class Admin extends Index
 
     private function getGoodsInfo($goodsId,$user)
     {
-        $field = 'G.goods_id,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
+        $field = 'G.goods_id,G.name,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
         $join=[];
         if ($user['admin_type'] == ADMIN_DEALER) {
             $channelId=$this->getChanelId($user['store_id']);

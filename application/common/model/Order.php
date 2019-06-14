@@ -585,13 +585,18 @@ class Order extends Model
         }
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
-        $user = db('user')->field('group_id,username')->where('user_id', $data['user_id'])->find();
+        $user = db('user')
+            ->alias('p1')
+            ->field('p1.group_id,p1.username,p2.name store_name')
+            ->join('store p2','p1.store_id=p2.store_id AND p2.is_del=0','LEFT')
+            ->where('p1.user_id', $data['user_id'])
+            ->find();
         $todoData=[
             'type'         => 3,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
             'store_id'     => $data['store_id'],//推送目标商户ID
             'post_store_id'=> $data['user_store_id'],//发起事件的商户ID
             'post_user_id' => $data['user_id'],
-            'title'        => '【确认收款】' . get_group_name($user['group_id']) .$user['username']. '线下支付采购订单，请确认收款',
+            'title'        => '【确认收款】' .($user['store_name']? $user['store_name']:$user['username']).' ('.get_group_name($user['group_id']) . ')线下支付采购订单，请确认收款',
         ];
         $todoModel = new Todo($todoData);
         $todoModel->save();
