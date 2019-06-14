@@ -65,6 +65,9 @@ class Ugroup extends AdminForm
                 $where[$pk] = $pkId; 
                 $rs = $this->model->where($where)->update($data);
                 if($rs !== FALSE){
+                    // 权限修改成功,更新缓存
+                    model('AuthRule')->updateRuleList($group);
+                    cache('groupPurview'.$pkId,$grouppurview);
                     $msg .= lang('success');
                     $this->success($msg, url("index"), TRUE);
                 }else{

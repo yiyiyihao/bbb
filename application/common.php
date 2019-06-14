@@ -1348,6 +1348,20 @@ function str_encode($str,$prefix=0,$suffix=0){
     return $_pre.$_mid.$_suf;
 }
 
+/**
+ * 根据分组名称获取分组权限
+ * @param number $groupId
+ */
+function getGroupPurview($groupId = 0)
+{
+    $groupPurview = cache('groupPurview'.$groupId);
+    if(!$groupPurview){
+        //获取账户角色权限
+        $groupPurview = db('user_group')->where(['group_id' => $groupId, 'is_del' => 0, 'status' => 1])->value('menu_json');
+    }
+    return $groupPurview;
+}
+
 //权限检测
 function check_auth($controller='',$action='index'){
     $flag=false;
@@ -1368,7 +1382,7 @@ function check_auth($controller='',$action='index'){
     if ($adminUser['user_id']==1){
         return true;
     }
-    $groupPurview = $adminUser['groupPurview'];
+    $groupPurview = getGroupPurview($adminUser['group_id']);
     $groupPurview   = $groupPurview ? json_decode($groupPurview,true) : [];
     foreach ($groupPurview as $item) {
         if ($item['module']==$request->module() && $item['controller']==$controller ) {

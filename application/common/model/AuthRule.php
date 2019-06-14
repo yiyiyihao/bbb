@@ -15,6 +15,13 @@ class AuthRule extends Model
 	    $prefix = $this->getConfig('prefix');
 	    $this->table = $prefix.'auth_rule';
 	    parent::initialize();
+	}	
+	
+	//更新规则列表
+	static function updateRuleList($domain){
+	    // 先清除缓存
+	    cache($domain.'authRule',null);
+	    self::getRuleList($domain);
 	}
 	
 	//取得规则列表

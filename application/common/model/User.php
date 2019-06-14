@@ -212,7 +212,8 @@ class User extends Model
             $this->error = lang('PERMISSION_DENIED');
             return FALSE;
         }
-        if ($user['group_id']) {
+        // 登录时候不获取用户权限
+        /* if ($user['group_id']) {
             //获取账户角色权限
             $group = db('user_group')->where(['group_id' => $user['group_id'], 'is_del' => 0, 'status' => 1])->find();
             if (!$group) {
@@ -223,7 +224,7 @@ class User extends Model
         }else{
             #TODO 获取系统设置权限
             $groupPurview = [];
-        }
+        } */
         $adminStore = [];
         $storeType = 0;
         if ($user['admin_type'] != ADMIN_SYSTEM) {
@@ -258,7 +259,7 @@ class User extends Model
 		    'nickname'        => $user['nickname'],
 		    'phone'           => $user['phone'],
 		    'last_login_time' => $user['last_login_time'],
-		    'groupPurview'    => $groupPurview,
+// 		    'groupPurview'    => $groupPurview,
 		    'pwd_modify'      => $user['pwd_modify'],
 		];
 		$this->setSession($domain, $adminUser);

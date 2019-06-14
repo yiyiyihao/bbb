@@ -67,7 +67,7 @@ class CommonBase extends Base
         //是超级管理员,不验证操作权限
         if($this->adminUser['user_id']!==1){
             //普通用户 //从登陆信息中取出权限配置
-            $groupPurview = $this->adminUser['groupPurview'];
+            $groupPurview = getGroupPurview($this->adminUser['group_id']);
             //json转数组
             $groupPurview   = $groupPurview ? json_decode($groupPurview,true) : [];
             if ($this->adminUser && ($this->adminUser['admin_type'] == 0 && $this->adminUser['store_id'] == 0) || ($this->adminStore && $this->adminStore['check_status'] != 1)) {
@@ -149,8 +149,8 @@ class CommonBase extends Base
      */
     protected function initSubMenu($adminUser = []){
         if($adminUser['user_id'] == 1) return;
-        if(empty($adminUser['groupPurview'])) $this->error(lang('NO_GROUP'));
-        $groupPurview = $adminUser['groupPurview'];
+        if(!isset($adminUser['group_id']) || $adminUser['group_id'] == 0) $this->error(lang('NO_GROUP'));
+        $groupPurview = getGroupPurview($adminUser['group_id']);
         $purviewList = json_decode($groupPurview,1);
         $subMenu = $this->subMenu;
         $module             = strtolower($this->request->module());
