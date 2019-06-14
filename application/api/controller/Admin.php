@@ -1562,27 +1562,39 @@ class Admin extends Index
     
     /**
      * 获取支付方式列表
-     * TODO 要考虑H5支付方式,目前线下支付方式属于PC
      */
     protected function getPaymentList()
     {
+        $orderModel = new \app\common\model\Order();
         $user = $this->_checkUser();
-        $storeId = 1;//默认取得厂商的支付方式
+        if (!in_array($user['admin_type'], [ADMIN_DEALER,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $storeId=0;
+        $storeName='';
         if ($user['store_type'] == STORE_DEALER) {
+            $storeName='服务商';
             //如果是零售商,取得零售商的上级服务商的支付方式配置
             $channel=db('store_dealer')
-            ->alias('p1')
-            ->field('p1.sample_amount,p2.store_no')
-            ->join('store p2','p1.ostore_id=p2.store_id')
-            ->where(['p1.store_id'=>$user['store_id'],'p2.is_del'=>0,'status'=>1])
-            ->find();
+                ->alias('p1')
+                ->field('p1.ostore_id')
+                ->join('store p2','p1.ostore_id=p2.store_id')
+                ->where(['p1.store_id'=>$user['store_id'],'p2.is_del'=>0,'status'=>1])
+                ->find();
             $storeId=$channel['ostore_id'];
+        }else{
+            $storeName='厂商';
+            $storeId=$user['factory_id'];
         }
-        $orderModel = new \app\common\model\Order();
-        $payments = $orderModel->getOrderPayments($storeId, 4);
+
+        $payments=db('payment')->field('name,pay_code')->where([
+            ['store_id','=',$storeId],
+            ['is_del','=',0],
+            ['status','=',1],
+            ['pay_code','IN',['wechat_js','offline_pay']],
+        ])->select();
         if (empty($payments)) {
-            $strorName = $user['store_type'] == STORE_DEALER ? '服务商' : '厂商';
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => $strorName . '未配置支付信息']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeName . '未配置支付信息']);
         }
         $this->_returnMsg(['data' => $payments]);
     }
