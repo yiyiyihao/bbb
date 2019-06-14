@@ -1514,6 +1514,45 @@ class Admin extends Index
             $this->_returnMsg(['datas' => $result]);
         }
     }
+
+    //线下支付
+    public function offLinePay()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $paySn = isset($this->postParams['pay_sn']) ? trim($this->postParams['pay_sn']) : '';
+        $imgUrl = isset($this->postParams['img_url']) ? trim($this->postParams['img_url']) : '';
+        if (!$orderSn) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order=$orderModel->where(['order_sn'=>$orderSn,'order_status'=>1])->find();
+        if (empty($order)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单不存在']);
+        }
+        if ($order['pay_status']!=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付']);
+        }
+        $order->pay_type = 2;
+        $order->order_type = 2;
+        $order->pay_code = 'offline_pay';
+        $order->remark = $remark;
+        $order->pay_sn = $paySn;
+        $order->pay_certificate = $imgUrl;
+        $order->update_time = time();
+        if ($order->save() === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付失败']);
+        } else {
+            $data = db('order')->where(['order_sn' => $orderSn])->find();
+            $orderModel->notify($user, $data);
+            $this->_returnMsg(['errCode' => 0, 'errMsg' => '订单提交成功，等待确认']);
+        }
+    }
+
     //支付订单
     protected function payOrder()
     {
@@ -1618,7 +1657,7 @@ class Admin extends Index
             }
         }
         $where = [
-            'order_type' => 1,
+            //'order_type' => 1,
         ];
         if ($status > 0) {
             switch ($status) {
@@ -1627,7 +1666,7 @@ class Admin extends Index
                     $where['pay_status'] = 0;
                     break;
                 case 2://已完成
-                    $where['finish_status'] = 2;
+                    $where['pay_status'] = 1;
                     $where['order_status'] = 1;
                     break;
                 case 3://已关闭(取消或已关闭)
@@ -1651,7 +1690,7 @@ class Admin extends Index
         }
         
         $order = 'add_time DESC';
-        $field = 'order_id, store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
+        $field = 'order_id, store_id,user_store_type, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
         $result=[];
         if ($list) {

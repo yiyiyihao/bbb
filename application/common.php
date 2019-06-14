@@ -561,6 +561,10 @@ function get_order_status($order=[]){
     if ($order['order_type'] == 1 && in_array($order['user_store_type'],[STORE_DEALER,STORE_SERVICE,STORE_SERVICE_NEW]) ) {
         $order['order_type']=2;
     }
+
+
+
+
     /*******未付款*******************************************************/
     if ($order['pay_status'] == 0) {
         //货到付款以后再处理【pay_type=3】
@@ -577,6 +581,15 @@ function get_order_status($order=[]){
         $arr['status'] = 4;
         return $arr;
     }
+
+    //正常完成
+    if ($order['pay_status']==1) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+
+
     //电商订单不需要发货
     if ($order['pay_status']==1 && $order['order_status']==1 && $order['user_store_type']==STORE_FACTORY) {
         $arr['status_text'] = '已完成';

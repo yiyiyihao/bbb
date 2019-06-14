@@ -49,7 +49,7 @@ class Index extends CommonIndex
                 'store_id' => $this->adminUser['store_id'],
                 'is_del'   => 0,
                 'status'   => 0
-            ])->order('id desc')->paginate(5,false, ['query' => input('param.')]);
+            ])->order('id desc')->paginate(10,false, ['query' => input('param.')]);
             $todo=$query->items();
             $todoNum=$query->total();
             $this->assign('todo', $todo);

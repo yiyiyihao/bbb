@@ -580,8 +580,7 @@ class Order extends Model
     public function notify($user,$data)
     {
         if ($data['pay_type'] != 2 || in_array($user['group_id'], [GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
-            return dataFormat(1,'商户类无推送信息');
-
+            return dataFormat(1,'电商户类无推送信息');
         }
         //发送工单通知给服务商
         $push = new \app\common\service\PushBase();
