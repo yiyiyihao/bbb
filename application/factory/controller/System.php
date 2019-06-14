@@ -193,6 +193,7 @@ class System extends adminSystem
             $storeId = $this->adminStore['store_id'];
             $config = get_store_config($storeId, TRUE);
             $config['wechat_applet'] = get_store_config($storeId, FALSE, 'wechat_applet');
+            $this->assign('config',$config);
             return $this->fetch();
         }
     }
