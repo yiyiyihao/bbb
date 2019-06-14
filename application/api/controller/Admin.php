@@ -1548,7 +1548,8 @@ class Admin extends Index
         if (!$order['openid']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
         }
-        $paymentApi = new \app\common\api\PaymentApi($order['store_id'], 'wechat_js');
+        $payCode  = isset($this->postParams['pay_code']) ? trim($this->postParams['pay_code']) : 'wechat_js';
+        $paymentApi = new \app\common\api\PaymentApi($order['store_id'], $payCode);
         if (!$paymentApi->config) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '未配置当前支付方式']);
         }
@@ -1558,6 +1559,34 @@ class Admin extends Index
         }
         $this->_returnMsg(['data' => $result]);
     }
+    
+    /**
+     * 获取支付方式列表
+     * TODO 要考虑H5支付方式,目前线下支付方式属于PC
+     */
+    protected function getPaymentList()
+    {
+        $user = $this->_checkUser();
+        $storeId = 1;//默认取得厂商的支付方式
+        if ($user['store_type'] == STORE_DEALER) {
+            //如果是零售商,取得零售商的上级服务商的支付方式配置
+            $channel=db('store_dealer')
+            ->alias('p1')
+            ->field('p1.sample_amount,p2.store_no')
+            ->join('store p2','p1.ostore_id=p2.store_id')
+            ->where(['p1.store_id'=>$user['store_id'],'p2.is_del'=>0,'status'=>1])
+            ->find();
+            $storeId=$channel['ostore_id'];
+        }
+        $orderModel = new \app\common\model\Order();
+        $payments = $orderModel->getOrderPayments($storeId, 4);
+        if (empty($payments)) {
+            $strorName = $user['store_type'] == STORE_DEALER ? '服务商' : '厂商';
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $strorName . '未配置支付信息']);
+        }
+        $this->_returnMsg(['data' => $payments]);
+    }
+    
     //获取订单列表
     protected function getOrderList()
     {
