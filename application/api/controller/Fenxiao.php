@@ -436,7 +436,7 @@ class Fenxiao extends Admin
         $order = 'UDC.add_time DESC';
         $field = 'UD.nickname, UD.avatar';
         $field .= ', O.order_sn, real_amount';
-        $field .= ', O.order_type, O.pay_type, O.order_sn, O.real_amount, O.order_status, O.pay_status, O.delivery_status, O.finish_status';
+        $field .= ', O.order_type, O.pay_type, O.order_sn, O.real_amount, O.order_status, O.pay_status, O.delivery_status, O.finish_status,O.user_store_type,O.delivery_type';
         $field .= ', sku_name, sku_thumb, sku_spec, num, real_price';
         $field .= ', UDC.value as commission_amount, UDC.commission_status, O.add_time';
         $alias = 'UDC';
@@ -448,6 +448,9 @@ class Fenxiao extends Admin
         $result = $this->_getModelList(model('user_distributor_commission'), $where, $field, $order, $alias, $join);
         if ($result && isset($result)) {
             foreach ($result as $key => $value) {
+                if(is_object($value)){
+                    $value = $value->toArray();
+                }
                 if ($value['commission_status'] !== 0) {
                     $text = get_commission_status($value['commission_status']);
                 }else{
