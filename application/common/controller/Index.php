@@ -240,10 +240,10 @@ class Index extends CommonBase
                 $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
                 $today['order_amount'] = $todayOrder && isset($todayOrder['order_amount']) ? sprintf("%.2f",($todayOrder['order_amount'])) : 0;
-                
+
                 //累计订单数据统计
                 $where = [
-                    ['store_id','=',$storeId],
+                    ['factory_id','=',$this->adminUser['factory_id']],
                     ['order_status','<>',2],
                     ['pay_status','=',1],
                 ];
