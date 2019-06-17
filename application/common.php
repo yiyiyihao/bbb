@@ -562,9 +562,6 @@ function get_order_status($order=[]){
         $order['order_type']=2;
     }
 
-
-
-
     /*******未付款*******************************************************/
     if ($order['pay_status'] == 0) {
         //货到付款以后再处理【pay_type=3】
