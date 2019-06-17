@@ -216,6 +216,15 @@ class Screen extends Timer
             ];
             $result['goods'] = db('order_sku')->where($where)->fieldRaw('sku_name `name`,SUM(`num`) `sales`')->group('sku_id')->order('sales DESC')->limit(10)->select();
         }
+        //售后工程师
+        $where = [
+            ['factory_id', '=', $this->factoryId],
+        ];
+        if (!$isFactory) {
+            $where[] = ['store_id', '=', $this->adminUser['store_id']];
+        }
+        $count = db('user_installer')->where($where)->count();
+        $result['user_installer']['installer_count'] = $count;
         $this->_returnMsg(['return' => $result]);
         return false;
     }

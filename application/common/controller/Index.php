@@ -269,8 +269,8 @@ class Index extends CommonBase
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
-                $field .= ', count(if(store_type = '.STORE_SERVICE.', true, NULL)) as service_count';
-                $field .= ', sum(if(store_type = '.STORE_CHANNEL.' OR store_type = '.STORE_SERVICE.', security_money, 0)) as security_money_total';
+                $field .= ', count(if(store_type in ('.STORE_SERVICE.','.STORE_SERVICE_NEW.'), true, NULL)) as service_count';
+                $field .= ', sum(if(store_type IN('.STORE_CHANNEL.','.STORE_SERVICE_NEW.','.STORE_SERVICE.'), security_money, 0)) as security_money_total';
                 $totalStore = $storeModel->field($field)->where($where)->find();
                 //累计渠道商数量
                 $total['channel_count'] = $totalStore && isset($totalStore['channel_count']) ? intval($totalStore['channel_count']) : 0;
@@ -295,10 +295,10 @@ class Index extends CommonBase
                 $where = [
                     ['S.factory_id','=',$storeId],
                     ['S.is_del','=',0],
-                    ['S.store_type','IN',[STORE_CHANNEL, STORE_SERVICE]],
+                    ['S.store_type','IN',[STORE_CHANNEL, STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
                 $field = ' sum(if(store_type = '.STORE_CHANNEL.', withdraw_amount, 0)) as channel_withdraw_amount';
-                $field .= ', sum(if(store_type = '.STORE_SERVICE.', withdraw_amount, 0)) as servicer_withdraw_amount';
+                $field .= ', sum(if( store_type IN  ('.STORE_SERVICE.','.STORE_SERVICE_NEW.'), withdraw_amount, 0)) as servicer_withdraw_amount';
                 $totalStore = $storeModel->alias('S')->field($field)->join($join)->where($where)->find();
                 //渠道商累计提现金额
                 $total['channel_withdraw_amount'] = $totalStore && isset($totalStore['channel_withdraw_amount']) ? floatval($totalStore['channel_withdraw_amount']) : 0;
