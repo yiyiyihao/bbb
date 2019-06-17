@@ -34,6 +34,7 @@ class Screen extends Timer
         $this->endTodayTime = strtotime(date('Y-m-d') . ' +1 day');
         $domain=db('store_factory')->where(['store_id'=>1])->value('domain');
         $adminUser = session($domain.'_user');
+
         $this->adminUser = $adminUser;
         $this->factoryId = isset($adminUser['factory_id']) ? $adminUser['factory_id'] : 0;
     }
@@ -60,6 +61,7 @@ class Screen extends Timer
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
         $result['work_order']['today_count'] = db('work_order')->where($where)->count();
+        $result['work_order']['allserv_count'] = db('work_order')->where($where)->count();
         //累计服务(人次)
         unset($where[0], $where[1]);//累计服务人次
         $result['work_order']['total_count'] = db('work_order')->where($where)->count();
@@ -205,7 +207,7 @@ class Screen extends Timer
         //热销产品
         if ($isFactory) {
             $where = [
-                ['factory_id', '=', $this->factoryId],
+                ['store_id', '=', $this->factoryId],
             ];
             $result['goods'] = db('goods')->where($where)->field('name,sales')->order('sales DESC')->limit(0,20)->select();
         }else{
@@ -278,7 +280,7 @@ class Screen extends Timer
             $tempArr = ['errCode' => 0, 'errMsg' => 'ok'];
             $data = $data ? ($tempArr + $data) : $data;
         }
-        $result = json_encode(recursion($data));
+        $result = json_encode($data);
         if ($echo) {
             header('Content-Type:application/json');
             echo $result;
