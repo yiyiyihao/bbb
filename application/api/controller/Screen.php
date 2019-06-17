@@ -52,18 +52,19 @@ class Screen extends Timer
         $result = [];
         //今日服务人数
         $where = [
-            ['add_time', '>=', $this->beginToday],
-            ['add_time', '<', $this->endTodayTime],
-            ['work_order_status', '>', 0],
+            ['sign_time', '>=', $this->beginToday],
+            ['sign_time', '<', $this->endTodayTime],
+            ['work_order_status', '>=', 0],
             ['factory_id', '=', $this->factoryId],
         ];
         if (!$isFactory) {
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
         $result['work_order']['today_count'] = db('work_order')->where($where)->count();
-        $result['work_order']['allserv_count'] = db('work_order')->where($where)->count();
+
         //累计服务(人次)
         unset($where[0], $where[1]);//累计服务人次
+        $where[] = ['sign_time', '>', 0];
         $result['work_order']['total_count'] = db('work_order')->where($where)->count();
         //待分派工单【今天】
         $where = [
@@ -86,6 +87,8 @@ class Screen extends Timer
         //工单完成率【今天】
         $countPercent = $result['work_order']['finish_count'] > 0 ? $result['work_order']['finish_count'] / $result['work_order']['today_count'] * 100 : 0;
         $result['work_order']['finish_percent'] = intval($countPercent) . '%';
+        $where[2] = ['work_order_status', '>=', 0];
+        $result['work_order']['allserv_count'] = db('work_order')->where($where)->count();
 
         //今日交易额
         $where = [
@@ -95,13 +98,32 @@ class Screen extends Timer
             ['pay_status', '=', 1],
             ['factory_id', '=', $this->factoryId],
         ];
-        if (!$isFactory) {
+        //分销数据
+        $whereFenxiao='';
+        if ($isFactory) {
+            $whereFenxiao='add_time>='.$this->beginToday.' AND add_time<'.$this->endTodayTime.'  AND  store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+            $where[] = ['user_store_type', 'IN',[STORE_SERVICE,STORE_SERVICE_NEW]];//厂商只统计服务商数据
+        }else{
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
-        $result['order']['today_amount'] = db('order')->where($where)->sum('real_amount');
+        $query=db('order')->where($where);
+        if ($whereFenxiao) {
+            $query->whereOrRaw($whereFenxiao);
+        }
+        $result['order']['today_amount'] =$query->sum('real_amount');
+
         //总交易额
         unset($where[0], $where[1]);
-        $result['order']['total_amount'] = (int)db('order')->where($where)->sum('real_amount');
+        //分销数据
+        $whereFenxiao='';
+        if ($isFactory) {
+            $whereFenxiao='store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0'.$this->adminUser['factory_id'];
+        }
+        $query=db('order')->where($where);
+        if ($whereFenxiao) {
+            $query->whereOrRaw($whereFenxiao);
+        }
+        $result['order']['total_amount'] = (int)$query->sum('real_amount');
         //今日交易笔数
         $where = [
             ['add_time', '>=', $this->beginToday],
@@ -110,13 +132,17 @@ class Screen extends Timer
             ['pay_status', '=', 1],
             ['factory_id', '=', $this->factoryId],
         ];
-        if (!$isFactory) {
+        if ($isFactory) {
+            $where[] = ['user_store_type', 'IN',[STORE_SERVICE,STORE_SERVICE_NEW]];//厂商只统计服务商数据
+        }else{
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
         $result['order']['today_count'] = db('order')->where($where)->count();
+
         //总交易笔数
         unset($where[0], $where[1]);
         $result['order']['total_count'] = db('order')->where($where)->count();
+
         //服务商数量
         $servicerCount = 1;
         if ($isFactory) {
@@ -161,6 +187,7 @@ class Screen extends Timer
         //订单完成率【今天】
         $countPercent = $result['order']['finish_count'] > 0 ? $result['order']['finish_count'] / $result['order']['today_count'] * 100 : 0;
         $result['order']['finish_percent'] = intval($countPercent) . '%';
+
         //实时订单列表
         $where = [
             ['p2.factory_id', '=', $this->factoryId],

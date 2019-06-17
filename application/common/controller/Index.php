@@ -234,8 +234,10 @@ class Index extends CommonBase
                     ['store_id','=',$storeId],
                     ['order_status','<>',2],
                     ['pay_status','=',1],
+                    ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
-                $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                $whereFenxiao='add_time>='.$beginToday.' AND  store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+                $todayOrder = db('order')->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->whereOrRaw($whereFenxiao)->find();
                 //今日订单数
                 $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
@@ -246,13 +248,16 @@ class Index extends CommonBase
                     ['factory_id','=',$this->adminUser['factory_id']],
                     ['order_status','<>',2],
                     ['pay_status','=',1],
+                    ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
-                $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                $whereFenxiao='store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+                $totalOrder = db('order')->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->whereOrRaw($whereFenxiao)->find();
                 //累计订单数
                 $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
                 //累计订单金额
                 $total['order_amount'] = $totalOrder && isset($totalOrder['order_amount']) ? sprintf("%.2f",($totalOrder['order_amount'])) : 0;
-                
+                //p($total);
+
                 //今日新增零售商数量
                 $where = [
                     ['factory_id','=',$storeId],
@@ -1093,7 +1098,7 @@ class Index extends CommonBase
         $to=strtotime($to);
         $where=[
             ['p1.is_del','=',0],
-            ['p1.work_order_status','>=',0],
+            ['p1.work_order_status','=',4],
             ['p1.add_time','>=',$from],
             ['p1.add_time','<=',$to],
         ];

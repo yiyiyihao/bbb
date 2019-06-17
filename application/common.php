@@ -580,12 +580,11 @@ function get_order_status($order=[]){
     }
 
     //正常完成
-    if ($order['pay_status']==1) {
-        $arr['status_text'] = '已完成';
-        $arr['status'] = 4;
-        return $arr;
-    }
-
+    //if ($order['pay_status']==1) {
+    //    $arr['status_text'] = '已完成';
+    //    $arr['status'] = 4;
+    //    return $arr;
+    //}
 
     //电商订单不需要发货
     if ($order['pay_status']==1 && $order['order_status']==1 && $order['user_store_type']==STORE_FACTORY) {
