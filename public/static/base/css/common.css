@@ -308,7 +308,7 @@ textarea.input{height:auto;}
 .table .sort_group{ display:inline; position:relative; margin-left:5px; width:10px; height:20px;}
 .table .sort_group i{ position:absolute; border:5px dashed transparent; cursor:pointer;}
 .table .sort_group i.sort-asc{ top:3px; border-top:none; border-bottom-style:solid; border-bottom-color:#b2b2b2;}
-.table .sort_group i.sort-desc{ bottom:3px; border-bottom:none; border-top-style:solid; border-top-color:#b2b2b2;}
+.table .sort_group i.sort-desc{ bottom:2px; border-bottom:none; border-top-style:solid; border-top-color:#b2b2b2;}
 .table .sort_group i.sort-asc:hover{border-bottom-color:#666;}
 .table .sort_group i.sort-desc:hover{border-top-color:#666;}
 
