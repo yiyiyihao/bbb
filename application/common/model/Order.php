@@ -682,11 +682,13 @@ class Order extends Model
             $this->error = lang('param_error');
             return FALSE;
         }
-        if (($orderType == 1 && (!isset($user['user_id']) || $user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']) && !isset($user['user_id'])  )) {
+
+        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
+        $udataId = isset($user['udata_id'])? intval($user['udata_id']) : 0;
+        if ($userId<=0 && $udataId<=0 ) {
             $this->error = lang('param_error');
             return FALSE;
         }
-        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         switch ($from) {
             case 'goods':
                 $goodsModel = new \app\common\model\Goods();
