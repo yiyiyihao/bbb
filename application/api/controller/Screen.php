@@ -100,7 +100,10 @@ class Screen extends Timer
         ];
         //分销数据
         $whereFenxiao='';
+        //电商数据
+        $whereECommerce='';
         if ($isFactory) {
+            $whereECommerce='add_time>='.$this->beginToday.' AND pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
             $whereFenxiao='add_time>='.$this->beginToday.' AND add_time<'.$this->endTodayTime.'  AND  store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
             $where[] = ['user_store_type', 'IN',[STORE_SERVICE,STORE_SERVICE_NEW]];//厂商只统计服务商数据
         }else{
@@ -110,18 +113,27 @@ class Screen extends Timer
         if ($whereFenxiao) {
             $query->whereOrRaw($whereFenxiao);
         }
+        if ($whereECommerce) {
+            $query->whereOrRaw($whereECommerce);
+        }
         $result['order']['today_amount'] =$query->sum('real_amount');
 
         //总交易额
         unset($where[0], $where[1]);
         //分销数据
         $whereFenxiao='';
+        //电商数据
+        $whereECommerce='';
         if ($isFactory) {
+            $whereECommerce='pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
             $whereFenxiao='store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0'.$this->adminUser['factory_id'];
         }
         $query=db('order')->where($where);
         if ($whereFenxiao) {
             $query->whereOrRaw($whereFenxiao);
+        }
+        if ($whereECommerce) {
+            $query->whereOrRaw($whereECommerce);
         }
         $result['order']['total_amount'] = (int)$query->sum('real_amount');
         //今日交易笔数

@@ -236,8 +236,16 @@ class Index extends CommonBase
                     ['pay_status','=',1],
                     ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
+                //电商
+                $whereECommerce='add_time>='.$beginToday.' AND pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
                 $whereFenxiao='add_time>='.$beginToday.' AND  store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
-                $todayOrder = db('order')->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->whereOrRaw($whereFenxiao)->find();
+                $todayOrder = db('order')
+                    ->field('count(*) as order_count,sum(real_amount) as order_amount')
+                    ->where($where)
+                    ->whereOrRaw($whereFenxiao)
+                    ->whereOrRaw($whereECommerce)
+                    ->find();
+                //p($todayOrder);
                 //今日订单数
                 $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
@@ -250,8 +258,16 @@ class Index extends CommonBase
                     ['pay_status','=',1],
                     ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
+                //电商
+                $whereECommerce='pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
+                //分销订单
                 $whereFenxiao='store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
-                $totalOrder = db('order')->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->whereOrRaw($whereFenxiao)->find();
+                $totalOrder = db('order')
+                    ->field('count(*) as order_count,sum(real_amount) as order_amount')
+                    ->where($where)
+                    ->whereOrRaw($whereFenxiao)
+                    ->whereOrRaw($whereECommerce)
+                    ->find();
                 //累计订单数
                 $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
                 //累计订单金额
