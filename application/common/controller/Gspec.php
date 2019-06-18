@@ -80,8 +80,8 @@ class Gspec extends FormBase
         if ($info) {
             $info['value'] = explode(',', $info['value']);
         }
-        $store = new \app\common\controller\Store();
-        $store->_getFactorys();
+        //$store = new \app\common\controller\Store();
+        //$store->_getFactorys();
         
         $this->assign('info', $info);
         return $info;
