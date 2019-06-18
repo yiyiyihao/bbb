@@ -1503,7 +1503,7 @@ class Admin extends Index
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         $orderModel = new \app\common\model\Order();
         $submit = isset($this->postParams['submit']) && $this->postParams['submit'] ? TRUE : FALSE;
-        $orderType = 2;
+        $orderType = 1;//1 直销，2分销
         $result = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, [], $remark,$orderType);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
@@ -1690,7 +1690,7 @@ class Admin extends Index
         }
         
         $order = 'add_time DESC';
-        $field = 'order_id, store_id,user_store_type, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
+        $field = 'order_id,store_id,user_store_type,order_type,order_sn,delivery_type,real_amount,pay_code,order_status,pay_status,delivery_status,finish_status,add_time,close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
         $result=[];
         if ($list) {

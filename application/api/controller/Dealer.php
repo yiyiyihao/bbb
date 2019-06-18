@@ -6,6 +6,8 @@
 namespace app\api\controller;
 
 
+use app\common\model\WorkOrder;
+
 trait Dealer
 {
 
@@ -232,31 +234,67 @@ trait Dealer
     //工单列表
     public function getDealerWorkOrderList()
     {
-        $status = isset($this->postParams['status'])  ? $this->postParams['status'] : '';
-        $where=[
-            'p1.is_del'=>0,
-            'p1.status'=>1,
+        $this->init();
+        $user = $this->user;
+        $status = isset($this->postParams['status']) ? $this->postParams['status'] : '';
+        $where = [
+            'p1.is_del'        => 0,
+            'p1.status'        => 1,
+            'p1.post_store_id' => $user['store_id'],
         ];
         if ($status !== '' && in_array($status, [-1, 0, 1, 2, 3, 4])) {
-            $where['p1.work_order_status']=$status;
+            $where['p1.work_order_status'] = $status;
         }
         $field = 'p1.worder_sn,p1.work_order_status,p2.thumb,p3.`name` cate_name,p2.`name` goods_name,p2.goods_sn,p1.user_name';
         $field .= ',p1.phone,p1.region_name,p1.address,p1.appointment,p1.appointment_confirm,p4.mobile store_phone';
-        $join=[
-            ['goods p2','p1.goods_id = p2.goods_id'],
-            ['goods_cate p3','p3.cate_id = p2.cate_id'],
-            ['store p4','p4.store_id = p1.store_id'],
+        $join = [
+            ['goods p2', 'p1.goods_id = p2.goods_id'],
+            ['goods_cate p3', 'p3.cate_id = p2.cate_id'],
+            ['store p4', 'p4.store_id = p1.store_id'],
         ];
         $order = 'p1.add_time ASC';
         $result = $this->getModelList(db('work_order'), $where, $field, $order, 'p1', $join);
-        foreach ($result['list'] as $k=>$v) {
-            $appointment=$v['appointment_confirm']?$v['appointment_confirm']:$v['appointment'];
-            $result['list'][$k]['appointment']=time_to_date($appointment);
-            $result['list'][$k]['address']=str_replace(' ','',$v['region_name']).$v['address'];
-            $result['list'][$k]['status']=get_work_order_status($v['work_order_status']);
-            unset($result['list'][$k]['appointment_confirm'],$result['list'][$k]['region_name'],$result['list'][$k]['work_order_status']);
+        foreach ($result['list'] as $k => $v) {
+            $appointment = $v['appointment_confirm'] ? $v['appointment_confirm'] : $v['appointment'];
+            $result['list'][$k]['appointment'] = time_to_date($appointment);
+            $result['list'][$k]['address'] = str_replace(' ', '', $v['region_name']) . $v['address'];
+            $result['list'][$k]['status'] = get_work_order_status($v['work_order_status']);
+            unset($result['list'][$k]['appointment_confirm'], $result['list'][$k]['region_name'], $result['list'][$k]['work_order_status']);
         }
         $this->_returnMsg(recursion($result));
+    }
+
+    //工单详情
+    public function getDealerWorkOrderDetail()
+    {
+        $this->init();
+        $user = $this->user;
+        $service = $this->service;
+        $worderSn = isset($this->postParams['worder_sn']) ? $this->postParams['worder_sn'] : '';
+        $field = 'p1.worder_id,p1.worder_sn,p1.work_order_type,p1.work_order_status,p1.user_name,p1.phone,p1.appointment,p1.appointment_confirm,p1.region_name,p1.address,p2.cate_id';
+        $workOrder = new WorkOrder;
+        $result['info'] = $workOrder->alias('p1')->field($field)->join('goods p2', 'p2.goods_id=p1.goods_id')->where([
+            'p1.worder_sn'     => $worderSn,
+            'p1.is_del'        => 0,
+            'p1.status'        => 1,
+            'p1.post_store_id' => $user['store_id'],
+        ])->find();
+        if (!$result['info']) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '工单不存在']);
+        }
+        $config = $workOrder->getConfigLogDetail([
+            'work_order_type' => $result['info']['work_order_type'],
+            'worder_id'       => $result['info']['worder_id'],
+            'cate_id'         => $result['info']['cate_id'],
+            'factory_id'      => $user['factory_id'],
+        ]);
+        $addInfo=array_shift($config);
+        p($addInfo,1);
+        p($config);
+        //p($result, 1);
+        p($config);
+
+
     }
 
 

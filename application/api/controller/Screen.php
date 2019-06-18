@@ -2,6 +2,8 @@
 
 namespace app\api\controller;
 
+use think\Db;
+
 /**
  * 定时器定时执行模拟数据
  * @author xiaojun
@@ -32,8 +34,8 @@ class Screen extends Timer
         $this->beginYesterday = strtotime(date('Y-m-d') . ' -1 day');
         $this->beginToday = strtotime(date('Y-m-d'));
         $this->endTodayTime = strtotime(date('Y-m-d') . ' +1 day');
-        $domain=db('store_factory')->where(['store_id'=>1])->value('domain');
-        $adminUser = session($domain.'_user');
+        $domain = db('store_factory')->where(['store_id' => 1])->value('domain');
+        $adminUser = session($domain . '_user');
 
         $this->adminUser = $adminUser;
         $this->factoryId = isset($adminUser['factory_id']) ? $adminUser['factory_id'] : 0;
@@ -87,74 +89,81 @@ class Screen extends Timer
         //工单完成率【今天】
         $countPercent = $result['work_order']['finish_count'] > 0 ? $result['work_order']['finish_count'] / $result['work_order']['today_count'] * 100 : 0;
         $result['work_order']['finish_percent'] = intval($countPercent) . '%';
+        //已取消工单【今天】
+        $where[2] = ['work_order_status', '=', -1];
+        $result['work_order']['cancel_count']=db('work_order')->where($where)->count();
+        //待接单工单【今天】
+        $where[2] = ['work_order_status', '=', 1];
+        $result['work_order']['wait_accept']=db('work_order')->where($where)->count();
+        //待上门工单【今天】
+        $where[2] = ['work_order_status', '=', 2];
+        $result['work_order']['wait_visit']=db('work_order')->where($where)->count();
+
+
         $where[2] = ['work_order_status', '>=', 0];
         $result['work_order']['allserv_count'] = db('work_order')->where($where)->count();
 
+        //今日交易金额,今日交易笔数
+        $where = [
+            ['add_time', '>=', $this->beginToday],
+            ['add_time', '<', $this->endTodayTime],
+            ['order_status', '<>', 2],
+            ['pay_status', '=', 1],
+            ['factory_id', '=', $this->factoryId],
+        ];
+        $whereFenxiao = '';
+        $whereECommerce = '';
+        if ($isFactory) {
+            //电商
+            $whereECommerce = 'add_time>=' . $this->beginToday . ' AND pay_status=1 AND order_status=1 AND user_store_type=' . STORE_FACTORY . ' AND factory_id=' . $this->adminUser['factory_id'];
+            //分销
+            $whereFenxiao = 'add_time>=' . $this->beginToday . ' AND add_time<' . $this->endTodayTime . '  AND  store_id=' . $this->adminUser['store_id'] . ' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id=' . $this->adminUser['factory_id'];
+            //服务商
+            $where[] = ['user_store_type', 'IN', [STORE_SERVICE, STORE_SERVICE_NEW]];//厂商只统计服务商数据
+        } else {
+            $where[] = ['store_id', '=', $this->adminUser['store_id']];
+        }
+        $query = db('order')->where($where);
+        if ($whereFenxiao) {
+            $query->whereOrRaw($whereFenxiao);
+        }
+        if ($whereECommerce) {
+            $query->whereOrRaw($whereECommerce);
+        }
         //今日交易额
-        $where = [
-            ['add_time', '>=', $this->beginToday],
-            ['add_time', '<', $this->endTodayTime],
-            ['order_status', '<>', 2],
-            ['pay_status', '=', 1],
-            ['factory_id', '=', $this->factoryId],
-        ];
-        //分销数据
-        $whereFenxiao='';
-        //电商数据
-        $whereECommerce='';
-        if ($isFactory) {
-            $whereECommerce='add_time>='.$this->beginToday.' AND pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
-            $whereFenxiao='add_time>='.$this->beginToday.' AND add_time<'.$this->endTodayTime.'  AND  store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
-            $where[] = ['user_store_type', 'IN',[STORE_SERVICE,STORE_SERVICE_NEW]];//厂商只统计服务商数据
-        }else{
-            $where[] = ['store_id', '=', $this->adminUser['store_id']];
-        }
-        $query=db('order')->where($where);
-        if ($whereFenxiao) {
-            $query->whereOrRaw($whereFenxiao);
-        }
-        if ($whereECommerce) {
-            $query->whereOrRaw($whereECommerce);
-        }
-        $result['order']['today_amount'] =$query->sum('real_amount');
-
-        //总交易额
-        unset($where[0], $where[1]);
-        //分销数据
-        $whereFenxiao='';
-        //电商数据
-        $whereECommerce='';
-        if ($isFactory) {
-            $whereECommerce='pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
-            $whereFenxiao='store_id='.$this->adminUser['store_id'].' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0'.$this->adminUser['factory_id'];
-        }
-        $query=db('order')->where($where);
-        if ($whereFenxiao) {
-            $query->whereOrRaw($whereFenxiao);
-        }
-        if ($whereECommerce) {
-            $query->whereOrRaw($whereECommerce);
-        }
-        $result['order']['total_amount'] = (int)$query->sum('real_amount');
+        $result['order']['today_amount'] = $query->sum('real_amount');
         //今日交易笔数
+        $result['order']['today_count'] = (int)$query->count();
+
+        //累计交易金额,累计交易笔数
         $where = [
-            ['add_time', '>=', $this->beginToday],
-            ['add_time', '<', $this->endTodayTime],
             ['order_status', '<>', 2],
             ['pay_status', '=', 1],
             ['factory_id', '=', $this->factoryId],
         ];
+        $whereFenxiao = '';
+        $whereECommerce = '';
         if ($isFactory) {
-            $where[] = ['user_store_type', 'IN',[STORE_SERVICE,STORE_SERVICE_NEW]];//厂商只统计服务商数据
-        }else{
+            //电商
+            $whereECommerce = 'pay_status=1 AND order_status=1 AND user_store_type=' . STORE_FACTORY . ' AND factory_id=' . $this->adminUser['factory_id'];
+            //分销
+            $whereFenxiao = 'store_id=' . $this->adminUser['store_id'] . ' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id=' . $this->adminUser['factory_id'];
+            //服务商
+            $where[] = ['user_store_type', 'IN', [STORE_SERVICE, STORE_SERVICE_NEW]];//厂商只统计服务商数据
+        } else {
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
-        $result['order']['today_count'] = db('order')->where($where)->count();
-
-        //总交易笔数
-        unset($where[0], $where[1]);
-        $result['order']['total_count'] = db('order')->where($where)->count();
-
+        $query = db('order')->where($where);
+        if ($whereFenxiao) {
+            $query->whereOrRaw($whereFenxiao);
+        }
+        if ($whereECommerce) {
+            $query->whereOrRaw($whereECommerce);
+        }
+        //累计交易金额
+        $result['order']['total_amount'] = (int)$query->sum('real_amount');
+        //累计交易笔数
+        $result['order']['total_count'] = (int)$query->count();
         //服务商数量
         $servicerCount = 1;
         if ($isFactory) {
@@ -177,25 +186,138 @@ class Screen extends Timer
         }
         $result['store']['dealer_count'] = db('store')->alias('p1')->join($join)->where($where)->count();
 
-        //待发货订单【今天】
+        //待发货订单，已发货，已取消，已付款
         $where = [
             ['add_time', '>=', $this->beginToday],
             ['add_time', '<', $this->endTodayTime],
-            ['finish_status', '<', 2],
-            ['delivery_status', '<', 2],
             ['factory_id', '=', $this->factoryId],
         ];
-        if (!$isFactory) {
-            $where[] = ['store_id', '=', $this->adminUser['store_id']];
+        //待发货订单
+        $whereTemp=[];
+        $whereFenxiao='add_time>='.$this->beginToday.' AND add_time<'.$this->endTodayTime.' AND ';
+        $whereFx='';
+        if ($isFactory) {//厂商统计服务商+分销
+            //服务商
+            $whereTemp=[
+                ['delivery_status', '<', 2],
+                ['user_store_type', '<>',1],//电商订单不用发货
+                ['pay_status', '=',1],
+                ['finish_status', '=',0],
+                ['order_status', '=',1],
+                ['user_store_type', '<>',STORE_DEALER],
+            ];
+            //分销
+            $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].' AND delivery_status<2 AND pay_status=1 AND finish_status=0 AND udata_id>0 AND order_status=1 AND factory_id='.$this->adminUser['factory_id'];
+        }else{//服务商下零售商待发货订单
+            $whereTemp=[
+                ['store_id', '=',$this->adminUser['store_id']],
+                ['delivery_status', '<', 2],
+                ['pay_status', '=',1],
+                ['finish_status', '=',0],
+                ['order_status', '=',1],
+            ];
         }
-        $result['order']['pendding_count'] = db('order')->where($where)->count();
-        //已发货【今天】
-        $where[3] = ['delivery_status', '=', 2];
-        $result['order']['delivery_count'] = db('order')->where($where)->count();
-        //已完成订单【今天】
-        $where[2] = ['finish_status', '=', 2];
-        unset($where[3]);
-        $result['order']['finish_count'] = db('order')->where($where)->count();
+        $query=db('order')->where(array_merge($where,$whereTemp));
+        if ($whereFx) {
+            $query->whereOrRaw($whereFx);
+        }
+        $result['order']['pendding_count'] = $query->count();
+        //已发货订单
+        if ($isFactory) {//厂商统计服务商+分销
+            //服务商
+            $whereTemp=[
+                ['delivery_status', '=', 2],
+                ['finish_status', '<',2],
+                ['user_store_type', '<>',1],//电商订单不用发货
+                ['pay_status', '=',1],
+                ['order_status', '=',1],
+                ['user_store_type', '<>',STORE_DEALER],
+            ];
+            //分销
+            $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].' AND delivery_status=2 AND pay_status=1 AND finish_status<2 AND udata_id>0 AND order_status=1 AND factory_id='.$this->adminUser['factory_id'];
+        }else{//服务商下零售商已发货订单
+            $whereTemp=[
+                ['store_id', '=',$this->adminUser['store_id']],
+                ['delivery_status', '=', 2],
+                ['finish_status', '<',2],
+                ['pay_status', '=',1],
+                ['order_status', '=',1],
+            ];
+        }
+        $query=db('order')->where(array_merge($where,$whereTemp));
+        if ($whereFx) {
+            $query->whereOrRaw($whereFx);
+        }
+        $result['order']['delivery_count'] = $query->count();
+        //已取消
+        if ($isFactory) {//厂商统计服务商+分销
+            //服务商
+            $whereTemp=[
+                ['order_status', '=', 2],
+                ['user_store_type', '<>',STORE_DEALER],
+            ];
+            //分销
+            $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].'  AND udata_id>0 AND order_status=2 AND factory_id='.$this->adminUser['factory_id'];
+        }else{//服务商下零售商已发货订单
+            $whereTemp=[
+                ['store_id', '=',$this->adminUser['store_id']],
+                ['order_status', '=',2],
+            ];
+        }
+        $query=db('order')->where(array_merge($where,$whereTemp));
+        if ($whereFx) {
+            $query->whereOrRaw($whereFx);
+        }
+        $result['order']['cancel_count'] = $query->count();
+
+        //待付款
+        if ($isFactory) {//厂商统计服务商+分销
+            //服务商
+            $whereTemp=[
+                ['order_status', '=',1],
+                ['pay_status', '=',0],
+                ['user_store_type', '<>',STORE_DEALER],
+            ];
+            //分销
+            $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].' AND order_status=1 AND pay_status=0 AND  udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+        }else{//服务商下零售商侍付款订单
+            $whereTemp=[
+                ['store_id', '=',$this->adminUser['store_id']],
+                ['pay_status', '=',0],
+                ['order_status', '=',1],
+            ];
+        }
+        $query=db('order')->where(array_merge($where,$whereTemp));
+        if ($whereFx) {
+            $query->whereOrRaw($whereFx);
+        }
+        $result['order']['wait_pay'] = $query->count();
+
+        //已完成
+        if ($isFactory) {//厂商统计服务商+分销
+            //服务商
+            $whereTemp=[
+                ['order_status', '=',1],
+                ['pay_status', '=',1],
+                ['user_store_type', '<>',STORE_DEALER],
+                ['factory_id', '=',$this->adminUser['factory_id']],
+            ];
+            $whereTemp[]=['','EXP',Db::raw('finish_status=2 OR delivery_type=1 OR user_store_type='.STORE_FACTORY)];//确认收货或店内自提,电商订单
+            //分销
+            $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].' AND order_status=1 AND finish_status=2  AND pay_status=0 AND  udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+        }else{//服务商下零售商侍付款订单
+            $whereTemp=[
+                ['store_id', '=',$this->adminUser['store_id']],
+                ['finish_status', '=',2],
+                ['order_status', '=',1],
+                ['pay_status', '=',1],
+            ];
+        }
+        $query=db('order')->where(array_merge($where,$whereTemp));
+        if ($whereFx) {
+            $query->whereOrRaw($whereFx);
+        }
+        $result['order']['finish_count'] = $query->count();
         //订单完成率【今天】
         $countPercent = $result['order']['finish_count'] > 0 ? $result['order']['finish_count'] / $result['order']['today_count'] * 100 : 0;
         $result['order']['finish_percent'] = intval($countPercent) . '%';
@@ -221,35 +343,34 @@ class Screen extends Timer
         }
         $result['orders'] = $orders;
         //近七日工单
-
         $where = [
             ['factory_id', '=', $this->factoryId],
         ];
         if (!$isFactory) {
             $where[] = ['store_id', '=', $this->adminUser['store_id']];
         }
-        $start=$this->beginYesterday;
-        $end=$this->beginToday;
-        for ($i=0;$i<=6;$i++) {
+        $start = $this->beginYesterday;
+        $end = $this->beginToday;
+        for ($i = 0; $i <= 6; $i++) {
             $whereTemp = [
                 ['add_time', '>=', $start],
                 ['add_time', '<', $end],
             ];
             $field = 'count(IF(work_order_type = 1, true, null)) as install_count, count(IF(work_order_type = 2, true, null)) as repair_count';
             $countWorkOrder = db('work_order')->field($field)->where($where)->where($whereTemp)->find();
-            $result['work_order_lines']['day'][] = date('m-d',$start);
+            $result['work_order_lines']['day'][] = date('m-d', $start);
             $result['work_order_lines']['install_count'][] = (int)$countWorkOrder['install_count'];
             $result['work_order_lines']['repair_count'][] = (int)$countWorkOrder['repair_count'];
-            $end=$start;
-            $start-=86400;
+            $end = $start;
+            $start -= 86400;
         }
         //热销产品
         if ($isFactory) {
             $where = [
                 ['store_id', '=', $this->factoryId],
             ];
-            $result['goods'] = db('goods')->where($where)->field('name,sales')->order('sales DESC')->limit(0,20)->select();
-        }else{
+            $result['goods'] = db('goods')->where($where)->field('name,sales')->order('sales DESC')->limit(0, 20)->select();
+        } else {
             $where = [
                 ['store_id', '=', $this->adminUser['store_id']],
             ];

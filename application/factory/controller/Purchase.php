@@ -207,7 +207,7 @@ class Purchase extends FactoryForm
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $params['pay_code'] = 'offline_pay';
         }
-        $orderType = in_array($this->adminStore['store_type'], [STORE_DEALER, STORE_SERVICE_NEW]) ? 2 : 1;
+        $orderType =1;//1直销，2分销
         if (IS_POST) {
             $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
             if (!$payCode) {
