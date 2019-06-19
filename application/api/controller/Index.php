@@ -628,7 +628,7 @@ class Index extends ApiBase
         $idcardBackImg = isset($this->postParams['idcard_back_img']) ? trim($this->postParams['idcard_back_img']) : '';
         $workTime = isset($this->postParams['work_time']) ? trim($this->postParams['work_time']) : '';
         if (strtotime($workTime)<=0) {
-            //$this->_returnMsg(['errCode' => 1, 'errMsg' => '从业时间格式错误']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '从业时间格式错误']);
         }
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         if (!$realname){

@@ -540,7 +540,7 @@ class Order extends Model
             }
             model('PromotionJoin')->where('join_id', $order['promot_join_id'])->setInc('order_pay_count', 1);
         }
-        if (in_array($order['order_type'], [1])) {
+        if ($order['order_from']>2 || $order['delivery_type']==1) {//电商订单 或店内自提，确认收款直接完成
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
         

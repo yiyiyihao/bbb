@@ -301,8 +301,8 @@ class Screen extends Timer
                 ['pay_status', '=',1],
                 ['user_store_type', '<>',STORE_DEALER],
                 ['factory_id', '=',$this->adminUser['factory_id']],
+                ['finish_status', '=',2],
             ];
-            $whereTemp[]=['','EXP',Db::raw('finish_status=2 OR delivery_type=1 OR user_store_type='.STORE_FACTORY)];//确认收货或店内自提,电商订单
             //分销
             $whereFx=$whereFenxiao.' order_type=2 AND store_id='.$this->adminUser['store_id'].' AND order_status=1 AND finish_status=2  AND pay_status=0 AND  udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
         }else{//服务商下零售商侍付款订单

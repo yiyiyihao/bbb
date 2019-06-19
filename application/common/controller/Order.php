@@ -206,8 +206,7 @@ class Order extends FormBase
     function _afterList($list)
     {
         if ($list) {
-            $flag = in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
-            $list = $this->model->getOrderList($list, $flag);
+            $list = $this->model->getOrderList($list);
         }
         return $list;
     }
@@ -294,7 +293,7 @@ class Order extends FormBase
         }elseif(isset($param['finish_status'])){
             $map['O.order_status'] = 1;
             $map['O.pay_status'] = 1;//确认收款
-            $map[]=['','EXP',Db::raw('O.finish_status=2 OR O.delivery_type=1 OR O.user_store_type='.STORE_FACTORY)];//确认收货或店内自提,电商订单
+            $map['O.finish_status'] = 2;//确认收款
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }
