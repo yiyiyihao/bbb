@@ -109,7 +109,15 @@ class System extends AdminForm
             'installer_check_success' => [
                 'name'      => '注册服务工程师审核通过模版模版CODE',
                 'content'   => '尊敬的${name}：您好，恭喜您已通过智享家服务工程师的注册审核，请等待系统分派工单吧。',
-            ], 
+            ],
+            'service_work_order_add' => [
+                'name'      => '新增工单时服务商通知模板CODE',
+                'content'   => '收到新的服务${workOrderType}工单，工单编号：${worderSn}，请尽快进入智享家系统进行工单分派。',
+            ],
+            'service_work_order_refuse' => [
+                'name'      => '工程师拒绝接单通知模板CODE',
+                'content'   => '编号为${worderSn}的${workOrderType}，已被${installerName}拒绝接单。请重新分派工单！',
+            ],
             
         ];
         $configKey = 'system_sms';

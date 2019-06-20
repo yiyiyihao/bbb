@@ -104,9 +104,9 @@ class Order extends commonOrder
     function _afterList($list)
     {
         if ($list) {
-            $flag = in_array($this->adminUser['group_id'], [GROUP_E_COMMERCE_KEFU]) ? TRUE : FALSE;
+            $flag = $this->adminUser['admin_type']==ADMIN_FACTORY ? TRUE : FALSE;
             $orderModel = new \app\common\model\Order();
-            $list = $orderModel->getOrderList($list,true);
+            $list = $orderModel->getOrderList($list,true,$flag);
         }
         return $list;
     }

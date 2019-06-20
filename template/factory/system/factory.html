@@ -4,10 +4,10 @@
             <div class="panel-head">
                 <div class="tab-head">
                     <ul class="tab-nav">
-                    	{if (!isset($config['wechat_applet']))}
+                    	{if (isset($config['wechat_applet']))}
                     	<li class="active"><a href="#tab-0">微信配置</a></li>
                     	{/if}
-                        <li class="active"><a href="#tab-1">订单设置</a></li>
+                        <li{if (!isset($config['wechat_applet']))} class="active"{/if}><a href="#tab-1">订单设置</a></li>
                         <li class="hide"><a href="#tab-2">商户配置</a></li>
                         <li class="hide"><a href="#tab-3">售后配置</a></li>
                         <li><a href="#tab-4">审核配置</a></li>
@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div class="tab-body">
-                {if (!isset($config['wechat_applet']))}
+                {if (isset($config['wechat_applet']))}
                 <div class="tab-panel active" id="tab-0">
                     <div class="form-group">
                         <div class="label">

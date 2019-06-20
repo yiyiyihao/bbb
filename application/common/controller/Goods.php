@@ -375,7 +375,7 @@ class Goods extends FormBase
     {
         $field = 'G.*, (CASE WHEN G.goods_stock <= G.stock_warning_num THEN 1 ELSE 0 END) as warning, C.name as cate_name';
         if ($this->adminUser['store_type'] == STORE_SERVICE_NEW) {
-            $field .= ',GS.min_price_service,GS.max_price_service,GS.status status_service,GS.sales_service,GS.stock';
+            $field .= ',GS.min_price_service,GS.max_price_service,GS.status status_service,GS.sales_service,GS.stock_service stock';
         }
         return $field;
     }

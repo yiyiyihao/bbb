@@ -35,7 +35,7 @@ class Security extends Store
         $where = [
             'S.is_del'          => 0,
             'S.check_status'    => 1,
-            'S.store_type'      => ['IN', [STORE_CHANNEL, STORE_SERVICE]],
+            'S.store_type'      => ['IN', [STORE_CHANNEL, STORE_SERVICE,STORE_SERVICE_NEW]],
         ];
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
             $where['S.factory_id'] = $this->adminUser['store_id'];

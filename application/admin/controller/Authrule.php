@@ -7,7 +7,7 @@ class Authrule extends AdminForm
     public function __construct()
     {
         $this->modelName = 'auth_rule';
-        $this->model = db('auth_rule');
+        $this->model = new \app\common\model\AuthRule;
         parent::__construct();
         if ($this->adminUser['user_id'] != 1) {
             $this->error(lang('NO ACCESS'));

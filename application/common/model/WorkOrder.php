@@ -1,5 +1,6 @@
 <?php
 namespace app\common\model;
+use think\Db;
 use think\Model;
 
 class WorkOrder extends Model
@@ -7,6 +8,12 @@ class WorkOrder extends Model
 	public $error;
 	protected $fields;
 	protected $pk = 'worder_id';
+    protected $createTime = 'add_time';
+    protected $updateTime = 'update_time';
+    protected $autoWriteTimestamp = 'int';
+
+    //腾讯地图KEY
+    private $mapKey='TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX';
 
 	//自定义初始化
     protected function initialize()
@@ -30,9 +37,10 @@ class WorkOrder extends Model
         $result = $worderId = parent::save($data, $where, $sequence);
         if (!$flag) {
             $worder = [
-                'worder_sn' => $sn,
-                'worder_id' => $worderId,
+                'worder_sn'    => $sn,
+                'worder_id'    => $worderId,
                 'post_user_id' => $data['post_user_id'],
+                'phone'        => $data['phone'],
             ];
             $user = db('user')->where(['user_id' => $worder['post_user_id']])->find();
             //保存用户信息，如果有
@@ -43,20 +51,167 @@ class WorkOrder extends Model
             if (empty($user)) {
                 $user=db('user_data')->where(['is_del' => 0])->find($udata_id);
             }
-            //发送工单通知给服务商
-            $push = new \app\common\service\PushBase();
-            $sendData = [
-                'type'  => 'worker',
-                'worder_sn'    => $worder['worder_sn'],
-                'worder_id'    => $worder['worder_id'],
-            ];
-            //发送给服务商在线管理员
-            $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
+            //工单日志
             $this->worderLog($worder, $user, 0, '创建工单');
+            //发送工单通知给服务商
+            $this->notify($worder,$data,$where,$user);
+            //更新客户信息
+            $this->UpdateStoreUser($user,array_merge($data,$worder));
+
             return $sn;
         }
         return $result;
     }
+
+    //更新客户信息
+    public function UpdateStoreUser($postUser, $workOrder)
+    {
+        if ($postUser['admin_type'] == ADMIN_DEALER) {
+            $storeUser = StoreUser::where([
+                'store_id' => $postUser['store_id'],
+                'mobile'   => $workOrder['phone'],
+                'is_del'   => 0,
+            ])->find();
+            if ($storeUser && $storeUser['user_type'] == 0) {//成交客户
+                $storeUser->user_type = 1;
+                $storeUser->realname = $workOrder['user_name'];
+                $storeUser->region_id = $workOrder['region_id'];
+                $storeUser->address = $workOrder['address'];
+                $storeUser->deal_close_time = time();
+                $storeUser->save();
+            } elseif (empty($storeUser)) {//保存客户信
+                $storeUser=new StoreUser;
+                $storeUser->user_type = 1;
+                $storeUser->store_id = $postUser['store_id'];
+                $storeUser->realname = $workOrder['user_name'];
+                $storeUser->mobile = $workOrder['phone'];
+                $storeUser->goods_id = $workOrder['goods_id'];
+                $storeUser->region_id = $workOrder['region_id'];
+                $storeUser->region_name = $workOrder['region_name'];
+                $storeUser->address = $workOrder['address'];
+                $storeUser->deal_close_time = time();
+                $storeUser->save();
+            }
+        }
+    }
+    public function notify($worder, $data, $flag=false)
+    {
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $postUser = db('user')
+            ->alias('p1')
+            ->field('p1.group_id,p1.store_id,p1.username,p2.name store_name')
+            ->join('store p2','p1.store_id=p2.store_id AND p2.is_del=0','LEFT')
+            ->where('p1.user_id', $data['post_user_id'])
+            ->find();
+        $todoData = [
+            'type'          => 1,//待分配工单
+            'store_id'      => $data['store_id'],
+            'post_store_id' => $data['post_store_id']?? 0,
+            'post_user_id'  => $data['post_user_id'],
+            'title'         => '【工单分派】' . ($postUser['store_name']? $postUser['store_name']:$postUser['username']). ' ('.get_group_name($postUser['group_id']).')提交了新的' . get_work_order_type($data['work_order_type']) . '请尽快分派',//待分配工单
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $todoModel->url=url('workorder/dispatch', ['id' => $worder['worder_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
+
+        $addTime = isset($worder['add_time']) ? $worder['add_time'] : time();
+        $sendData = [
+            'type'            => 'todo',
+            'title'           => $todoData['title'],
+            'url'             => $todoModel->url,
+            'todo_id'         => $todoId,
+            'todo_type'       => $todoData['type'],
+            'add_time'        => getTime($addTime),
+        ];
+        $result=db('work_order')->where(['worder_id'=>$worder['worder_id']])->update(['todo_id'=>$todoId]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
+        //发送给服务商在线管理员
+        $push->sendToGroup('store'.$data['store_id'], json_encode($sendData));
+        if (!$flag) {//创建工单时短信通知服务商
+            $store = db('store')->alias('p1')
+                ->field('p2.user_id,p1.mobile')
+                ->join('user p2', 'p1.store_id=p2.store_id')
+                ->where(['p2.store_id' => $data['store_id']])
+                ->find();
+            if (!empty($store) && !empty($store['mobile']) && check_mobile($store['mobile'])) {
+                $param = [
+                    'phone'         => $store['mobile'],
+                    'user_id'       => $store['user_id'],
+                    'workOrderType' => $data['work_order_type'],
+                    'worderSn'      => $worder['worder_sn'],
+                ];
+                $informModel = new \app\common\model\LogInform();
+                $informModel->sendInform($data['factory_id'], 'sms', $param, 'service_work_order_add');
+            }
+        }
+    }
+
+    public function refuseNotify($worder,$installer)
+    {
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $todoData = [
+            'type'          => 2,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'      => $worder['store_id'],
+            'post_store_id' => $worder['store_id'],
+            'post_user_id'  => $installer['user_id'],
+            'title'         => '【工单分派】' . $installer['realname'] . '拒绝了' . get_work_order_type($worder['work_order_type']) . '，请尽快重新分派！',
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $todoModel->url=url('workorder/dispatch', ['id' => $worder['worder_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
+        $addTime = $worder['add_time'] ?? time();
+        $addTime = is_numeric($addTime) ? $addTime : (strtotime($addTime)>0? strtotime($addTime):time());
+        $sendData = [
+            'type'            => 'todo',
+            'title'           => $todoData['title'],
+            'url'             => $todoModel->url,
+            'todo_id'         => $todoId,
+            'todo_type'       => $todoData['type'],
+            'add_time'        => getTime($addTime),
+        ];
+        $result=db('work_order')->where(['worder_id'=>$worder['worder_id']])->update(['todo_id'=>$todoId]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
+        //在线推送
+        $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
+        //短信通知
+        $store = db('store')->alias('p1')
+            ->field('p2.user_id,p1.mobile')
+            ->join('user p2', 'p1.store_id=p2.store_id')
+            ->where(['p2.store_id' => $worder['store_id']])
+            ->find();
+        if (!empty($store) && !empty($store['mobile']) && check_mobile($store['mobile'])) {
+            $param = [
+                'phone'         => $store['mobile'],
+                'user_id'       => $store['user_id'],
+                'workOrderType' => $worder['work_order_type'],
+                'worderSn'      => $worder['worder_sn'],
+                'installerName' => $installer['realname'],
+            ];
+            $informModel = new \app\common\model\LogInform();
+            $informModel->sendInform($worder['factory_id'], 'sms', $param, 'service_work_order_refuse');
+        }
+    }
+    
     /**
      * 根据工单号获取售后工单信息
      * @param string $worderSn
@@ -89,6 +244,78 @@ class WorkOrder extends Model
         //获取工单评价记录
         $info['assess_list'] = $this->getWorderAssess($info);
         $info['images'] = $info['images'] ? explode(',', $info['images']) : [];
+        $info=$this->updateSignLocation($info);
+        return $info;
+    }
+
+    //地址解析(地址转坐标)
+    public function getCoder($params)
+    {
+        $param = [
+            'address' => $params['address'],
+            'key'      => $this->mapKey,
+        ];
+        $query=http_build_query($param);
+        $url='https://apis.map.qq.com/ws/geocoder/v1/';
+        $url.='?'.$query;
+        $result=curl_request($url);
+        $result=json_decode($result,true);
+        return $result;
+    }
+
+    public function getAddress($param)
+    {
+        $lat = $param['lat'];//纬度
+        $lng = $param['lng'];//经度
+        if ($lat > 90 || $lat < -90) {
+            return dataFormat(1, '参数错误[LAT]');
+        }
+        if ($lng > 180 || $lng < -180) {
+            return dataFormat(1, '参数错误[LNG]');
+        }
+        $params = [
+            'location' => $lat . ',' . $lng,
+            'key'      => $this->mapKey,
+            'get_poi'  => '0',
+        ];
+        $query = http_build_query($params);
+        $url = 'https://apis.map.qq.com/ws/geocoder/v1/';
+        $url .= '?' . $query;
+        $result = curl_request($url);
+        $result = json_decode($result, true);
+        if (empty($result)) {
+            return dataFormat(1, '第三方应用异常，请求失败');
+        }
+        if (isset($result['status']) && $result['status'] == '0') {
+            $result = $result['result'];
+            $data = [
+                'address'   => $result['address'],
+                'recommend' => $result['formatted_addresses']['recommend'],
+                'province'  => $result['ad_info']['province'],
+                'city'      => $result['ad_info']['city'],
+            ];
+            return dataFormat(0, 'ok',$data);
+        }
+        return dataFormat($result['status'], $result['message']);
+    }
+
+
+    public function updateSignLocation($info)
+    {
+        if ($info['sign_address'] && !$info['sign_lng'] && !$info['sign_lat']) {
+            $result=$this->getCoder([
+                'address'=>$info['sign_address']
+            ]);
+            if (isset($result['status']) && $result['status'] == 0 && isset($result['result']['location']['lng']) && isset($result['result']['location']['lat'])) {
+                $info['sign_lng'] = $result['result']['location']['lng'];
+                $info['sign_lat'] = $result['result']['location']['lat'];
+                db('work_order')->where(['worder_id' => $info['worder_id']])->update([
+                    'sign_lng'    => $info['sign_lng'],
+                    'sign_lat'    => $info['sign_lat'],
+                    'update_time' => time(),
+                ]);
+            }
+        }
         return $info;
     }
     
@@ -187,6 +414,24 @@ class WorkOrder extends Model
             //分派工程师后通知工程师
             $informModel = new \app\common\model\LogInform();
             $result = $informModel->sendInform($user['factory_id'], 'sms', $installer, 'worder_dispatch_installer');
+            if ($worder['todo_id']) {
+                //完成待办事项
+                $todo=new Todo;
+                $ret=$todo->finish($worder['todo_id']);
+                if ($ret['code'] !== '0') {
+                    log_msg($ret);
+                }
+            }
+            //发送派单通知给工程师
+            $push = new \app\common\service\PushBase();
+            $sendData = [
+                'type'         => 'worker',
+                'worder_sn'    => $worder['worder_sn'],
+                'worder_id'    => $worder['worder_id'],
+            ];
+            //发送给服务商在线管理员
+            $push->sendToUid(md5($installerId), json_encode($sendData));
+
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -236,6 +481,7 @@ class WorkOrder extends Model
             //操作日志记录
             $this->worderLog($worder, $user, $installer['installer_id'], '工程师拒绝接单', $remark);
             $this->_worderInstallerLog($worder, $installer['installer_id'], 'refuse', 1);
+            $this->refuseNotify($worder,$installer);
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -249,12 +495,19 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderReceive($worder, $user, $installer)
+    public function worderReceive($worder, $user, $installer,$appointmentConfirm)
     {
+
         if (!$worder) {
             $this->error = '参数错误';
             return FALSE;
         }
+
+        if ($appointmentConfirm <= 0) {
+            $this->error = '服务确认时间不正确';
+            return FALSE;
+        }
+
         if (isset($worder['installer_id']) && $worder['installer_id'] && $worder['installer_id'] != $installer['installer_id']) {
             $this->error = lang('NO_OPERATE_PERMISSION');
             return FALSE;
@@ -280,10 +533,14 @@ class WorkOrder extends Model
                 ;
                 break;
         }
-        $result = $this->save(['work_order_status' => 2, 'receive_time' => time()], ['worder_id' => $worder['worder_id']]);
+        $result = $this->save([
+            'work_order_status'   => 2,
+            'appointment_confirm' => $appointmentConfirm,
+            'receive_time'        => time()
+        ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
-            $this->worderLog($worder, $user, $installer['installer_id'], '工程师接单');
+            $this->worderLog($worder, $user, $installer['installer_id'], '工程师接单','确认预约时间:'.date('Y-m-d H:i',$appointmentConfirm));
             return TRUE;
         }else{
             $this->error = '系统异常';
@@ -297,7 +554,7 @@ class WorkOrder extends Model
      * @param array $installer
      * @return boolean
      */
-    public function worderSign($worder, $user, $installer,$address='')
+    public function worderSign($worder, $user, $installer,$address='',$lng=0,$lat=0)
     {
         if (!$worder) {
             $this->error = '参数错误';
@@ -332,6 +589,8 @@ class WorkOrder extends Model
             'work_order_status' => 3,
             'sign_time'         => time(),
             'sign_address'      => $address,
+            'sign_lng'          => $lng,
+            'sign_lat'          => $lat,
         ], ['worder_id' => $worder['worder_id']]);
         if ($result !== FALSE) {
             //操作日志记录
@@ -753,9 +1012,15 @@ class WorkOrder extends Model
         $avgScore = round($sum/count($score),1);
         //安装工单
         if ($worder['work_order_type'] == 1 && $worder['carry_goods'] == 0) {
-            //首次评价,处理安装服务费发放结算
+            //首次-综合评价,处理安装服务费发放结算
             $this->serviceSettlement($worder, $assessId, $user, $avgScore);
+
         }
+        //更新工程师评价数据
+        $this->getStatics($worder['installer_id'],$user['factory_id'],true);
+        //更新服务商评价数据
+        $this->getServiceStatics($worder['store_id'],$user['factory_id'],true);
+        //工单记录
         $action ='首次评价';
         //操作日志记录
         $this->worderLog($worder, $user, 0, $action, $msg);
@@ -1093,7 +1358,39 @@ class WorkOrder extends Model
         return $result;
     }
 
-
+    //回收分派工单，重新分派
+    public function dispatch_recycle(WorkOrder $worder)
+    {
+        if ($worder['is_del'] == 1) {
+            return dataFormat(1,'工单已经删除');
+        }
+        if ($worder['work_order_status'] != 1) {
+            return dataFormat(2,'工单状态'.get_work_order_status($worder['work_order_status']).',不能回收重新分派');
+        }
+        $worder->work_order_status=0;
+        $worder->dispatch_time=0;
+        $worder->installer_id=0;
+        $worder->cancel_time=0;
+        $worder->receive_time=0;
+        $worder->sign_time=0;
+        $work = [
+            'worder_id'       => $worder->worder_id,
+            'worder_sn'       => $worder->worder_sn,
+            'work_order_type' => $worder->work_order_type,
+            'factory_id'      => $worder->factory_id,
+            'store_id'        => $worder->store_id,
+            'post_store_id'   => $worder->post_store_id,
+            'post_user_id'    => $worder->post_user_id,
+            'add_time'        => $worder->add_time,
+        ];
+        $installerId=$worder->installer_id;
+        if ($worder->save()) {
+            $this->worderLog($work,[],$installerId,"撤回已分派工单",'工程师超时未接单，重新分派');
+            //通知服务商
+            $this->notify($work,$work);
+        }
+        return dataFormat(0,'ok');
+    }
 
     private function _worderInstallerLog($worder, $installerId, $action = "dispatch_other", $status = 1)
     {
@@ -1127,5 +1424,347 @@ class WorkOrder extends Model
         }else{
             return $sn;
         }
+    }
+
+    public function getAccessTitle($factoryId)
+    {
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $arr = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'IN', [$installAssessKey, $repairAssessKey]],
+        ])->group('name')->column('name');
+        return dataFormat(0, 'ok', $arr);
+    }
+
+
+    public function getServiceStaticsDuring($storeId,$factoryId,$startTime,$endTime)
+    {
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $where=[
+            ['p1.add_time','>=',$startTime],
+            ['p1.add_time','<',$endTime],
+            ['p1.is_del','=',0],
+            ['p2.is_del','=',0],
+            ['p3.is_del','=',0],
+            ['p3.key','=',$repairAssessKey],
+            ['p1.factory_id','=',$factoryId],
+            //['p1.store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where[]=['p1.store_id','=',$storeId];
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where($where)->buildSql();
+        $where=[
+            ['p4.add_time','>=',$startTime],
+            ['p4.add_time','<',$endTime],
+            ['p4.is_del','=',0],
+            ['p5.is_del','=',0],
+            ['p6.is_del','=',0],
+            ['p6.key','=',$installAssessKey],
+            ['p4.factory_id','=',$factoryId],
+            //['p4.store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where[]=['p4.store_id','=',$storeId];
+        }
+
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where($where)->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+        if (empty($data)) {
+            return dataFormat(1,'暂无数据');
+        }
+        //该服务商所有工单
+        $where3=[
+            ['add_time','>=',$startTime],
+            ['add_time','<',$endTime],
+            ['factory_id','=',$factoryId],
+            ['is_del','=',0],
+            //['store_id','=',$storeId],
+        ];
+        if ($storeId > 0) {
+            $where3[]=['store_id','=',$storeId];
+        }
+        $countAll = db('work_order')->where($where3)->count();
+        $where4=[
+            ['add_time','>=',$startTime],
+            ['add_time','<',$endTime],
+            ['factory_id','=',$factoryId],
+            ['work_order_status','=',4],
+            ['is_del','=',0],
+        ];
+        if ($storeId > 0) {
+            $where4[]=['store_id','=',$storeId];
+        }
+        $countFinish = db('work_order')->where($where4)->count();
+        $rate=$countAll>0? round($countFinish/$countAll,2)*5:0;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
+    }
+
+    /**
+     * 获取服务商的评价数据
+     * @param $storeId  服务商ID
+     * @param $factoryId 厂商ID
+     * @param bool $flag true直接更新服务商数据，fase获取不到数据时候才更新
+     * @return array
+     */
+    public function getServiceStatics($storeId,$factoryId=1,$flag=false)
+    {
+        if (!$flag) {
+            $result = db('store')->field('score_overall,score_detail')->where([
+                'store_id'   => $storeId,
+                'store_type' => STORE_SERVICE,
+                'factory_id' => $factoryId,
+                'is_del'     => 0,
+            ])->find();
+            if (!empty($result['score_detail'])) {
+                $result['score_detail'] = json_decode($result['score_detail'], true);
+                return dataFormat(0, 'ok', $result);
+            }
+        }
+        //取出第一个商品安装评价配置
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        //取出第一个商品评价维修配置
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where([
+                'p1.is_del'   => 0,
+                'p2.is_del'   => 0,
+                'p3.is_del'   => 0,
+                'p1.store_id' => $storeId,
+                'p3.key'      => $repairAssessKey,
+            ])->buildSql();
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where([
+                'p4.is_del'   => 0,
+                'p5.is_del'   => 0,
+                'p6.is_del'   => 0,
+                'p4.store_id' => $storeId,
+                'p6.key'      => $installAssessKey,
+            ])->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+        //该服务商所有工单
+        $countAll = db('work_order')->where([
+            'store_id'   => $storeId,
+            'factory_id' => $factoryId,
+            'is_del'     => 0,
+        ])->count();
+        $countFinish = db('work_order')->where([
+            'store_id'          => $storeId,
+            'factory_id'        => $factoryId,
+            'is_del'            => 0,
+            'work_order_status' => 4,
+        ])->count();
+        $rate=round($countFinish/$countAll,2)*5;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        $bool = db('store')->where([
+            'store_id' => $storeId,
+            'is_del'   => 0,
+        ])->update([
+            'score_overall' => $scoreOverall,
+            'score_detail'  => json_encode($data),
+            'update_time'   => time(),
+        ]);
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
+    }
+
+    /**
+     * @param int $installId  工程师ID
+     * @param int $factoryId 厂商ID
+     * @param bool $flag   true直接更新工程师数据，fase获取不到数据时候才更新
+     * @return array
+     */
+    public function getStatics($installId = 0,$factoryId=1,$flag=false)
+    {
+        if (!$flag) {
+            $result=db('user_installer')->field('score_overall,score_detail')->where([
+                'installer_id'=>$installId,
+                'is_del'=>0,
+            ])->find();
+            if (!empty($result['score_detail'])) {
+                $result['score_detail']=json_decode($result['score_detail'],true);
+                return dataFormat(0,'ok',$result);
+            }
+        }
+        $installAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'installer_assess_%'],
+        ])->value('key');
+        if (empty($installAssessKey)) {
+            return dataFormat(1, '厂商未配置安装工单评分信息');
+        }
+        $repairAssessKey = db('config_form')->where([
+            ['is_del', '=', 0],
+            ['store_id', '=', $factoryId],
+            ['key', 'like', 'repair_assess_%'],
+        ])->value('key');
+        if (empty($repairAssessKey)) {
+            return dataFormat(1, '厂商未配置维工单评分信息');
+        }
+        $repairSql = db('work_order')
+            ->alias('p1')
+            ->field('p3.id,p3.key,p3.name,p2.config_value')
+            ->join([
+                ['config_form_logs p2', 'p2.worder_id=p1.worder_id', 'LEFT'],
+                ['config_form p3', 'p3.id=p2.config_form_id', 'LEFT'],
+            ])->where([
+                'p1.is_del'       => 0,
+                'p2.is_del'       => 0,
+                'p3.is_del'       => 0,
+                'p1.installer_id' => $installId,
+                'p3.key'          => $repairAssessKey,
+            ])->buildSql();
+        $installSql = db('work_order')
+            ->alias('p4')
+            ->field('p6.id,p6.key,p6.name,p5.config_value')
+            ->join([
+                ['config_form_logs p5', 'p5.worder_id=p4.worder_id', 'LEFT'],
+                ['config_form p6', 'p6.id=p5.config_form_id', 'LEFT'],
+            ])->where([
+                'p4.is_del'       => 0,
+                'p5.is_del'       => 0,
+                'p6.is_del'       => 0,
+                'p4.installer_id' => $installId,
+                'p6.key'          => $installAssessKey,
+            ])->buildSql();
+        $query = Db::table($repairSql . ' AS a')->unionAll($installSql)->buildSql();
+        $data = Db::table($query . ' as b')->fieldRaw('`name`,avg(config_value) `value`')->group('`name`')->select();
+
+        //该工程师所有工单
+        $countAll = db('work_order')->where([
+            'installer_id' => $installId,
+            'factory_id'   => $factoryId,
+            'is_del'       => 0,
+        ])->count();
+        $countFinish = db('work_order')->where([
+            'installer_id'      => $installId,
+            'factory_id'        => $factoryId,
+            'is_del'            => 0,
+            'work_order_status' => 4,
+        ])->count();
+        $rate=round($countFinish/$countAll,2)*5;
+        $data[]=[
+            'name'=>'解决率',
+            'value'=>$rate,
+        ];
+        //综合分数
+        $sum=array_sum(array_column($data,'value'));
+        $count=count($data);
+        $scoreOverall=0;
+        if ($count > 0) {
+            $scoreOverall=number_format($sum/$count,2,'.','');
+        }
+        $bool = db('user_installer')->where([
+            'installer_id' => $installId,
+            'is_del'       => 0,
+        ])->update([
+            'score_overall' => $scoreOverall,
+            'score_detail'  => json_encode($data),
+            'update_time'   => time(),
+        ]);
+        return dataFormat(0, 'ok', [
+            'score_overall' => $scoreOverall,
+            'score_detail'  => $data,
+        ]);
     }
 }

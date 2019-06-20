@@ -17,7 +17,7 @@ class Order extends Model
         $this->orderSkuModel = db('order_sku');
         $this->orderSkuSubModel = db('order_sku_sub');
     }
-    public function getOrderList($list, $getother = FALSE)
+    public function getOrderList($list, $getother = FALSE,$flag=false)
     {
         if ($list) {
             foreach ($list as $key => $value) {
@@ -25,7 +25,7 @@ class Order extends Model
                 $list[$key]['_service'] = [
                     'ossub_id' => $ossubId,//可申请安装/售后的订单商品ID
                 ];;
-                $list[$key]['_status'] = get_order_status($value);
+                $list[$key]['_status'] = get_order_status($value,$flag);
                 //判断订单申请安装状态
                 $applyStatus = 0;
                 $worderCount = db('work_order')->where(['order_sn' => $value['order_sn'], 'work_order_status' => ['<>', -1]])->count();
@@ -72,6 +72,44 @@ class Order extends Model
         }
         return $list;
     }
+
+    //获取订单的安装状态
+    public function getInstallStatus($order)
+    {
+        $applyStatus = 0;
+        $ossubId = 0;
+        $worderCount = db('work_order')->where(['order_sn' => $order['order_sn'], 'work_order_status' => ['<>', -1]])->count();
+        $orderCount = db('order_sku')->where(['order_id' => $order['order_id']])->sum('num');
+        if ($worderCount > 0) {
+            if ($orderCount > $worderCount) {
+                $applyStatus = 1;//部分商品已安装
+            } else {
+                $applyStatus = 2;//所下单的商品已经全部安装
+            }
+        }
+        if ($order['pay_status'] == 1 && $applyStatus != 2) {//已付款，部分安装，则获取可安装的商品ossub_id
+            //获取可申请安装的订单商品
+            $join = [
+                ['order_sku_service OSSE', 'OSSE.ossub_id = OSSUB.ossub_id', 'LEFT'],
+                ['work_order WO', 'WO.ossub_id = OSSUB.ossub_id', 'LEFT'],
+            ];
+            $ossubId = db('order_sku_sub')
+                ->alias('OSSUB')
+                ->join($join)
+                ->whereRaw('service_status = -2 OR service_status is NULL')
+                ->whereRaw('work_order_status = -1 OR work_order_status is NULL')
+                ->where('OSSUB.order_id', $order['order_id'])
+                ->value('OSSUB.ossub_id');
+        }
+        $installStatus = [
+            'ossub_id'    => intval($ossubId),
+            'status'      => $applyStatus,
+            'status_text' => get_order_apply_status($applyStatus),
+            'count'       => $worderCount,
+        ];
+        return dataFormat(0,'ok',$installStatus);
+    }
+
     /**
      * 获取订单详情信息
      * @param string $orderSn   订单号
@@ -98,7 +136,7 @@ class Order extends Model
         $detail['order'] = $order;
         if ($getlog) {
             $detail['logs'] = db('order_log')->where(['order_sn' => $orderSn])->order('add_time DESC, log_id DESC')->select();
-//             $detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
+            //$detail['user'] = db('user')->field('user_id, username, nickname, realname, avatar, phone, status')->where(['user_id' => $order['user_id'], 'is_del' => 0])->find();;
             $detail['store'] = db('store')->field('store_id, name')->where(['store_id' => $order['user_store_id']])->find();;
         }
         //根据条件关闭订单退换货
@@ -137,15 +175,19 @@ class Order extends Model
             $this->error = '订单已完成, 不能执行当前操作';
             return FALSE;
         }
-        $data = [
-            'finish_status' => 2,
-            'finish_time' => time(),
-            'update_time' => time(),
-        ];
-        $result = $this->where(array('order_id' => $order['order_id']))->update($data);
-        if (!$result) {
-            $this->error = $this->getError();
-            return FALSE;
+        //20190520需求：厂商可对服务商采购订单进行标记发货并可录入物流单号，故厂商收款确认后不能直接完成订单。
+        //MODIFIED BY JINZHOU 2019/5/20
+        if (in_array($user['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $data = [
+                'finish_status' => 2,
+                'finish_time' => time(),
+                'update_time' => time(),
+            ];
+            $result = $this->where(array('order_id' => $order['order_id']))->update($data);
+            if (!$result) {
+                $this->error = $this->getError();
+                return FALSE;
+            }
         }
         if (!in_array($order['order_type'], [1])) {
             //修改订单产品表 已发货状态改为已收货
@@ -294,7 +336,7 @@ class Order extends Model
             'delivery_time'     => time(),
             'update_time'       => time(),
         ];
-        $result = $this->orderSkuSubModel->where(['ossub_id' => ['IN', $ossubIds]])->update($data);
+        $result = db('order_sku_sub')->where(['ossub_id' => ['IN', $ossubIds]])->update($data);
         if ($result === FALSE) {
             $this->error = '操作异常';
             return FALSE;
@@ -303,14 +345,16 @@ class Order extends Model
             'update_time'   => time(),
         ];
         //获取订单产品总数
-        $orderCounts = $this->orderSkuModel->where(['order_id' => $order['order_id']])->count();
+        $orderCounts = db('order_sku')->where(['order_id' => $order['order_id']])->sum('num');
         //获取订单发货产品总数
-        $deliveryCounts = $this->orderSkuSubModel->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
+        $deliveryCounts = db('order_sku_sub')->where(['order_id' => $order['order_id'], 'delivery_status' => ['>', 0]])->count();
+
         if ($orderCounts > $deliveryCounts) {
             $orderData['delivery_status'] = 1;
         }else{
             $orderData['delivery_status'] = 2;
         }
+
         $result = $this->where(array('order_id' => $order['order_id']))->update($orderData);
         if (!$result) {
             $this->error = $this->error();
@@ -458,6 +502,11 @@ class Order extends Model
             $this->error = '订单操作异常';
             return FALSE;
         }
+        //删除待办事件中为已完成
+        if ($order['todo_id']) {
+            $todo=new Todo;
+            $todo->finish($order['todo_id']);
+        }
         $nameStr = '';
         if ($skus) {
             $len = count($skus);
@@ -466,7 +515,7 @@ class Order extends Model
             foreach ($skus as $key => $value) {
                 $nameStr .= $value['sku_name'].' '.$value['sku_spec'].' * '.$value['num'] .($len == ($key+ 1) ? "": "\r\n");
                 if ($value['stock_reduce_time'] == 2) {//支付成功后减少库存
-                    $result = $goodsModel->setGoodsStock($value, -$value['num']);
+                    $result = $goodsModel->setGoodsStock($value, -$value['num'],$user);
                 }
             }
         }
@@ -491,7 +540,7 @@ class Order extends Model
             }
             model('PromotionJoin')->where('join_id', $order['promot_join_id'])->setInc('order_pay_count', 1);
         }
-        if (in_array($order['order_type'], [1])) {
+        if ($order['order_from']>2 || $order['delivery_type']==1) {//电商订单 或店内自提，确认收款直接完成
             $this->orderFinish($orderSn, $user, ['remark' => '支付成功,订单完成']);
         }
         
@@ -527,6 +576,57 @@ class Order extends Model
         }
         return true;
     }
+
+    public function notify($user,$data)
+    {
+        if ($data['pay_type'] != 2 || in_array($user['group_id'], [GROUP_E_COMMERCE_KEFU,GROUP_E_CHANGSHANG_KEFU])) {
+            return dataFormat(1,'电商户类无推送信息');
+        }
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $user = db('user')
+            ->alias('p1')
+            ->field('p1.group_id,p1.username,p2.name store_name')
+            ->join('store p2','p1.store_id=p2.store_id AND p2.is_del=0','LEFT')
+            ->where('p1.user_id', $data['user_id'])
+            ->find();
+        $todoData=[
+            'type'         => 3,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'     => $data['store_id'],//推送目标商户ID
+            'post_store_id'=> $data['user_store_id'],//发起事件的商户ID
+            'post_user_id' => $data['user_id'],
+            'title'        => '【确认收款】' .($user['store_name']? $user['store_name']:$user['username']).' ('.get_group_name($user['group_id']) . ')线下支付采购订单，请确认收款',
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            return dataFormat(2,'系统故障');
+        }
+        $todoModel->url=url('order/pay', ['order_sn' => $data['order_sn'],'todo_id'=>$todoId]);
+        $todoModel->save();
+
+        $result=db('order')->where(['order_id' => $data['order_id']])->update([
+            'todo_id'     => $todoId,
+            'update_time' => time(),
+        ]);
+        if ($result===false) {
+            return dataFormat(3,'系统故障');
+        }
+        $addTime = isset($data['add_time']) ? $data['add_time'] : time();
+        $sendData = [
+            'type'      => 'todo',
+            'title'     => $todoData['title'],
+            'url'       => $todoModel->url,
+            'todo_id'   => $todoId,
+            'todo_type' => $todoData['type'],
+            'add_time'  => getTime($addTime),
+        ];
+        //发送给服务商在线管理员
+        $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
+        return true;
+    }
+
     /**
      * 订单取消操作
      * @param string $orderSn   订单号
@@ -568,7 +668,7 @@ class Order extends Model
             $goodsModel = new \app\common\model\Goods();
             foreach ($skus as $key => $value) {
                 if ($value['stock_reduce_time'] == 1) {
-                    $goodsModel->setGoodsStock($value, $value['num']);
+                    $goodsModel->setGoodsStock($value, $value['num'],$user);
                 }
             }
         }
@@ -582,11 +682,13 @@ class Order extends Model
             $this->error = lang('param_error');
             return FALSE;
         }
-        if (($orderType == 1 && !isset($user['user_id'])) || ($orderType == 2 && !isset($user['udata_id']))) {
+
+        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
+        $udataId = isset($user['udata_id'])? intval($user['udata_id']) : 0;
+        if ($userId<=0 && $udataId<=0 ) {
             $this->error = lang('param_error');
             return FALSE;
         }
-        $userId = isset($user['user_id'])? intval($user['user_id']) : 0;
         switch ($from) {
             case 'goods':
                 $goodsModel = new \app\common\model\Goods();
@@ -653,11 +755,11 @@ class Order extends Model
                     return FALSE;
                 }
             }
-            if (!in_array($orderType,[1,3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
+            //货到付款 收货人姓名/电话/地址 不能为空
+            if (in_array($orderType,[3])  && (!$addrName || !$addrPhone || !$addrRegion || !$regionId || !$addrDetail)) {
                 $this->error = '收货人姓名/电话/地址 不能为空';
                 return FALSE;
             }
-            $userModel = new \app\common\model\User();
             //验证手机号格式
             if (!empty($addrPhone) && !check_mobile($addrPhone)) {
                 $this->error = '手机号格式错误';
@@ -765,7 +867,7 @@ class Order extends Model
                                 'good_sku_code' => $this->_getGoodsSkuCode('auto', $value['sku_sn']),
                                 'order_id'      => $orderId,
                                 'order_sn'      => $orderSn,
-                                'store_id'      => $storeId,
+                                'store_id'      => $storeId,//厂商
                                 'osku_id'       => $oskuId,
                                 
                                 'user_id'       => $userId,
@@ -808,7 +910,7 @@ class Order extends Model
                 if ($skus) {
                     //减少商品库存
                     foreach ($skus as $key => $value) {
-                        $result = $goodsModel->setGoodsStock($value, -$value['num']);
+                        $result = $goodsModel->setGoodsStock($value, -$value['num'],$user);
                     }
                 }
                 // 清理购物车产品
@@ -819,6 +921,8 @@ class Order extends Model
                     ];
                     $result =  model('Cart')->where($where)->delete();
                 }
+
+                $this->notify($user,$orderData);
                 return $orderData;
             //}catch(\Exception $e){
             //    $error = $e->getMessage();

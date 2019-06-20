@@ -1,6 +1,8 @@
 <?php
 namespace app\factory\controller;
+use app\common\model\Todo;
 use think\Db;
+use think\Request;
 
 class Store extends FactoryForm
 {
@@ -33,16 +35,34 @@ class Store extends FactoryForm
         $info = $this->_assignInfo();
         return $this->fetch();
     }
+
+    //服务商审核
+    public function service_check()
+    {
+        //只有厂商才有权限
+        if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY])) {
+            $this->error(lang('NO_OPERATE_PERMISSION'));
+        }
+        return $this->check();
+    }
+
     public function check()
     {
         $info = $this->_assignInfo();
+        $todo=new Todo;
+        if ($info === false) {
+            $todo->finish($this->request->param('todo_id'));
+            $this->error('商户不存在或已被删除');
+        }
         //只有厂商,新服务商才有权限
         if (!in_array($this->adminUser['admin_type'],[ADMIN_FACTORY,ADMIN_SERVICE_NEW])) {
             $this->error(lang('NO_OPERATE_PERMISSION'));
         }
         $checkStatus = $info['check_status'];
         //已拒绝不允许审核
+
         if (in_array($checkStatus, [1, 2])) {
+            $todo->finish($info['todo_id']);
             $this->error('操作已审核');
         }
         if ($info['factory_id'] != $this->adminUser['factory_id']) {
@@ -62,6 +82,7 @@ class Store extends FactoryForm
             ];
             $result = $this->model->save($data, ['store_id' => $info['store_id']]);
             if ($result !== FALSE) {
+                $todo->finish($info['todo_id']);
                 $this->success('操作成功', url('index', ['status' => $status]));
             }else{
                 $this->error('操作失败');
@@ -104,7 +125,10 @@ class Store extends FactoryForm
                 $this->error('该手机号未绑定');
             }
             Db::startTrans();
-            $result=db('user_data')->whereIn('user_id',$userIds)->update(['user_id'=>0]);
+            $result=db('user_data')->whereIn('user_id',$userIds)->update([
+                'user_id' => 0,
+                'phone'   => '',
+            ]);
             if ($result===false) {
                 Db::rollback();
                 $this->error('解绑失败');
@@ -128,8 +152,72 @@ class Store extends FactoryForm
         } else {
             return $this->fetch('unbind_wechat');
         }
+    }
 
+    /**
+     * 获得地区经纬度
+     */
+    public function getcoder(Request $request)
+    {
+        $address=$request->param('address','','trim');
+        $model=new \app\common\model\WorkOrder;
+        $result=$model->getCoder(compact('address'));
+        if ($result['status'] == 0) {
+            $result=$result['result'];
+            return json(dataFormat(0,'ok',$result['location']));
+        }
+        return json(dataFormat(1,$result['message']));
+    }
 
+    //获得网点分布及订单数据
+    public function distribute()
+    {
+        if (!in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, STORE_SERVICE_NEW])) {
+            return json(dataFormat(1, "非法访问"));
+        }
+        //p($this->adminUser);
+        $data=[];
+        $arr['service'] = [];
+        $arr['dealer'] = [];
+        if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {//厂商，获取话旗下服务商表列表
+            $data['service'] = db('store')->field('store_id,name,region_name,address')->where([
+                'is_del'       => 0,
+                'status'       => 1,
+                'check_status' => 1,
+                'store_type'   => ['IN',STORE_SERVICE_NEW, STORE_SERVICE],
+                'factory_id'   => $this->adminUser['factory_id'],
+            ])->cursor();
+            $data['dealer'] = db('store')->field('store_id,name,region_name,address')->where([
+                'is_del'       => 0,
+                'status'       => 1,
+                'check_status' => 1,
+                'store_type'   => STORE_DEALER,
+                'factory_id'   => $this->adminUser['factory_id'],
+            ])->cursor();
+
+        } else {//服务商
+            $data['dealer'] = db('store')->alias('p1')
+                ->field('p1.store_id,p1.name,p1.region_name,p1.address')
+                ->join('store_dealer p2', 'p2.store_id=p1.store_id')
+                ->where([
+                    'p1.is_del'       => 0,
+                    'p1.status'       => 1,
+                    'p1.check_status' => 1,
+                    'p2.ostore_id'    => $this->adminUser['store_id'],
+                ])->cursor();;
+        }
+        foreach ($data as $key => $value) {
+            foreach ($value as $k => $v) {
+                $arr[$key][$k]=$v;
+                $arr[$key][$k]['order_count'] = db('order')->where([
+                    'order_status'  => 1,
+                    'user_store_id' => $v['store_id'],
+                ])->count();
+                unset($arr[$key][$k]['store_id']);
+            }
+        }
+        $arr['store_type']=$this->adminStore['store_type'];
+        return json(dataFormat(0, 'ok', $arr));
     }
 
     function _getAlias()
@@ -211,7 +299,8 @@ class Store extends FactoryForm
         if ($table['actions']['button']) {
             $table['actions']['button']= [
                 ['text'  => '查看详情','action'=> 'detail', 'icon'  => 'detail','bgClass'=> 'bg-green'],
-                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["check_status"] == 0']],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'check','rule'=>'$vo["check_status"] == 0 && $vo["store_type"]== '.STORE_DEALER]],
+                ['text'  => '审核','action'=> 'condition', 'icon'  => 'check','bgClass'=> 'bg-red','condition'=>['action'=>'service_check','rule'=>'$vo["check_status"] == 0 &&  in_array($vo["store_type"],['.STORE_SERVICE.','.STORE_SERVICE_NEW.'])']],
             ];
             $table['actions']['width']  = '*';
         }

@@ -2,6 +2,8 @@
 namespace app\common\controller;
 
 //商户管理
+use app\common\model\WorkOrder;
+
 class Store extends FormBase
 {
     var $storeType;
@@ -386,6 +388,26 @@ class Store extends FormBase
     {
         $data = parent::_getData();
         $params = $this->request->param();
+        //商户联系地址验证
+        if (in_array($this->request->action(),['add','edit'])) {
+            $location=$this->request->param('location','');
+            $regionName=$this->request->param('region_name','');
+            if ($location && $regionName) {
+                list($lat,$lng)=explode(',',$location);
+                if ($lat>90 || $lat<-90) {
+                    $this->error('商户联系地址不正确');
+                }
+                if ($lng>180 || $lat<-180) {
+                    $this->error('商户联系地址不正确！');
+                }
+                $result=(new WorkOrder())->getAddress(compact('lat','lng'));
+                if ($result['code'] === '0') {
+                    if ($regionName !== $result['data']['province'] . ' '.$result['data']['city']) {
+                        $this->error('当前所选的位置与服务区域不匹配！');
+                    }
+                }
+            }
+        }
         $pkId = $params && isset($params['id']) ? intval($params['id']) : 0;
         $factoryId = $params && isset($params['factory_id']) ? intval($params['factory_id']) : 0;
         $address = $data && isset($data['address']) ? trim($data['address']) : '';
@@ -592,23 +614,32 @@ class Store extends FormBase
      * 详情字段配置
      */
     function _fieldData(){
-        $array = $logo = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = $array9 = [];
+        $array = $logo = $status = $sort = $array1 = $array2 = $array3 = $array4 = $array5 = $array6 = $array7 = $array8 = $array9 =$array10= [];
         if ($this->storeType == STORE_FACTORY) {
             $logo = ['title'=>'Logo','type'=>'uploadImg','name'=>'logo', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array = ['title'=>'二级域名','type'=>'text','name'=>'domain','size'=>'20','datatype'=>'','default'=>'','notetext'=>lang($this->modelName).'二级域名不能重复'];
         }
-        if ($this->storeType == STORE_DEALER && in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL])) {
+        if ($this->storeType == STORE_DEALER && in_array($this->adminUser['admin_type'], [ADMIN_FACTORY, ADMIN_CHANNEL,STORE_SERVICE_NEW])) {
+            $where = [
+                ['store_type', 'IN', [STORE_CHANNEL, STORE_SERVICE_NEW]],
+                ['is_del', '=', 0],
+                ['status', '=', 1],
+                ['check_status', '=', 1],
+            ];
             if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
-                $channels = $this->model->field('store_id as id, name as cname')->where(['factory_id' => $this->adminUser['store_id'], 'store_type' => STORE_CHANNEL, 'is_del' => 0, 'status' => 1])->select();
-                $this->assign('channels', $channels);
-                $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
+                $where[] = ['factory_id', '=', $this->adminUser['store_id']];
+            } else {
+                $where[] = ['store_id', '=', $this->adminUser['store_id']];
             }
+            $channels = $this->model->field('store_id as id, name as cname')->where($where)->select();
+            $this->assign('channels', $channels);
+            $array1= ['title'=>'所属渠道商','type'=>'select','options'=>'channels','name' => 'ostore_id', 'size'=>'40' , 'datatype'=>'*', 'default'=>'','default_option'=>'==所属渠道商==','notetext'=>'请选择所属渠道商'];
             //$array2= ['title'=>'已采购样品金额','type'=>'text','name'=>'sample_amount','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写已采购样品金额'];
             $array4 = ['title'=>'身份证正面','type'=>'uploadImg','name'=>'idcard_font_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array5 = ['title'=>'身份证反面','type'=>'uploadImg','name'=>'idcard_back_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
             $array7 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>''];
-            $array8 = ['title'=>'选择区域','type'=>'region','length'=>3,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择区域'];
-            $array9 = ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'];
+            $array8 = ['title'=>'选择区域','type'=>'region','length'=>2,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择区域'];
+            $array9 = ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'];
         }
         if (in_array($this->storeType, [STORE_CHANNEL, STORE_SERVICE])) {
             $array2 = ['title'=>'保证金金额','type'=>'text','name'=>'security_money','size'=>'10','datatype'=>'*','default'=>'','notetext'=>'请填写保证金金额'];
@@ -626,6 +657,7 @@ class Store extends FormBase
             $array5 = ['title'=>'营业执照','type'=>'uploadImg','name'=>'license_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'公司营业执照'];
             $array6 = ['title'=>'签约合同','type'=>'uploadImg','name'=>'signing_contract_img', 'width'=>'20', 'datatype'=>'','default'=>'','notetext'=>'签约合同 (带有双方公司名称)'];
             $array7 = ['title'=>'负责区域','type'=>'region','length'=>2,'name'=>'region_id','size'=>'30','datatype'=>'*','default'=>'','notetext'=>'请选择负责区域'];
+            $array9 = ['title'=>lang($this->modelName).'地址','type'=>'text','name'=>'address','size'=>'60','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'地址'];
         }
 
         if ($this->adminUser['admin_type'] == ADMIN_FACTORY) {
@@ -641,7 +673,7 @@ class Store extends FormBase
             $logo,
             ['title'=>lang($this->modelName).'联系人姓名','type'=>'text','name'=>'user_name','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系人姓名'],
             ['title'=>lang($this->modelName).'联系电话','type'=>'text','name'=>'mobile','size'=>'20','datatype'=>'*','default'=>'','notetext'=>'请填写'.lang($this->modelName).'联系电话'],
-            $array2,$array3,$array4,$array5,$array6,$array7,$array8,$array9,           
+            $array2,$array3,$array4,$array5,$array6,$array7,$array8,$array9, $array10,
             $status,
             $sort,
         ];

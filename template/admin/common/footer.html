@@ -68,7 +68,8 @@ $(function(){
         var span=$(this).children('li').children('span');
         if (span.hasClass('text-red')){
             span.text('[已读]').removeClass('text-red');
-            var badge=$('.badge-dot');
+            var numBoxId=$('#sysnotice').attr('data-info');
+            var badge=$('#'+numBoxId+' .badge-dot');
             var unread=parseInt(badge.text());
             if (unread>1) {
                 badge.text(unread-1);

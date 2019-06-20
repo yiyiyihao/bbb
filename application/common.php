@@ -150,7 +150,7 @@ function get_promotion_status($info = [])
 }
 function time_to_date($time = 0, $format = 'Y-m-d H:i:s')
 {
-    if (!$time) {
+    if ($time<=0) {
         return '';
     }
     $time = $time ? $time : time();
@@ -376,6 +376,50 @@ function get_group_type($type = FALSE){
     }
 }
 
+function get_group_name($group_id){
+    $name='';
+    switch ($group_id) {
+        case GROUP_FACTORY:
+            $name='厂商';
+            break;
+        case GROUP_CHANNEL:
+            $name='渠道商';
+            break;
+        case GROUP_DEALER:
+            $name = '零售商';
+            break;
+        case GROUP_SERVICE:
+            $name = '服务商';
+            break;
+        case GROUP_SERVICE_NEW:
+            $name = '服务商';
+            break;
+        case GROUP_E_COMMERCE_KEFU:
+            $name = '电商客服';
+            break;
+        case GROUP_E_CHANGSHANG_KEFU:
+            $name = '厂商客服';
+            break;
+        default:
+            $name = '用户';
+            break;
+    }
+    return $name;
+}
+
+function getTime($time=0){
+    $time = $time ? $time : time();
+    $todayStart=strtotime(date('Y-m-d'));
+    if ($time >= $todayStart) {
+        return '今天'.date('H:i',$time);
+    }
+    if ($time >= $todayStart-86400) {
+        return '昨天'.date('H:i',$time);
+    }
+    return date('Y-m-d',$time);
+
+}
+
 /**
  * 开启/关闭状态文字格式化
  */
@@ -489,76 +533,171 @@ function get_service_status($status = FALSE)
     }
 }
 
+
+function get_order_status($order=[]){
+    $arr=[
+        'status_text'=>'',
+        'status'=>'',
+    ];
+    if (!isset($order['pay_type'])) {
+        $order['pay_type'] = 1;
+    }
+    if ($order['order_status']==2) {
+        $arr['status_text'] = '已取消';
+        $arr['status'] = 5;
+        return $arr;
+    }
+    if ($order['order_status']==3) {
+        $arr['status_text'] = '已关闭';
+        $arr['status'] = 6;
+        return $arr;
+    }
+    if ($order['order_status']==4) {
+        $arr['status_text'] = '已删除';
+        $arr['status'] = 7;
+        return $arr;
+    }
+    //历史数据
+    if ($order['order_type'] == 1 && in_array($order['user_store_type'],[STORE_DEALER,STORE_SERVICE,STORE_SERVICE_NEW]) ) {
+        $order['order_type']=2;
+    }
+
+    /*******未付款*******************************************************/
+    if ($order['pay_status'] == 0) {
+        //货到付款以后再处理【pay_type=3】
+        $arr['status_text'] = $order['pay_type'] == 1?  '待付款':'待确认收款';
+        $arr['status'] = 1;
+        return $arr;
+    }
+    /*******已付款***********************************************************/
+    //批发订单，不用发货-新需求没有这个要求
+
+    //正常完成
+    if ($order['delivery_status']==2 && $order['finish_status']==2) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+
+    //正常完成
+    //if ($order['pay_status']==1) {
+    //    $arr['status_text'] = '已完成';
+    //    $arr['status'] = 4;
+    //    return $arr;
+    //}
+
+    //电商订单不需要发货
+    if ($order['pay_status']==1 && $order['order_status']==1 && $order['user_store_type']==STORE_FACTORY) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+    //零售店内提货，不发货
+    if ($order['order_type'] == 2 && $order['delivery_type'] == 1) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 0) {
+        $arr['status_text'] = '待发货';
+        $arr['status'] = 2;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
+        $arr['status_text'] = '部分发货';
+        $arr['status'] = 30;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
+        $arr['status_text'] = '待收货';
+        $arr['status'] = 3;
+        return $arr;
+    }
+    if ($order['delivery_status'] != 0 && $order['finish_status'] == 1) {
+        $arr['status_text'] = '部分完成';
+        $arr['status'] = 40;
+        return $arr;
+    }
+    if ($order['delivery_status'] == 2 && $order['finish_status'] == 2) {
+        $arr['status_text'] = '已完成';
+        $arr['status'] = 4;
+        return $arr;
+    }
+    return $arr;
+}
+
+
 /**
  * 获取订单状态
  * @param  $order    : 订单信息
  * @return [string]
  */
-function get_order_status($order = array()) {
-    $arr = array();
-    switch ($order['order_status']) {
-        case 2: // 已取消
-            $arr['now'] = 'cancel';
-            $arr['wait'] = 'cancel';
-            $arr['status_text'] = ch_order_status($arr['wait']);
-            $arr['status'] = 5;
-            break;
-        case 3: // 已关闭
-            $arr['now'] = 'recycle';
-            $arr['wait'] = 'recycle';
-            $arr['status_text'] = ch_order_status($arr['wait']);
-            $arr['status'] = 6;
-            break;
-        case 4: // 前台用户已删除
-            $arr['now'] = 'delete';
-            $arr['status'] = 7;
-            break;
-        default:    // 正常状态
-            if (!isset($order['pay_type'])) {
-                $order['pay_type'] = 1;
-            }
-            if (in_array($order['order_type'], [1])) {
-                if (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 0) {
-                   $arr['now'] = 'create'; // 创建订单
-                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay_confirm';
-                   $arr['status'] = 1;
-                }elseif (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 1) {
-                   $arr['now'] = 'pay';    // 已支付
-                   $arr['wait'] = 'all_finish';
-                   $arr['status'] = 2;
-               }
-            }else{
-               if ($order['pay_type'] == 1 && $order['pay_status'] == 0) {
-                   $arr['now'] = 'create'; // 创建订单
-                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_delivery';
-                   $arr['status'] = 1;
-               }elseif ($order['pay_type'] == 1 && $order['pay_status'] == 1 && $order['delivery_status'] == 0) {
-                   $arr['now'] = 'pay';    // 已支付
-                   $arr['wait'] = 'load_delivery';
-                   $arr['status'] = 2;
-               }elseif ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
-                   $arr['now'] = 'part_delivery';   // 部分发货
-                   $arr['status'] = 30;
-               }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
-                   $arr['now'] = 'all_delivery';   // 已发货
-                   $arr['wait'] = 'load_finish';
-                   $arr['status'] = 3;
-               }elseif ($order['delivery_status'] != 0 && $order['finish_status'] == 1) {
-                   $arr['now'] = 'part_finish';   // 部分完成
-                   $arr['wait'] = 'part_delivery';
-                   $arr['status'] = 40;
-               }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 2) {
-                   $arr['now'] = 'all_finish';   // 已完成
-                   $arr['wait'] = 'all_finish';
-                   $arr['status'] = 4;
-               }
-            }
-            $arr['status_text'] = ch_order_status($arr['wait']);
-            break;
-    }
-    unset($arr['now'], $arr['wait']);
-    return $arr;
-}
+//function get_order_status2($order = array(),$flag=false) {
+//    $arr = array();
+//    switch ($order['order_status']) {
+//        case 2: // 已取消
+//            $arr['now'] = 'cancel';
+//            $arr['wait'] = 'cancel';
+//            $arr['status_text'] = ch_order_status($arr['wait']);
+//            $arr['status'] = 5;
+//            break;
+//        case 3: // 已关闭
+//            $arr['now'] = 'recycle';
+//            $arr['wait'] = 'recycle';
+//            $arr['status_text'] = ch_order_status($arr['wait']);
+//            $arr['status'] = 6;
+//            break;
+//        case 4: // 前台用户已删除
+//            $arr['now'] = 'delete';
+//            $arr['status'] = 7;
+//            break;
+//        default:    // 正常状态
+//            if (!isset($order['pay_type'])) {
+//                $order['pay_type'] = 1;
+//            }
+//            if ($order['order_type']==1 && $flag==FALSE) {//批发
+//                if (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 0) {
+//                   $arr['now'] = 'create'; // 创建订单
+//                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_pay_confirm';
+//                   $arr['status'] = 1;
+//                }elseif (($order['pay_type'] == 1 || $order['pay_type'] == 2) && $order['pay_status'] == 1) {
+//                   $arr['now'] = 'pay';    // 已支付
+//                   $arr['wait'] = 'all_finish';
+//                   $arr['status'] = 2;
+//               }
+//            }else{//零售
+//               if ($order['pay_status'] == 0) {
+//                   $arr['now'] = 'create'; // 创建订单
+//                   $arr['wait'] = ($order['pay_type'] == 1) ? 'load_pay' : 'load_delivery';
+//                   $arr['status'] = 1;
+//               }elseif ($order['pay_status'] == 1 && $order['delivery_status'] == 0) {
+//                   $arr['now'] = 'pay';    // 已支付
+//                   $arr['wait'] = 'load_delivery';
+//                   $arr['status'] = 2;
+//               }elseif ($order['delivery_status'] == 1 && $order['finish_status'] == 0) {
+//                   $arr['now'] = 'part_delivery';   // 部分发货
+//                   $arr['wait'] = 'part_delivery';
+//                   $arr['status'] = 30;
+//               }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 0) {
+//                   $arr['now'] = 'all_delivery';   // 已发货
+//                   $arr['wait'] = 'load_finish';
+//                   $arr['status'] = 3;
+//               }elseif ($order['delivery_status'] != 0 && $order['finish_status'] == 1) {
+//                   $arr['now'] = 'part_finish';   // 部分完成
+//                   $arr['wait'] = 'part_delivery';
+//                   $arr['status'] = 40;
+//               }elseif ($order['delivery_status'] == 2 && $order['finish_status'] == 2) {
+//                   $arr['now'] = 'all_finish';   // 已完成
+//                   $arr['wait'] = 'all_finish';
+//                   $arr['status'] = 4;
+//               }
+//            }
+//            $arr['status_text'] = ch_order_status($arr['wait']);
+//            break;
+//    }
+//    unset($arr['now'], $arr['wait']);
+//    return $arr;
+//}
 
 /**
  * 获取状态中文信息
@@ -1218,6 +1357,20 @@ function str_encode($str,$prefix=0,$suffix=0){
     return $_pre.$_mid.$_suf;
 }
 
+/**
+ * 根据分组名称获取分组权限
+ * @param number $groupId
+ */
+function getGroupPurview($groupId = 0)
+{
+    $groupPurview = cache('groupPurview'.$groupId);
+    if(!$groupPurview){
+        //获取账户角色权限
+        $groupPurview = db('user_group')->where(['group_id' => $groupId, 'is_del' => 0, 'status' => 1])->value('menu_json');
+    }
+    return $groupPurview;
+}
+
 //权限检测
 function check_auth($controller='',$action='index'){
     $flag=false;
@@ -1238,7 +1391,7 @@ function check_auth($controller='',$action='index'){
     if ($adminUser['user_id']==1){
         return true;
     }
-    $groupPurview = $adminUser['groupPurview'];
+    $groupPurview = getGroupPurview($adminUser['group_id']);
     $groupPurview   = $groupPurview ? json_decode($groupPurview,true) : [];
     foreach ($groupPurview as $item) {
         if ($item['module']==$request->module() && $item['controller']==$controller ) {
@@ -1269,16 +1422,19 @@ function dataFormat($code = 0, $msg = '', $data = [])
         $msg = (string)array_shift($args);
         $data = array_shift($args);
     }
-    if (!empty($data)) {
-        $data = recursion(json_decode(json_encode($data), true));
-    }
     $result = [
         'code' => (string)$code,
-        'msg' => (string)$msg,
+        'msg'  => (string)$msg,
     ];
     if (empty($data)) {
         return $result;
     }
+    if (is_array($data) || is_object($data)) {
+        $data = recursion(json_decode(json_encode($data), true));
+    } else {
+        $data=strval($data);
+    }
+    //数据中如果有一层data,则不再添加一层data
     if (is_array($data) && count($data) == 1 && key_exists('data', $data)) {
         return array_merge($result, $data);
     } else {
@@ -1301,4 +1457,35 @@ function recursion($arr = [])
         }
     }
     return $arr;
+}
+
+/**
+ * 驼峰字符转下划线
+ * @param string $str
+ * @return string
+ */
+function camp2snake($str='')
+{
+    $pattern='/(?<=[a-z])([A-Z])/';
+    $result=strtolower(preg_replace($pattern, '_$1', $str));
+    return $result;
+}
+
+function get_user_type($userType = null)
+{
+    $arr = [
+        0 => '意向用户',
+        1 => '成交用户',
+    ];
+    if (isset($arr[$userType])) {
+        return $arr[$userType];
+    }
+    return $arr;
+}
+
+function filter_request(){
+    $param=array_filter(input('param.'), function ($item) {
+        return $item!=='' && $item!==null;
+    });
+    return $param;
 }

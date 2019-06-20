@@ -1,4 +1,5 @@
 <form method="post" class="form-x admin-form form-auto" id="form">
+
     <div class="tab admin-tab boxShadow">
         <div class="panel admin-box fixed-pannel active">
             <div class="panel-head">
@@ -8,8 +9,10 @@
             </div>
             <div class="tab-body">
                 <div class="tab-panel active" id="tab-1">
+                <input type="hidden" name="location" id="location" value="{$info.location ?? ''}">
                 {notempty name="field"}
                 {volist name="field" key="k" id="vo"}
+
                 <div class="form-group">
                     <div class="label">
                         <label>{$vo.title}</label>
@@ -77,11 +80,162 @@
         </div>
     </div>
 </form>
+<div>
+
+
+
+
+<div id="container" style="display: none;">
+    <div class="layui-form" action="">
+        <div class="layui-form-item" style="margin-bottom: 5px;">
+            <div class="layui-input-inline">
+                <select name="province" lay-filter="province" id="province">
+                    <option value="">请选择省</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <select name="city" lay-filter="city" id="city">
+                    <option value="">请选择市</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" id="addr" required  lay-verify="required" placeholder=""  class="layui-input" style="width: 300px;">
+            </div>
+        </div>
+    </div>
+    <div id="map" style="height: 400px;"></div>
+</div>
+<script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=TTZBZ-33P35-GBWIX-QOANN-MF6IJ-EFBDX"></script>
 <script>
-    Do.ready('base', function () {
+    Do.ready('base','layui', function () {
         //表单综合处理
         $('#form').FormPage({
         	'uploadUrl' : "{$uploadUrl ?? url('Upload/upload', ['prex' => 'other_', 'thumb_type' => ''])}",
         });
-    }); 
+        var form=layui.form;
+        var obj=$('#container');
+
+        $('input[name=address]').click(function () {
+            var regionName=$('#region_name').val();
+            if (!regionName) {
+                layer.msg('请先择择负责的区域');
+                $('.js-select-child').parents('.form-group').addClass('check-error');
+                return false;
+            }
+            var address=$(this);
+            //省数据初始化
+            $.post('/Region/getAjaxList',{parent_id:1},function (data) {
+                data=data.data;
+                var html='<option value="">请选择省</option>';
+                data.forEach(function (value,index) {
+                    html+='<option value="'+value.region_id+'">'+value.name+'</option>';
+                });
+                $('#province').html(html);
+                form.render();
+            });
+            form.on('select(province)',function (item) {
+                $.post('/Region/getAjaxList',{parent_id:item.value},function (data) {
+                    data=data.data;
+                    var html='<option value="">请选择市</option>';
+                    data.forEach(function (value,index) {
+                        html+='<option value="'+value.name+'">'+value.name+'</option>';
+                    });
+                    $('#city').html(html);
+                    form.render();
+                });
+            });
+
+            form.on('select(city)',function (item) {
+                $.post('/tools/getCoder',{address:item.value},function (result) {
+                    if (result.code === '0') {
+                        data=result.data;
+                        var latLng = new qq.maps.LatLng(data.lat,data.lng);
+                        //调用信息窗口
+                        map = new qq.maps.Map(document.getElementById('map'),{
+                            center: latLng,
+                            zoom: 10
+                        });
+                        var info = new qq.maps.InfoWindow({map: map});
+                        //绑定单击事件添加参数
+                        qq.maps.event.addListener(map, 'click', function (event) {
+                            $.post('/tools/getAddress',{lat:event.latLng.getLat(),lng:event.latLng.getLng()},function (data) {
+                                var data=data.data;
+                                $('#addr').val(data.address);
+                                if ($('#region_name').val() !== data.province+' '+data.city) {
+                                    layer.msg('当前所选的位置与服务区域不匹配');
+                                    return false;
+                                }
+                                $('#location').val(event.latLng.getLat()+','+event.latLng.getLng());
+                                address.val(data.recommend).removeClass('Validform_error');
+                                address.parents('.form-group').removeClass('check-error');
+                                $('.js-select-child').parents('.form-group').removeClass('check-error');
+                                // console.log(data);
+                                layer.closeAll();
+                            });
+                            // console.log('您点击的位置为: [' + event.latLng.getLat() + ', ' +
+                            //     event.latLng.getLng() + ']');
+                        });
+
+                    }else {
+                        layer.msg(result.msg);
+                    }
+                });
+            });
+
+
+            init();
+            layer.open({
+                type: 1,
+                shade: false,
+                title: false, //不显示标题
+                area:  '700px', //宽高
+                move:true,
+                content: obj
+            });
+        });
+    });
+
+    var init = function() {
+        var regionName=$('#region_name').val();
+        var lat=0,lng=0;
+        $.post('/tools/getCoder',{address:regionName },function (ret) {
+            if (ret.code == '0') {
+                lat=ret.data.lat;
+                lng=ret.data.lng;
+            }
+            var map = new qq.maps.Map(document.getElementById("map"), {
+                center: new qq.maps.LatLng(lat, lng),
+                zoom: 10
+            });
+            //获取城市列表接口设置中心点
+            if (!lat || !lng) {
+                citylocation = new qq.maps.CityService({
+                    complete : function(result){
+                        map.setCenter(result.detail.latLng);
+                    }
+                });
+                //调用searchLocalCity();方法    根据用户IP查询城市信息。
+                citylocation.searchLocalCity();
+            }
+            //绑定单击事件添加参数
+            qq.maps.event.addListener(map, 'click', function (event) {
+                $.post('/tools/getAddress',{lat:event.latLng.getLat(),lng:event.latLng.getLng()},function (data) {
+                    var data=data.data;
+                    $('#addr').val(data.address);
+                    if ($('#region_name').val() !== data.province+' '+data.city) {
+                        layer.msg('当前所选的位置与服务区域不匹配');
+                        return false;
+                    }
+                    $('#location').val(event.latLng.getLat()+','+event.latLng.getLng());
+                    $('input[name=address]').val(data.recommend).removeClass('Validform_error');
+                    $('input[name=address]').parents('.form-group').removeClass('check-error');
+                    $('.js-select-child').parents('.form-group').removeClass('check-error');
+                    // console.log(data);
+                    layer.closeAll();
+                });
+                //console.log('您点击的位置为: [' + event.latLng.getLat() + ', ' +event.latLng.getLng() + ']');
+            });
+        });
+    };
+
 </script>

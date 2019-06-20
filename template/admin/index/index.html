@@ -8,8 +8,9 @@
         </ul>
         <ul class="nav-inline nav-right">
         	{if condition="$adminUser['admin_type'] != $Think.const.ADMIN_SYSTEM"}
-            {if condition="check_auth('help','index') && check_auth('help','detail')"}<li class="nav-item"><a title="帮助中心" href="{:url('help/index')}" target="admin-iframe">帮助中心</a></li>{/if}
-            <li class="nav-item" id="sysmsg"><a href="{:url('bulletin/index')}" title="系统消息" target="admin-iframe"><span class="icon-bell"></span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}
+            {if condition="check_auth('help','index') && check_auth('help','detail')"}<li class="nav-item"><a title="帮助中心" href="{:url('help/index')}" target="admin-iframe"><i class="layui-icon">&#xe607;</i></a></li>{/if}
+            {if condition="check_auth('bulletin','index') && check_auth('bulletin','detail')"}<li class="nav-item" id="sysmsg"><a href="{:url('bulletin/index')}" title="系统消息" target="admin-iframe"><span class="layui-icon">&#xe611;</span></a>{if (isset($unread) && $unread>0)}<i class="badge-dot">{$unread}</i> {/if}{/if}
+            {if condition="check_auth('store','distribute')"}<li class="nav-item"><a title="网点分布" href="/panelData" target="_blank" class="layui-icon">&#xe715;</a></li>{/if}
             <div class="nav-tab-list animate">
             	<!-- <ul class="nav-tab-title">
             		<li class="icon-message tab-active"> 消息</li>
@@ -26,7 +27,7 @@
                     {/if}
                 </ul> -->
                 {if condition="$adminUser['admin_type'] != $Think.const.ADMIN_FACTORY"}
-                <ul class="nav-tab-box" id="sysnotice">
+                <ul class="nav-tab-box" id="sysnotice" data-info="sysmsg">
                     {volist name="bulletins" id="vo" empty="<li class='empty icon-message-squre'> 暂无公告消息</li>"}
                     <a target="admin-iframe" href="{:url('/bulletin/detail',['id'=>$vo.bulletin_id])}"><li class="noticeBox">
                     	<span class="text-red">[{$vo.is_read?'已读':'未读'}]</span>{notempty name="$vo.name"}{:sub_str($vo.name,18)}{/notempty}
@@ -43,7 +44,22 @@
             {if condition="$adminUser['admin_type'] == $Think.const.ADMIN_FACTORY"}
             <!-- <li class="nav-item"><a target="_blank" href="{:url('/merchant/apply', ['store_no' => $adminFactory['store_no']], true, 'www')}" title="入驻申请"><span class="icon-edit-normal"></span></a></li> -->
             {/if}
-            <!-- <li class="nav-item"><a href="javascript:;" title="待办事项"><span class="icon-list-book"></span></a></li> -->
+             <li class="nav-item" id="todo_box">
+                 <a href="javascript:;" title="待办事项"><span class="layui-icon">&#xe637;</span></a>
+                 {if (isset($todoNum) && $todoNum>0)}<i class="badge-dot">{$todoNum}</i> {/if}
+                 <div class="nav-tab-list animate">
+                    <ul class="nav-tab-box" id="todo_list" data-info="todo_box">
+                        {notempty name="todo"}
+                        {volist name="todo" id="vo" empty="<li class='empty icon-message-squre'>暂无待办事件</li>"}
+                        <a href="{$vo.url}" target="admin-iframe" title="{$vo.title?? ''}" id="todo-id-{$vo.id}"><li class="noticeBox">{:sub_str($vo.title,15)}<span class="nav-time">{:getTime($vo.add_time)}</span></li></a>
+                        {/volist}
+                        {/notempty}
+                        {empty name="todo"}
+                        <li class='empty icon-message-squre'>暂无待办事件</li>
+                        {/empty}
+                    </ul>
+                 </div>
+             </li>
             {if condition="$adminUser['user_id'] == 1"}
             <li class="nav-item"><a href="{:url('clearcache')}" target="admin-iframe" title="清理缓存"><span class="icon-chear"></span></a></li>
             {/if}

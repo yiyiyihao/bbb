@@ -37,7 +37,42 @@ class Purchase extends FactoryForm
             $this->channelId = $channelId;
         }
     }
-    
+
+    public function goods()
+    {
+        $goods=null;
+        if ($this->channelId) {
+            $goods = db('goods')
+                ->alias('p1')
+                ->field('p1.goods_id,p1.`name`,p1.thumb')
+                ->join('goods_service p2', 'p1.goods_id=p2.goods_id')
+                ->where([
+                    'p1.is_del'   => 0,
+                    'p1.status'   => 1,
+                    'p1.store_id' => $this->adminUser['factory_id'],
+                    'p2.is_del'   => 0,
+                    'p2.status'   => 1,
+                    'p2.store_id' => $this->channelId,
+                ])
+                ->order('p2.sort_order,p1.sort_order')
+                ->select();
+        } else {
+            $goods = db('goods')
+                ->field('goods_id,name,thumb')
+                ->where([
+                    'is_del'   => 0,
+                    'status'   => 1,
+                    'store_id' => $this->adminUser['factory_id'],
+                ])
+                ->order('sort_order')
+                ->select();
+        }
+        if (empty($goods)) {
+            return json(dataFormat(10,'暂无数据'));
+        }
+        return json(dataFormat(0,'ok',$goods));
+    }
+
     public function detail()
     {
         $info = $this->_assignInfo();
@@ -169,10 +204,10 @@ class Purchase extends FactoryForm
             $strorName = $this->adminStore['store_type'] == STORE_DEALER ? '服务商' : '厂商';
             $this->error($strorName . '未配置支付信息');
         }
-        $orderType = 1;
         if ($this->adminUser['group_id'] == GROUP_E_COMMERCE_KEFU) {
             $params['pay_code'] = 'offline_pay';
         }
+        $orderType =1;//1直销，2分销
         if (IS_POST) {
             $payCode = isset($params['pay_code']) ? trim($params['pay_code']) : '';
             if (!$payCode) {
@@ -217,7 +252,7 @@ class Purchase extends FactoryForm
             return $this->fetch();
         }
     }
-    
+
     /**
      * ajax获取产品属性值
      */
@@ -262,59 +297,6 @@ class Purchase extends FactoryForm
             return json(dataFormat(1,'成功',$skuInfo));
         }
         return json(dataFormat(0,'非法访问'));
-
-
-
-
-
-
-
-
-
-        $params = $this->request->param();
-        $id = isset($params['id']) ? intval($params['id']) : 0;
-
-
-
-        if($id){
-            if(IS_POST){
-                $post = $this->request->post();
-                $specs = isset($post['specs']) ? trim($post['specs']) : '';
-                if(!empty($specs)){
-                    if ($this->adminStore['store_type']==STORE_DEALER) {
-                        $field = 'GS.sku_id,GS.sku_stock,(GSS.price_service+GSS.install_price_service) AS price';
-                        $where = [
-                            'GS.goods_id'  => $id,
-                            'GS.is_del'    => 0,
-                            'GS.status'    => 1,
-                            'GS.store_id'  => $this->adminStore['factory_id'],
-                            'GS.spec_json' => $specs,
-                        ];
-                        $joinOn = 'GSS.sku_id = GS.sku_id AND GSS.is_del = 0 AND GSS.`status` = 1 AND GSS.store_id =' .$this->channelId;
-                        $skuInfo = db('goods_sku')->alias('GS')->field($field)->where($where)->join('goods_sku_service GSS', $joinOn, 'LEFT')->find();
-                    }else{
-                        $skuInfo = db('goods_sku')->fieldRaw('sku_id,sku_stock,(price+install_price) as price')->where("goods_id = {$id} AND spec_json='{$specs}' AND status=1 AND is_del=0")->find();
-                    }
-                    if($skuInfo){
-                        $return = array(
-                            'status'    => 1,
-                            'data'      => array(
-                                'skuid' => $skuInfo['sku_id'],
-                                'price' => $skuInfo['price'],
-                                'sku'   => $skuInfo['sku_stock'],
-                            )
-                        );
-                    }else{
-                        $return['status']   = 0;
-                    }
-                }else{
-                    $return['status']   = 0;
-                }
-            }
-        }else{
-            $return['status']   = 0;
-        }
-        $this->ajaxJsonReturn($return);
     }
 
     public function _getAlias()
@@ -328,7 +310,7 @@ class Purchase extends FactoryForm
         return $field;
     }
 
-    
+
     function  _getOrder()
     {
         $order='G.add_time DESC';
@@ -445,7 +427,7 @@ class Purchase extends FactoryForm
         $this->assign('cart',$cart);
         return $list;
     }
-    
+
     private function _thumbToBig($src){
         return str_replace("500x500","1000x1000",$src);
     }

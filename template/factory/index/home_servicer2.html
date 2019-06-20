@@ -82,10 +82,36 @@
         <div class="panel admin-dashboard boxShadow">
             <div class="panel-head"><span>工单概况</span><div class="float-right button-group" data-type="1"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
             <div class="panel-body">
-                <div class="js-chart" id="orderChart" style="height:400px;" data-chart='{$chart_overview|default=""}'></div>
+                <div class="js-chart" id="orderChart" style="height:400px;" data-chart='{$chart_overview|raw|default=""}'></div>
             </div>
         </div>
     </div>
+
+    <div class="xm12">
+        <div class="panel admin-dashboard boxShadow">
+            <div class="panel-head"><span>服务统计</span><div class="float-right button-group" data-type="2"><span class="button button-small bg-main no-select" data-type="7">7天</span><span class="button button-small no-select" data-type="30">30天</span><span class="button button-small no-select" data-type="365">近1年</span></div></div>
+            <div class="panel-body clearfix">
+                <div class="xm6">
+                    <div class="num-item-box">
+                        <h4></h4>
+                        <div class="item-num">
+
+                            <div class="js-chart" id="worker-assess" data-chart='{$worder_assess|raw|default=""}' style="width: 600px;height:400px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="xm6">
+                    <div class="num-item-box clear">
+                        <h4><span class="float-right"  id="score-rule">综合评分规则</span></h4>
+                        <div class="item-num">
+                            <div class="js-chart" id="assess-score" data-chart='{$worder_score|raw|default=""}' style="width: 600px;height:400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
    <!--  <div class="xm12">
         <div class="panel admin-dashboard boxShadow">
             <div class="panel-head"><span>工单佣金统计</span><div class="float-right button-group" data-type="0"><span class="button button-small" data-type="1">今日</span><span class="button button-small bg-main" data-type="7">7天</span><span class="button button-small" data-type="30">30天</span></div></div>
@@ -106,9 +132,31 @@ $day_start = $today;
 $week_start= date('Y-m-d',strtotime($today.' -6 day'));
 //1个月
 $month_start=date('Y-m-d',strtotime($today.' -29 day'));
+//近1年
+$year_start=date('Y-m-d',strtotime($today.' -365 day'));
 {/php}
+
+<div class="score-rule">
+    <h3>综合评分规则</h3>
+    <p>综合评分由消费者填写的对于服务工程师的（安装/维修）工单服务评价统计而来，具体规则如下：</p>
+    <p>1、解决率=(已解决工单数 &divide; 总工单数）&times;5;</p>
+    <p>2、综合评分=业务能力平均分&times;25%+处理速度平均分&times;25%+服务态度平均分&times;25%+解决率&times;25%</p>
+</div>
+
 <script>
     $(function(){
+        Do.ready('dialog', function () {
+            $('#score-rule').click(function () {
+                layer.open({
+                    type: 1,
+                    shade: false,
+                    title: false, //不显示标题
+                    content: $('.score-rule'), //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+                });
+            });
+        });
+
+
         $(".panel-head .button-group .button").click(function(){
             var group = $(this).parent();
             var chartType = group.data("type");
@@ -116,7 +164,7 @@ $month_start=date('Y-m-d',strtotime($today.' -29 day'));
             $(this).addClass("bg-main");
             var days = $(this).data("type");
             getChartData(chartType,days);
-        })
+        });
         //异步取得图表数据
         function getChartData(chartType,days){
             //异步获取数据
@@ -133,6 +181,8 @@ $month_start=date('Y-m-d',strtotime($today.' -29 day'));
                     break;
                 case 30://获取一月数据
                     start = '{$month_start}';
+                case 365:
+                    start = '{$year_start}';
                     break;
             }
             var data = {start:start,end:end,type:chartType};
@@ -146,6 +196,16 @@ $month_start=date('Y-m-d',strtotime($today.' -29 day'));
                     case 1:
                         id = 'orderChart';
                         break;
+                    case 2:
+                        var assess=$('#worker-assess');
+                        assess.data("chart",e.assess);
+                        assess.EChartNew();
+                        if (e.assess_score) {
+                            var score=$('#assess-score');
+                            score.data("chart",e.assess_score);
+                            score.EChartNew();
+                        }
+                        return true;
                 }
                 $("#"+id).data("chart",e);
                 $("#"+id).EChartNew();

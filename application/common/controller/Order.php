@@ -18,6 +18,12 @@ class Order extends FormBase
             'name' => '待付款',
             'url' => url('index', ['pay_status' => 0]),
         ];
+        if ($this->adminUser['store_type']!=STORE_DEALER) {
+            $this->subMenu['menu'][] = [
+                'name' => '待发货',
+                'url' => url('index', ['delivery_status' => 0]),
+            ];
+        }
         $this->subMenu['menu'][] = [
             'name' => '已完成',
             'url' => url('index', ['finish_status' => 1]),
@@ -139,15 +145,16 @@ class Order extends FormBase
                 $this->success('订单发货成功', url('detail', ['order_sn' => $orderSn]));
             }
         }else{
+            $this->subMenu['menu']=[];
             $this->assign('deliverys', get_delivery());
             $this->subMenu['menu'][] = [
-                'name' => '订单查看',
-                'url' => url('detail', ['order_sn' => $orderSn]),
+                'name' => '查看订单',
+                'url'  => url('detail', ['order_sn' => $orderSn]),
             ];
-            $this->subMenu['menu'][] = [
-                'name' => '订单产品发货',
-                'url' => url('delivery', $routes),
-            ];
+            //$this->subMenu['menu'][] = [
+            //    'name' => '订单产品发货',
+            //    'url' => url('delivery', $routes),
+            //];
             $order = $this->model->checkOrder($orderSn, $this->adminUser);
             if ($order === FALSE) {
                 $this->error($this->model->error);
@@ -199,8 +206,7 @@ class Order extends FormBase
     function _afterList($list)
     {
         if ($list) {
-            $flag = in_array($this->adminUser['admin_type'], [ADMIN_CHANNEL, ADMIN_DEALER,ADMIN_SERVICE_NEW]) ? TRUE : FALSE;
-            $list = $this->model->getOrderList($list, $flag);
+            $list = $this->model->getOrderList($list);
         }
         return $list;
     }
@@ -269,7 +275,7 @@ class Order extends FormBase
     protected function _buildmap($param = []){
         $params = $this->request->param();
         $map = [
-            'order_type' => 1,
+            //'order_type' => 1,
         ];
         if(isset($param['pay_status'])){
             $map['O.order_status'] = 1;
@@ -279,13 +285,15 @@ class Order extends FormBase
                 $map['O.delivery_status'] = 2;
             }else{
                 $map['O.delivery_status'] = ['IN', [1,0]];
+                $map['O.user_store_type'] = ['<>',STORE_FACTORY];
             }
             $map['O.pay_status'] = 1;
             $map['O.finish_status'] = 0;
             $map['O.order_status'] = 1;
         }elseif(isset($param['finish_status'])){
-            $map['O.finish_status'] = 2;
             $map['O.order_status'] = 1;
+            $map['O.pay_status'] = 1;//确认收款
+            $map['O.finish_status'] = 2;//确认收款
         }elseif(isset($param['order_status'])){
             $map['O.order_status'] = $param['order_status'];
         }

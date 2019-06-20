@@ -1,6 +1,7 @@
 <?php
 namespace app\common\controller;
 use app\common\controller\CommonBase;
+use app\common\model\WorkOrder;
 use think\facade\Env;
 use think\facade\Request;
 /**
@@ -220,9 +221,10 @@ class Index extends CommonBase
         $storeModel = new \app\common\model\Store();
         $workOrderModel = new \app\common\model\WorkOrder();
         $userInstallerModel = new \app\common\model\UserInstaller();
-        $today = $total = $orderOverview = $orderStatistics = $worderOverview = $worderStatistics = [];
+        $today = $total = $orderOverview = $orderStatistics = $worderOverview = $worderStatistics =$worderAssess= [];
         $beginToday = mktime(0,0,0,date('m'),date('d'),date('Y')); //今日开始时间戳
-        
+
+        $channelId=0;
         switch ($adminType) {
             case ADMIN_FACTORY:
                 $tpl = 'factory';
@@ -232,25 +234,46 @@ class Index extends CommonBase
                     ['store_id','=',$storeId],
                     ['order_status','<>',2],
                     ['pay_status','=',1],
+                    ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
-                $todayOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                //电商
+                $whereECommerce='add_time>='.$beginToday.' AND pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
+                $whereFenxiao='add_time>='.$beginToday.' AND  store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+                $todayOrder = db('order')
+                    ->field('count(*) as order_count,sum(real_amount) as order_amount')
+                    ->where($where)
+                    ->whereOrRaw($whereFenxiao)
+                    ->whereOrRaw($whereECommerce)
+                    ->find();
+                //p($todayOrder);
                 //今日订单数
                 $today['order_count'] = $todayOrder && isset($todayOrder['order_count']) ? intval($todayOrder['order_count']) : 0;
                 //今日订单金额
                 $today['order_amount'] = $todayOrder && isset($todayOrder['order_amount']) ? sprintf("%.2f",($todayOrder['order_amount'])) : 0;
-                
+
                 //累计订单数据统计
                 $where = [
-                    ['store_id','=',$storeId],
+                    ['factory_id','=',$this->adminUser['factory_id']],
                     ['order_status','<>',2],
                     ['pay_status','=',1],
+                    ['user_store_type','IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
-                $totalOrder = $orderModel->field('count(*) as order_count, sum(real_amount) as order_amount')->where($where)->find();
+                //电商
+                $whereECommerce='pay_status=1 AND order_status=1 AND user_store_type='.STORE_FACTORY.' AND factory_id='.$this->adminUser['factory_id'];
+                //分销订单
+                $whereFenxiao='store_id='.$storeId.' AND order_type=2 AND pay_status=1 AND order_status<>2 AND udata_id>0 AND factory_id='.$this->adminUser['factory_id'];
+                $totalOrder = db('order')
+                    ->field('count(*) as order_count,sum(real_amount) as order_amount')
+                    ->where($where)
+                    ->whereOrRaw($whereFenxiao)
+                    ->whereOrRaw($whereECommerce)
+                    ->find();
                 //累计订单数
                 $total['order_count'] = $totalOrder && isset($totalOrder['order_count']) ? intval($totalOrder['order_count']) : 0;
                 //累计订单金额
                 $total['order_amount'] = $totalOrder && isset($totalOrder['order_amount']) ? sprintf("%.2f",($totalOrder['order_amount'])) : 0;
-                
+                //p($total);
+
                 //今日新增零售商数量
                 $where = [
                     ['factory_id','=',$storeId],
@@ -267,8 +290,8 @@ class Index extends CommonBase
                 ];
                 $field = 'count(if(store_type = '.STORE_CHANNEL.', true, NULL)) as channel_count';
                 $field .= ', count(if(store_type = '.STORE_DEALER.', true, NULL)) as dealer_count';
-                $field .= ', count(if(store_type = '.STORE_SERVICE.', true, NULL)) as service_count';
-                $field .= ', sum(if(store_type = '.STORE_CHANNEL.' OR store_type = '.STORE_SERVICE.', security_money, 0)) as security_money_total';
+                $field .= ', count(if(store_type in ('.STORE_SERVICE.','.STORE_SERVICE_NEW.'), true, NULL)) as service_count';
+                $field .= ', sum(if(store_type IN('.STORE_CHANNEL.','.STORE_SERVICE_NEW.','.STORE_SERVICE.'), security_money, 0)) as security_money_total';
                 $totalStore = $storeModel->field($field)->where($where)->find();
                 //累计渠道商数量
                 $total['channel_count'] = $totalStore && isset($totalStore['channel_count']) ? intval($totalStore['channel_count']) : 0;
@@ -293,10 +316,10 @@ class Index extends CommonBase
                 $where = [
                     ['S.factory_id','=',$storeId],
                     ['S.is_del','=',0],
-                    ['S.store_type','IN',[STORE_CHANNEL, STORE_SERVICE]],
+                    ['S.store_type','IN',[STORE_CHANNEL, STORE_SERVICE,STORE_SERVICE_NEW]],
                 ];
                 $field = ' sum(if(store_type = '.STORE_CHANNEL.', withdraw_amount, 0)) as channel_withdraw_amount';
-                $field .= ', sum(if(store_type = '.STORE_SERVICE.', withdraw_amount, 0)) as servicer_withdraw_amount';
+                $field .= ', sum(if( store_type IN  ('.STORE_SERVICE.','.STORE_SERVICE_NEW.'), withdraw_amount, 0)) as servicer_withdraw_amount';
                 $totalStore = $storeModel->alias('S')->field($field)->join($join)->where($where)->find();
                 //渠道商累计提现金额
                 $total['channel_withdraw_amount'] = $totalStore && isset($totalStore['channel_withdraw_amount']) ? floatval($totalStore['channel_withdraw_amount']) : 0;
@@ -351,6 +374,16 @@ class Index extends CommonBase
                 $total['sign_count_1'] = $workOrderData ? intval($workOrderData['sign_count_1']) : 0;
                 $total['post_count_2'] = $workOrderData ? intval($workOrderData['post_count_2']) : 0;
                 $total['sign_count_2'] = $workOrderData ? intval($workOrderData['sign_count_2']) : 0;
+
+                //服务商列表
+                $store = db('store')->field('store_id,name')->where([
+                    'factory_id'   => $this->adminUser['store_id'],
+                    'store_type'   => ['IN',[STORE_SERVICE,STORE_SERVICE_NEW]],
+                    'status'       => 1,
+                    'is_del'       => 0,
+                    'check_status' => 1,
+                ])->select();
+                $this->assign('service',$store);
                 break;
             case ADMIN_CHANNEL:
                 $tpl = 'channel';
@@ -446,6 +479,7 @@ class Index extends CommonBase
                 break;
             case ADMIN_SERVICE:
                 $tpl = 'servicer';
+                $channelId=$storeId;
                 //今日佣金收益
                 $join=[
                     ['store S','C.store_id = S.store_id','INNER'],
@@ -492,6 +526,7 @@ class Index extends CommonBase
                 break;
             case ADMIN_SERVICE_NEW:
                 $tpl = 'servicer2';
+                $channelId=$storeId;
                 $where = [
                     ['store_id','=',$storeId],
                     ['is_del','=',0],
@@ -589,15 +624,21 @@ class Index extends CommonBase
                 $worderStatistics = $this->workOrderIncome($from, $to, $storeId,$isRaw);
             }
         }
-        return [
-            'tpl'   => $tpl,
-            'today' => $today, 
-            'total' => $total, 
-            'order_overview'    => $orderOverview, 
-            'order_statistics'  => $orderStatistics, 
-            'worder_overview'   => $worderOverview, 
-            'worder_statistics' => $worderStatistics
+        $result=[
+            'tpl'               => $tpl,
+            'today'             => $today,
+            'total'             => $total,
+            'order_overview'    => $orderOverview,
+            'order_statistics'  => $orderStatistics,
+            'worder_overview'   => $worderOverview,
+            'worder_statistics' => $worderStatistics,
         ];
+        if (in_array($adminType, [ADMIN_SERVICE, ADMIN_SERVICE_NEW, ADMIN_FACTORY])) {
+            $worderAssess=$this->work_order_assess($from, $to,$user, $channelId,$isRaw);
+            $result['worder_assess']=json_encode($worderAssess['assess']);
+            $result['worder_score']=json_encode($worderAssess['assess_score']);
+        }
+        return $result;
     }
     
     //订单概况
@@ -1056,6 +1097,140 @@ class Index extends CommonBase
             return $this->ajaxJsonReturn($result);
         }else{
             return json_encode($result);
+        }
+    }
+
+    //工单评价统计
+    public function work_order_assess($from,$to,$user,$storeId,$isRaw=false)
+    {
+        $result=[
+            'assess'=>[],
+            'assess_score'=>[],
+        ];
+        if (!in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW,ADMIN_FACTORY])) {
+            return $result;
+        }
+        $from=strtotime($from);
+        $to=strtotime($to);
+        $where=[
+            ['p1.is_del','=',0],
+            ['p1.work_order_status','=',4],
+            ['p1.add_time','>=',$from],
+            ['p1.add_time','<=',$to],
+        ];
+        if (in_array($user['admin_type'],[ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $where[]=['p1.store_id','=',$user['store_id']];
+        } elseif ($user['admin_type']==ADMIN_FACTORY) {
+            $where[]=['p1.factory_id','=',$user['store_id']];
+        }
+        $data=db('work_order')
+            ->alias('p1')
+            ->fieldRaw('COUNT(*) worder_total, COUNT(p2.assess_id) worder_assess')
+            ->join('work_order_assess p2','p1.worder_id = p2.worder_id AND p2.is_del = 0 AND p2.type = 1','LEFT')
+            ->where($where)
+            ->find();
+        $perent = $data['worder_total'] > 0 ? round($data['worder_assess'] / $data['worder_total'],2) * 100 : 0;
+        $chartData=[
+            ['name'=>'已评价工单','value'=>$data['worder_assess']],
+            ['name'=>'未评价工单','value'=>$data['worder_total']-$data['worder_assess']],
+        ];
+        if ($isRaw) {
+            $result['assess']=$chartData;
+        }else{
+            $color=['#009688','#2db2ea'];
+            $label='工单评价';
+            $chart=new\app\common\service\Chart('pie',[''],$label,$chartData,$color,false);
+            $result['assess']=$chart->getOption();
+
+            //补充参数
+            $result['assess']['title']=[
+                'text'=>'已评价工单'.$perent.'%('.$data['worder_assess'].'/'.$data['worder_total'].')',
+                'subtext'=>'',
+                'left'=>'left',
+            ];
+            //说明
+            $result['assess']['legend']=[
+                'orient'=>'vertical',
+                'left'=>'left',
+                'padding'=>[50,0,0,0],
+                'data'=>['已评价工单','未评价工单'],
+            ];
+            //中心圈
+            //$result['assess']['series']['label']['emphasis'] = [
+            //    'show'      => true,
+            //    'textStyle' => [
+            //        'fontSize'   => 30,
+            //        'fontWeight' => 'bold',
+            //    ],
+            //];
+        }
+        $result['assess_score']=[];
+        $workOrder=new WorkOrder;
+        $ret=$workOrder->getServiceStaticsDuring($storeId,$user['factory_id'],$from,$to);
+        if ($ret['code'] !== '0') {
+            $ret['data']['score_overall']=0;
+            $title=$workOrder->getAccessTitle($user['factory_id']);
+            if ($title['code'] === '0') {
+                $ret['data']['score_detail']=array_map(function ($item) {
+                    return [
+                        'name'  => $item,
+                        'value' => 0,
+                    ];
+                },$title['data']);
+                $ret['data']['score_detail'][]=['name'=>'解决率','value'=>0];
+            }
+        }
+
+        if ($isRaw) {
+            $result['assess_score']=$ret['data']?? [];
+        }else{
+            //评分统计
+            $legend=[];//大标题
+            $label='';
+            $chartData=[];
+            //大标题样式
+            $chartData['radar']['name']['textStyle']=[
+                'color'=>'#fff',
+                'backgroundColor'=>'#999',
+                'borderRadius'=>3,
+                'padding'=> [3, 5],
+            ];
+            //小标题
+            $chartData['radar']['indicator']=[];
+            $arr=[];
+            foreach ($ret['data']['score_detail'] as $value) {
+                $val=round($value['value'],2);
+                $arr[]=$val;
+                $chartData['radar']['indicator'][]=[
+                    'name'=>$value['name'],
+                    'max'=>5
+                ];
+            }
+            //雷达数据
+            $chartData['series'] = [
+                [
+                    'name'  => '',
+                    'value' => $arr,
+                    'label'=>[
+                        'normal'=>[
+                            'show'=>true
+                        ],
+                    ],
+                ],
+            ];
+            $chart2=new\app\common\service\Chart('radar',$legend,$label,$chartData,$color,false);
+            $result['assess_score']=$chart2->getOption();
+            //补充参数-大标题
+            $result['assess_score']['title']=[
+                'text'=>"综合评分".$ret['data']['score_overall'],
+                'subtext'=>'',
+                'left'=>'left',
+            ];
+        }
+        if(IS_AJAX){
+            return $this->ajaxJsonReturn($result);
+        }else{
+            return $result;
         }
     }
 }

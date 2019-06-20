@@ -36,6 +36,73 @@ class Store extends Model
         }
         return parent::save($data, $where);
     }
+
+    public function notify($data,$user)
+    {
+        if (in_array($data['store_type'], [STORE_DEALER]) && (!isset($data['ostore_id']) || $data['ostore_id']<=0) ) {
+            return false;
+        }
+        if (isset($data['check_status']) && $data['check_status']==1) {
+            return false;
+        }
+        //发送工单通知给服务商
+        $push = new \app\common\service\PushBase();
+        $todoData = [
+            'type'          => 4,//1首次工单分派，2重新发派工单，3线下收款确认，4商户审核，5.....
+            'store_id'      => in_array($data['store_type'], [STORE_DEALER]) ? $data['ostore_id'] : $data['factory_id'],
+            'post_store_id' => $data['store_id'],
+            'post_user_id'  => $user['user_id'],
+            'title'         => '【审核】' . $data['user_name'] . '提交了' . get_store_type($data['store_type']) . '申请，请予以审核',
+        ];
+        $todoModel = new Todo($todoData);
+        $todoModel->save();
+        $todoId = $todoModel->id;
+        if (!$todoId) {
+            $this->error='系统故障';
+            return false;
+        }
+        $todoModel->url=url($data['store_type'] == STORE_DEALER ? 'store/check' : 'store/service_check', ['id' => $data['store_id'],'todo_id'=>$todoId]);
+        $todoModel->save();
+        $addTime = time();
+        $sendData = [
+            'type'            => 'store',
+            'title'           => $todoData['title'],
+            'url'             => $todoModel->url,
+            'todo_id'         => $todoId,
+            'todo_type'       => $todoData['type'],
+            'add_time'        => getTime($addTime),
+        ];
+        $result = db('store')->where(['store_id' => $data['store_id']])->update([
+            'todo_id'     => $todoId,
+            'update_time' => time(),
+        ]);
+        if ($result === false) {
+            $this->error='系统故障';
+            return false;
+        }
+        //在线推送
+        $push->sendToGroup('store'.$todoData['store_id'], json_encode($sendData));
+        return true;
+        //短信通知
+        //$store = db('store')->alias('p1')
+        //    ->field('p2.user_id,p1.mobile')
+        //    ->join('user p2', 'p1.store_id=p2.store_id')
+        //    ->where(['p2.store_id' => $todoData['store_id']])
+        //    ->find();
+        //if (!empty($store) && !empty($store['mobile']) && check_mobile($store['mobile'])) {
+        //    $param = [
+        //        'phone'         => $store['mobile'],
+        //        'user_id'       => $store['user_id'],
+        //        'workOrderType' => $worder['work_order_type'],
+        //        'worderSn'      => $worder['worder_sn'],
+        //        'installerName' => $installer['realname'],
+        //    ];
+        //    $informModel = new \app\common\model\LogInform();
+        //    $informModel->sendInform($worder['factory_id'], 'sms', $param, 'service_work_order_refuse');
+        //}
+
+    }
+
     public function del($storeId = 0, $user = [], $check = TRUE)
     {
         if (!$storeId) {

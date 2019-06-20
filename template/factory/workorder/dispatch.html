@@ -7,7 +7,6 @@
             <div class="panel admin-box active">
                 <div class="panel-head" >
                     <div class="tab-head">
-                        <!--<strong>[{$orderTypes[$info.work_order_type]}] 指派售后工程师</strong>-->
                         <ul class="tab-nav">
                             <li class="active"><a href="#tab-1"><strong>[{$orderTypes[$info.work_order_type]}] 指派售后工程师</strong></a></li>
                         </ul>
@@ -15,6 +14,7 @@
                 </div>
                 <div class="tab-body">
                     <div class="tab-panel active" id="tab-1">
+                        <input type="hidden" value="{$info.todo_id?? ''}"  id="todo_id">
                         <div class="form-group">
                             <div class="label">
                                 <label>客户名称</label>
@@ -54,11 +54,26 @@
     </form>
 </div>
 
-
-
 <script>
-    Do.ready('base', function () {
+    Do.ready('base', 'dialog', function () {
         //表单综合处理
-        $('#form').FormPage();  
-    }); 
+        $('#form').FormPage({
+            // returnFun: function (data) {
+            //     var todoId = $('#todo_id').val();
+            //     if (data.code && todoId) {
+            //         window.parent.removeTodo('todo-id-' + todoId);
+            //     }
+            //     layer.msg(data.msg, {
+            //         time:1000,
+            //         end: function () {
+            //             if (data.url == null || data.url == '') {
+            //                 window.location.reload();
+            //             } else {
+            //                 window.location.href = data.url;
+            //             }
+            //         }
+            //     });
+            // }
+        });
+    });
 </script>

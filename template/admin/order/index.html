@@ -67,9 +67,9 @@
               <td>{$vo.address_phone}</td>
               <td>{$vo.address_detail}</td> -->
               <td>{$vo['add_time']|date="Y-m-d H:i:s"}</td>
-              <td>{$vo['_status']['status_text']}</td>
+              <td>{:get_order_status($vo)['status_text']}</td>
               <td>
-              	{if ($vo['pay_status'])}
+              	{if ($vo['pay_status'] && $vo['user_store_type']!=$Think.const.STORE_SERVICE_NEW )}
               	{$vo['_apply_status']['status_text']|raw}
               	{/if}
               </td>
@@ -96,6 +96,9 @@
                         {else /}
 <!--                        <a href="{:url('detail', ['order_sn' => $vo['order_sn'],'tab'=>2])}" class="button button-small bg-red js-open" title="申请安装">申请安装</a>-->
                         {/if}
+	              	{/if}
+                    {if condition="check_auth('order','delivery') && $vo['pay_status'] == 1 &&  $vo['delivery_status'] !=2 && $vo['user_store_type'] !=$Think.const.STORE_FACTORY"}
+	              		<a href="{:url('delivery', ['order_sn' => $vo['order_sn']])}"  class="button button-small bg-yellow icon-edit"> 选择发货</a>
 	              	{/if}
               	</span>
               </td>

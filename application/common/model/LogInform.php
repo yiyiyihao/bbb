@@ -96,6 +96,25 @@ class LogInform extends Model
                     'name' => $name,
                 ];
             break;
+            case 'service_work_order_add':
+                $type=$toUser['workOrderType']==1?"安装":"维修";
+                $content = $templateContent ? str_replace('${workOrderType}', $type, $templateContent) : '';
+                $content = $content ? str_replace('${worderSn}', $toUser['worderSn'], $content) : '';
+                $param = [
+                    'workOrderType' => $type,
+                    'worderSn' => $toUser['worderSn'],
+                ];
+                break;
+            case 'service_work_order_refuse':
+                $content = $templateContent ? str_replace('${workOrderType}', get_work_order_type($toUser['workOrderType']), $templateContent) : '';
+                $content = $content ? str_replace('${worderSn}', $toUser['worderSn'], $content) : '';
+                $content = $content ? str_replace('${installerName}', $toUser['installerName'], $content) : '';
+                $param = [
+                    'worderSn'      => $toUser['worderSn'],
+                    'workOrderType' => get_work_order_type($toUser['workOrderType']),
+                    'installerName' => $toUser['installerName'],
+                ];
+                break;
             default:
                 $this->error = lang('PARAM_ERROR');
                 return FALSE;

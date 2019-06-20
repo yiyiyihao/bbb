@@ -1,0 +1,144 @@
+<form method="post" class="form-x admin-form form-auto" id="form">
+    <div class="tab admin-tab boxShadow">
+        <div class="panel admin-box fixed-pannel active">
+            <div class="panel-head">
+                <div class="tab-head">
+                    <strong>新增客户</strong>
+                </div>
+            </div>
+            <div class="tab-body">
+                <div class="tab-panel active" id="tab-1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户名称</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" name="realname" datatype="*" value="{$info.realname?? ''}">
+                            <div class="input-note">请填写客户名称</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户联系电话</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input"  name="mobile" datatype="m" value="{$info.mobile?? ''}">
+                            <div class="input-note">请填写联系电话</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>客户地址</label>
+                        </div>
+                        <div class="field">
+                            <div class="js-select-child" posturl="{:url('Region/getAjaxList')}" formlength="2" formname="region_id" formvalue='{$info.region_id|default=""}' formstr="{$info.region_name|default=''}" validtype='*'></div>
+                            <input type="text" class="input mt5" id="address" name="address" size="60" datatype="*" value="{$info['address'] ?? ''}">
+                            <div class="input-note">请完善客户地址</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>意向商品</label>
+                        </div>
+                        <div class="field">
+                            <input type="hidden" class="input" id="goods_id" name="goods_id"  value="{$info.goods_id?? ''}">
+                            <div style="margin-bottom: 10px;"><img src="{$info.img_url|default='/static/base/images/default.png'}" id="img_url" width="120"></div>
+                            <span class="layui-btn layui-btn-sm choose-goods">选择商品</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>预计成交时间</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="input js-time"   name="deal_close_time" size="20" value="{:time_to_date($info.deal_close_time?? '','Y/m/d H:i')}" placeholder="请选择预计成交时间">
+                            <div class="input-note">请填写预计成交时间</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>预计成交金额</label>
+                        </div>
+                        <div class="field">
+                            <input type="number" size="40" class="input"  name="deal_amount" datatype="*" value="{$info.deal_amount?? ''}">
+                            <div class="input-note">请填写预计成交金额</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>排序</label>
+                        </div>
+                        <div class="field">
+                            <input type="text" size="40" class="input" name="sort_order" datatype="n" value="{$info.sort_order?? '0'}">
+                            <div class="input-note"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>备注</label>
+                        </div>
+                        <div class="field">
+                            <textarea class="input" datatype="*0-255" name="remark" rows="5" cols="60">{$info.remark??""}</textarea>
+                            <div class="input-note">请输入备注</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-foot">
+                <div class="form-button">
+                    <button class="button bg-main" type="submit">保存</button>
+                    <button class="button bg" type="reset">重置</button>
+                    <div id="tips"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    Do.ready('base', 'dialog', function () {
+        //表单综合处理
+        $('#form').FormPage();
+        $('#form').find('.choose-goods').click(function (event) {
+            $.post('/purchase/goods',{},function (data) {
+                if (data.code !== '0') {
+                    layer.msg(data.msg);
+                    return false;
+                }
+                var html='<div class="box-table"><table class="layui-table"><colgroup><col width="60"><col width="100"><col><col width="100"></colgroup><thead><tr><th>序号</th><th>商品</th><th>商品名</th><th>操作</th></tr></thead><tbody>';
+                var goodsId=parseInt($('#goods_id').val());
+                data['data'].forEach(function(value,index,array){
+                    html+=
+                        '<tr>' +
+                            '<td>'+(index+1)+'</td>' +
+                            '<td><img src="'+value['thumb']+'" alt="" width="50"></td>' +
+                            '<td>'+value['name']+'</td>' +
+                            '<td><span class="layui-btn layui-btn-sm '+(goodsId==value['goods_id']? "layui-btn-disabled":"")+' make-choice" data-goods_id="'+value['goods_id']+'">选择</span></td>' +
+                        '</tr>';
+                });
+                html+='</tbody></table></div>';
+                index=layer.open({
+                    type:1,
+                    title:'选择商品',
+                    content:html,
+                    area: '600px'
+                });
+                $('.make-choice').click(function () {
+                    var goods_id=parseInt($(this).data('goods_id'));
+                    if (goods_id !== goodsId) {
+                        var imgUrl=$(this).parents('tr').find('img').attr('src');
+                        $('#goods_id').val(goods_id);
+                        $('#img_url').attr('src',imgUrl);
+                        // console.log('close !');
+                        layer.close(index);
+                    }
+                });
+            });
+        });
+
+    });
+</script>
+<style>
+    .box-table{padding: 10px;}
+</style>

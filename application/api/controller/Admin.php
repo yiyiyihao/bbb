@@ -10,6 +10,9 @@ class Admin extends Index
     protected $version;
     protected $returnLogin = TRUE;
     protected $debug = FALSE;
+    protected $paginate=true;
+    use Dealer;
+
     public function __construct(){
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
         header('Access-Control-Allow-Origin:'.$origin);
@@ -213,9 +216,9 @@ class Admin extends Index
         }
         //微信用户绑定
         $data = [
-            'user_id' => $userId,
+            'user_id' => $user['user_id'],
             'update_time' => time(),
-            'phone' => $phone,
+            'phone' => $user['phone'],
         ];
         $result = $userDataModel->where(['udata_id' => $udata['udata_id']])->update($data);
         $this->_setLogin($user['user_id'], $udata['third_openid']);
@@ -423,8 +426,10 @@ class Admin extends Index
         if ($result === false) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('SYSTEM_ERROR')]);
         }
+        $params['store_id']=$storeId;
+        $storeModel->notify($params,$user);
         $source=session('api_source');
-        $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待厂商审核', 'errLogin' => 4,'source'=>$source]);
+        $this->_returnMsg(['msg' => '入驻申请成功,请耐心等待'.($storeType==STORE_DEALER? "服务商":"厂商").'审核', 'errLogin' => 4,'source'=>$source]);
     }
     
     protected function getStoreApplyInfo()
@@ -1348,7 +1353,7 @@ class Admin extends Index
 
     private function getGoodsInfo($goodsId,$user)
     {
-        $field = 'G.goods_id,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
+        $field = 'G.goods_id,G.name,G.goods_sn,G.thumb,G.imgs,G.goods_stock,G.sales,G.content';
         $join=[];
         if ($user['admin_type'] == ADMIN_DEALER) {
             $channelId=$this->getChanelId($user['store_id']);
@@ -1498,7 +1503,8 @@ class Admin extends Index
         $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
         $orderModel = new \app\common\model\Order();
         $submit = isset($this->postParams['submit']) && $this->postParams['submit'] ? TRUE : FALSE;
-        $result = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, [], $remark);
+        $orderType = 1;//1 直销，2分销
+        $result = $orderModel->createOrder($user, 'goods', $skuId, $num, $submit, [], $remark,$orderType);
         if ($result === FALSE) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => $orderModel->error]);
         }
@@ -1508,6 +1514,45 @@ class Admin extends Index
             $this->_returnMsg(['datas' => $result]);
         }
     }
+
+    //线下支付
+    public function offLinePay()
+    {
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_CHANNEL,ADMIN_SERVICE_NEW,ADMIN_DEALER])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '管理员类型错误']);
+        }
+        $orderSn = isset($this->postParams['order_sn']) ? trim($this->postParams['order_sn']) : '';
+        $remark = isset($this->postParams['remark']) ? trim($this->postParams['remark']) : '';
+        $paySn = isset($this->postParams['pay_sn']) ? trim($this->postParams['pay_sn']) : '';
+        $imgUrl = isset($this->postParams['img_url']) ? trim($this->postParams['img_url']) : '';
+        if (!$orderSn) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单编号不能为空']);
+        }
+        $orderModel = new \app\common\model\Order();
+        $order=$orderModel->where(['order_sn'=>$orderSn,'order_status'=>1])->find();
+        if (empty($order)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单不存在']);
+        }
+        if ($order['pay_status']!=0) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付']);
+        }
+        $order->pay_type = 2;
+        $order->order_type = 2;
+        $order->pay_code = 'offline_pay';
+        $order->remark = $remark;
+        $order->pay_sn = $paySn;
+        $order->pay_certificate = $imgUrl;
+        $order->update_time = time();
+        if ($order->save() === false) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '订单已支付失败']);
+        } else {
+            $data = db('order')->where(['order_sn' => $orderSn])->find();
+            $orderModel->notify($user, $data);
+            $this->_returnMsg(['errCode' => 0, 'errMsg' => '订单提交成功，等待确认']);
+        }
+    }
+
     //支付订单
     protected function payOrder()
     {
@@ -1542,7 +1587,8 @@ class Admin extends Index
         if (!$order['openid']) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '微信用户openid不能为空']);
         }
-        $paymentApi = new \app\common\api\PaymentApi($order['store_id'], 'wechat_js');
+        $payCode  = isset($this->postParams['pay_code']) ? trim($this->postParams['pay_code']) : 'wechat_js';
+        $paymentApi = new \app\common\api\PaymentApi($order['store_id'], $payCode);
         if (!$paymentApi->config) {
             $this->_returnMsg(['errCode' => 1, 'errMsg' => '未配置当前支付方式']);
         }
@@ -1552,6 +1598,46 @@ class Admin extends Index
         }
         $this->_returnMsg(['data' => $result]);
     }
+    
+    /**
+     * 获取支付方式列表
+     */
+    protected function getPaymentList()
+    {
+        $orderModel = new \app\common\model\Order();
+        $user = $this->_checkUser();
+        if (!in_array($user['admin_type'], [ADMIN_DEALER,ADMIN_SERVICE,ADMIN_SERVICE_NEW])) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => lang('NO_OPERATE_PERMISSION')]);
+        }
+        $storeId=0;
+        $storeName='';
+        if ($user['store_type'] == STORE_DEALER) {
+            $storeName='服务商';
+            //如果是零售商,取得零售商的上级服务商的支付方式配置
+            $channel=db('store_dealer')
+                ->alias('p1')
+                ->field('p1.ostore_id')
+                ->join('store p2','p1.ostore_id=p2.store_id')
+                ->where(['p1.store_id'=>$user['store_id'],'p2.is_del'=>0,'status'=>1])
+                ->find();
+            $storeId=$channel['ostore_id'];
+        }else{
+            $storeName='厂商';
+            $storeId=$user['factory_id'];
+        }
+
+        $payments=db('payment')->field('name,pay_code')->where([
+            ['store_id','=',$storeId],
+            ['is_del','=',0],
+            ['status','=',1],
+            ['pay_code','IN',['wechat_js','offline_pay']],
+        ])->select();
+        if (empty($payments)) {
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => $storeName . '未配置支付信息']);
+        }
+        $this->_returnMsg(['data' => $payments]);
+    }
+    
     //获取订单列表
     protected function getOrderList()
     {
@@ -1571,7 +1657,7 @@ class Admin extends Index
             }
         }
         $where = [
-            'order_type' => 1,
+            //'order_type' => 1,
         ];
         if ($status > 0) {
             switch ($status) {
@@ -1580,7 +1666,7 @@ class Admin extends Index
                     $where['pay_status'] = 0;
                     break;
                 case 2://已完成
-                    $where['finish_status'] = 2;
+                    $where['pay_status'] = 1;
                     $where['order_status'] = 1;
                     break;
                 case 3://已关闭(取消或已关闭)
@@ -1604,7 +1690,7 @@ class Admin extends Index
         }
         
         $order = 'add_time DESC';
-        $field = 'order_id, store_id, order_type, order_sn, real_amount, pay_code, order_status, pay_status, delivery_status, finish_status, add_time, close_refund_status';
+        $field = 'order_id,store_id,user_store_type,order_type,order_sn,delivery_type,real_amount,pay_code,order_status,pay_status,delivery_status,finish_status,add_time,close_refund_status';
         $list = $this->_getModelList(db('order'), $where, $field, $order);
         $result=[];
         if ($list) {

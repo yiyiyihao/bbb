@@ -58,7 +58,7 @@ class Fenxiao extends Admin
             #TODO DELETE
             ['promot_id', '<>', 1],
         ];
-        $order = 'add_time ASC';
+        $order = 'add_time DESC';
         $field = 'promot_id, promot_type, name, cover_img, start_time, end_time, status';
         $result = $this->_getModelList($promotionModel, $where, $field, $order);
         if ($result && isset($result)) {
@@ -145,7 +145,8 @@ class Fenxiao extends Admin
         $join = [
             ['promotion_join PJ', 'PJ.promot_id = P.promot_id AND PJ.is_del=0 AND distrt_id = '.$loginUser['distributor']['distrt_id'], 'LEFT'],
         ];
-        $order = 'P.add_time ASC';
+        $order = 'P.add_time DESC';
+        
         $field = 'P.promot_id, P.name, P.cover_img, P.start_time, P.end_time, P.add_time, P.status, PJ.join_id';
         $result = $this->_getModelList(model('Promotion'), $where, $field, $order, $alias, $join);
         if ($result) {
@@ -435,7 +436,7 @@ class Fenxiao extends Admin
         $order = 'UDC.add_time DESC';
         $field = 'UD.nickname, UD.avatar';
         $field .= ', O.order_sn, real_amount';
-        $field .= ', O.order_type, O.pay_type, O.order_sn, O.real_amount, O.order_status, O.pay_status, O.delivery_status, O.finish_status';
+        $field .= ', O.order_type, O.pay_type,O.user_store_type,O.order_sn, O.real_amount, O.order_status, O.pay_status, O.delivery_status, O.finish_status,O.user_store_type,O.delivery_type';
         $field .= ', sku_name, sku_thumb, sku_spec, num, real_price';
         $field .= ', UDC.value as commission_amount, UDC.commission_status, O.add_time';
         $alias = 'UDC';
@@ -447,6 +448,9 @@ class Fenxiao extends Admin
         $result = $this->_getModelList(model('user_distributor_commission'), $where, $field, $order, $alias, $join);
         if ($result && isset($result)) {
             foreach ($result as $key => $value) {
+                if(is_object($value)){
+                    $value = $value->toArray();
+                }
                 if ($value['commission_status'] !== 0) {
                     $text = get_commission_status($value['commission_status']);
                 }else{
@@ -845,7 +849,7 @@ class Fenxiao extends Admin
             $where[] = ['order_status', '=', 1];
         }
         $order = 'add_time DESC';
-        $field = 'order_id, order_type, pay_type, order_sn, real_amount, order_status, pay_status, delivery_status, finish_status';
+        $field = 'order_id, order_type, pay_type, order_sn, real_amount, order_status, user_store_type, delivery_type,  pay_status, delivery_status, finish_status';
         $result = $this->_getModelList(model('order'), $where, $field, $order);
         if ($result && isset($result)) {
             $orderSkuModel = model('OrderSku');
@@ -856,7 +860,7 @@ class Fenxiao extends Admin
                 ];
                 $result[$key]['skus'] = $orderSkuModel->where($map)->field('goods_id, sku_name, sku_thumb, sku_spec, num, real_price')->select();
                 $result[$key]['_status'] = get_order_status($value);
-                unset($result[$key]['order_id'], $result[$key]['order_type']);
+                unset($result[$key]['order_id'], $result[$key]['order_type'], $result[$key]['user_store_type'], $result[$key]['delivery_type']);
             }
         }
         $this->_returnMsg(['list' => $result]);
@@ -900,6 +904,7 @@ class Fenxiao extends Admin
             $this->_returnMsg(['errCode' => 1, 'errMsg' => 'Appid/AppSecret配置不能为空']);
         }
         $url = $url ? $url : 'http://h5.imliuchang.cn/everyone';
+        $url = $url ? $url : 'http://m.smarlife.cn/everyone';
         $uri = urlEncode($url);
         $scopeUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' . $appid . '&redirect_uri=' . $uri . '&response_type=code&scope=snsapi_userinfo&state='.$state.'#wechat_redirect';
         $this->_returnMsg(['scopeUrl' => $scopeUrl, 'errLogin' => 1]);
@@ -956,7 +961,7 @@ class Fenxiao extends Admin
         }
         $udata = model('UserData')->where('openid', $openid)->find();
         if (!$udata) {
-            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在']);
+            $this->_returnMsg(['errCode' => 1, 'errMsg' => '用户不存在', 'errLogin' => 1]);
         }
         $user = $oauth = [
             'openid' => $udata['openid'],
